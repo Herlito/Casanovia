@@ -58,9 +58,6 @@ export const EventDetails: React.FC = () => {
                 </span>
               </div>
 
-              <span className="text-[11px] font-bold text-[#8B3A4A] uppercase tracking-wider block mb-1">
-                Paso 1 • Sacramento Matrimonial
-              </span>
               <h3 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26] mb-2">
                 Ceremonia Religiosa
               </h3>
@@ -132,7 +129,7 @@ export const EventDetails: React.FC = () => {
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5" />
-                    <span>Copiar dirección para Uber / Taxi</span>
+                    <span>Copiar dirección para InDrive / Taxi</span>
                   </>
                 )}
               </button>
@@ -152,9 +149,6 @@ export const EventDetails: React.FC = () => {
                 </span>
               </div>
 
-              <span className="text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider block mb-1">
-                Paso 2 • Celebración & Brindis
-              </span>
               <h3 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26] mb-2">
                 Recepción & Fiesta
               </h3>
@@ -226,7 +220,7 @@ export const EventDetails: React.FC = () => {
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5" />
-                    <span>Copiar dirección para Uber / Taxi</span>
+                    <span>Copiar dirección para InDrive / Taxi</span>
                   </>
                 )}
               </button>

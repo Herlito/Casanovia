@@ -114,7 +114,7 @@ export const PublicFooter: React.FC = () => {
           <div className="text-[11px] text-[#8C8276] pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
             <span>Casanovia</span>
             <span className="hidden sm:inline text-stone-600">•</span>
-            <span>Multi-Wedding Platform</span>
+            <span>Plataforma multieventos</span>
           </div>
 
         </div>
