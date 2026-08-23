@@ -1,0 +1,167 @@
+{
+  "entities": {
+    "Wedding": {
+      "title": "Wedding",
+      "description": "Multi-wedding event package containing settings, guests, timeline, budget, and master checklist",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier of the wedding" },
+        "coupleNames": { "type": "string", "description": "Names of the couple" },
+        "weddingDate": { "type": "string", "description": "Wedding date and time" },
+        "locationSummary": { "type": "string", "description": "City and region" },
+        "status": { "type": "string", "description": "Status of the wedding" },
+        "settings": { "type": "object", "description": "Complete wedding settings" },
+        "guests": { "type": "array", "description": "List of guests" },
+        "timeline": { "type": "array", "description": "List of timeline milestones" },
+        "budget": { "type": "array", "description": "List of budget items" },
+        "tasks": { "type": "array", "description": "List of master checklist tasks" },
+        "createdAt": { "type": "string", "description": "Creation date" },
+        "updatedAt": { "type": "string", "description": "Last update date" }
+      },
+      "required": ["id", "coupleNames", "weddingDate"]
+    },
+    "Guest": {
+      "title": "Guest",
+      "description": "Wedding guest with RSVP and protocol information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier of the guest" },
+        "code": { "type": "string", "description": "Pass code for access" },
+        "fullName": { "type": "string", "description": "Full name of the guest" },
+        "email": { "type": "string", "description": "Email address" },
+        "phone": { "type": "string", "description": "Phone or WhatsApp number" },
+        "category": { "type": "string", "description": "Protocol category" },
+        "protocolRoleTitle": { "type": "string", "description": "Title of the protocol role" },
+        "isProtocolParticipant": { "type": "boolean", "description": "Whether the guest has a protocol role" },
+        "specialArrivalTime": { "type": "string", "description": "Special arrival time for protocol" },
+        "rehearsalSchedule": { "type": "string", "description": "Rehearsal date and time" },
+        "photoshootSchedule": { "type": "string", "description": "Photoshoot date and time" },
+        "dressCodeNote": { "type": "string", "description": "Specific dress code note" },
+        "accessoryAssigned": { "type": "string", "description": "Assigned boutonniere or corsage" },
+        "assignedMilestone": { "type": "string", "description": "Assigned milestone in the ceremony/reception" },
+        "assignedTable": { "type": "string", "description": "Assigned table number or name" },
+        "totalPasses": { "type": "number", "description": "Total passes assigned" },
+        "confirmedPasses": { "type": "number", "description": "Number of confirmed passes" },
+        "rsvpStatus": { "type": "string", "enum": ["pending", "confirmed", "declined"], "description": "RSVP status" },
+        "dietaryRestrictions": { "type": "string", "description": "Dietary restrictions or allergies" },
+        "confirmedRehearsalPhotoAttendance": { "type": "boolean", "description": "Confirmation of rehearsal attendance" },
+        "congratulationMessage": { "type": "string", "description": "Wishes and congratulations message" },
+        "updatedAt": { "type": "string", "description": "Last update timestamp" }
+      },
+      "required": ["id", "fullName", "totalPasses", "rsvpStatus"]
+    },
+    "TimelineMilestone": {
+      "title": "TimelineMilestone",
+      "description": "Milestone in the wedding day minute-by-minute schedule",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "time": { "type": "string", "description": "Time in HH:MM format" },
+        "title": { "type": "string", "description": "Title of the moment" },
+        "location": { "type": "string", "description": "Location of the event" },
+        "description": { "type": "string", "description": "Detailed description" },
+        "category": { "type": "string", "description": "Category of the milestone" },
+        "responsiblePerson": { "type": "string", "description": "Responsible person or protocol participant" },
+        "isProtocolCrucial": { "type": "boolean", "description": "Whether this is a crucial protocol moment" },
+        "dressOrItemsRequired": { "type": "string", "description": "Items or dress required" }
+      },
+      "required": ["id", "time", "title", "category"]
+    },
+    "BudgetItem": {
+      "title": "BudgetItem",
+      "description": "Expense item for the wedding budget",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "category": { "type": "string", "description": "Budget category" },
+        "concept": { "type": "string", "description": "Description of the expense" },
+        "vendor": { "type": "string", "description": "Vendor name" },
+        "estimatedCost": { "type": "number", "description": "Estimated cost" },
+        "actualCost": { "type": "number", "description": "Actual agreed cost" },
+        "paidAmount": { "type": "number", "description": "Amount paid so far" },
+        "status": { "type": "string", "enum": ["pending", "partial", "paid"], "description": "Payment status" },
+        "notes": { "type": "string", "description": "Payment notes or terms" }
+      },
+      "required": ["id", "category", "concept", "estimatedCost", "actualCost", "paidAmount", "status"]
+    },
+    "WeddingTask": {
+      "title": "WeddingTask",
+      "description": "Checklist task for wedding planning",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "title": { "type": "string", "description": "Title of the task" },
+        "phase": { "type": "string", "description": "Planning phase (fase_1 to fase_6)" },
+        "priority": { "type": "string", "enum": ["alta", "media", "baja"], "description": "Priority level" },
+        "isCompleted": { "type": "boolean", "description": "Completion status" },
+        "assignee": { "type": "string", "description": "Person assigned to the task" }
+      },
+      "required": ["id", "title", "phase", "priority", "isCompleted"]
+    },
+    "WeddingSettings": {
+      "title": "WeddingSettings",
+      "description": "General settings for the wedding event",
+      "type": "object",
+      "properties": {
+        "coupleNames": { "type": "string", "description": "Names of the couple" },
+        "weddingDate": { "type": "string", "description": "Date and time of the wedding" },
+        "locationSummary": { "type": "string", "description": "City and region" },
+        "generalContactPhone": { "type": "string", "description": "Contact phone" },
+        "generalContactEmail": { "type": "string", "description": "Contact email" },
+        "romanticQuote": { "type": "string", "description": "Romantic love quote or wedding motto for footer and web" },
+        "ceremonyVenue": { "type": "object", "description": "Ceremony venue details" },
+        "receptionVenue": { "type": "object", "description": "Reception venue details" },
+        "bankDetails": { "type": "object", "description": "Bank account details" },
+        "giftRegistries": { "type": "array", "description": "Gift registries list" }
+      },
+      "required": ["coupleNames", "weddingDate"]
+    },
+    "SystemUser": {
+      "title": "SystemUser",
+      "description": "System administrative and host user for wedding dashboard authentication and RBAC",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier of the system user" },
+        "username": { "type": "string", "description": "Username / full name of the user" },
+        "clave": { "type": "string", "description": "Password or phone number for authentication" },
+        "level": { "type": "number", "description": "Access level (1 = Super Admin, 2 = Host / Anfitrión)" },
+        "roleTitle": { "type": "string", "description": "Role title" },
+        "assignedWeddingIds": { "type": "array", "description": "List of wedding IDs where user is host" },
+        "isSystemDefault": { "type": "boolean", "description": "Whether this is a default user" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "description": "Last update timestamp" }
+      },
+      "required": ["id", "username", "clave", "level", "roleTitle"]
+    }
+  },
+  "firestore": {
+    "/weddings/{weddingId}": {
+      "schema": "Wedding",
+      "description": "Collection of weddings organized on the platform"
+    },
+    "/system_users/{userId}": {
+      "schema": "SystemUser",
+      "description": "Collection of system administrative users and hosts for authentication and access control"
+    },
+    "/guests/{guestId}": {
+      "schema": "Guest",
+      "description": "Collection of wedding guests and RSVP responses"
+    },
+    "/timeline/{milestoneId}": {
+      "schema": "TimelineMilestone",
+      "description": "Collection of timeline milestones for the wedding schedule"
+    },
+    "/budget/{budgetItemId}": {
+      "schema": "BudgetItem",
+      "description": "Collection of budget and expense records"
+    },
+    "/tasks/{taskId}": {
+      "schema": "WeddingTask",
+      "description": "Collection of checklist tasks"
+    },
+    "/settings/{settingId}": {
+      "schema": "WeddingSettings",
+      "description": "General configuration and venue details"
+    }
+  }
+}
