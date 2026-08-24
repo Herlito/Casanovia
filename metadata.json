@@ -1,6 +1,6 @@
 {
-  "name": "Wedding Hub & Planner",
-  "description": "Aplicación web integral para bodas con web interactiva para invitados, consulta de guía protocolar para el cortejo, RSVP dinámico, y dashboard privado de organización con timeline, presupuesto y tareas.",
+  "name": "Casanovia",
+  "description": "Plataforma multieventos y gestión nupcial para bodas con web interactiva para invitados, confirmación RSVP, pases digitales y panel privado de organización, tareas y tienda de tokens.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

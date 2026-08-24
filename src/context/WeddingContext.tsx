@@ -22,7 +22,8 @@ import {
   SystemUser,
   RsvpStatus,
   VendorItem,
-  WeddingTable
+  WeddingTable,
+  TokensPaymentConfig
 } from '../types';
 import { 
   initialGuests, 
@@ -34,7 +35,8 @@ import {
   INITIAL_SYSTEM_USERS,
   generateMasterTasksForWedding,
   initialVendors,
-  initialTables
+  initialTables,
+  INITIAL_TOKENS_PAYMENT_CONFIG
 } from '../data/initialData';
 import { sortWeddingsByDate } from '../lib/dateUtils';
 import { syncVendorsIntoBudget, buildBudgetDirectlyFromVendors } from '../lib/budgetSyncUtils';
@@ -72,10 +74,10 @@ const DEFAULT_ANONYMOUS_USER: AuthUser = {
 
 interface WeddingContextType {
   // Navigation & View
-  viewMode: 'public' | 'private' | 'new_wedding_tasks';
-  setViewMode: (view: 'public' | 'private' | 'new_wedding_tasks') => void;
-  activeView: 'public' | 'private' | 'new_wedding_tasks';
-  setActiveView: (view: 'public' | 'private' | 'new_wedding_tasks') => void;
+  viewMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens';
+  setViewMode: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens') => void;
+  activeView: 'public' | 'private' | 'new_wedding_tasks' | 'tokens';
+  setActiveView: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens') => void;
   
   // Auth & RBAC
   currentUser: AuthUser;
@@ -188,6 +190,10 @@ interface WeddingContextType {
   selectedGuestForGuide: Guest | null;
   setSelectedGuestForGuide: (guest: Guest | null) => void;
 
+  // Tokens Payment Configuration (Admin Editable)
+  tokensPaymentConfig: TokensPaymentConfig;
+  updateTokensPaymentConfig: (updates: Partial<TokensPaymentConfig>) => Promise<void>;
+
   // Firebase status
   isFirebaseLoading: boolean;
   isFirebaseConnected: boolean;
@@ -196,7 +202,33 @@ interface WeddingContextType {
 const WeddingContext = createContext<WeddingContextType | undefined>(undefined);
 
 export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [viewMode, setViewModeState] = useState<'public' | 'private' | 'new_wedding_tasks'>('public');
+  // Helper to check if URL explicitly requests the /tokens or tokens query
+  const isTokensUrlRequested = (): boolean => {
+    try {
+      if (typeof window !== 'undefined') {
+        const path = (window.location.pathname || '').toLowerCase();
+        const search = (window.location.search || '').toLowerCase();
+        const hash = (window.location.hash || '').toLowerCase();
+        return (
+          path.includes('/tokens') ||
+          path.endsWith('/tokens') ||
+          search.includes('tokens') ||
+          search.includes('page=tokens') ||
+          hash.includes('tokens')
+        );
+      }
+    } catch {
+      // ignore
+    }
+    return false;
+  };
+
+  const [viewMode, setViewModeState] = useState<'public' | 'private' | 'new_wedding_tasks' | 'tokens'>(() => {
+    if (isTokensUrlRequested()) {
+      return 'tokens';
+    }
+    return 'public';
+  });
   
   // Auth state: check session or default to anonymous
   const [currentUser, setCurrentUser] = useState<AuthUser>(() => {
@@ -273,6 +305,19 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // System Users state (Admin & Anfitrión roles)
   const [systemUsers, setSystemUsers] = useState<SystemUser[]>(INITIAL_SYSTEM_USERS);
 
+  // Tokens Payment Configuration (Admin Configurable)
+  const [tokensPaymentConfig, setTokensPaymentConfig] = useState<TokensPaymentConfig>(() => {
+    try {
+      const local = localStorage.getItem('casanovia_tokens_payment_config');
+      if (local) {
+        return { ...INITIAL_TOKENS_PAYMENT_CONFIG, ...JSON.parse(local) };
+      }
+    } catch {
+      // ignore
+    }
+    return INITIAL_TOKENS_PAYMENT_CONFIG;
+  });
+
   // Multi-wedding state
   const [weddings, setWeddings] = useState<Wedding[]>(initialWeddingsList);
   const [activeWeddingId, setActiveWeddingId] = useState<string>(() => {
@@ -346,15 +391,54 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     };
 
+    let unsubscribeTokensConfig: (() => void) | undefined;
+    const initTokensConfigSync = () => {
+      try {
+        const configDoc = doc(db, 'system_configs', 'tokens_payment');
+        unsubscribeTokensConfig = onSnapshot(
+          configDoc,
+          (snap) => {
+            if (snap.exists()) {
+              const data = snap.data() as TokensPaymentConfig;
+              setTokensPaymentConfig(prev => ({ ...prev, ...data }));
+              try {
+                localStorage.setItem('casanovia_tokens_payment_config', JSON.stringify(data));
+              } catch {
+                // ignore
+              }
+            }
+          },
+          (err) => {
+            console.info('[Firestore] tokens_payment listener note:', err);
+          }
+        );
+      } catch (err) {
+        console.error('[Firestore] Error conectando a tokens_payment:', err);
+      }
+    };
+
     initUsersSync();
+    initTokensConfigSync();
+
+    // Listen to browser forward/back or hash changes for tokens URL routing
+    const handleUrlNav = () => {
+      if (isTokensUrlRequested()) {
+        setViewModeState('tokens');
+      }
+    };
+    window.addEventListener('popstate', handleUrlNav);
+    window.addEventListener('hashchange', handleUrlNav);
 
     return () => {
       if (unsubscribeUsers) unsubscribeUsers();
+      if (unsubscribeTokensConfig) unsubscribeTokensConfig();
+      window.removeEventListener('popstate', handleUrlNav);
+      window.removeEventListener('hashchange', handleUrlNav);
     };
   }, []);
 
   // View switch interceptor
-  const setViewMode = (newMode: 'public' | 'private' | 'new_wedding_tasks') => {
+  const setViewMode = (newMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens') => {
     if (newMode === 'private' || newMode === 'new_wedding_tasks') {
       if (!currentUser.isAuthenticated) {
         setShowAuthModal(true);
@@ -362,6 +446,19 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
     setViewModeState(newMode);
+    try {
+      if (typeof window !== 'undefined' && window.history && window.history.pushState) {
+        const url = new URL(window.location.href);
+        if (newMode === 'tokens') {
+          url.searchParams.set('page', 'tokens');
+        } else {
+          url.searchParams.delete('page');
+        }
+        window.history.pushState({}, '', url.toString());
+      }
+    } catch (err) {
+      console.error('Error updating URL for view mode:', err);
+    }
   };
 
   const setActiveView = setViewMode;
@@ -579,6 +676,30 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setSystemUsers(prev => prev.filter(u => u.id !== id));
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, `system_users/${id}`);
+      throw err;
+    }
+  };
+
+  // Tokens Payment Config Update
+  const updateTokensPaymentConfig = async (updates: Partial<TokensPaymentConfig>) => {
+    try {
+      const mergedConfig = { ...tokensPaymentConfig, ...updates };
+      setTokensPaymentConfig(mergedConfig);
+      try {
+        localStorage.setItem('casanovia_tokens_payment_config', JSON.stringify(mergedConfig));
+      } catch {
+        // ignore
+      }
+
+      // Also persist to Firestore if available
+      try {
+        const configDoc = doc(db, 'system_configs', 'tokens_payment');
+        await setDoc(configDoc, cleanFirestoreData(mergedConfig), { merge: true });
+      } catch (fErr) {
+        console.info('[Firestore] Persisted tokens payment config locally (offline mode fallback).', fErr);
+      }
+    } catch (err) {
+      console.error('Error updating tokens payment config:', err);
       throw err;
     }
   };
@@ -1725,6 +1846,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         resetToDemoData,
         selectedGuestForGuide,
         setSelectedGuestForGuide,
+        tokensPaymentConfig,
+        updateTokensPaymentConfig,
         isFirebaseLoading,
         isFirebaseConnected,
       }}

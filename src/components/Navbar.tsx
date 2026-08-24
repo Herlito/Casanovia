@@ -22,7 +22,8 @@ import {
   Calendar,
   Briefcase,
   Share2,
-  Copy
+  Copy,
+  ShoppingCart
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -393,6 +394,34 @@ export const Navbar: React.FC = () => {
                                 </p>
                               </div>
                             </button>
+
+                            {/* 3. Carrito de Compras / Tokens (Solo Administrador) */}
+                            {isLevel1Admin && (
+                              <button
+                                type="button"
+                                id="sandwich-btn-tokens-store"
+                                onClick={() => {
+                                  setSandwichMenuOpen(false);
+                                  setActiveView('tokens');
+                                }}
+                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-transparent hover:border-[#E8DCCF]"
+                              >
+                                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-amber-200 shadow-2xs">
+                                  <ShoppingCart className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-bold flex items-center justify-between">
+                                    <span>Tokens & Servicios</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800">
+                                      Admin
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-[#8C8276] truncate font-normal">
+                                    Carrito de compras y activación de tokens
+                                  </p>
+                                </div>
+                              </button>
+                            )}
                           </div>
 
                           {/* Group 2: Herramientas de Datos */}

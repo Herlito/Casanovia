@@ -1,4 +1,4 @@
-import { Guest, TimelineMilestone, BudgetItem, WeddingTask, WeddingSettings, Wedding, SystemUser, VendorItem, WeddingTable } from '../types';
+import { Guest, TimelineMilestone, BudgetItem, WeddingTask, WeddingSettings, Wedding, SystemUser, VendorItem, WeddingTable, TokensPaymentConfig } from '../types';
 
 export const MASTER_6_PHASE_TASKS: Omit<WeddingTask, 'id' | 'isCompleted'>[] = [
   // Fase 1: Fundamentos y Reservas Principales (12 a 9 meses antes)
@@ -1188,3 +1188,14 @@ export const INITIAL_SYSTEM_USERS: SystemUser[] = [
     createdAt: '2026-08-17T00:00:00Z',
   },
 ];
+
+export const INITIAL_TOKENS_PAYMENT_CONFIG: TokensPaymentConfig = {
+  qrImageUrl: '',
+  bankName: 'BCP - Banco de Crédito del Perú',
+  accountHolder: 'Casanovia Bodas & Eventos S.A.C.',
+  accountNumber: '191-98765432-0-45',
+  cci: '002-191-009876543204-58',
+  yapePhone: '952 341 165',
+  yapeHolder: 'Herly Lizarazo (Casanovia)',
+  extraNotes: 'Por favor incluye tu código de pedido o apellido en la descripción de la transferencia.',
+};

@@ -369,3 +369,16 @@ export interface AuthUser {
   assignedWeddingIds?: string[];
   createdWeddingIds?: string[];
 }
+
+export type AppViewMode = 'public' | 'private' | 'new_wedding_tasks' | 'tokens';
+
+export interface TokensPaymentConfig {
+  qrImageUrl: string;
+  bankName: string;
+  accountHolder: string;
+  accountNumber: string;
+  cci: string;
+  yapePhone: string;
+  yapeHolder: string;
+  extraNotes?: string;
+}

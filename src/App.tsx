@@ -10,6 +10,7 @@ import { GiftRegistrySection } from './components/public/GiftRegistrySection';
 import { WishesWall } from './components/public/WishesWall';
 import { PlannerDashboard } from './components/private/PlannerDashboard';
 import { NewWeddingTasksScreen } from './components/private/NewWeddingTasksScreen';
+import { TokensPurchaseScreen } from './components/tokens/TokensPurchaseScreen';
 import { AuthModal } from './components/modals/AuthModal';
 import { NewWeddingModal } from './components/modals/NewWeddingModal';
 import { UserManagementModal } from './components/modals/UserManagementModal';
@@ -72,6 +73,11 @@ const MainLayout: React.FC = () => {
         <main className="flex-1 animate-fadeIn">
           {/* Post-Wedding Creation Interactive Task Checklist Screen */}
           <NewWeddingTasksScreen />
+        </main>
+      ) : viewMode === 'tokens' ? (
+        <main className="flex-1 animate-fadeIn">
+          {/* Tokens & Services Purchase Screen */}
+          <TokensPurchaseScreen />
         </main>
       ) : (
         <main className="flex-1 animate-fadeIn">
