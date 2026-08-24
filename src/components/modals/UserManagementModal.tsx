@@ -249,7 +249,7 @@ export const UserManagementModal: React.FC = () => {
                       required
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Ej. Zenaida Anahua o Mariana Flores"
+                      placeholder="Ej. Zenaida Anahua o Guest Planner"
                       className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
                     />
                   </div>

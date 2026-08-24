@@ -47,10 +47,10 @@ export const LEVEL_1_USER = {
 };
 
 export const LEVEL_3_DEMO_USER = {
-  username: 'Mariana Flores',
-  clave: '88442200',
+  username: 'Guest Planner',
+  clave: '952341165',
   level: 3,
-  roleTitle: 'Wedding Planner Senior (Nivel 3 - Wedding Planner)',
+  roleTitle: 'Wedding Planner (Nivel 3 - Wedding Planner)',
   assignedWeddingIds: ['boda-sofia-alejandro', 'boda-valentina-mateo'],
   createdWeddingIds: ['boda-sofia-alejandro', 'boda-valentina-mateo'],
 };
@@ -460,11 +460,11 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     if (
-      (trimmedUser === LEVEL_3_DEMO_USER.username.toLowerCase() || trimmedUser.includes('mariana') || trimmedUser === 'planner') &&
-      (trimmedClave === LEVEL_3_DEMO_USER.clave || trimmedClave === '88442200' || trimmedClave === '88776655')
+      (trimmedUser === LEVEL_3_DEMO_USER.username.toLowerCase() || trimmedUser === 'planner guest' || trimmedUser.includes('planner') || trimmedUser.includes('mariana')) &&
+      (trimmedClave === LEVEL_3_DEMO_USER.clave || trimmedClave === '952341165' || trimmedClave === '88442200' || trimmedClave === '88776655')
     ) {
       const authObj: AuthUser = {
-        id: 'user-planner-mariana',
+        id: 'user-planner-guest',
         username: LEVEL_3_DEMO_USER.username,
         level: 3,
         roleTitle: LEVEL_3_DEMO_USER.roleTitle,
@@ -489,7 +489,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       return {
         success: true,
-        message: `¡Bienvenida ${LEVEL_3_DEMO_USER.username}! Acceso concedido como Wedding Planner (Nivel 3).`,
+        message: `¡Bienvenido(a) ${LEVEL_3_DEMO_USER.username}! Acceso concedido como Wedding Planner (Nivel 3).`,
       };
     }
 

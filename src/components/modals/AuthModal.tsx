@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useWedding, LEVEL_1_USER } from '../../context/WeddingContext';
 import { 
   ShieldCheck, 
@@ -28,6 +28,7 @@ export const AuthModal: React.FC = () => {
   const [clave, setClave] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const claveInputRef = useRef<HTMLInputElement>(null);
 
   if (!showAuthModal) return null;
 
@@ -47,31 +48,14 @@ export const AuthModal: React.FC = () => {
     }
   };
 
-  const handleQuickLoginHerly = () => {
-    setUsername(LEVEL_1_USER.username);
-    setClave(LEVEL_1_USER.clave);
-    const res = login(LEVEL_1_USER.username, LEVEL_1_USER.clave);
-    if (res.success) {
-      setSuccessMsg(`¡Autenticado como ${LEVEL_1_USER.username} (Nivel 1 - Super Admin)!`);
-    }
-  };
-
-  const handleQuickLoginMariana = () => {
-    setUsername('Mariana Flores');
-    setClave('88776655');
-    const res = login('Mariana Flores', '88776655');
-    if (res.success) {
-      setSuccessMsg('¡Autenticada como Mariana Flores (Nivel 3 - Wedding Planner)!');
-    }
-  };
-
-  const handleQuickLoginZenaida = () => {
-    setUsername('Zenaida Anahua');
-    setClave('70242438');
-    const res = login('Zenaida Anahua', '70242438');
-    if (res.success) {
-      setSuccessMsg('¡Autenticada como Zenaida Anahua (Nivel 2 - Anfitriona)!');
-    }
+  const handleSelectQuickUser = (selectedUsername: string) => {
+    setUsername(selectedUsername);
+    setClave('');
+    setErrorMsg('');
+    setSuccessMsg('');
+    setTimeout(() => {
+      claveInputRef.current?.focus();
+    }, 50);
   };
 
   return (
@@ -172,7 +156,7 @@ export const AuthModal: React.FC = () => {
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Herly Lizarazo, Mariana Flores, Zenaida Anahua..."
+                    placeholder="Herly Lizarazo, Guest Planner, Zenaida Anahua..."
                     className="w-full pl-10 pr-3 py-2.5 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
                   />
                 </div>
@@ -185,6 +169,7 @@ export const AuthModal: React.FC = () => {
                 <div className="relative">
                   <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C8276]" />
                   <input
+                    ref={claveInputRef}
                     type="password"
                     required
                     value={clave}
@@ -210,8 +195,9 @@ export const AuthModal: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <button
                     type="button"
-                    onClick={handleQuickLoginHerly}
-                    className="flex items-center space-x-1.5 p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold transition-colors cursor-pointer"
+                    onClick={() => handleSelectQuickUser(LEVEL_1_USER.username)}
+                    className="flex items-center space-x-1.5 p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold transition-colors cursor-pointer text-left"
+                    title="Cargar usuario Herly Lizarazo"
                   >
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <div className="text-left truncate">
@@ -222,25 +208,27 @@ export const AuthModal: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={handleQuickLoginMariana}
-                    className="flex items-center space-x-1.5 p-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-semibold transition-colors cursor-pointer"
+                    onClick={() => handleSelectQuickUser('Guest Planner')}
+                    className="flex items-center space-x-1.5 p-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-semibold transition-colors cursor-pointer text-left"
+                    title="Cargar usuario Guest Planner"
                   >
                     <Briefcase className="w-3.5 h-3.5 text-teal-600 shrink-0" />
                     <div className="text-left truncate">
-                      <span className="block truncate font-bold text-[11px]">Mariana Flores</span>
-                      <span className="text-[9px] text-teal-700 block">Nv 3 (Planner)</span>
+                      <span className="block truncate font-bold text-[11px]">Guest Planner</span>
+                      <span className="text-[9px] text-teal-700 block">Nv 3 (Wedding Planner)</span>
                     </div>
                   </button>
 
                   <button
                     type="button"
-                    onClick={handleQuickLoginZenaida}
-                    className="flex items-center space-x-1.5 p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-semibold transition-colors cursor-pointer"
+                    onClick={() => handleSelectQuickUser('Zenaida Anahua')}
+                    className="flex items-center space-x-1.5 p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-semibold transition-colors cursor-pointer text-left"
+                    title="Cargar usuario Zenaida Anahua"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                     <div className="text-left truncate">
                       <span className="block truncate font-bold text-[11px]">Zenaida Anahua</span>
-                      <span className="text-[9px] text-purple-700 block">Nv 2 (Anfitriona)</span>
+                      <span className="text-[9px] text-purple-700 block">Nv 2 (Novia)</span>
                     </div>
                   </button>
                 </div>
@@ -251,8 +239,8 @@ export const AuthModal: React.FC = () => {
           <div className="bg-[#FAF8F5] rounded-xl p-3 text-[11px] text-[#7A7268] space-y-1.5 border border-[#E8DCCF]">
             <p className="font-semibold text-[#524B42]">Niveles de Privilegio & Roles:</p>
             <p>• <strong className="text-emerald-800">Nivel 1 (Super Admin):</strong> Acceso total a todas las bodas, creación de bodas y administración completa de usuarios.</p>
-            <p>• <strong className="text-teal-800">Nivel 3 (Wedding Planner):</strong> Gestión y edición de bodas creadas durante su sesión activa y potestad para asignar usuarios con rol de <strong>"Anfitrión"</strong>.</p>
-            <p>• <strong className="text-purple-800">Nivel 2 (Anfitrión):</strong> Parejas y novios con permisos de edición <em>únicamente</em> en sus bodas asignadas.</p>
+            <p>• <strong className="text-teal-800">Nivel 3 (Wedding Planner):</strong> Gestión y edición de bodas creadas por ella y potestad para asignar usuarios con rol de <strong>"Novio/a"</strong>.</p>
+            <p>• <strong className="text-purple-800">Nivel 2 (Novios):</strong> Parejas y novios con permisos de edición <em>únicamente</em> en sus bodas asignadas.</p>
           </div>
         </div>
 
