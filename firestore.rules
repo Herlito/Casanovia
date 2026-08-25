@@ -86,6 +86,13 @@ service cloud.firestore {
       allow delete: if isValidId(settingId);
     }
 
+    // System Configurations (Tokens payment, QR info, etc.)
+    match /system_configs/{configId} {
+      allow read: if true;
+      allow create, update: if isValidId(configId);
+      allow delete: if isValidId(configId);
+    }
+
     // Test connection document
     match /test/{testId} {
       allow read: if true;

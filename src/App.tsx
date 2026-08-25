@@ -24,12 +24,7 @@ const MainLayout: React.FC = () => {
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
   useEffect(() => {
-    if (settings?.coupleNames) {
-      const formattedCouple = settings.coupleNames.replace(/\s*&\s*/g, '&');
-      document.title = `Casanovia - ${formattedCouple}`;
-    } else {
-      document.title = 'Casanovia - Zenaida&Ronny';
-    }
+    document.title = 'Casanovia';
   }, [settings?.coupleNames]);
 
   const scrollToTop = () => {

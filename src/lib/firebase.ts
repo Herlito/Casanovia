@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
@@ -9,10 +9,10 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 
-// Test Firestore connection on boot as specified in the Firebase integration skill
+// Test Firestore connection on boot with resilient offline/cache support
 async function testConnection() {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
+    await getDoc(doc(db, 'test', 'connection'));
   } catch (error) {
     if (error instanceof Error && (error.message.includes('the client is offline') || error.message.includes('unavailable'))) {
       console.info('[Firestore] Initializing in resilient offline/cache mode.');

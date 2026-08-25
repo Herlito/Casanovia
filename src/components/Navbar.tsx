@@ -173,18 +173,24 @@ export const Navbar: React.FC = () => {
               )}
             </div>
 
-            {/* Center: Official Casanovia Vector Logo when logged in; or "Nuestra Boda & Guía Oficial" badge when not logged in */}
+            {/* Center: Official Casanovia Vector Logo when logged in or in prices/tokens page; or "Nuestra Boda & Guía Oficial" badge in public wedding page when not logged in */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center pointer-events-auto">
-              {currentUser.isAuthenticated ? (
+              {(currentUser.isAuthenticated || activeView === 'tokens') ? (
                 <button
                   type="button"
                   id="btn-nav-logo-home"
                   onClick={() => {
-                    setActiveView('public');
+                    if (currentUser.isAuthenticated) {
+                      setActiveView('public');
+                    } else if (activeView === 'tokens') {
+                      setActiveView('tokens');
+                    } else {
+                      setActiveView('public');
+                    }
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className="cursor-pointer bg-transparent border-0 p-0 m-0 flex items-center justify-center hover:opacity-80 active:scale-98 transition-all focus:outline-hidden group"
-                  title="Ir a la página de inicio - Casanovia"
+                  title="Casanovia"
                 >
                   <img 
                     src="/casanovia.svg" 

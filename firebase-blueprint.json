@@ -116,6 +116,21 @@
       },
       "required": ["coupleNames", "weddingDate"]
     },
+    "TokensPaymentConfig": {
+      "title": "TokensPaymentConfig",
+      "description": "System configuration for payments and QR codes",
+      "type": "object",
+      "properties": {
+        "qrImageUrl": { "type": "string", "description": "QR Code image URL" },
+        "yapePhone": { "type": "string", "description": "Yape phone number" },
+        "bankName": { "type": "string", "description": "Bank name" },
+        "accountHolder": { "type": "string", "description": "Account holder name" },
+        "accountNumber": { "type": "string", "description": "Account number" },
+        "cci": { "type": "string", "description": "CCI Interbancario" },
+        "extraNotes": { "type": "string", "description": "Additional notes" },
+        "updatedAt": { "type": "string", "description": "Last updated date" }
+      }
+    },
     "SystemUser": {
       "title": "SystemUser",
       "description": "System administrative and host user for wedding dashboard authentication and RBAC",
@@ -162,6 +177,10 @@
     "/settings/{settingId}": {
       "schema": "WeddingSettings",
       "description": "General configuration and venue details"
+    },
+    "/system_configs/{configId}": {
+      "schema": "TokensPaymentConfig",
+      "description": "System configuration for tokens and payments"
     }
   }
 }
