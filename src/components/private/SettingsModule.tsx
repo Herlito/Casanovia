@@ -513,23 +513,64 @@ export const SettingsModule: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Ceremony Venue */}
-          <div className="bg-white rounded-2xl p-6 border border-[#E8DCCF] shadow-2xs space-y-4">
-            <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-[#8B3A4A]" />
-              <span>Sede de la Ceremonia Religiosa</span>
-            </h3>
+          <div className={`rounded-2xl p-6 border transition-all shadow-2xs space-y-4 ${
+            formData.hasReligiousCeremony === false 
+              ? 'bg-stone-50/80 border-stone-300 opacity-90' 
+              : 'bg-white border-[#E8DCCF]'
+          }`}>
+            <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-[#F0EAE1]">
+              <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-[#8B3A4A]" />
+                <span>Sede de la Ceremonia Religiosa</span>
+              </h3>
 
-            <div className="space-y-3 text-xs">
+              {/* Botón Sin Boda Religiosa / Habilitar Boda Religiosa */}
+              {formData.hasReligiousCeremony === false ? (
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, hasReligiousCeremony: true })}
+                  className="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 transition-colors flex items-center space-x-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Habilitar Boda Religiosa</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, hasReligiousCeremony: false })}
+                  className="px-3 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors flex items-center space-x-1 cursor-pointer"
+                  title="Deshabilita la ceremonia religiosa para esta boda. No se mostrará en la web de invitados ni en los hitos."
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Sin boda Religiosa</span>
+                </button>
+              )}
+            </div>
+
+            {formData.hasReligiousCeremony === false && (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-700" />
+                <div className="leading-relaxed">
+                  <p className="font-bold">Ceremonia Religiosa Deshabilitada</p>
+                  <p className="text-[11px] text-amber-800">
+                    Esta locación está excluida para esta boda. No se mostrará en la web de invitados y no aparecerá como opción en Agregar/Editar Hito de la línea de tiempo.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className={`space-y-3 text-xs ${formData.hasReligiousCeremony === false ? 'opacity-50 pointer-events-none' : ''}`}>
               <div>
                 <label className="block font-semibold text-[#524B42] mb-1">Nombre del Recinto</label>
                 <input
                   type="text"
                   value={formData.ceremonyVenue.name}
+                  disabled={formData.hasReligiousCeremony === false}
                   onChange={(e) => setFormData({
                     ...formData,
                     ceremonyVenue: { ...formData.ceremonyVenue, name: e.target.value }
                   })}
-                  className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] disabled:bg-stone-200"
                 />
               </div>
 
@@ -538,11 +579,12 @@ export const SettingsModule: React.FC = () => {
                 <input
                   type="text"
                   value={formData.ceremonyVenue.address}
+                  disabled={formData.hasReligiousCeremony === false}
                   onChange={(e) => setFormData({
                     ...formData,
                     ceremonyVenue: { ...formData.ceremonyVenue, address: e.target.value }
                   })}
-                  className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] disabled:bg-stone-200"
                 />
               </div>
 
@@ -551,11 +593,12 @@ export const SettingsModule: React.FC = () => {
                 <input
                   type="text"
                   value={formData.ceremonyVenue.time}
+                  disabled={formData.hasReligiousCeremony === false}
                   onChange={(e) => setFormData({
                     ...formData,
                     ceremonyVenue: { ...formData.ceremonyVenue, time: e.target.value }
                   })}
-                  className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] disabled:bg-stone-200"
                 />
               </div>
 
@@ -563,12 +606,13 @@ export const SettingsModule: React.FC = () => {
                 <label className="block font-semibold text-[#524B42] mb-1">Enlace de Google Maps / Waze</label>
                 <input
                   type="text"
-                  value={formData.ceremonyVenue.mapUrl}
+                  value={formData.ceremonyVenue.googleMapsUrl || formData.ceremonyVenue.mapUrl || ''}
+                  disabled={formData.hasReligiousCeremony === false}
                   onChange={(e) => setFormData({
                     ...formData,
-                    ceremonyVenue: { ...formData.ceremonyVenue, mapUrl: e.target.value }
+                    ceremonyVenue: { ...formData.ceremonyVenue, googleMapsUrl: e.target.value, mapUrl: e.target.value }
                   })}
-                  className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] disabled:bg-stone-200"
                 />
               </div>
             </div>

@@ -59,8 +59,8 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
       }
     };
 
-    // 1. Settings ceremony venue
-    if (settings.ceremonyVenue?.name) {
+    // 1. Settings ceremony venue (solo si tiene ceremonia religiosa habilitada)
+    if (settings.hasReligiousCeremony !== false && settings.ceremonyVenue?.name) {
       addVenueItem(settings.ceremonyVenue.name, 'Ceremonia Religiosa', 'ceremony');
     }
 

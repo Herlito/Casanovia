@@ -198,12 +198,18 @@ export const TableAssignmentModule: React.FC = () => {
     if (zoneFilter !== 'all') {
       list = list.filter((t) => t.zone === zoneFilter);
     }
-    return list;
+    // Ordenar mesas por "Nombre o Número de Mesa" en orden alfabético
+    return list.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true, sensitivity: 'base' }));
   }, [tables, zoneFilter]);
 
-  // Quick Action: Assign single guest
+  // Quick Action: Assign single guest (SOLO SI ESTÁ CONFIRMADO)
   const handleAssignSingleGuest = async (guestId: string, tableName: string) => {
     if (!tableName) return;
+    const target = guests.find((g) => g.id === guestId);
+    if (target && target.rsvpStatus !== 'confirmed') {
+      alert(`Solo se puede asignar mesa a invitados confirmados. Por favor confirma la asistencia de "${target.fullName}" primero.`);
+      return;
+    }
     await updateGuest(guestId, { assignedTable: tableName });
   };
 
@@ -229,6 +235,43 @@ export const TableAssignmentModule: React.FC = () => {
 
   const handleApplyBatchAssign = async () => {
     if (!targetBatchTable || selectedGuestIds.length === 0) return;
+    
+    // Validar que los invitados seleccionados estén confirmados
+    const unconfirmedSelected = guests.filter(
+      (g) => selectedGuestIds.includes(g.id) && g.rsvpStatus !== 'confirmed'
+    );
+
+    if (unconfirmedSelected.length > 0) {
+      const confirmAction = window.confirm(
+        `Hay ${unconfirmedSelected.length} invitado(s) seleccionado(s) sin confirmar asistencia.\n\n` +
+        `Solo se puede asignar mesa a invitados confirmados.\n\n` +
+        `¿Deseas confirmar automáticamente su asistencia y asignarlos a "${targetBatchTable}"?`
+      );
+
+      if (confirmAction) {
+        // Confirmar a los no confirmados antes de asignar
+        for (const unconfirmed of unconfirmedSelected) {
+          await updateGuest(unconfirmed.id, {
+            rsvpStatus: 'confirmed',
+            confirmedPasses: unconfirmed.confirmedPasses || unconfirmed.totalPasses || 1,
+          });
+        }
+      } else {
+        // Filtrar y asignar únicamente a los que ya estaban confirmados
+        const onlyConfirmedIds = selectedGuestIds.filter(
+          (id) => !unconfirmedSelected.some((u) => u.id === id)
+        );
+        if (onlyConfirmedIds.length === 0) {
+          alert('No se asignaron mesas porque ningún invitado seleccionado estaba confirmado.');
+          return;
+        }
+        await batchAssignGuestsToTable(onlyConfirmedIds, targetBatchTable);
+        setSelectedGuestIds([]);
+        setTargetBatchTable('');
+        return;
+      }
+    }
+
     await batchAssignGuestsToTable(selectedGuestIds, targetBatchTable);
     setSelectedGuestIds([]);
     setTargetBatchTable('');
@@ -802,6 +845,24 @@ export const TableAssignmentModule: React.FC = () => {
                             ✕ Quitar
                           </button>
                         </div>
+                      ) : guest.rsvpStatus !== 'confirmed' ? (
+                        <div className="flex items-center justify-between w-full bg-amber-50/80 border border-amber-200 rounded-lg px-2.5 py-1 text-[11px] text-amber-900">
+                          <span className="flex items-center space-x-1 text-amber-800">
+                            <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                            <span>Solo confirmados pueden asignar mesa</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateGuest(guest.id, {
+                              rsvpStatus: 'confirmed',
+                              confirmedPasses: guest.confirmedPasses || guest.totalPasses || 1,
+                            })}
+                            className="font-bold text-emerald-800 hover:text-emerald-950 underline hover:no-underline ml-2 cursor-pointer whitespace-nowrap"
+                            title="Confirmar asistencia para habilitar asignación"
+                          >
+                            Confirmar RSVP
+                          </button>
+                        </div>
                       ) : (
                         <div className="flex items-center space-x-1.5 w-full">
                           <select
@@ -810,13 +871,15 @@ export const TableAssignmentModule: React.FC = () => {
                             className="w-full text-xs px-2.5 py-1 rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] text-[#2D2A26] focus:bg-white cursor-pointer font-medium"
                           >
                             <option value="">Asignar a Mesa... ▼</option>
-                            {tables.map((t) => {
-                              const occ = tableOccupancyMap.get(t.name.trim().toLowerCase())?.totalPasses || 0;
-                              return (
-                                <option key={t.id} value={t.name}>
-                                  {t.name} ({occ}/{t.capacity} lugares)
-                                </option>
-                              );
+                            {[...tables]
+                              .sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true, sensitivity: 'base' }))
+                              .map((t) => {
+                                const occ = tableOccupancyMap.get(t.name.trim().toLowerCase())?.totalPasses || 0;
+                                return (
+                                  <option key={t.id} value={t.name}>
+                                    {t.name} ({occ}/{t.capacity} lugares)
+                                  </option>
+                                );
                             })}
                           </select>
                         </div>

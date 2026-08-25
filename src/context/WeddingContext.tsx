@@ -135,6 +135,7 @@ interface WeddingContextType {
   addGuest: (guest: Omit<Guest, 'id'>) => Promise<Guest>;
   updateGuest: (id: string, updates: Partial<Guest>) => Promise<void>;
   deleteGuest: (id: string) => Promise<void>;
+  reorderGuests: (reorderedGuests: Guest[]) => Promise<void>;
   importGuests: (newGuests: Guest[], mode: 'append' | 'replace') => Promise<void>;
   submitGuestRsvp: (guestCodeOrName: string, rsvpData: {
     fullName: string;
@@ -981,14 +982,18 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       .replace(/(^-|-$)/g, '');
     const newWeddingId = `boda-${slug}-${Date.now().toString().slice(-4)}`;
 
+    const brideName = data.brideName || data.coupleNames.split('&')[0]?.trim() || 'Novia';
+    const groomName = data.groomName || data.coupleNames.split('&')[1]?.trim() || 'Novio';
+
     const newSettings: WeddingSettings = {
       ...initialWeddingSettings,
       coupleNames: data.coupleNames,
-      brideName: data.brideName || data.coupleNames.split('&')[0]?.trim() || 'Novia',
-      groomName: data.groomName || data.coupleNames.split('&')[1]?.trim() || 'Novio',
+      brideName,
+      groomName,
       weddingDate: data.weddingDate,
       weddingTime: '18:00',
       locationSummary: data.locationSummary,
+      hasReligiousCeremony: true,
       ceremonyVenue: {
         ...initialWeddingSettings.ceremonyVenue,
         name: data.ceremonyVenueName || 'Parroquia / Capilla Central',
@@ -999,6 +1004,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         name: data.receptionVenueName || 'Hacienda / Jardín de Eventos',
         address: data.locationSummary,
       },
+      additionalVenues: [],
       bankDetails: {
         bankName: 'Banco Destino',
         accountHolder: data.coupleNames,
@@ -1024,8 +1030,36 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       plannerName: currentUser.level === 3 ? currentUser.username : (currentUser.level === 1 ? 'Herly Lizarazo' : undefined),
       guests: [
         {
-          id: `g-${newWeddingId}-1`,
-          code: 'BODA-PADRINO-01',
+          id: `g-${newWeddingId}-novia`,
+          code: `BODA-${slug.slice(0, 4).toUpperCase()}-NOVIA`,
+          fullName: brideName,
+          category: 'anfitrion',
+          protocolRoleTitle: 'Novia & Anfitriona Principal',
+          isProtocolParticipant: true,
+          totalPasses: 1,
+          confirmedPasses: 1,
+          rsvpStatus: 'confirmed',
+          assignedTable: 'Mesa Principal (Novios)',
+          congratulationMessage: '¡Nuestra gran boda!',
+          updatedAt: new Date().toISOString().split('T')[0],
+        },
+        {
+          id: `g-${newWeddingId}-novio`,
+          code: `BODA-${slug.slice(0, 4).toUpperCase()}-NOVIO`,
+          fullName: groomName,
+          category: 'anfitrion',
+          protocolRoleTitle: 'Novio & Anfitrión Principal',
+          isProtocolParticipant: true,
+          totalPasses: 1,
+          confirmedPasses: 1,
+          rsvpStatus: 'confirmed',
+          assignedTable: 'Mesa Principal (Novios)',
+          congratulationMessage: '¡El día más esperado!',
+          updatedAt: new Date().toISOString().split('T')[0],
+        },
+        {
+          id: `g-${newWeddingId}-padrino`,
+          code: `BODA-${slug.slice(0, 4).toUpperCase()}-PADRINO`,
           fullName: 'Padrino de Velación',
           category: 'cortejo_honor',
           protocolRoleTitle: 'Padrino de Honor',
@@ -1122,12 +1156,79 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       ...currentSettings,
       ...newSettings,
     };
-    await updateActiveWeddingDoc({
+
+    // If brideName or groomName changed, automatically synchronize or register them as guests with role 'anfitrion'
+    let updatedGuests = currentWedding?.guests ? [...currentWedding.guests] : (guests ? [...guests] : []);
+    let guestsChanged = false;
+
+    if (newSettings.brideName && newSettings.brideName.trim() && newSettings.brideName.trim() !== currentSettings.brideName) {
+      const bName = newSettings.brideName.trim();
+      const existingBride = updatedGuests.find((g) => 
+        g.category === 'anfitrion' && 
+        (g.protocolRoleTitle?.toLowerCase().includes('novia') || g.fullName.toLowerCase().includes(currentSettings.brideName?.toLowerCase() || 'novia'))
+      );
+      if (existingBride) {
+        updatedGuests = updatedGuests.map((g) => g.id === existingBride.id ? { ...g, fullName: bName } : g);
+        guestsChanged = true;
+      } else {
+        const newBrideGuest: Guest = {
+          id: `g-${activeWeddingId}-novia-${Date.now()}`,
+          code: `BODA-NOVIA-${Math.floor(100 + Math.random() * 900)}`,
+          fullName: bName,
+          category: 'anfitrion',
+          protocolRoleTitle: 'Novia & Anfitriona Principal',
+          isProtocolParticipant: true,
+          totalPasses: 1,
+          confirmedPasses: 1,
+          rsvpStatus: 'confirmed',
+          assignedTable: 'Mesa Principal (Novios)',
+          updatedAt: new Date().toISOString().split('T')[0],
+        };
+        updatedGuests = [newBrideGuest, ...updatedGuests];
+        guestsChanged = true;
+      }
+    }
+
+    if (newSettings.groomName && newSettings.groomName.trim() && newSettings.groomName.trim() !== currentSettings.groomName) {
+      const gName = newSettings.groomName.trim();
+      const existingGroom = updatedGuests.find((g) => 
+        g.category === 'anfitrion' && 
+        (g.protocolRoleTitle?.toLowerCase().includes('novio') || g.fullName.toLowerCase().includes(currentSettings.groomName?.toLowerCase() || 'novio'))
+      );
+      if (existingGroom) {
+        updatedGuests = updatedGuests.map((g) => g.id === existingGroom.id ? { ...g, fullName: gName } : g);
+        guestsChanged = true;
+      } else {
+        const newGroomGuest: Guest = {
+          id: `g-${activeWeddingId}-novio-${Date.now()}`,
+          code: `BODA-NOVIO-${Math.floor(100 + Math.random() * 900)}`,
+          fullName: gName,
+          category: 'anfitrion',
+          protocolRoleTitle: 'Novio & Anfitrión Principal',
+          isProtocolParticipant: true,
+          totalPasses: 1,
+          confirmedPasses: 1,
+          rsvpStatus: 'confirmed',
+          assignedTable: 'Mesa Principal (Novios)',
+          updatedAt: new Date().toISOString().split('T')[0],
+        };
+        updatedGuests = [...updatedGuests, newGroomGuest];
+        guestsChanged = true;
+      }
+    }
+
+    const payload: Partial<Wedding> = {
       settings: updatedSettings,
       coupleNames: updatedSettings.coupleNames || currentWedding?.coupleNames || 'Sofía & Alejandro',
       weddingDate: updatedSettings.weddingDate || currentWedding?.weddingDate || '2026-10-24T17:00:00',
       locationSummary: updatedSettings.locationSummary || currentWedding?.locationSummary || '',
-    });
+    };
+
+    if (guestsChanged) {
+      payload.guests = updatedGuests;
+    }
+
+    await updateActiveWeddingDoc(payload);
   };
 
   const addAdditionalVenue = async (venueData: Omit<AdditionalVenue, 'id'>): Promise<AdditionalVenue> => {
@@ -1277,6 +1378,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setSelectedGuestForGuide(null);
     }
     await updateActiveWeddingDoc({ guests: updatedGuests });
+  };
+
+  const reorderGuests = async (reorderedGuests: Guest[]) => {
+    await updateActiveWeddingDoc({ guests: reorderedGuests });
   };
 
   const importGuests = async (newGuests: Guest[], mode: 'append' | 'replace') => {
@@ -1810,6 +1915,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addGuest,
         updateGuest,
         deleteGuest,
+        reorderGuests,
         importGuests,
         submitGuestRsvp,
         findGuestByQuery,

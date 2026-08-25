@@ -32,7 +32,8 @@ import {
   UtensilsCrossed,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  GripVertical
 } from 'lucide-react';
 
 const ROLE_ICONS: Record<string, React.ElementType> = {
@@ -67,7 +68,7 @@ type SortField = 'name' | 'role' | 'table' | 'none';
 type SortDirection = 'asc' | 'desc';
 
 export const GuestManagement: React.FC = () => {
-  const { guests, addGuest, updateGuest, deleteGuest, importGuests, settings } = useWedding();
+  const { guests, addGuest, updateGuest, deleteGuest, reorderGuests, importGuests, settings } = useWedding();
 
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [rsvpFilter, setRsvpFilter] = useState<string>('all');
@@ -80,6 +81,94 @@ export const GuestManagement: React.FC = () => {
   const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
   const [companionModalGuest, setCompanionModalGuest] = useState<Guest | null>(null);
   const [copiedCodeForGuest, setCopiedCodeForGuest] = useState<string | null>(null);
+
+  // Drag and Drop state
+  const [draggedGuestId, setDraggedGuestId] = useState<string | null>(null);
+  const [dragOverGuestId, setDragOverGuestId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const handleDragStart = (e: React.DragEvent, guest: Guest) => {
+    setDraggedGuestId(guest.id);
+    e.dataTransfer.setData('text/plain', guest.id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetGuest: Guest) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverGuestId !== targetGuest.id) {
+      setDragOverGuestId(targetGuest.id);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverGuestId(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetGuest: Guest) => {
+    e.preventDefault();
+    setDragOverGuestId(null);
+    if (!draggedGuestId || draggedGuestId === targetGuest.id) {
+      setDraggedGuestId(null);
+      return;
+    }
+
+    const draggedGuest = guests.find((g) => g.id === draggedGuestId);
+    if (!draggedGuest) {
+      setDraggedGuestId(null);
+      return;
+    }
+
+    // Identificar todos los miembros del grupo del invitado arrastrado (titular + acompañantes)
+    let groupToMove: Guest[] = [];
+    if (draggedGuest.mainGuestId) {
+      const main = guests.find((g) => g.id === draggedGuest.mainGuestId);
+      if (main) {
+        groupToMove = [main, ...guests.filter((g) => g.mainGuestId === main.id)];
+      } else {
+        groupToMove = [draggedGuest];
+      }
+    } else {
+      groupToMove = [draggedGuest, ...guests.filter((g) => g.mainGuestId === draggedGuest.id)];
+    }
+
+    const groupCount = groupToMove.length;
+    const targetTable = targetGuest.assignedTable || 'Mesa por asignar';
+    const currentTable = draggedGuest.assignedTable || 'Mesa por asignar';
+
+    // Si el destino tiene una mesa diferente a la actual, trasladar el grupo completo a esa mesa
+    if (targetTable !== currentTable && targetTable !== 'Mesa por asignar') {
+      await updateGuest(draggedGuest.id, { assignedTable: targetTable });
+      showToast(`¡"${draggedGuest.fullName}"${groupCount > 1 ? ` y ${groupCount - 1} acompañante(s)` : ''} trasladado(s) a "${targetTable}"!`);
+    } else {
+      // Reordenar posición en la lista manteniendo a los acompañantes juntos
+      const currentList = [...guests];
+      const groupIds = new Set(groupToMove.map((g) => g.id));
+      const listWithoutGroup = currentList.filter((g) => !groupIds.has(g.id));
+      const targetIdx = listWithoutGroup.findIndex((g) => g.id === targetGuest.id);
+
+      let reordered: Guest[] = [];
+      if (targetIdx === -1) {
+        reordered = [...listWithoutGroup, ...groupToMove];
+      } else {
+        reordered = [
+          ...listWithoutGroup.slice(0, targetIdx),
+          ...groupToMove,
+          ...listWithoutGroup.slice(targetIdx),
+        ];
+      }
+
+      await reorderGuests(reordered);
+      showToast(`¡Posición de "${draggedGuest.fullName}"${groupCount > 1 ? ' y sus acompañantes' : ''} actualizada!`);
+    }
+
+    setDraggedGuestId(null);
+  };
 
   // Normalize categories
   const getNormalizedCategory = (cat: ProtocolCategory | string): ProtocolCategory => {
@@ -576,6 +665,21 @@ export const GuestManagement: React.FC = () => {
 
       </div>
 
+      {/* Floating Toast Notification for Drag & Drop actions */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#2D2A26] text-white px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-2 border border-[#8B3A4A]/40 animate-fadeIn">
+          <Sparkles className="w-4 h-4 text-[#F7E7CE] shrink-0" />
+          <span className="text-xs font-medium">{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="ml-2 text-stone-400 hover:text-white text-xs cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Main Table: Lista de Invitados */}
       <div className="bg-white rounded-2xl border border-[#E8DCCF] shadow-xs overflow-hidden">
         
@@ -591,7 +695,7 @@ export const GuestManagement: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2 text-xs text-[#7A7268]">
-            <span className="hidden sm:inline">Haz clic en las cabeceras para ordenar o en <strong>"Editar"</strong> para modificar datos</span>
+            <span className="hidden sm:inline">💡 Arrastra invitados para reordenar o cambiar de mesa • Acompañantes se trasladan automáticamente</span>
           </div>
         </div>
 
@@ -626,6 +730,11 @@ export const GuestManagement: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-[#FAF8F5] border-b border-[#E8DCCF] text-[#7A7268]">
                 <tr>
+                  {/* Drag Handle Header */}
+                  <th className="w-8 py-3 px-2 text-center" title="Arrastra para reordenar o mover de mesa">
+                    <span className="sr-only">Mover</span>
+                  </th>
+
                   {/* 1. Invitado & Código Sortable */}
                   <th className="py-3 px-4 font-semibold">
                     <button
@@ -670,7 +779,7 @@ export const GuestManagement: React.FC = () => {
                       type="button"
                       onClick={() => handleSort('table')}
                       className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#8B3A4A] transition-colors cursor-pointer group select-none text-left"
-                      title="Ordenar por mesa asignada (mesas asignadas primero, sin asignar al final)"
+                      title="Ordenar por mesa asignada (mesas ordenadas alfabéticamente)"
                     >
                       <span>Mesa & Pases</span>
                       <span className={`p-0.5 rounded transition-colors ${sortField === 'table' ? 'bg-[#8B3A4A]/10 text-[#8B3A4A]' : 'text-stone-400 group-hover:text-stone-600'}`}>
@@ -711,8 +820,29 @@ export const GuestManagement: React.FC = () => {
                   const linkedCompanions = guests.filter((g) => g.mainGuestId === guest.id);
                   const maxAllowedCompanions = Math.max(0, (guest.totalPasses || 1) - 1);
 
+                  const isBeingDragged = draggedGuestId === guest.id;
+                  const isDragTarget = dragOverGuestId === guest.id && draggedGuestId !== guest.id;
+
                   return (
-                    <tr key={guest.id} className="hover:bg-[#FAF8F5]/80 transition-colors">
+                    <tr
+                      key={guest.id}
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, guest)}
+                      onDragOver={(e) => handleDragOver(e, guest)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, guest)}
+                      className={`transition-colors cursor-move ${
+                        isBeingDragged
+                          ? 'opacity-40 bg-[#F5EBE6]'
+                          : isDragTarget
+                          ? 'bg-[#FAF3F5] ring-2 ring-[#8B3A4A] ring-inset'
+                          : 'hover:bg-[#FAF8F5]/80'
+                      }`}
+                    >
+                      {/* Drag Handle */}
+                      <td className="py-3 px-2 text-center align-middle text-stone-300 hover:text-[#8B3A4A] cursor-grab active:cursor-grabbing">
+                        <GripVertical className="w-4 h-4 mx-auto" />
+                      </td>
                       
                       {/* 1. Nombre & Pase */}
                       <td className="py-3 px-4 align-top">

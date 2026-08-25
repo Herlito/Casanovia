@@ -260,6 +260,7 @@ export interface WeddingSettings {
   weddingDate: string; // ISO or YYYY-MM-DD
   weddingTime: string; // e.g. "17:00"
   locationSummary: string; // e.g. "San Pedro Garza García & Santiago, N.L."
+  hasReligiousCeremony?: boolean; // Toggle si la boda cuenta con ceremonia religiosa o no
   ceremonyVenue: {
     name: string;
     address: string;
