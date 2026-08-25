@@ -53,8 +53,8 @@ export const HeroCountdown: React.FC = () => {
     '12:00m'
   );
 
-  const brideFirstName = settings.brideName ? settings.brideName.split(' ')[0] : 'Zenaida';
-  const groomFirstName = settings.groomName ? settings.groomName.split(' ')[0] : 'Ronny';
+  const brideFirstName = (settings.brideName ? settings.brideName.split(' ')[0] : settings.coupleNames?.split('&')[0]?.trim()) || 'Novia';
+  const groomFirstName = (settings.groomName ? settings.groomName.split(' ')[0] : settings.coupleNames?.split('&')[1]?.trim()) || 'Novio';
 
   return (
     <section className="relative overflow-hidden pt-6 pb-12 sm:pt-10 sm:pb-16 bg-[#FDFBF7]">

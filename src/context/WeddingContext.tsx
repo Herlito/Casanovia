@@ -256,19 +256,44 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [showUserManagementModal, setShowUserManagementModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  // Helper to extract requested wedding from URL query parameters (?boda=... or ?wedding=... or ?w=...)
+  // Helper to extract requested wedding from URL query parameters or pathname/hash
   const getRequestedWeddingIdFromUrl = (): string => {
     try {
       if (typeof window !== 'undefined') {
         const urlParams = new URLSearchParams(window.location.search);
-        const bodaParam = urlParams.get('boda') || urlParams.get('wedding') || urlParams.get('w') || urlParams.get('id');
+        const bodaParam =
+          urlParams.get('boda') ||
+          urlParams.get('wedding') ||
+          urlParams.get('w') ||
+          urlParams.get('id') ||
+          urlParams.get('b') ||
+          urlParams.get('novios') ||
+          urlParams.get('slug');
+
         if (bodaParam) {
           return decodeURIComponent(bodaParam).trim();
         }
+
         if (window.location.hash) {
-          const hash = window.location.hash.replace('#', '').trim();
-          if (hash.startsWith('boda-') || hash.startsWith('wedding-')) {
-            return hash;
+          const hash = decodeURIComponent(window.location.hash.replace(/^#\/?/, '')).trim();
+          if (hash) {
+            const cleanHash = hash.replace(/^(boda\/|wedding\/)/, 'boda-');
+            if (cleanHash && !cleanHash.includes('page=') && !cleanHash.includes('precios') && !cleanHash.includes('tokens')) {
+              return cleanHash;
+            }
+          }
+        }
+
+        // Check pathname segments e.g. /boda/boda-zenaida-ronny or /boda-zenaida-ronny
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
+        for (const seg of pathSegments) {
+          const cleanSeg = decodeURIComponent(seg).trim();
+          if (
+            cleanSeg.startsWith('boda-') ||
+            cleanSeg.startsWith('wedding-') ||
+            (cleanSeg.includes('-') && !['precios', 'tokens', 'api', 'assets'].includes(cleanSeg.toLowerCase()))
+          ) {
+            return cleanSeg;
           }
         }
       }
@@ -276,6 +301,53 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.error('Error reading wedding ID from URL:', e);
     }
     return '';
+  };
+
+  // Helper to find a wedding matching the requested identifier
+  const findWeddingByRequestedParam = (weddingsList: Wedding[], requested: string): Wedding | undefined => {
+    if (!requested || !weddingsList || weddingsList.length === 0) return undefined;
+    const cleanReq = decodeURIComponent(requested).trim().toLowerCase();
+    if (!cleanReq) return undefined;
+
+    // 1. Exact ID match (case-insensitive)
+    let found = weddingsList.find((w) => w.id.toLowerCase() === cleanReq);
+    if (found) return found;
+
+    // 2. ID match without 'boda-' or 'wedding-' prefix
+    const unPrefixedReq = cleanReq.replace(/^(boda-|wedding-)/, '');
+    found = weddingsList.find(
+      (w) => w.id.toLowerCase().replace(/^(boda-|wedding-)/, '') === unPrefixedReq
+    );
+    if (found) return found;
+
+    // 3. Match against normalized couple names (e.g. "zenaida-ronny" -> "Zenaida & Ronny")
+    found = weddingsList.find((w) => {
+      const coupleLower = (w.coupleNames || '').toLowerCase();
+      const coupleClean = coupleLower.replace(/[^a-z0-9]/g, '');
+      const reqClean = cleanReq.replace(/[^a-z0-9]/g, '');
+      const unPrefClean = unPrefixedReq.replace(/[^a-z0-9]/g, '');
+      return (
+        (coupleClean && coupleClean === reqClean) ||
+        (coupleClean && coupleClean === unPrefClean)
+      );
+    });
+    if (found) return found;
+
+    // 4. Substring search in couple names, brideName or groomName
+    found = weddingsList.find((w) => {
+      const coupleLower = (w.coupleNames || '').toLowerCase();
+      const bride = (w.settings?.brideName || '').toLowerCase();
+      const groom = (w.settings?.groomName || '').toLowerCase();
+      return (
+        coupleLower.includes(unPrefixedReq) ||
+        coupleLower.includes(cleanReq) ||
+        bride.includes(unPrefixedReq) ||
+        groom.includes(unPrefixedReq)
+      );
+    });
+    if (found) return found;
+
+    return undefined;
   };
 
   // Helper to generate public shareable guest wedding URL
@@ -330,8 +402,12 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [weddings, setWeddings] = useState<Wedding[]>(initialWeddingsList);
   const [activeWeddingId, setActiveWeddingId] = useState<string>(() => {
     const fromUrl = getRequestedWeddingIdFromUrl();
-    if (fromUrl) return fromUrl;
-    return 'boda-sofia-alejandro';
+    if (fromUrl) {
+      const match = findWeddingByRequestedParam(initialWeddingsList, fromUrl);
+      if (match) return match.id;
+      return fromUrl;
+    }
+    return initialWeddingsList[0]?.id || '';
   });
 
   // Selected Guest for Guide
@@ -428,10 +504,18 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     initUsersSync();
     initTokensConfigSync();
 
-    // Listen to browser forward/back or hash changes for tokens URL routing
+    // Listen to browser forward/back or hash changes for URL routing
     const handleUrlNav = () => {
       if (isTokensUrlRequested()) {
         setViewModeState('tokens');
+      } else {
+        const requestedId = getRequestedWeddingIdFromUrl();
+        if (requestedId) {
+          setActiveWeddingId((prev) => {
+            const match = findWeddingByRequestedParam(weddings, requestedId);
+            return match ? match.id : requestedId;
+          });
+        }
       }
     };
     window.addEventListener('popstate', handleUrlNav);
@@ -760,10 +844,15 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
               // ensure activeWeddingId respects URL parameter if requested or remains valid
               setActiveWeddingId((prev) => {
                 const requestedId = getRequestedWeddingIdFromUrl();
-                if (requestedId && sortedList.some((w) => w.id === requestedId)) {
+                if (requestedId) {
+                  const match = findWeddingByRequestedParam(sortedList, requestedId);
+                  if (match) return match.id;
+                  if (sortedList.some((w) => w.id === requestedId)) {
+                    return requestedId;
+                  }
                   return requestedId;
                 }
-                if (sortedList.some((w) => w.id === prev)) {
+                if (prev && sortedList.some((w) => w.id === prev)) {
                   return prev;
                 }
                 return sortedList[0].id;
@@ -854,7 +943,26 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return accessibleWeddings.find((w) => w.id === activeWeddingId) || accessibleWeddings[0];
     }
 
-    return weddings.find((w) => w.id === activeWeddingId) || weddings[0] || initialDefaultWedding;
+    // 1. Direct match by ID
+    const directMatch = weddings.find((w) => w.id === activeWeddingId);
+    if (directMatch) return directMatch;
+
+    // 2. Fuzzy match by param/slug from activeWeddingId
+    if (activeWeddingId) {
+      const match = findWeddingByRequestedParam(weddings, activeWeddingId);
+      if (match) return match;
+    }
+
+    // 3. Fallback check from current URL parameter directly
+    const requestedFromUrl = getRequestedWeddingIdFromUrl();
+    if (requestedFromUrl) {
+      const urlMatch =
+        findWeddingByRequestedParam(weddings, requestedFromUrl) ||
+        findWeddingByRequestedParam(initialWeddingsList, requestedFromUrl);
+      if (urlMatch) return urlMatch;
+    }
+
+    return weddings[0] || initialWeddingsList[0] || initialDefaultWedding;
   }, [weddings, userCreatedWeddings, accessibleWeddings, activeWeddingId, currentUser]);
 
   // Auto-align activeWeddingId when user logs in or accessibleWeddings changes
