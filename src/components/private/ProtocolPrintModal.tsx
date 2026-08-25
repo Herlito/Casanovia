@@ -1,6 +1,7 @@
 import React from 'react';
 import { useWedding } from '../../context/WeddingContext';
-import { formatWeddingDateCustom } from '../../lib/dateUtils';
+import { TimelineMilestone } from '../../types';
+import { formatWeddingDateCustom, sortTimelineMilestones, parseMilestoneTimeToMinutes } from '../../lib/dateUtils';
 import { formatAltibajas } from '../../lib/formatUtils';
 import { printElementById } from '../../lib/printUtils';
 import { X, Printer, Download, MapPin, User, Sparkles, Star } from 'lucide-react';
@@ -64,8 +65,8 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
 
   const protocolGuests = guests.filter(g => g.isProtocolParticipant);
   
-  // Sort timeline chronologically
-  const sortedTimeline = [...timeline].sort((a, b) => a.time.localeCompare(b.time));
+  // Sort timeline chronologically in ascending order
+  const sortedTimeline = sortTimelineMilestones<TimelineMilestone>(timeline);
 
   // Calculate duration between current milestone and the next one (from first to penultimate)
   const getDurationToNext = (idx: number): string | null => {
@@ -74,16 +75,13 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
     const next = sortedTimeline[idx + 1].time;
     if (!current || !next) return null;
 
-    const [h1, m1] = current.split(':').map(Number);
-    const [h2, m2] = next.split(':').map(Number);
-    if (isNaN(h1) || isNaN(m1) || isNaN(h2) || isNaN(m2)) return null;
-
-    let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-    if (diff < 0) {
-      // Crosses midnight
-      diff += 24 * 60;
+    const min1 = parseMilestoneTimeToMinutes(current);
+    const min2 = parseMilestoneTimeToMinutes(next);
+    const diff = min2 - min1;
+    if (diff > 0) {
+      return `${diff} mins`;
     }
-    return `${diff} mins`;
+    return null;
   };
 
   return (

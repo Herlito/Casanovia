@@ -4,7 +4,7 @@ import { TimelineMilestone } from '../../types';
 import { MilestoneModal } from './MilestoneModal';
 import { ProtocolPrintModal } from './ProtocolPrintModal';
 import { formatAltibajas, extractContactPersonOnly } from '../../lib/formatUtils';
-import { formatTimingHeaderDate } from '../../lib/dateUtils';
+import { formatTimingHeaderDate, sortTimelineMilestones, parseMilestoneTimeToMinutes } from '../../lib/dateUtils';
 import { 
   Plus, 
   Printer, 
@@ -135,12 +135,12 @@ export const TimelineModule: React.FC = () => {
   const [activeMilestoneId, setActiveMilestoneId] = useState<string | null>(null);
 
   const filteredTimeline = useMemo(() => {
-    return timeline
-      .filter((m) => {
+    return sortTimelineMilestones(
+      timeline.filter((m) => {
         if (categoryFilter === 'all') return true;
         return m.category === categoryFilter;
       })
-      .sort((a, b) => a.time.localeCompare(b.time));
+    );
   }, [timeline, categoryFilter]);
 
   const handleOpenAdd = () => {
@@ -387,11 +387,10 @@ export const TimelineModule: React.FC = () => {
                 const nextItem = filteredTimeline[idx + 1];
                 let durationText: string | null = null;
                 if (nextItem && item.time && nextItem.time) {
-                  const [h1, m1] = item.time.split(':').map(Number);
-                  const [h2, m2] = nextItem.time.split(':').map(Number);
-                  if (!isNaN(h1) && !isNaN(m1) && !isNaN(h2) && !isNaN(m2)) {
-                    let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-                    if (diff < 0) diff += 24 * 60;
+                  const min1 = parseMilestoneTimeToMinutes(item.time);
+                  const min2 = parseMilestoneTimeToMinutes(nextItem.time);
+                  const diff = min2 - min1;
+                  if (diff > 0) {
                     durationText = `${diff} mins`;
                   }
                 }
@@ -551,11 +550,10 @@ export const TimelineModule: React.FC = () => {
             const nextItem = filteredTimeline[idx + 1];
             let durationText: string | null = null;
             if (nextItem && item.time && nextItem.time) {
-              const [h1, m1] = item.time.split(':').map(Number);
-              const [h2, m2] = nextItem.time.split(':').map(Number);
-              if (!isNaN(h1) && !isNaN(m1) && !isNaN(h2) && !isNaN(m2)) {
-                let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-                if (diff < 0) diff += 24 * 60;
+              const min1 = parseMilestoneTimeToMinutes(item.time);
+              const min2 = parseMilestoneTimeToMinutes(nextItem.time);
+              const diff = min2 - min1;
+              if (diff > 0) {
                 durationText = `${diff} mins`;
               }
             }

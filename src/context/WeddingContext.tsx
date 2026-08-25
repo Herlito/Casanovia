@@ -38,7 +38,7 @@ import {
   initialTables,
   INITIAL_TOKENS_PAYMENT_CONFIG
 } from '../data/initialData';
-import { sortWeddingsByDate } from '../lib/dateUtils';
+import { sortWeddingsByDate, sortTimelineMilestones } from '../lib/dateUtils';
 import { syncVendorsIntoBudget, buildBudgetDirectlyFromVendors } from '../lib/budgetSyncUtils';
 import { formatAltibajas } from '../lib/formatUtils';
 
@@ -921,7 +921,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Active Wedding Sub-entities
   const settings: WeddingSettings = activeWedding?.settings || initialWeddingSettings;
   const guests: Guest[] = activeWedding?.guests || [];
-  const timeline: TimelineMilestone[] = activeWedding?.timeline || [];
+  const timeline: TimelineMilestone[] = React.useMemo(() => {
+    const raw = activeWedding?.timeline || initialTimeline;
+    return sortTimelineMilestones<TimelineMilestone>(raw);
+  }, [activeWedding?.timeline]);
   const budget: BudgetItem[] = activeWedding?.budget || [];
   const tasks: WeddingTask[] = activeWedding?.tasks || [];
   const vendors: VendorItem[] = activeWedding?.vendors || initialVendors;
@@ -1581,16 +1584,16 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       responsiblePerson: milestone.responsiblePerson?.trim() || '',
       dressOrItemsRequired: milestone.dressOrItemsRequired?.trim() || '',
     };
-    const updated = [...currentTimeline, newMilestone].sort((a, b) => a.time.localeCompare(b.time));
+    const updated: TimelineMilestone[] = sortTimelineMilestones<TimelineMilestone>([...currentTimeline, newMilestone]);
     await updateActiveWeddingDoc({ timeline: updated });
   };
 
   const updateMilestone = async (id: string, updates: Partial<TimelineMilestone>) => {
     const currentWedding = weddings.find((w) => w.id === activeWeddingId);
     const currentTimeline = currentWedding?.timeline || timeline || [];
-    const updated = currentTimeline
-      .map((item) => (item.id === id ? { ...item, ...updates } : item))
-      .sort((a, b) => a.time.localeCompare(b.time));
+    const updated: TimelineMilestone[] = sortTimelineMilestones<TimelineMilestone>(
+      currentTimeline.map((item) => (item.id === id ? { ...item, ...updates } : item))
+    );
     await updateActiveWeddingDoc({ timeline: updated });
   };
 

@@ -252,3 +252,60 @@ export function isRsvpDeadlinePassed(deadlineStr?: string): boolean {
     return false;
   }
 }
+
+/**
+ * Converts a milestone time string (e.g. "13:00", "9:00", "01:30", "5:00 PM", "12:30 AM") 
+ * into minutes relative to the wedding day sequence.
+ * Early morning hours (00:00 - 05:59) represent the continuation of the night/party after 23:59 (+24 hours).
+ */
+export function parseMilestoneTimeToMinutes(timeStr?: string): number {
+  if (!timeStr) return 0;
+  const clean = timeStr.trim().toLowerCase();
+
+  const isPM = clean.includes('pm') || clean.includes('p.m.') || clean.includes('p. m.');
+  const isAM = clean.includes('am') || clean.includes('a.m.') || clean.includes('a. m.');
+
+  const match = clean.match(/(\d{1,2})[:.](\d{2})/);
+  if (!match) {
+    const hourMatch = clean.match(/(\d{1,2})/);
+    if (!hourMatch) return 0;
+    let h = parseInt(hourMatch[1], 10);
+    if (isPM && h < 12) h += 12;
+    if (isAM && h === 12) h = 0;
+    if (h < 6) h += 24;
+    return h * 60;
+  }
+
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+
+  if (isPM && hours < 12) {
+    hours += 12;
+  } else if (isAM && hours === 12) {
+    hours = 0;
+  }
+
+  // If hours < 6 (e.g. 00:30, 01:30, 02:00, 03:00, 04:00, 05:00)
+  // this is past-midnight party/celebration in the wedding day sequence
+  if (hours < 6) {
+    hours += 24;
+  }
+
+  return hours * 60 + minutes;
+}
+
+/**
+ * Compares two milestone times in chronological ascending order.
+ */
+export function compareMilestoneTimes(aTime?: string, bTime?: string): number {
+  const minA = parseMilestoneTimeToMinutes(aTime);
+  const minB = parseMilestoneTimeToMinutes(bTime);
+  return minA - minB;
+}
+
+/**
+ * Sorts an array of milestones in chronological ascending order according to their hour.
+ */
+export function sortTimelineMilestones<T extends { time?: string }>(milestones: T[]): T[] {
+  return [...milestones].sort((a, b) => compareMilestoneTimes(a.time, b.time));
+}
