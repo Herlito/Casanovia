@@ -17,11 +17,12 @@ import { UserManagementModal } from './components/modals/UserManagementModal';
 import { ShareWeddingModal } from './components/modals/ShareWeddingModal';
 import { PublicFooter } from './components/public/PublicFooter';
 import { CasanoviaLoadingScreen } from './components/CasanoviaLoadingScreen';
+import { CasanoviaHomeLanding } from './components/public/CasanoviaHomeLanding';
 import { Heart, Sparkles } from 'lucide-react';
 import { isRsvpDeadlinePassed } from './lib/dateUtils';
 
 const MainLayout: React.FC = () => {
-  const { viewMode, settings, isFirebaseLoading } = useWedding();
+  const { viewMode, settings, isFirebaseLoading, isPublicHomeLanding } = useWedding();
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
   useEffect(() => {
@@ -46,29 +47,36 @@ const MainLayout: React.FC = () => {
       {/* Conditional View Rendering */}
       {viewMode === 'public' ? (
         <main className="flex-1 animate-fadeIn">
-          {/* 1. Hero & Real-time Countdown */}
-          <HeroCountdown />
+          {isPublicHomeLanding ? (
+            /* Home Landing: Solo el logo de Casanovia centrado en la pantalla */
+            <CasanoviaHomeLanding />
+          ) : (
+            <>
+              {/* 1. Hero & Real-time Countdown */}
+              <HeroCountdown />
 
-          {/* 2. Interactive Protocol Pass & Personalized Guide Lookup (Oculto si vence la fecha límite) */}
-          {!isDeadlinePassed && <ProtocolPassLookup />}
+              {/* 2. Interactive Protocol Pass & Personalized Guide Lookup (Oculto si vence la fecha límite) */}
+              {!isDeadlinePassed && <ProtocolPassLookup />}
 
-          {/* 3. Venue Details & Map Links */}
-          <EventDetails />
+              {/* 3. Venue Details & Map Links */}
+              <EventDetails />
 
-          {/* 4. Dress Code & Interactive Color Palette */}
-          <DressCodeSection />
+              {/* 4. Dress Code & Interactive Color Palette */}
+              <DressCodeSection />
 
-          {/* 5. Dynamic RSVP Form (Oculto si vence la fecha límite) */}
-          {!isDeadlinePassed && <RsvpSection />}
+              {/* 5. Dynamic RSVP Form (Oculto si vence la fecha límite) */}
+              {!isDeadlinePassed && <RsvpSection />}
 
-          {/* 6. Gift Registry & Bank Transfer with 1-Click Copy */}
-          <GiftRegistrySection />
+              {/* 6. Gift Registry & Bank Transfer with 1-Click Copy */}
+              <GiftRegistrySection />
 
-          {/* 7. Wall of Wishes from Confirmed Guests */}
-          <WishesWall />
+              {/* 7. Wall of Wishes from Confirmed Guests */}
+              <WishesWall />
 
-          {/* Public Footer with Editable Romantic Quote, Couple Names & Contacts */}
-          <PublicFooter />
+              {/* Public Footer with Editable Romantic Quote, Couple Names & Contacts */}
+              <PublicFooter />
+            </>
+          )}
         </main>
       ) : viewMode === 'new_wedding_tasks' ? (
         <main className="flex-1 animate-fadeIn">

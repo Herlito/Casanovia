@@ -56,7 +56,8 @@ export const Navbar: React.FC = () => {
     setShowNewWeddingModal, 
     setShowUserManagementModal,
     setShowShareModal,
-    getShareableWeddingUrl
+    getShareableWeddingUrl,
+    isPublicHomeLanding
   } = useWedding();
 
   const [sandwichMenuOpen, setSandwichMenuOpen] = useState(false);
@@ -173,9 +174,58 @@ export const Navbar: React.FC = () => {
               )}
             </div>
 
-            {/* Center: Official Casanovia Vector Logo when logged in or in prices/tokens page; or "Nuestra Boda & Guía Oficial" badge in public wedding page when not logged in */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center pointer-events-auto">
-              {(currentUser.isAuthenticated || activeView === 'tokens') ? (
+            {/* Center: In home landing without login, display Sandwich Menu in the middle of header; otherwise official logo or wedding badge */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex items-center justify-center pointer-events-auto">
+              {isPublicHomeLanding ? (
+                /* Sandwich Menu in the middle of header when unauthenticated home */
+                <div className="relative" ref={sandwichMenuRef}>
+                  <button
+                    type="button"
+                    id="btn-sandwich-menu-center"
+                    onClick={() => setSandwichMenuOpen(!sandwichMenuOpen)}
+                    aria-label="Abrir Menú de Opciones"
+                    className={`p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
+                      sandwichMenuOpen
+                        ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-md ring-2 ring-[#8B3A4A]/30'
+                        : 'bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#2D2A26] border-[#D9CEBF]'
+                    }`}
+                    title="Menú de Acciones y Herramientas"
+                  >
+                    {sandwichMenuOpen ? (
+                      <X className="w-5 h-5 transition-transform" />
+                    ) : (
+                      <Menu className="w-5 h-5 text-[#8B3A4A] transition-transform" />
+                    )}
+                  </button>
+
+                  {/* Dropdown under centered menu */}
+                  {sandwichMenuOpen && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-50 bg-black/20 backdrop-blur-2xs"
+                        onClick={() => setSandwichMenuOpen(false)}
+                      />
+
+                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-56 p-2 bg-white rounded-3xl shadow-2xl border border-[#E8DCCF] z-[60] animate-fadeIn">
+                        <div className="p-1">
+                          <button
+                            type="button"
+                            id="sandwich-btn-acceder-center"
+                            onClick={() => {
+                              setShowAuthModal(true);
+                              setSandwichMenuOpen(false);
+                            }}
+                            className="w-full py-2.5 px-4 rounded-2xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-xs font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer shadow-xs"
+                          >
+                            <User className="w-4 h-4" />
+                            <span>Acceder</span>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (currentUser.isAuthenticated || activeView === 'tokens') ? (
                 <button
                   type="button"
                   id="btn-nav-logo-home"
@@ -208,7 +258,7 @@ export const Navbar: React.FC = () => {
               )}
             </div>
 
-            {/* Right: Auth status, Cloud Sync, Share button & Sandwich Menu */}
+            {/* Right: Auth status, Cloud Sync, Share button & Sandwich Menu (when not in isPublicHomeLanding mode) */}
             <div className="flex items-center justify-end space-x-2 sm:space-x-3 ml-auto z-20">
 
               {/* Cloud Sync Status Indicator - Solo para Administrador de Sistema */}
@@ -248,29 +298,30 @@ export const Navbar: React.FC = () => {
                 </div>
               )}
 
-              {/* Sandwich Menu Trigger Button (Icon only) */}
-              <div className="relative" ref={sandwichMenuRef}>
-                <button
-                  type="button"
-                  id="btn-sandwich-menu"
-                  onClick={() => setSandwichMenuOpen(!sandwichMenuOpen)}
-                  aria-label="Abrir Menú de Opciones"
-                  className={`p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
-                    sandwichMenuOpen
-                      ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-md ring-2 ring-[#8B3A4A]/30'
-                      : 'bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#2D2A26] border-[#D9CEBF]'
-                  }`}
-                  title="Menú de Acciones y Herramientas"
-                >
-                  {sandwichMenuOpen ? (
-                    <X className="w-5 h-5 transition-transform" />
-                  ) : (
-                    <Menu className="w-5 h-5 text-[#8B3A4A] transition-transform" />
-                  )}
-                </button>
+              {/* Sandwich Menu Trigger Button (Icon only) - Only when not centered in isPublicHomeLanding mode */}
+              {!isPublicHomeLanding && (
+                <div className="relative" ref={sandwichMenuRef}>
+                  <button
+                    type="button"
+                    id="btn-sandwich-menu"
+                    onClick={() => setSandwichMenuOpen(!sandwichMenuOpen)}
+                    aria-label="Abrir Menú de Opciones"
+                    className={`p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
+                      sandwichMenuOpen
+                        ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-md ring-2 ring-[#8B3A4A]/30'
+                        : 'bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#2D2A26] border-[#D9CEBF]'
+                    }`}
+                    title="Menú de Acciones y Herramientas"
+                  >
+                    {sandwichMenuOpen ? (
+                      <X className="w-5 h-5 transition-transform" />
+                    ) : (
+                      <Menu className="w-5 h-5 text-[#8B3A4A] transition-transform" />
+                    )}
+                  </button>
 
-                {/* Sandwich Menu Floating Dropdown */}
-                {sandwichMenuOpen && (
+                  {/* Sandwich Menu Floating Dropdown */}
+                  {sandwichMenuOpen && (
                   <>
                     {/* Backdrop for click outside */}
                     <div 
@@ -541,6 +592,7 @@ export const Navbar: React.FC = () => {
                   </>
                 )}
               </div>
+              )}
 
             </div>
           </div>

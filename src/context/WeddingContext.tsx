@@ -196,6 +196,11 @@ interface WeddingContextType {
   tokensPaymentConfig: TokensPaymentConfig;
   updateTokensPaymentConfig: (updates: Partial<TokensPaymentConfig>) => Promise<void>;
 
+  // Navigation & URL status
+  hasWeddingUrlParam: boolean;
+  isPublicHomeLanding: boolean;
+  getRequestedWeddingIdFromUrl: () => string;
+
   // Firebase status
   isFirebaseLoading: boolean;
   isFirebaseConnected: boolean;
@@ -2195,6 +2200,9 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setSelectedGuestForGuide,
         tokensPaymentConfig,
         updateTokensPaymentConfig,
+        hasWeddingUrlParam: Boolean(getRequestedWeddingIdFromUrl()),
+        isPublicHomeLanding: !currentUser.isAuthenticated && !Boolean(getRequestedWeddingIdFromUrl()) && viewMode !== 'tokens',
+        getRequestedWeddingIdFromUrl,
         isFirebaseLoading,
         isFirebaseConnected,
       }}
