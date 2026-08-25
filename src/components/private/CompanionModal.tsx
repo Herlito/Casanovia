@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { Guest } from '../../types';
+import { formatAltibajas } from '../../lib/formatUtils';
 import { 
   X, 
   UserPlus, 
@@ -186,7 +187,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
         }
       }
 
-      const cleanName = newFullName.trim();
+      const cleanName = formatAltibajas(newFullName.trim());
       const cleanPrefix = cleanName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'ACOMP';
       const generatedCode = `BODA-${cleanPrefix}-${Math.floor(100 + Math.random() * 900)}`;
 

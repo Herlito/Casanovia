@@ -45,11 +45,13 @@ export const HeroCountdown: React.FC = () => {
   };
 
   const dateParts = parseWeddingDateParts(settings.weddingDate);
+  const isCivilOnly = settings.hasReligiousCeremony === false;
+  const targetVenue = isCivilOnly ? settings.receptionVenue : settings.ceremonyVenue;
+  const venueName = targetVenue?.name || (isCivilOnly ? 'Salón de Recepción' : 'Iglesia Santa Marta');
   const formattedTime = formatCeremonyTimeSimple(
-    settings.ceremonyVenue?.time || settings.weddingTime,
+    targetVenue?.time || settings.weddingTime,
     '12:00m'
   );
-  const churchName = settings.ceremonyVenue?.name || 'Iglesia Santa Marta';
 
   const brideFirstName = settings.brideName ? settings.brideName.split(' ')[0] : 'Zenaida';
   const groomFirstName = settings.groomName ? settings.groomName.split(' ')[0] : 'Ronny';
@@ -88,10 +90,10 @@ export const HeroCountdown: React.FC = () => {
           <div className="border-b border-[#D9CEBF]" />
         </div>
 
-        {/* Venue & Ceremony Time */}
+        {/* Venue & Ceremony/Reception Time */}
         <div className="space-y-0.5 mb-5 sm:mb-6">
           <h3 className="font-editorial text-xl sm:text-2xl font-medium text-[#2D2A26] tracking-wide leading-tight">
-            {churchName}
+            {venueName}
           </h3>
           <p className="font-editorial text-lg sm:text-xl text-[#524B42] leading-tight">
             {formattedTime}

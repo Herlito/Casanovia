@@ -33,12 +33,15 @@ export const formatCurrencyInteger = (amount: number): string => {
 /**
  * Formats names or titles to proper Title Case / Altibajas
  * Example: "MARÍA INÉS ARIAS" -> "María Inés Arias"
+ * Example: "juan carlos pérez" -> "Juan Carlos Pérez"
  */
 export const formatAltibajas = (str?: string): string => {
   if (!str) return '';
   return str
+    .trim()
+    .replace(/\s+/g, ' ')
     .toLowerCase()
-    .replace(/(?:^|\s|[\(\[\/\-\.,])\S/g, (char) => char.toUpperCase());
+    .replace(/(?:^|[\s\(\[\/\-\.,'"])\S/g, (char) => char.toUpperCase());
 };
 
 /**

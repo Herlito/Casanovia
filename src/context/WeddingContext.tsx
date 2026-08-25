@@ -40,6 +40,7 @@ import {
 } from '../data/initialData';
 import { sortWeddingsByDate } from '../lib/dateUtils';
 import { syncVendorsIntoBudget, buildBudgetDirectlyFromVendors } from '../lib/budgetSyncUtils';
+import { formatAltibajas } from '../lib/formatUtils';
 
 export const LEVEL_1_USER = {
   username: 'Herly Lizarazo',
@@ -1274,6 +1275,9 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const currentWedding = weddings.find((w) => w.id === activeWeddingId);
     const currentGuests = currentWedding?.guests || guests || [];
 
+    // Format full name to Altibajas automatically
+    const cleanFullName = formatAltibajas(guestData.fullName);
+
     // If companion of a main guest, synchronize initial table with the main guest
     let tableToAssign = guestData.assignedTable || 'Mesa por asignar';
     if (guestData.mainGuestId) {
@@ -1285,11 +1289,14 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
 
+    const cleanNameCode = cleanFullName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'INV';
+
     const newGuest: Guest = {
       ...guestData,
+      fullName: cleanFullName,
       assignedTable: tableToAssign,
       id: `g-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
-      code: guestData.code || `BODA-${guestData.fullName.split(' ')[0].toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
+      code: guestData.code || `BODA-${cleanNameCode}-${Math.floor(100 + Math.random() * 900)}`,
       updatedAt: new Date().toISOString().split('T')[0],
     };
     const updatedGuests = [...currentGuests, newGuest];
@@ -1302,12 +1309,18 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const currentGuests = currentWedding?.guests || guests || [];
     const targetGuest = currentGuests.find((g) => g.id === id);
 
+    // Ensure Altibajas if fullName is being updated
+    const sanitizedUpdates = { ...updates };
+    if (sanitizedUpdates.fullName) {
+      sanitizedUpdates.fullName = formatAltibajas(sanitizedUpdates.fullName);
+    }
+
     // If updating assignedTable, synchronize the entire group (main guest + companions)
     let groupIdsToSyncTable: string[] = [];
     let groupNewTable: string | undefined = undefined;
 
-    if (updates.assignedTable !== undefined && targetGuest) {
-      groupNewTable = updates.assignedTable;
+    if (sanitizedUpdates.assignedTable !== undefined && targetGuest) {
+      groupNewTable = sanitizedUpdates.assignedTable;
       
       if (targetGuest.mainGuestId) {
         // Case A: The updated guest is a companion.
@@ -1332,7 +1345,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (g.id === id) {
         const updated = {
           ...g,
-          ...updates,
+          ...sanitizedUpdates,
           updatedAt: new Date().toISOString().split('T')[0],
         };
         if (selectedGuestForGuide?.id === id) {
@@ -1390,12 +1403,13 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     if (mode === 'replace') {
       finalGuests = newGuests.map((g, idx) => {
-        const cleanNameCode = (g.fullName || 'INV').replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'INV';
+        const cleanName = formatAltibajas(g.fullName || `Invitado ${idx + 1}`);
+        const cleanNameCode = cleanName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'INV';
         return {
           ...g,
           id: g.id || `g-imp-${Date.now()}-${idx}-${Math.floor(Math.random() * 1000)}`,
           code: g.code || `BODA-${cleanNameCode}-${String(idx + 1).padStart(2, '0')}`,
-          fullName: g.fullName || `Invitado ${idx + 1}`,
+          fullName: cleanName,
           category: g.category || 'invitado',
           assignedTable: g.assignedTable || 'Mesa por asignar',
           totalPasses: Number(g.totalPasses) > 0 ? Number(g.totalPasses) : 1,
@@ -1418,7 +1432,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const existingIds = new Set(guests.map((g) => g.id));
       const existingCodes = new Set(guests.map((g) => g.code.toUpperCase()));
       const sanitizedNewGuests = newGuests.map((g, idx) => {
-        const cleanNameCode = (g.fullName || 'INV').replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'INV';
+        const cleanName = formatAltibajas(g.fullName || `Invitado ${idx + 1}`);
+        const cleanNameCode = cleanName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'INV';
         let code = g.code;
         if (!code || existingCodes.has(code.toUpperCase())) {
           code = `BODA-${cleanNameCode}-${Math.floor(100 + Math.random() * 900)}`;
@@ -1434,7 +1449,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           ...g,
           id,
           code,
-          fullName: g.fullName || `Invitado ${idx + 1}`,
+          fullName: cleanName,
           category: g.category || 'invitado',
           assignedTable: g.assignedTable || 'Mesa por asignar',
           totalPasses: Number(g.totalPasses) > 0 ? Number(g.totalPasses) : 1,
@@ -1481,11 +1496,12 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   ): Promise<{ success: boolean; guest?: Guest; message: string }> => {
     const existingGuest = findGuestByQuery(guestCodeOrName);
+    const cleanRsvpName = formatAltibajas(rsvpData.fullName);
 
     if (existingGuest) {
       const updated: Guest = {
         ...existingGuest,
-        fullName: rsvpData.fullName || existingGuest.fullName,
+        fullName: cleanRsvpName || existingGuest.fullName,
         rsvpStatus: rsvpData.rsvpStatus,
         confirmedPasses: rsvpData.rsvpStatus === 'confirmed' ? rsvpData.confirmedPasses : 0,
         dietaryRestrictions: rsvpData.dietaryRestrictions || existingGuest.dietaryRestrictions || 'Ninguna',
@@ -1510,11 +1526,12 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
             : `Hemos registrado tu respuesta en la nube. ¡Gracias por acompañarnos con tus buenos deseos!`,
       };
     } else {
+      const cleanPrefix = cleanRsvpName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'INV';
       const newGuest: Guest = {
         id: `g-rsvp-${Date.now()}`,
-        code: `BODA-${rsvpData.fullName.split(' ')[0].toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
-        fullName: rsvpData.fullName,
-        category: 'invitado_general',
+        code: `BODA-${cleanPrefix}-${Math.floor(100 + Math.random() * 900)}`,
+        fullName: cleanRsvpName || 'Invitado Registrado',
+        category: 'invitado',
         isProtocolParticipant: false,
         totalPasses: rsvpData.confirmedPasses || 1,
         confirmedPasses: rsvpData.rsvpStatus === 'confirmed' ? rsvpData.confirmedPasses || 1 : 0,

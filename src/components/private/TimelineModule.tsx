@@ -132,6 +132,7 @@ export const TimelineModule: React.FC = () => {
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'editorial' | 'cards'>('editorial');
+  const [activeMilestoneId, setActiveMilestoneId] = useState<string | null>(null);
 
   const filteredTimeline = useMemo(() => {
     return timeline
@@ -398,21 +399,59 @@ export const TimelineModule: React.FC = () => {
                 return (
                   <div
                     key={item.id}
-                    className="group relative flex items-start transition-all"
+                    onClick={() => setActiveMilestoneId(activeMilestoneId === item.id ? null : item.id)}
+                    className="group relative flex items-start transition-all cursor-pointer rounded-2xl p-1.5 -m-1.5 hover:bg-[#FAF6F0]/60"
                   >
                     
-                    {/* Left Column: Icon + Time */}
-                    <div className="w-[88px] sm:w-[145px] md:w-[165px] pr-3 sm:pr-6 shrink-0 flex items-center justify-end space-x-2 sm:space-x-3.5 pt-0.5">
+                    {/* Left Column: Icon + Time + Action buttons underneath */}
+                    <div className="w-[100px] sm:w-[155px] md:w-[175px] pr-3 sm:pr-6 shrink-0 flex flex-col items-end pt-0.5">
                       
-                      {/* Delicate Line-Art Icon */}
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/80 border border-[#E8DCCF] shadow-2xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:border-[#8B3A4A]/40 transition-transform">
-                        {resolveMilestoneIcon(item)}
+                      <div className="flex items-center justify-end space-x-2 sm:space-x-3.5">
+                        {/* Delicate Line-Art Icon */}
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/80 border border-[#E8DCCF] shadow-2xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:border-[#8B3A4A]/40 transition-transform">
+                          {resolveMilestoneIcon(item)}
+                        </div>
+
+                        {/* Time Label */}
+                        <span className="font-serif font-bold text-xs sm:text-base text-[#2D2A26] tracking-tight whitespace-nowrap">
+                          {item.time} hs
+                        </span>
                       </div>
 
-                      {/* Time Label */}
-                      <span className="font-serif font-bold text-xs sm:text-base text-[#2D2A26] tracking-tight whitespace-nowrap">
-                        {item.time} hs
-                      </span>
+                      {/* Botones de Editar y Borrar Hito DEBAJO de la hora (visibles al pasar el mouse o al hacer click) */}
+                      <div 
+                        className={`mt-1.5 flex items-center justify-end space-x-1 transition-all duration-200 ${
+                          activeMilestoneId === item.id
+                            ? 'opacity-100 translate-y-0 pointer-events-auto'
+                            : 'opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEdit(item);
+                          }}
+                          className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-white border border-[#E8DCCF] text-[#6B6358] hover:text-[#8B3A4A] hover:bg-[#FAF8F5] text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
+                          title="Editar Hito"
+                        >
+                          <Edit className="w-2.5 h-2.5" />
+                          <span className="hidden sm:inline">Editar</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(item.id, item.title);
+                          }}
+                          className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-white border border-rose-200 text-rose-600 hover:text-white hover:bg-rose-600 text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
+                          title="Borrar Hito"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" />
+                          <span className="hidden sm:inline">Borrar</span>
+                        </button>
+                      </div>
+
                     </div>
 
                     {/* Center Horizontal Cross-Tick Marker */}
@@ -455,30 +494,11 @@ export const TimelineModule: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Category Badge & Action Buttons */}
+                        {/* Category Badge */}
                         <div className="flex items-center space-x-2 shrink-0 self-start sm:self-center mt-1 sm:mt-0">
                           {getCategoryBadge(item.category)}
-
-                          <div className="opacity-80 sm:opacity-0 group-hover:opacity-100 flex items-center space-x-1 transition-opacity bg-white/90 px-1.5 py-0.5 rounded-lg border border-[#E8DCCF]/70 shadow-2xs">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEdit(item)}
-                              className="p-1 text-[#7A7268] hover:text-[#8B3A4A] hover:bg-[#FAF7F2] rounded transition-colors cursor-pointer"
-                              title="Editar Hito"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                            </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(item.id, item.title)}
-                            className="p-1 text-[#7A7268] hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
-                            title="Eliminar Hito"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
                         </div>
                       </div>
-                    </div>
 
                     {/* Description */}
                     {item.description && (

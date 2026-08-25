@@ -3,6 +3,7 @@ import { useWedding } from '../../context/WeddingContext';
 import { Guest, WeddingTable, GUEST_ROLES_CONFIG, ProtocolCategory, RsvpStatus } from '../../types';
 import { TableModal } from './TableModal';
 import { TableSeatingPrintModal } from './TableSeatingPrintModal';
+import { formatAltibajas } from '../../lib/formatUtils';
 import { 
   UtensilsCrossed, 
   Users, 
@@ -32,7 +33,8 @@ import {
   Share2,
   Armchair,
   LayoutGrid,
-  ListFilter
+  ListFilter,
+  GripVertical
 } from 'lucide-react';
 
 export function sortGuestsWithCompanions(guestList: Guest[]): Guest[] {
@@ -85,6 +87,16 @@ export const TableAssignmentModule: React.FC = () => {
   const [zoneFilter, setZoneFilter] = useState<string>('all');
   const [selectedGuestIds, setSelectedGuestIds] = useState<string[]>([]);
   const [targetBatchTable, setTargetBatchTable] = useState<string>('');
+
+  // Drag and Drop & Toast states
+  const [draggedGuestId, setDraggedGuestId] = useState<string | null>(null);
+  const [dragOverTableId, setDragOverTableId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   // Modals
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
@@ -215,7 +227,60 @@ export const TableAssignmentModule: React.FC = () => {
 
   // Quick Action: Unassign single guest
   const handleUnassignGuest = async (guestId: string) => {
+    const target = guests.find((g) => g.id === guestId);
     await updateGuest(guestId, { assignedTable: 'Mesa por asignar' });
+    if (target) {
+      showToast(`"${formatAltibajas(target.fullName)}" desasignado(a) de la mesa.`);
+    }
+  };
+
+  // Drag & Drop: Asignar invitado y acompañantes a una mesa soltando en la ficha
+  const handleDropOnTable = async (e: React.DragEvent, targetTableName: string) => {
+    e.preventDefault();
+    setDragOverTableId(null);
+
+    const guestId = e.dataTransfer.getData('text/plain') || draggedGuestId;
+    if (!guestId) {
+      setDraggedGuestId(null);
+      return;
+    }
+
+    const draggedGuest = guests.find((g) => g.id === guestId);
+    if (!draggedGuest) {
+      setDraggedGuestId(null);
+      return;
+    }
+
+    if (draggedGuest.assignedTable === targetTableName) {
+      setDraggedGuestId(null);
+      return;
+    }
+
+    // Validar confirmación de asistencia
+    if (draggedGuest.rsvpStatus !== 'confirmed') {
+      showToast(`Solo se puede asignar mesa a invitados confirmados. Por favor confirma a "${formatAltibajas(draggedGuest.fullName)}" primero.`);
+      setDraggedGuestId(null);
+      return;
+    }
+
+    // Identificar el grupo (titular + acompañantes)
+    let groupToMove: Guest[] = [];
+    if (draggedGuest.mainGuestId) {
+      const main = guests.find((g) => g.id === draggedGuest.mainGuestId);
+      if (main) {
+        groupToMove = [main, ...guests.filter((g) => g.mainGuestId === main.id)];
+      } else {
+        groupToMove = [draggedGuest];
+      }
+    } else {
+      groupToMove = [draggedGuest, ...guests.filter((g) => g.mainGuestId === draggedGuest.id)];
+    }
+
+    await updateGuest(draggedGuest.id, { assignedTable: targetTableName });
+    
+    const count = groupToMove.length;
+    showToast(`¡"${formatAltibajas(draggedGuest.fullName)}"${count > 1 ? ` y ${count - 1} acompañante(s)` : ''} asignado(s) a "${targetTableName}"!`);
+    setDraggedGuestId(null);
   };
 
   // Batch Selection Helpers
@@ -765,10 +830,24 @@ export const TableAssignmentModule: React.FC = () => {
                 const isCompanion = Boolean(guest.mainGuestId);
                 const mainGuest = isCompanion ? guests.find((g) => g.id === guest.mainGuestId) : null;
 
+                const isDraggable = guest.rsvpStatus === 'confirmed';
+
                 return (
                   <div
                     key={guest.id}
+                    draggable={isDraggable}
+                    onDragStart={(e) => {
+                      if (!isDraggable) return;
+                      e.dataTransfer.setData('text/plain', guest.id);
+                      setDraggedGuestId(guest.id);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedGuestId(null);
+                      setDragOverTableId(null);
+                    }}
                     className={`p-3 rounded-2xl border transition-all space-y-2 ${
+                      isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
+                    } ${
                       isSelected 
                         ? 'bg-[#FAF3F5] border-[#8B3A4A] ring-1 ring-[#8B3A4A]/20' 
                         : 'bg-[#FFFDFB] border-[#E8DCCF] hover:border-[#D9CEBF]'
@@ -777,6 +856,9 @@ export const TableAssignmentModule: React.FC = () => {
                     {/* Top Row: Checkbox, Name, Role */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center space-x-2 min-w-0">
+                        {isDraggable && (
+                          <GripVertical className="w-3.5 h-3.5 text-stone-300 hover:text-stone-500 shrink-0" />
+                        )}
                         <input
                           type="checkbox"
                           checked={isSelected}
@@ -785,7 +867,7 @@ export const TableAssignmentModule: React.FC = () => {
                         />
                         <div className="min-w-0">
                           <h4 className="font-semibold text-xs text-[#2D2A26] truncate">
-                            {guest.fullName}
+                            {formatAltibajas(guest.fullName)}
                           </h4>
                           <div className="flex items-center space-x-1.5 mt-0.5">
                             {isCompanion ? (
@@ -798,7 +880,7 @@ export const TableAssignmentModule: React.FC = () => {
                             <span className="text-[10px] text-[#8C8276]">
                               {isCompanion ? (
                                 <span title="El pase ya está contabilizado en la cuota del invitado titular">
-                                  {mainGuest ? `de ${mainGuest.fullName.split(' ')[0]} • ` : ''}Pase incluido
+                                  {mainGuest ? `de ${formatAltibajas(mainGuest.fullName).split(' ')[0]} • ` : ''}Pase incluido
                                 </span>
                               ) : (
                                 `${guest.confirmedPasses || guest.totalPasses || 1} ${((guest.confirmedPasses || guest.totalPasses || 1) === 1) ? 'pase' : 'pases'}`
@@ -951,20 +1033,33 @@ export const TableAssignmentModule: React.FC = () => {
               const isFull = totalSeatedPasses === table.capacity;
               const availableSeats = Math.max(0, table.capacity - totalSeatedPasses);
               const fillPct = table.capacity > 0 ? Math.min(100, Math.round((totalSeatedPasses / table.capacity) * 100)) : 0;
+              const isDragOver = dragOverTableId === table.id;
 
               return (
                 <div
                   key={table.id}
-                  className="bg-white rounded-3xl p-5 border border-[#E8DCCF] shadow-xs space-y-4 hover:shadow-md transition-all flex flex-col justify-between"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOverTableId(table.id);
+                  }}
+                  onDragLeave={() => {
+                    setDragOverTableId((prev) => (prev === table.id ? null : prev));
+                  }}
+                  onDrop={(e) => handleDropOnTable(e, table.name)}
+                  className={`bg-white rounded-3xl p-4 border shadow-xs space-y-2.5 transition-all flex flex-col justify-between ${
+                    isDragOver
+                      ? 'border-[#8B3A4A] ring-2 ring-[#8B3A4A]/40 bg-[#FFF8F9] shadow-lg scale-[1.01]'
+                      : 'border-[#E8DCCF] hover:shadow-md'
+                  }`}
                 >
                   {/* Top Bar: Table Info & Actions */}
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <h3 className="font-serif-display font-bold text-base text-[#2D2A26] leading-snug break-words">
                       {table.name}
                     </h3>
 
                     {/* Zone & Status Row (at the same height) */}
-                    <div className="flex items-center justify-between gap-2 min-h-[22px]">
+                    <div className="flex items-center justify-between gap-2 min-h-[20px]">
                       {table.zone ? (
                         <span className="text-[11px] text-[#8C8276] flex items-center space-x-1">
                           <MapPin className="w-3 h-3 text-[#8B3A4A] shrink-0" />
@@ -975,7 +1070,7 @@ export const TableAssignmentModule: React.FC = () => {
                       )}
 
                       {/* Status / Availability Badge */}
-                      <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold shrink-0 shadow-2xs ${
+                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 shadow-2xs ${
                         isOverCapacity
                           ? 'bg-rose-100 text-rose-800 border border-rose-200'
                           : isFull
@@ -1007,36 +1102,71 @@ export const TableAssignmentModule: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Seated Guests List with ultra-compact line spacing */}
-                  <div className="flex-1 min-h-[140px] max-h-[290px] overflow-y-auto pr-1">
+                  {/* Seated Guests List with ultra-compact line spacing & Drag and Drop without forced scrollbar */}
+                  <div className="flex-1 min-h-[70px]">
                     {seatedGuests.length === 0 ? (
-                      <div className="h-full min-h-[120px] flex flex-col items-center justify-center text-center p-3 rounded-2xl bg-[#FAF8F5] border border-dashed border-[#D9CEBF] text-[#8C8276] space-y-1">
-                        <Armchair className="w-5 h-5 text-[#8C8276]" />
-                        <span className="text-xs font-medium">Mesa vacía ({table.capacity} lugares libres)</span>
-                        <span className="text-[10px]">Asigna invitados desde la lista izquierda</span>
+                      <div className={`h-full min-h-[85px] py-2.5 flex flex-col items-center justify-center text-center p-3 rounded-2xl border border-dashed transition-colors space-y-1 ${
+                        isDragOver
+                          ? 'bg-[#FDF2F4] border-[#8B3A4A] text-[#8B3A4A]'
+                          : 'bg-[#FAF8F5] border-[#D9CEBF] text-[#8C8276]'
+                      }`}>
+                        <Armchair className="w-4 h-4" />
+                        <span className="text-[11px] font-medium">
+                          {isDragOver ? 'Suelta aquí para asignar a esta mesa' : `Mesa vacía (${table.capacity} lugares libres)`}
+                        </span>
+                        <span className="text-[9px]">Arrastra invitados aquí o desde la lista izquierda</span>
                       </div>
                     ) : (
                       <ul className="space-y-0.5">
                         {seatedGuests.map((guest, idx) => {
                           const isCompanion = Boolean(guest.mainGuestId);
                           const mainGuest = isCompanion ? guests.find((g) => g.id === guest.mainGuestId) : null;
-                          const companionsInTable = !isCompanion ? seatedGuests.filter((c) => c.mainGuestId === guest.id) : [];
 
                           return (
-                            <li key={guest.id} className="py-0.5 px-1 rounded-md flex items-center justify-between text-xs gap-1.5 group hover:bg-[#FAF6F0] transition-colors">
-                              <div className="min-w-0 flex-1 flex items-center space-x-1.5">
-                                <span className="text-[10px] font-bold text-[#8C8276] w-4 shrink-0">{idx + 1}.</span>
-                                <span className="font-medium text-[#2D2A26] truncate text-[11px]">{guest.fullName}</span>
+                            <li 
+                              key={guest.id} 
+                              draggable={true}
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('text/plain', guest.id);
+                                setDraggedGuestId(guest.id);
+                              }}
+                              onDragEnd={() => {
+                                setDraggedGuestId(null);
+                                setDragOverTableId(null);
+                              }}
+                              className="py-0.5 px-1 rounded-md flex items-center justify-between text-[11px] gap-1 group hover:bg-[#FAF6F0] transition-colors cursor-grab active:cursor-grabbing border border-transparent hover:border-[#E8DCCF]/60 leading-tight"
+                            >
+                              <div className="min-w-0 flex-1 flex items-center space-x-1.5 flex-nowrap">
+                                <GripVertical className="w-3 h-3 text-stone-300 group-hover:text-stone-500 shrink-0 -ml-0.5" />
+                                <span className="text-[9px] font-bold text-[#8C8276] w-3.5 shrink-0">{idx + 1}.</span>
+                                <span className="font-medium text-[#2D2A26] truncate text-[11px]">
+                                  {formatAltibajas(guest.fullName)}
+                                </span>
+
+                                {/* Botón 'quitar mesa' SOLO ÍCONO al final del nombre */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUnassignGuest(guest.id);
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-600 hover:text-white hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded transition-all cursor-pointer inline-flex items-center justify-center shrink-0 shadow-2xs"
+                                  title="Quitar de esta mesa"
+                                >
+                                  <UserMinus className="w-2.5 h-2.5" />
+                                </button>
+
+                                {/* Número de pases / Acompañante sin titular+acom */}
                                 {isCompanion ? (
                                   <span 
-                                    className="text-[9px] px-1.5 py-0 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0 font-medium leading-normal"
-                                    title={mainGuest ? `Acompañante de ${mainGuest.fullName}` : 'Acompañante'}
+                                    className="text-[9px] px-1 py-0 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0 font-medium leading-tight"
+                                    title={mainGuest ? `Acompañante de ${formatAltibajas(mainGuest.fullName)}` : 'Acompañante'}
                                   >
                                     Acompañante
                                   </span>
                                 ) : (
-                                  <span className="text-[9px] px-1.5 py-0 rounded bg-[#F7F3EE] text-[#7A7268] shrink-0 font-medium whitespace-nowrap leading-normal">
-                                    {guest.confirmedPasses || guest.totalPasses || 1} p{companionsInTable.length > 0 ? ' (titular + acom.)' : ''}
+                                  <span className="text-[9px] px-1 py-0 rounded bg-[#F7F3EE] text-[#7A7268] shrink-0 font-medium whitespace-nowrap leading-tight">
+                                    {guest.confirmedPasses || guest.totalPasses || 1} {((guest.confirmedPasses || guest.totalPasses || 1) === 1) ? 'pase' : 'pases'}
                                   </span>
                                 )}
                               </div>
@@ -1047,15 +1177,6 @@ export const TableAssignmentModule: React.FC = () => {
                                     🍽️
                                   </span>
                                 )}
-
-                                <button
-                                  type="button"
-                                  onClick={() => handleUnassignGuest(guest.id)}
-                                  className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-600 hover:bg-rose-50 rounded transition-all cursor-pointer"
-                                  title="Quitar de la mesa"
-                                >
-                                  <UserMinus className="w-3.5 h-3.5" />
-                                </button>
                               </div>
                             </li>
                           );
@@ -1065,7 +1186,7 @@ export const TableAssignmentModule: React.FC = () => {
                   </div>
 
                   {/* Table Footer Controls */}
-                  <div className="pt-3 border-t border-[#F0EAE1] flex items-center justify-between text-xs">
+                  <div className="pt-2 border-t border-[#F0EAE1] flex items-center justify-between text-xs">
                     <div className="flex items-center space-x-2">
                       <button
                         type="button"
@@ -1172,6 +1293,14 @@ export const TableAssignmentModule: React.FC = () => {
         tables={tables}
         guests={guests}
       />
+
+      {/* Floating Instant Feedback Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#2D2A26] text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-xl border border-white/20 animate-bounce flex items-center space-x-2">
+          <Sparkles className="w-4 h-4 text-[#D4AF37] shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
 
     </div>
   );

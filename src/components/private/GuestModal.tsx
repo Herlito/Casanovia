@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Guest, ProtocolCategory, RsvpStatus, CustomGuestRole } from '../../types';
 import { useWedding } from '../../context/WeddingContext';
 import { CompanionModal } from './CompanionModal';
+import { formatAltibajas } from '../../lib/formatUtils';
 import { 
   X, 
   User, 
@@ -459,7 +460,10 @@ export const GuestModal: React.FC<GuestModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fullName?.trim()) return;
-    onSave(formData);
+    onSave({
+      ...formData,
+      fullName: formatAltibajas(formData.fullName),
+    });
     onClose();
   };
 

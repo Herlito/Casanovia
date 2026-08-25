@@ -243,7 +243,7 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
                               {isCompanion ? (
                                 <span className="text-[#8C8276] font-normal italic text-[10px]">(Incluido con titular)</span>
                               ) : (
-                                `${guest.confirmedPasses || guest.totalPasses || 1} ${((guest.confirmedPasses || guest.totalPasses || 1) === 1) ? 'p' : 'ps'}${companionsInTable.length > 0 ? ' (titular + acom.)' : ''}`
+                                `${guest.confirmedPasses || guest.totalPasses || 1} ${((guest.confirmedPasses || guest.totalPasses || 1) === 1) ? 'pase' : 'pases'}`
                               )}
                             </span>
                           </li>
