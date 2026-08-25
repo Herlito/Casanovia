@@ -19,7 +19,8 @@ import {
   Edit2,
   Trash2,
   Layers,
-  AlertCircle
+  AlertCircle,
+  Users
 } from 'lucide-react';
 
 export const VendorsModule: React.FC = () => {
@@ -282,6 +283,20 @@ export const VendorsModule: React.FC = () => {
                           <span className="font-medium text-[#2D2A26]">{vendor.contactPerson}</span>
                         </p>
                       )}
+
+                      {/* Asistencia a Recepción */}
+                      <div className="mt-1.5">
+                        {vendor.attendingReception ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-rose-50 text-[#8B3A4A] border border-rose-200">
+                            <Users className="w-3 h-3 text-[#8B3A4A] shrink-0" />
+                            <span>Asiste a recepción: <strong>{vendor.receptionAttendeesCount || 1} {(vendor.receptionAttendeesCount === 1) ? 'persona' : 'personas'}</strong></span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] text-stone-500 bg-[#FAF8F5] border border-[#E8DCCF]">
+                            <span>No asiste a recepción</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex flex-col items-end gap-1.5 shrink-0">

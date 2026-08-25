@@ -12,7 +12,9 @@ import {
   CheckCircle2, 
   Clock, 
   Sparkles,
-  Tag
+  Tag,
+  Users,
+  UtensilsCrossed
 } from 'lucide-react';
 
 interface VendorModalProps {
@@ -51,7 +53,7 @@ export const VendorModal: React.FC<VendorModalProps> = ({
   onSave,
   vendorToEdit,
 }) => {
-  const [formData, setFormData] = useState<Omit<VendorItem, 'id' | 'totalCost' | 'paidAmount'>>({
+  const [formData, setFormData] = useState<Omit<VendorItem, 'id' | 'totalCost' | 'paidAmount' | 'attendingReception' | 'receptionAttendeesCount'>>({
     name: '',
     category: 'Locación & Banquete',
     contactPerson: '',
@@ -61,6 +63,8 @@ export const VendorModal: React.FC<VendorModalProps> = ({
     notes: '',
   });
 
+  const [attendingReception, setAttendingReception] = useState<boolean>(false);
+  const [receptionAttendeesCount, setReceptionAttendeesCount] = useState<string>('1');
   const [totalCostInput, setTotalCostInput] = useState<string>('0');
   const [paidAmountInput, setPaidAmountInput] = useState<string>('0');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -76,6 +80,12 @@ export const VendorModal: React.FC<VendorModalProps> = ({
         status: vendorToEdit.status || 'en_proceso',
         notes: vendorToEdit.notes || '',
       });
+      setAttendingReception(Boolean(vendorToEdit.attendingReception));
+      setReceptionAttendeesCount(
+        vendorToEdit.receptionAttendeesCount !== undefined 
+          ? String(vendorToEdit.receptionAttendeesCount) 
+          : '1'
+      );
       setTotalCostInput(vendorToEdit.totalCost !== undefined ? String(vendorToEdit.totalCost) : '0');
       setPaidAmountInput(vendorToEdit.paidAmount !== undefined ? String(vendorToEdit.paidAmount) : '0');
     } else {
@@ -88,6 +98,8 @@ export const VendorModal: React.FC<VendorModalProps> = ({
         status: 'en_proceso',
         notes: '',
       });
+      setAttendingReception(false);
+      setReceptionAttendeesCount('1');
       setTotalCostInput('0');
       setPaidAmountInput('0');
     }
@@ -112,6 +124,14 @@ export const VendorModal: React.FC<VendorModalProps> = ({
     if (paid < 0) {
       newErrors.paidAmount = 'El monto pagado no puede ser negativo';
     }
+
+    if (attendingReception) {
+      const attendeesNum = parseInt(receptionAttendeesCount, 10);
+      if (isNaN(attendeesNum) || attendeesNum < 1) {
+        newErrors.receptionAttendeesCount = 'Ingresa una cantidad válida de personas (mínimo 1)';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -131,21 +151,22 @@ export const VendorModal: React.FC<VendorModalProps> = ({
       finalStatus = 'contratado';
     }
 
+    const payloadData = {
+      ...formData,
+      status: finalStatus,
+      totalCost: total,
+      paidAmount: paid,
+      attendingReception,
+      receptionAttendeesCount: attendingReception ? Math.max(1, parseInt(receptionAttendeesCount, 10) || 1) : 0,
+    };
+
     if (vendorToEdit) {
       onSave({
         ...vendorToEdit,
-        ...formData,
-        status: finalStatus,
-        totalCost: total,
-        paidAmount: paid,
+        ...payloadData,
       });
     } else {
-      onSave({
-        ...formData,
-        status: finalStatus,
-        totalCost: total,
-        paidAmount: paid,
-      });
+      onSave(payloadData);
     }
     onClose();
   };
@@ -362,12 +383,94 @@ export const VendorModal: React.FC<VendorModalProps> = ({
               Notas, Alcances del Contrato & Entregables
             </label>
             <textarea
-              rows={3}
+              rows={2}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Ej: Incluye cobertura de 12 horas, 2 fotógrafos, dron, álbum encuadernado y entrega en USB 30 días posteriores al evento..."
               className="w-full px-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-[#8B3A4A]"
             />
+          </div>
+
+          {/* Row 6: Asistencia a la Recepción (SI / NO) y Cantidad de Personas (Compacto al final) */}
+          <div className="px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E8DCCF] space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <label className="block text-xs font-bold text-[#2D2A26]">
+                  ¿Asistirá a la Recepción?
+                </label>
+                <p className="text-[10px] text-[#7A7268]">
+                  Indica si el personal o equipo del proveedor asistirá al banquete / recepción.
+                </p>
+              </div>
+
+              {/* Botones SI / NO */}
+              <div className="flex items-center space-x-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAttendingReception(true);
+                    if (!receptionAttendeesCount || Number(receptionAttendeesCount) < 1) {
+                      setReceptionAttendeesCount('1');
+                    }
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center space-x-1 ${
+                    attendingReception
+                      ? 'bg-[#8B3A4A] text-white shadow-2xs'
+                      : 'bg-white text-[#524B42] border border-[#D9CEBF] hover:bg-stone-50'
+                  }`}
+                >
+                  <CheckCircle2 className={`w-3 h-3 ${attendingReception ? 'text-white' : 'text-stone-400'}`} />
+                  <span>SÍ</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAttendingReception(false)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center space-x-1 ${
+                    !attendingReception
+                      ? 'bg-stone-700 text-white shadow-2xs'
+                      : 'bg-white text-[#524B42] border border-[#D9CEBF] hover:bg-stone-50'
+                  }`}
+                >
+                  <X className={`w-3 h-3 ${!attendingReception ? 'text-white' : 'text-stone-400'}`} />
+                  <span>NO</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Campo para ingresar manualmente la cantidad de personas si eligió SI */}
+            {attendingReception && (
+              <div className="pt-2 border-t border-[#EFE8DE] flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-fadeIn">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 rounded-md bg-[#8B3A4A]/10 text-[#8B3A4A] flex items-center justify-center shrink-0">
+                    <Users className="w-3 h-3" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#2D2A26]">
+                      Cantidad de Personas *
+                    </label>
+                    <span className="text-[9px] text-[#7A7268]">Número de personas del proveedor que asistirán</span>
+                  </div>
+                </div>
+                <div className="w-full sm:w-32">
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={receptionAttendeesCount}
+                    onChange={(e) => setReceptionAttendeesCount(e.target.value)}
+                    placeholder="Ej: 2"
+                    className={`w-full px-2.5 py-1 rounded-lg bg-white border ${
+                      errors.receptionAttendeesCount ? 'border-rose-400 focus:ring-rose-200' : 'border-[#D9CEBF] focus:border-[#8B3A4A]'
+                    } text-xs font-bold text-[#2D2A26] focus:outline-none text-center`}
+                    required={attendingReception}
+                  />
+                  {errors.receptionAttendeesCount && (
+                    <p className="text-[9px] text-rose-600 mt-0.5 text-right">{errors.receptionAttendeesCount}</p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer Buttons */}

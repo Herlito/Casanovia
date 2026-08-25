@@ -395,11 +395,11 @@ export const Navbar: React.FC = () => {
                               </div>
                             </button>
 
-                            {/* 3. Carrito de Compras / Tokens (Solo Administrador) */}
+                            {/* 3. Página de Precios & Planes (Solo Administrador) */}
                             {isLevel1Admin && (
                               <button
                                 type="button"
-                                id="sandwich-btn-tokens-store"
+                                id="sandwich-btn-precios-store"
                                 onClick={() => {
                                   setSandwichMenuOpen(false);
                                   setActiveView('tokens');
@@ -411,13 +411,13 @@ export const Navbar: React.FC = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="font-bold flex items-center justify-between">
-                                    <span>Tokens & Servicios</span>
+                                    <span>Precios</span>
                                     <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800">
                                       Admin
                                     </span>
                                   </div>
                                   <p className="text-[10px] text-[#8C8276] truncate font-normal">
-                                    Carrito de compras y activación de tokens
+                                    Planes de invitaciones y gestión nupcial
                                   </p>
                                 </div>
                               </button>

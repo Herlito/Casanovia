@@ -315,6 +315,8 @@ export interface VendorItem {
   totalCost: number;
   paidAmount: number;
   notes: string;
+  attendingReception?: boolean; // ¿Asistirá a la Recepción? (SI / NO)
+  receptionAttendeesCount?: number; // Cantidad de personas que asistirán
 }
 
 export interface WeddingTable {

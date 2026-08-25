@@ -17,24 +17,126 @@ import {
   Info,
   Mail,
   Users,
-  UserCheck,
+  Shield,
+  Crown,
+  Gem,
   Plus,
-  Minus
+  Minus,
+  Share2,
+  CheckCheck
 } from 'lucide-react';
 import { TokensAdminSettingsModal } from './TokensAdminSettingsModal';
 
+interface PricingPlan {
+  id: string;
+  number: string;
+  name: string;
+  shortDesc: string;
+  items: string[];
+  price: number;
+  badge?: string;
+  badgeColor?: string;
+  iconBg: string;
+  iconColor: string;
+  highlight?: boolean;
+}
+
+const PRICING_PLANS: PricingPlan[] = [
+  {
+    id: 'invitacion-lujo',
+    number: '1',
+    name: 'Invitación de Lujo',
+    shortDesc: 'Diseño personalizado, con sistema de confirmaciones, ubicaciones GPS, codigo de vestimenta, paleta de colores, etc.',
+    items: [
+      'Diseño personalizado exclusivo',
+      'Sistema de confirmaciones online (RSVP)',
+      'Ubicaciones GPS interactivas (Ceremonia & Recepción)',
+      'Código de vestimenta & paleta de colores',
+      'Mesa de regalos con transferencias bancarias',
+      'Muro de mejores deseos en tiempo real'
+    ],
+    price: 80.0,
+    badge: 'Personalizado',
+    badgeColor: 'bg-rose-50 text-[#8B3A4A] border-rose-200',
+    iconBg: 'bg-[#FAF3ED] border-[#E8DCCF]',
+    iconColor: 'text-[#8B3A4A]'
+  },
+  {
+    id: 'pack-silver',
+    number: '2',
+    name: 'Pack Silver',
+    shortDesc: 'Simple, rápido y 100% autogestionable.',
+    items: [
+      'Simple, rápido y 100% autogestionable',
+      'Hasta 50 Invitados',
+      'Gestión de confirmaciones, proveedores, locaciones',
+      'Quienes buscan una invitación elegante, lista al instante y fácil de editar',
+      '1 Wedding Planner'
+    ],
+    price: 50.0,
+    badge: 'Autogestionable',
+    badgeColor: 'bg-stone-100 text-stone-700 border-stone-300',
+    iconBg: 'bg-stone-100 border-stone-200',
+    iconColor: 'text-stone-700'
+  },
+  {
+    id: 'pack-gold',
+    number: '3',
+    name: 'Pack Gold',
+    shortDesc: 'Mayor personalización y control de invitados + acompañantes.',
+    items: [
+      'Mayor personalización y control de invitados + acompañantes',
+      'Hasta 100 Invitados',
+      'Incluye lo de Pack Silver',
+      'Gestión de asistencias y asignar pases individuales, mesas, timing, programa protocolar',
+      'Wedding Planner + 1 Usuario'
+    ],
+    price: 110.0,
+    badge: 'Más Popular',
+    badgeColor: 'bg-amber-100 text-amber-900 border-amber-300 font-bold',
+    iconBg: 'bg-amber-50 border-amber-200',
+    iconColor: 'text-amber-700',
+    highlight: true
+  },
+  {
+    id: 'pack-platinum',
+    number: '4',
+    name: 'Pack Platinum',
+    shortDesc: 'La experiencia integral con automatización y control total.',
+    items: [
+      'Más de 100 invitados',
+      'La experiencia integral con automatización y control total',
+      'Gestión de asistencias y asignar pases individuales, mesas, timing, programa protocolar',
+      'Acceso de invitados y notificaciones',
+      'Recepción digital con QR y máxima interactividad'
+    ],
+    price: 160.0,
+    badge: 'Experiencia Total',
+    badgeColor: 'bg-purple-100 text-purple-900 border-purple-300 font-bold',
+    iconBg: 'bg-purple-50 border-purple-200',
+    iconColor: 'text-purple-800'
+  }
+];
+
 export const TokensPurchaseScreen: React.FC = () => {
-  const { currentUser, isLevel1Admin, tokensPaymentConfig, setActiveView } = useWedding();
+  const { currentUser, isLevel1Admin, tokensPaymentConfig, activeWeddingId } = useWedding();
 
-  // Selected Services
-  const [invitationActive, setInvitationActive] = useState<boolean>(true);
-  const [coordinationActive, setCoordinationActive] = useState<boolean>(true);
-  const [confirmedGuestsActive, setConfirmedGuestsActive] = useState<boolean>(true);
-  const [packFullActive, setPackFullActive] = useState<boolean>(false);
+  // Selection state for the 4 plans: active status and quantity
+  // Plan 1 is independent.
+  // Plans 2, 3 and 4 are mutually exclusive (only one can be chosen at a time).
+  const [selectedPlans, setSelectedPlans] = useState<{ [id: string]: boolean }>({
+    'invitacion-lujo': true,
+    'pack-silver': false,
+    'pack-gold': false,
+    'pack-platinum': false
+  });
 
-  // Quantities: Starting at 1 for Gestión de Boda, and 100 for Número de Invitados Confirmados
-  const [numPersons, setNumPersons] = useState<number>(1);
-  const [numConfirmed, setNumConfirmed] = useState<number>(100);
+  const [quantities, setQuantities] = useState<{ [id: string]: number }>({
+    'invitacion-lujo': 1,
+    'pack-silver': 1,
+    'pack-gold': 1,
+    'pack-platinum': 1
+  });
 
   // Payment upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -56,73 +158,64 @@ export const TokensPurchaseScreen: React.FC = () => {
   // Copy feedback states for quick payment buttons
   const [copiedBank, setCopiedBank] = useState<boolean>(false);
   const [copiedYape, setCopiedYape] = useState<boolean>(false);
+  const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
-  // Requirement: el check para Número de invitados solo se activa si se marca el casillero de Gestión de Boda.
-  const handleToggleCoordination = () => {
-    const nextVal = !coordinationActive;
-    setCoordinationActive(nextVal);
-    if (!nextVal) {
-      setConfirmedGuestsActive(false);
-    }
+  // Toggle selection for a plan
+  // Plan 1 is completely independent.
+  // Plans 2, 3, 4: Only ONE of them can be selected at a time.
+  const togglePlanSelection = (id: string) => {
+    setSelectedPlans(prev => {
+      const isCurrentlySelected = !!prev[id];
+
+      if (id === 'invitacion-lujo') {
+        // Plan 1 is independent
+        return {
+          ...prev,
+          'invitacion-lujo': !isCurrentlySelected
+        };
+      }
+
+      // If clicking on pack-silver, pack-gold, or pack-platinum
+      const packKeys = ['pack-silver', 'pack-gold', 'pack-platinum'];
+      if (isCurrentlySelected) {
+        // Uncheck it
+        return {
+          ...prev,
+          [id]: false
+        };
+      } else {
+        // Select this pack and unselect all other packs (2, 3, 4)
+        const updated = { ...prev };
+        packKeys.forEach(k => {
+          updated[k] = (k === id);
+        });
+        return updated;
+      }
+    });
   };
 
-  const handleToggleConfirmedGuests = () => {
-    if (!coordinationActive) {
-      alert('Para activar "Número de Invitados Confirmados", primero debes seleccionar el servicio de "Gestión por boda - Coordinación Integral".');
-      return;
-    }
-    setConfirmedGuestsActive(!confirmedGuestsActive);
+  // Quantity changes
+  const handleQuantityChange = (id: string, delta: number) => {
+    setQuantities(prev => ({
+      ...prev,
+      [id]: Math.max(1, (prev[id] || 1) + delta)
+    }));
   };
-
-  // Unit costs
-  const INVITATION_PRICE = 100.0;
-  const PERSON_PRICE = 33.0;
-  const CONFIRMED_PRICE = 1.0;
-  const DISCOUNT_RATE = 0.10; // 10% Discount
 
   // Calculations
-  const invitationTotal = invitationActive ? INVITATION_PRICE : 0;
-  const coordinationTotal = coordinationActive ? Math.max(0, numPersons) * PERSON_PRICE : 0;
-  const confirmedTotal = (coordinationActive && confirmedGuestsActive) ? Math.max(0, numConfirmed) * CONFIRMED_PRICE : 0;
+  const formatPrice = (val: number) => `S/ ${val.toFixed(2)}`;
 
-  // Base sum of the 3 services regardless of individual toggle (for Pack Full calculation reference)
-  const fullPackBaseSum = INVITATION_PRICE + (Math.max(0, numPersons) * PERSON_PRICE) + (Math.max(0, numConfirmed) * CONFIRMED_PRICE);
-  const fullPackDiscount = fullPackBaseSum * DISCOUNT_RATE;
-  const fullPackFinalPrice = fullPackBaseSum - fullPackDiscount;
+  const activePlansList = PRICING_PLANS.filter(p => selectedPlans[p.id]);
+  const activeItemsCount = activePlansList.reduce((acc, p) => acc + (quantities[p.id] || 1), 0);
 
-  // Real cart calculation
-  const subtotal = invitationTotal + coordinationTotal + confirmedTotal;
-  
-  // Count active items
-  const activeItemsCount = (invitationActive ? 1 : 0) + (coordinationActive ? 1 : 0) + ((coordinationActive && confirmedGuestsActive) ? 1 : 0);
-
-  // Apply discount if packFull is checked OR if all 3 services are active and packFull is toggled
-  const isDiscountApplied = packFullActive || (invitationActive && coordinationActive && confirmedGuestsActive && packFullActive);
-  const discountAmount = isDiscountApplied ? (subtotal * DISCOUNT_RATE) : 0;
-  const totalToPay = Math.max(0, subtotal - discountAmount);
-
-  // Toggle Pack Full handler
-  const handleTogglePackFull = () => {
-    if (!packFullActive) {
-      setPackFullActive(true);
-      setInvitationActive(true);
-      setCoordinationActive(true);
-      setConfirmedGuestsActive(true);
-    } else {
-      setPackFullActive(false);
+  const subtotal = PRICING_PLANS.reduce((acc, plan) => {
+    if (selectedPlans[plan.id]) {
+      return acc + plan.price * (quantities[plan.id] || 1);
     }
-  };
+    return acc;
+  }, 0);
 
-  // Stepper increment / decrement helpers
-  const handlePersonsChange = (delta: number) => {
-    if (!coordinationActive) return;
-    setNumPersons(prev => Math.max(1, prev + delta));
-  };
-
-  const handleConfirmedChange = (delta: number) => {
-    if (!coordinationActive || !confirmedGuestsActive) return;
-    setNumConfirmed(prev => Math.max(0, prev + delta));
-  };
+  const totalToPay = subtotal;
 
   // File handling
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,40 +294,62 @@ export const TokensPurchaseScreen: React.FC = () => {
     setTimeout(() => setCopiedYape(false), 2200);
   };
 
+  const copyPreciosLink = () => {
+    try {
+      const origin = window.location.origin;
+      const pathname = window.location.pathname;
+      const bodaParam = activeWeddingId ? `?boda=${encodeURIComponent(activeWeddingId)}&page=precios` : '?page=precios';
+      const fullUrl = `${origin}${pathname}${bodaParam}`;
+      navigator.clipboard.writeText(fullUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2200);
+    } catch {
+      // ignore
+    }
+  };
+
   // Submit Order
   const handlePurchase = () => {
     if (totalToPay <= 0) {
-      alert('Por favor selecciona al menos un servicio para proceder con la compra.');
+      alert('Por favor selecciona al menos una opción o pack para proceder con la compra.');
       return;
     }
 
-    const generatedCode = `TOK-${Math.floor(100000 + Math.random() * 900000)}`;
+    const generatedCode = `PRE-${Math.floor(100000 + Math.random() * 900000)}`;
     setOrderCode(generatedCode);
     setOrderModalOpen(true);
   };
 
-  const formatPrice = (val: number) => {
-    return `S/ ${val.toFixed(2)}`;
-  };
-
   const copyOrderDetails = () => {
-    const summary = `*PEDIDO TOKENS & SERVICIOS* - Código: ${orderCode}\n` +
+    const summary = `*PEDIDO PLANES & PRECIOS* - Código: ${orderCode}\n` +
       `• Total a Pagar: ${formatPrice(totalToPay)}\n` +
-      `• Servicios:\n` +
-      (invitationActive ? `  - Invitación de Bodas Interactiva: ${formatPrice(invitationTotal)}\n` : '') +
-      (coordinationActive ? `  - Gestión por boda (${numPersons} personas): ${formatPrice(coordinationTotal)}\n` : '') +
-      (confirmedGuestsActive ? `  - Invitados confirmados (${numConfirmed} confirmados): ${formatPrice(confirmedTotal)}\n` : '') +
-      (discountAmount > 0 ? `• Descuento Pack Full (-10%): -${formatPrice(discountAmount)}\n` : '');
+      `• Opciones Seleccionadas:\n` +
+      activePlansList.map(p => `  - ${p.number}.- ${p.name} (${quantities[p.id]} u.): ${formatPrice(p.price * (quantities[p.id] || 1))}`).join('\n');
 
     navigator.clipboard.writeText(summary);
     setOrderCopied(true);
     setTimeout(() => setOrderCopied(false), 2000);
   };
 
+  const renderPlanIcon = (plan: PricingPlan) => {
+    switch (plan.id) {
+      case 'invitacion-lujo':
+        return <Mail className="w-6 h-6" />;
+      case 'pack-silver':
+        return <Shield className="w-6 h-6" />;
+      case 'pack-gold':
+        return <Crown className="w-6 h-6" />;
+      case 'pack-platinum':
+        return <Gem className="w-6 h-6" />;
+      default:
+        return <Sparkles className="w-6 h-6" />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F7F4EE] text-[#2D2A26] selection:bg-[#E5B869]/30 selection:text-[#2D2A26]">
       
-      {/* Top Bar with Admin Controls (No "Volver al Panel de Control") */}
+      {/* Top Bar with Admin Controls */}
       {isLevel1Admin && (
         <div className="bg-white border-b border-[#E8DCCF] px-4 py-2">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -247,7 +362,7 @@ export const TokensPurchaseScreen: React.FC = () => {
 
             <button
               type="button"
-              id="btn-admin-config-tokens-payment"
+              id="btn-admin-config-precios-payment"
               onClick={() => setAdminSettingsOpen(true)}
               className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-[#2A1810] hover:bg-[#1E110B] text-white text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
             >
@@ -258,7 +373,7 @@ export const TokensPurchaseScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Centered Logo & Header (without 'Shopping Cart') */}
+      {/* Centered Logo & Header */}
       <header className="pt-8 pb-6 px-4 text-center">
         <div className="max-w-4xl mx-auto flex flex-col items-center justify-center space-y-2.5">
           
@@ -277,328 +392,169 @@ export const TokensPurchaseScreen: React.FC = () => {
             </svg>
           </div>
 
+          <div className="flex items-center justify-center space-x-2">
+            <h1 className="text-2xl sm:text-3xl font-serif-display font-bold text-[#2A1810]">
+              Planes & Precios
+            </h1>
+          </div>
+
           <p className="text-xs uppercase tracking-[0.25em] text-[#8C8276] font-bold">
             Servicios Digitales & Coordinación Nupcial
           </p>
+
+          {/* Share Precios Link Button */}
+          <button
+            type="button"
+            id="btn-copiar-link-precios"
+            onClick={copyPreciosLink}
+            className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white hover:bg-[#FAF8F5] border border-[#D9CEBF] text-xs font-semibold text-[#524B42] shadow-2xs transition-colors cursor-pointer"
+            title="Copiar enlace directo de la página de Precios"
+          >
+            {copiedLink ? (
+              <>
+                <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-emerald-700 font-bold">¡Enlace de Precios Copiado!</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="w-3.5 h-3.5 text-[#8B3A4A]" />
+                <span>Copiar Enlace de Precios</span>
+              </>
+            )}
+          </button>
         </div>
       </header>
 
-      {/* Main 2-Column Content Layout (Matching reference image) */}
+      {/* Main 2-Column Content Layout */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column (Items Table / List): lg:col-span-8 */}
           <div className="lg:col-span-8 space-y-4">
             
-            {/* Table Header Bar (Warm Sand/Gold Bar from reference image) */}
+            {/* Table Header Bar (Warm Gold Bar matching Casanovia) */}
             <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-3.5 rounded-xl bg-[#E5B869] text-[#2A1810] text-xs font-bold uppercase tracking-wider shadow-xs items-center">
-              <div className="col-span-6">Servicio / Producto</div>
+              <div className="col-span-6">Servicio / Pack</div>
               <div className="col-span-2 text-center">Precio Unit.</div>
               <div className="col-span-2 text-center">Cantidad</div>
               <div className="col-span-2 text-right">Subtotal</div>
             </div>
 
-            {/* Item 1: Invitación de Bodas - Interactiva */}
-            <div className={`p-4 sm:p-5 rounded-2xl border transition-all duration-200 bg-white shadow-2xs ${
-              invitationActive 
-                ? 'border-[#E5B869] ring-1 ring-[#E5B869]/30' 
-                : 'border-[#E8DCCF] opacity-75 hover:opacity-100'
-            }`}>
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                
-                {/* Product details with checkbox and thumbnail */}
-                <div className="sm:col-span-6 flex items-start sm:items-center space-x-3.5">
-                  <button
-                    type="button"
-                    onClick={() => setInvitationActive(!invitationActive)}
-                    className={`w-6 h-6 mt-1 sm:mt-0 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0 ${
-                      invitationActive
-                        ? 'bg-[#2A1810] border-[#2A1810] text-white shadow-xs'
-                        : 'border-[#D9CEBF] bg-[#FAF8F5] hover:border-[#2A1810]'
-                    }`}
-                    aria-label="Seleccionar Invitación de Bodas"
-                  >
-                    {invitationActive && <Check className="w-4 h-4 stroke-[3] text-[#E5B869]" />}
-                  </button>
+            {/* List of 4 Pricing Options */}
+            {PRICING_PLANS.map((plan) => {
+              const isSelected = selectedPlans[plan.id];
+              const qty = quantities[plan.id] || 1;
+              const planSubtotal = plan.price * qty;
 
-                  <div className="w-12 h-12 rounded-xl bg-[#FAF3ED] border border-[#E8DCCF] flex items-center justify-center text-[#8B3A4A] shrink-0">
-                    <Mail className="w-6 h-6" />
-                  </div>
+              return (
+                <div 
+                  key={plan.id}
+                  className={`p-4 sm:p-5 rounded-2xl border transition-all duration-200 bg-white shadow-2xs ${
+                    isSelected 
+                      ? 'border-[#E5B869] ring-1 ring-[#E5B869]/40 shadow-sm' 
+                      : 'border-[#E8DCCF] opacity-80 hover:opacity-100 hover:border-[#D9CEBF]'
+                  }`}
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start sm:items-center">
+                    
+                    {/* Details Column with Checkbox & Icon */}
+                    <div className="sm:col-span-6 flex items-start space-x-3.5">
+                      <button
+                        type="button"
+                        onClick={() => togglePlanSelection(plan.id)}
+                        className={`w-6 h-6 mt-1 sm:mt-0.5 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0 ${
+                          isSelected
+                            ? 'bg-[#2A1810] border-[#2A1810] text-white shadow-xs'
+                            : 'border-[#D9CEBF] bg-[#FAF8F5] hover:border-[#2A1810]'
+                        }`}
+                        aria-label={`Seleccionar ${plan.name}`}
+                      >
+                        {isSelected && <Check className="w-4 h-4 stroke-[3] text-[#E5B869]" />}
+                      </button>
 
-                  <div className="space-y-0.5 min-w-0">
-                    <h2 className="font-bold text-sm sm:text-base text-[#2A1810] truncate">
-                      Invitación de Bodas - Interactiva
-                    </h2>
-                    <p className="text-[11px] text-[#7A7268] leading-tight line-clamp-2">
-                      Diseño digital personalizado, confirmación online (RSVP) y galería de fotos.
-                    </p>
-                  </div>
-                </div>
+                      <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 ${plan.iconBg} ${plan.iconColor}`}>
+                        {renderPlanIcon(plan)}
+                      </div>
 
-                {/* Price */}
-                <div className="sm:col-span-2 text-left sm:text-center pl-10 sm:pl-0">
-                  <span className="sm:hidden text-xs text-[#7A7268] mr-2">Precio:</span>
-                  <span className="text-xs sm:text-sm font-semibold text-[#524B42]">
-                    {formatPrice(INVITATION_PRICE)}
-                  </span>
-                </div>
+                      <div className="space-y-1.5 min-w-0 flex-1">
+                        <div className="flex items-center space-x-2 flex-wrap">
+                          <h2 className="font-bold text-sm sm:text-base text-[#2A1810]">
+                            {plan.number}.- {plan.name}
+                          </h2>
+                          {plan.badge && (
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${plan.badgeColor || 'bg-stone-100 text-stone-700'}`}>
+                              {plan.badge}
+                            </span>
+                          )}
+                        </div>
 
-                {/* Quantity */}
-                <div className="sm:col-span-2 flex justify-start sm:justify-center pl-10 sm:pl-0">
-                  <span className="px-3 py-1 rounded-lg bg-[#FAF8F5] border border-[#E8DCCF] text-xs font-bold text-[#524B42]">
-                    1 u.
-                  </span>
-                </div>
+                        <p className="text-xs text-[#524B42] leading-snug font-medium">
+                          {plan.shortDesc}
+                        </p>
 
-                {/* Subtotal */}
-                <div className="sm:col-span-2 text-left sm:text-right pl-10 sm:pl-0 font-mono font-bold text-sm sm:text-base text-[#2A1810]">
-                  <span className="sm:hidden text-xs font-sans text-[#7A7268] mr-2">Subtotal:</span>
-                  {formatPrice(invitationTotal)}
-                </div>
-
-              </div>
-            </div>
-
-            {/* Item 2: Gestión por boda - Coordinación Integral */}
-            <div className={`p-4 sm:p-5 rounded-2xl border transition-all duration-200 bg-white shadow-2xs ${
-              coordinationActive 
-                ? 'border-[#E5B869] ring-1 ring-[#E5B869]/30' 
-                : 'border-[#E8DCCF] opacity-75 hover:opacity-100'
-            }`}>
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                
-                {/* Product details */}
-                <div className="sm:col-span-6 flex items-start sm:items-center space-x-3.5">
-                  <button
-                    type="button"
-                    onClick={handleToggleCoordination}
-                    className={`w-6 h-6 mt-1 sm:mt-0 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0 ${
-                      coordinationActive
-                        ? 'bg-[#2A1810] border-[#2A1810] text-white shadow-xs'
-                        : 'border-[#D9CEBF] bg-[#FAF8F5] hover:border-[#2A1810]'
-                    }`}
-                    aria-label="Seleccionar Gestión por boda"
-                  >
-                    {coordinationActive && <Check className="w-4 h-4 stroke-[3] text-[#E5B869]" />}
-                  </button>
-
-                  <div className="w-12 h-12 rounded-xl bg-[#FAF3ED] border border-[#E8DCCF] flex items-center justify-center text-[#2A1810] shrink-0">
-                    <Users className="w-6 h-6" />
-                  </div>
-
-                  <div className="space-y-0.5 min-w-0">
-                    <h2 className="font-bold text-sm sm:text-base text-[#2A1810] truncate">
-                      Gestión por boda - Coordinación Integral
-                    </h2>
-                    <p className="text-[11px] text-[#7A7268] leading-tight line-clamp-2">
-                      Planificación de eventos, proveedores, cronograma y asistencia el día de la boda.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Unit Price */}
-                <div className="sm:col-span-2 text-left sm:text-center pl-10 sm:pl-0">
-                  <span className="sm:hidden text-xs text-[#7A7268] mr-2">Precio:</span>
-                  <span className="text-xs sm:text-sm font-semibold text-[#524B42]">
-                    {formatPrice(PERSON_PRICE)}
-                  </span>
-                  <span className="block text-[10px] text-[#8C8276]">x persona</span>
-                </div>
-
-                {/* Quantity Stepper (Enlarged font size + starting at 1) */}
-                <div className="sm:col-span-2 flex items-center justify-start sm:justify-center pl-10 sm:pl-0">
-                  <div className="inline-flex items-center rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] overflow-hidden shadow-2xs">
-                    <button
-                      type="button"
-                      disabled={!coordinationActive}
-                      onClick={() => handlePersonsChange(-1)}
-                      className="p-1.5 sm:p-2 text-[#524B42] hover:bg-[#EFEAE3] active:bg-[#E2DDD5] disabled:opacity-40 cursor-pointer transition-colors"
-                      title="Disminuir personas"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <input
-                      id="input-num-persons"
-                      type="number"
-                      min="1"
-                      max="2000"
-                      value={numPersons}
-                      onChange={(e) => setNumPersons(Math.max(1, parseInt(e.target.value) || 1))}
-                      disabled={!coordinationActive}
-                      className="w-14 sm:w-16 py-1 text-center font-extrabold text-base sm:text-lg text-[#2A1810] bg-transparent focus:outline-hidden disabled:opacity-50"
-                    />
-                    <button
-                      type="button"
-                      disabled={!coordinationActive}
-                      onClick={() => handlePersonsChange(1)}
-                      className="p-1.5 sm:p-2 text-[#524B42] hover:bg-[#EFEAE3] active:bg-[#E2DDD5] disabled:opacity-40 cursor-pointer transition-colors"
-                      title="Aumentar personas"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Subtotal */}
-                <div className="sm:col-span-2 text-left sm:text-right pl-10 sm:pl-0 font-mono font-bold text-sm sm:text-base text-[#2A1810]">
-                  <span className="sm:hidden text-xs font-sans text-[#7A7268] mr-2">Subtotal:</span>
-                  {formatPrice(coordinationTotal)}
-                </div>
-
-              </div>
-            </div>
-
-            {/* Item 3: Número de Invitados Confirmados */}
-            <div className={`p-4 sm:p-5 rounded-2xl border transition-all duration-200 bg-white shadow-2xs ${
-              !coordinationActive
-                ? 'border-[#E8DCCF] opacity-50 bg-[#FAF8F5]'
-                : confirmedGuestsActive 
-                  ? 'border-[#E5B869] ring-1 ring-[#E5B869]/30' 
-                  : 'border-[#E8DCCF] opacity-75 hover:opacity-100'
-            }`}>
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                
-                {/* Product details */}
-                <div className="sm:col-span-6 flex items-start sm:items-center space-x-3.5">
-                  <button
-                    type="button"
-                    onClick={handleToggleConfirmedGuests}
-                    disabled={!coordinationActive}
-                    className={`w-6 h-6 mt-1 sm:mt-0 rounded-lg flex items-center justify-center border transition-all shrink-0 ${
-                      !coordinationActive
-                        ? 'border-[#D9CEBF] bg-[#EFEBE6] text-[#A0988E] cursor-not-allowed'
-                        : confirmedGuestsActive
-                          ? 'bg-[#2A1810] border-[#2A1810] text-white shadow-xs cursor-pointer'
-                          : 'border-[#D9CEBF] bg-[#FAF8F5] hover:border-[#2A1810] cursor-pointer'
-                    }`}
-                    aria-label="Seleccionar Número de Invitados Confirmados"
-                  >
-                    {coordinationActive && confirmedGuestsActive && <Check className="w-4 h-4 stroke-[3] text-[#E5B869]" />}
-                  </button>
-
-                  <div className="w-12 h-12 rounded-xl bg-[#FAF3ED] border border-[#E8DCCF] flex items-center justify-center text-emerald-800 shrink-0">
-                    <UserCheck className="w-6 h-6" />
-                  </div>
-
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center space-x-2 flex-wrap">
-                      <h2 className="font-bold text-sm sm:text-base text-[#2A1810] truncate">
-                        Número de Invitados Confirmados
-                      </h2>
-                      {!coordinationActive && (
-                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-[#EFEAE3] text-[#7A7268] text-[9px] font-semibold">
-                          <Info className="w-3 h-3" />
-                          <span>Requiere Gestión de Boda</span>
-                        </span>
-                      )}
+                        {/* Feature bullets */}
+                        <div className="pt-1 space-y-1">
+                          {plan.items.map((item, idx) => (
+                            <div key={idx} className="flex items-start space-x-1.5 text-[11px] text-[#7A7268] leading-tight">
+                              <span className="text-[#8B3A4A] font-bold text-xs leading-none mt-0.5">•</span>
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-[11px] text-[#7A7268] leading-tight line-clamp-2">
-                      Herramienta de seguimiento, confirmación de asistencia en tiempo real, gestión de mesas y cronograma.
-                    </p>
-                  </div>
-                </div>
 
-                {/* Unit Price */}
-                <div className="sm:col-span-2 text-left sm:text-center pl-10 sm:pl-0">
-                  <span className="sm:hidden text-xs text-[#7A7268] mr-2">Precio:</span>
-                  <span className="text-xs sm:text-sm font-semibold text-[#524B42]">
-                    {formatPrice(CONFIRMED_PRICE)}
-                  </span>
-                  <span className="block text-[10px] text-[#8C8276]">x confirmado</span>
-                </div>
-
-                {/* Quantity Stepper (Enlarged font size + starting at 100) */}
-                <div className="sm:col-span-2 flex items-center justify-start sm:justify-center pl-10 sm:pl-0">
-                  <div className="inline-flex items-center rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] overflow-hidden shadow-2xs">
-                    <button
-                      type="button"
-                      disabled={!coordinationActive || !confirmedGuestsActive}
-                      onClick={() => handleConfirmedChange(-10)}
-                      className="p-1.5 sm:p-2 text-[#524B42] hover:bg-[#EFEAE3] active:bg-[#E2DDD5] disabled:opacity-40 cursor-pointer transition-colors"
-                      title="Disminuir 10 confirmados"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <input
-                      id="input-num-confirmed"
-                      type="number"
-                      min="0"
-                      max="2000"
-                      value={numConfirmed}
-                      onChange={(e) => setNumConfirmed(Math.max(0, parseInt(e.target.value) || 0))}
-                      disabled={!coordinationActive || !confirmedGuestsActive}
-                      className="w-14 sm:w-16 py-1 text-center font-extrabold text-base sm:text-lg text-[#2A1810] bg-transparent focus:outline-hidden disabled:opacity-50"
-                    />
-                    <button
-                      type="button"
-                      disabled={!coordinationActive || !confirmedGuestsActive}
-                      onClick={() => handleConfirmedChange(10)}
-                      className="p-1.5 sm:p-2 text-[#524B42] hover:bg-[#EFEAE3] active:bg-[#E2DDD5] disabled:opacity-40 cursor-pointer transition-colors"
-                      title="Aumentar 10 confirmados"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Subtotal */}
-                <div className="sm:col-span-2 text-left sm:text-right pl-10 sm:pl-0 font-mono font-bold text-sm sm:text-base text-[#2A1810]">
-                  <span className="sm:hidden text-xs font-sans text-[#7A7268] mr-2">Subtotal:</span>
-                  {formatPrice(confirmedTotal)}
-                </div>
-
-              </div>
-            </div>
-
-            {/* Item 4: PACK FULL (Invitación + Gestión + Confirmados) with 10% OFF */}
-            <div className={`p-4 sm:p-5 rounded-2xl border transition-all duration-200 bg-white shadow-2xs ${
-              packFullActive 
-                ? 'border-[#E5B869] ring-2 ring-[#E5B869]/30 bg-linear-to-r from-white to-[#FAF3ED]/50' 
-                : 'border-[#E8DCCF] hover:border-[#D9CEBF]'
-            }`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-start space-x-3.5 flex-1">
-                  <button
-                    type="button"
-                    onClick={handleTogglePackFull}
-                    className={`w-6 h-6 mt-1 sm:mt-0 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0 ${
-                      packFullActive
-                        ? 'bg-[#2A1810] border-[#2A1810] text-white shadow-xs'
-                        : 'border-[#D9CEBF] bg-[#FAF8F5] hover:border-[#2A1810]'
-                    }`}
-                    aria-label="Seleccionar PACK FULL"
-                  >
-                    {packFullActive && <Check className="w-4 h-4 stroke-[3] text-[#E5B869]" />}
-                  </button>
-
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2 flex-wrap">
-                      <h2 className="font-bold text-sm sm:text-base text-[#2A1810]">
-                        PACK FULL (Invitación + Gestión + Confirmados)
-                      </h2>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#2A1810] text-[#E5B869] uppercase tracking-wider border border-[#E5B869]/50 shadow-2xs">
-                        -10% OFF
+                    {/* Unit Price */}
+                    <div className="sm:col-span-2 text-left sm:text-center pl-9 sm:pl-0">
+                      <span className="sm:hidden text-xs text-[#7A7268] mr-2">Precio:</span>
+                      <span className="text-xs sm:text-sm font-bold text-[#2A1810]">
+                        {formatPrice(plan.price)}
                       </span>
                     </div>
-                    <p className="text-xs text-[#7A7268] max-w-xl leading-relaxed">
-                      Obtén un 10% de DESCUENTO en el total al contratar los tres servicios de la lista.
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex flex-col items-start sm:items-end space-y-0.5 shrink-0 pl-9 sm:pl-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-[#F0EAE1]">
-                  <div className="text-xs text-[#7A7268] font-mono">
-                    {formatPrice(INVITATION_PRICE)} + {formatPrice(Math.max(0, numPersons) * PERSON_PRICE)} + {formatPrice(Math.max(0, numConfirmed) * CONFIRMED_PRICE)}
-                  </div>
-                  <div className="text-xs font-bold text-emerald-700 font-mono">
-                    -10%: - {formatPrice(fullPackDiscount)}
-                  </div>
-                  <div className="text-base sm:text-lg font-black text-[#2A1810] font-mono">
-                    {formatPrice(fullPackFinalPrice)}
+                    {/* Quantity Stepper */}
+                    <div className="sm:col-span-2 flex items-center justify-start sm:justify-center pl-9 sm:pl-0">
+                      <div className="inline-flex items-center rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] overflow-hidden shadow-2xs">
+                        <button
+                          type="button"
+                          disabled={!isSelected}
+                          onClick={() => handleQuantityChange(plan.id, -1)}
+                          className="p-1 sm:p-1.5 text-[#524B42] hover:bg-[#EFEAE3] active:bg-[#E2DDD5] disabled:opacity-30 cursor-pointer transition-colors"
+                          title="Disminuir cantidad"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <input
+                          type="number"
+                          min="1"
+                          max="99"
+                          value={qty}
+                          onChange={(e) => setQuantities({ ...quantities, [plan.id]: Math.max(1, parseInt(e.target.value) || 1) })}
+                          disabled={!isSelected}
+                          className="w-10 sm:w-12 py-1 text-center font-bold text-xs sm:text-sm text-[#2A1810] bg-transparent focus:outline-hidden disabled:opacity-50"
+                        />
+                        <button
+                          type="button"
+                          disabled={!isSelected}
+                          onClick={() => handleQuantityChange(plan.id, 1)}
+                          className="p-1 sm:p-1.5 text-[#524B42] hover:bg-[#EFEAE3] active:bg-[#E2DDD5] disabled:opacity-30 cursor-pointer transition-colors"
+                          title="Aumentar cantidad"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Subtotal */}
+                    <div className="sm:col-span-2 text-left sm:text-right pl-9 sm:pl-0 font-mono font-bold text-sm sm:text-base text-[#2A1810]">
+                      <span className="sm:hidden text-xs font-sans text-[#7A7268] mr-2">Subtotal:</span>
+                      {formatPrice(isSelected ? planSubtotal : 0)}
+                    </div>
+
                   </div>
                 </div>
-              </div>
-            </div>
+              );
+            })}
 
           </div>
 
@@ -613,20 +569,25 @@ export const TokensPurchaseScreen: React.FC = () => {
 
               <div className="space-y-3 text-xs sm:text-sm">
                 <div className="flex items-center justify-between text-[#7A7268]">
-                  <span>Servicios</span>
-                  <span className="font-bold text-[#2A1810]">{activeItemsCount}</span>
+                  <span>Opciones Seleccionadas</span>
+                  <span className="font-bold text-[#2A1810]">{activeItemsCount} u.</span>
                 </div>
+
+                {/* Breakdown list */}
+                {activePlansList.length > 0 && (
+                  <div className="py-2 border-y border-[#F0EAE1] space-y-1.5 text-xs text-[#524B42]">
+                    {activePlansList.map(plan => (
+                      <div key={plan.id} className="flex justify-between items-center">
+                        <span className="truncate max-w-[180px]">• {plan.number}.- {plan.name} x{quantities[plan.id]}</span>
+                        <span className="font-mono font-semibold">{formatPrice(plan.price * (quantities[plan.id] || 1))}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between text-[#7A7268]">
                   <span>Subtotal</span>
                   <span className="font-mono font-bold text-[#2A1810]">{formatPrice(subtotal)}</span>
-                </div>
-
-                <div className="flex items-center justify-between text-[#7A7268]">
-                  <span>Descuento Pack Full (-10%)</span>
-                  <span className={`font-mono font-bold ${discountAmount > 0 ? 'text-emerald-700' : 'text-[#8C8276]'}`}>
-                    {discountAmount > 0 ? `- ${formatPrice(discountAmount)}` : formatPrice(0)}
-                  </span>
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-[#E8DCCF] text-sm sm:text-base font-extrabold text-[#2A1810]">
@@ -752,7 +713,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                   className="w-full py-2 px-3 rounded-lg bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-2xs"
                 >
                   <Paperclip className="w-3.5 h-3.5 text-[#E5B869]" />
-                  <span>Subir Imagen (JPG)</span>
+                  <span>Subir Imagen (JPG / PNG)</span>
                 </button>
 
                 {selectedFile && (
@@ -815,31 +776,13 @@ export const TokensPurchaseScreen: React.FC = () => {
               </div>
 
               <div className="space-y-1.5 text-[#524B42]">
-                <p className="font-semibold text-[#2D2A26]">Detalle de Servicios:</p>
-                {invitationActive && (
-                  <div className="flex justify-between">
-                    <span>• Invitación de Bodas Interactiva</span>
-                    <span className="font-mono">{formatPrice(invitationTotal)}</span>
+                <p className="font-semibold text-[#2D2A26]">Detalle de Opciones:</p>
+                {activePlansList.map(plan => (
+                  <div key={plan.id} className="flex justify-between">
+                    <span>• {plan.number}.- {plan.name} ({quantities[plan.id]} u.)</span>
+                    <span className="font-mono">{formatPrice(plan.price * (quantities[plan.id] || 1))}</span>
                   </div>
-                )}
-                {coordinationActive && (
-                  <div className="flex justify-between">
-                    <span>• Gestión por Boda ({numPersons} personas)</span>
-                    <span className="font-mono">{formatPrice(coordinationTotal)}</span>
-                  </div>
-                )}
-                {coordinationActive && confirmedGuestsActive && (
-                  <div className="flex justify-between">
-                    <span>• Invitados Confirmados ({numConfirmed} confirmados)</span>
-                    <span className="font-mono">{formatPrice(confirmedTotal)}</span>
-                  </div>
-                )}
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-700 font-semibold pt-1 border-t border-dashed border-[#E8DCCF]">
-                    <span>• Descuento Pack Full (-10%)</span>
-                    <span className="font-mono">- {formatPrice(discountAmount)}</span>
-                  </div>
-                )}
+                ))}
               </div>
 
               {selectedFile && (

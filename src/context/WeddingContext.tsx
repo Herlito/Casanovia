@@ -204,7 +204,7 @@ interface WeddingContextType {
 const WeddingContext = createContext<WeddingContextType | undefined>(undefined);
 
 export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Helper to check if URL explicitly requests the /tokens or tokens query
+  // Helper to check if URL explicitly requests the /precios (or legacy /tokens) query
   const isTokensUrlRequested = (): boolean => {
     try {
       if (typeof window !== 'undefined') {
@@ -212,10 +212,16 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const search = (window.location.search || '').toLowerCase();
         const hash = (window.location.hash || '').toLowerCase();
         return (
+          path.includes('/precios') ||
+          path.endsWith('/precios') ||
           path.includes('/tokens') ||
           path.endsWith('/tokens') ||
+          search.includes('precios') ||
+          search.includes('page=precios') ||
+          search.includes('page=Precios') ||
           search.includes('tokens') ||
           search.includes('page=tokens') ||
+          hash.includes('precios') ||
           hash.includes('tokens')
         );
       }
@@ -452,7 +458,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (typeof window !== 'undefined' && window.history && window.history.pushState) {
         const url = new URL(window.location.href);
         if (newMode === 'tokens') {
-          url.searchParams.set('page', 'tokens');
+          url.searchParams.set('page', 'precios');
         } else {
           url.searchParams.delete('page');
         }
