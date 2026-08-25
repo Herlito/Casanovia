@@ -303,6 +303,36 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return '';
   };
 
+  // Helper to retrieve previously indicated/persisted wedding ID from local storage
+  const getStoredIndicatedWeddingId = (): string => {
+    try {
+      if (typeof window !== 'undefined') {
+        const stored =
+          localStorage.getItem('casanovia_indicated_wedding_id') ||
+          localStorage.getItem('weddinghub_active_wedding_id');
+        if (stored) {
+          return decodeURIComponent(stored).trim();
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return '';
+  };
+
+  // Helper to persist indicated wedding ID to local storage
+  const persistIndicatedWeddingId = (weddingId: string) => {
+    if (!weddingId) return;
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('casanovia_indicated_wedding_id', weddingId);
+        localStorage.setItem('weddinghub_active_wedding_id', weddingId);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   // Helper to find a wedding matching the requested identifier
   const findWeddingByRequestedParam = (weddingsList: Wedding[], requested: string): Wedding | undefined => {
     if (!requested || !weddingsList || weddingsList.length === 0) return undefined;
@@ -404,8 +434,17 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const fromUrl = getRequestedWeddingIdFromUrl();
     if (fromUrl) {
       const match = findWeddingByRequestedParam(initialWeddingsList, fromUrl);
-      if (match) return match.id;
+      if (match) {
+        persistIndicatedWeddingId(match.id);
+        return match.id;
+      }
       return fromUrl;
+    }
+    const fromStored = getStoredIndicatedWeddingId();
+    if (fromStored) {
+      const match = findWeddingByRequestedParam(initialWeddingsList, fromStored);
+      if (match) return match.id;
+      return fromStored;
     }
     return initialWeddingsList[0]?.id || '';
   });
@@ -513,7 +552,9 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (requestedId) {
           setActiveWeddingId((prev) => {
             const match = findWeddingByRequestedParam(weddings, requestedId);
-            return match ? match.id : requestedId;
+            const targetId = match ? match.id : requestedId;
+            persistIndicatedWeddingId(targetId);
+            return targetId;
           });
         }
       }
@@ -841,21 +882,55 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
             if (list.length > 0) {
               const sortedList = sortWeddingsByDate(list);
               setWeddings(sortedList);
-              // ensure activeWeddingId respects URL parameter if requested or remains valid
+              // ensure activeWeddingId respects URL parameter if requested or remains valid with indicated wedding
               setActiveWeddingId((prev) => {
                 const requestedId = getRequestedWeddingIdFromUrl();
                 if (requestedId) {
                   const match = findWeddingByRequestedParam(sortedList, requestedId);
-                  if (match) return match.id;
+                  if (match) {
+                    persistIndicatedWeddingId(match.id);
+                    return match.id;
+                  }
                   if (sortedList.some((w) => w.id === requestedId)) {
+                    persistIndicatedWeddingId(requestedId);
                     return requestedId;
                   }
                   return requestedId;
                 }
-                if (prev && sortedList.some((w) => w.id === prev)) {
-                  return prev;
+
+                // In absence of URL parameter: maintain the previously indicated/active wedding
+                if (prev) {
+                  const prevMatch = findWeddingByRequestedParam(sortedList, prev);
+                  if (prevMatch) {
+                    persistIndicatedWeddingId(prevMatch.id);
+                    return prevMatch.id;
+                  }
+                  if (sortedList.some((w) => w.id === prev)) {
+                    persistIndicatedWeddingId(prev);
+                    return prev;
+                  }
                 }
-                return sortedList[0].id;
+
+                // Check stored indicated wedding in localStorage
+                const storedIndicated = getStoredIndicatedWeddingId();
+                if (storedIndicated) {
+                  const storedMatch = findWeddingByRequestedParam(sortedList, storedIndicated);
+                  if (storedMatch) {
+                    persistIndicatedWeddingId(storedMatch.id);
+                    return storedMatch.id;
+                  }
+                  if (sortedList.some((w) => w.id === storedIndicated)) {
+                    persistIndicatedWeddingId(storedIndicated);
+                    return storedIndicated;
+                  }
+                }
+
+                // If nothing was indicated, maintain the existing state or first available
+                const fallbackId = prev || sortedList[0]?.id || '';
+                if (fallbackId) {
+                  persistIndicatedWeddingId(fallbackId);
+                }
+                return fallbackId;
               });
             }
             setIsFirebaseLoading(false);
@@ -960,6 +1035,15 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         findWeddingByRequestedParam(weddings, requestedFromUrl) ||
         findWeddingByRequestedParam(initialWeddingsList, requestedFromUrl);
       if (urlMatch) return urlMatch;
+    }
+
+    // 4. Match from stored indicated wedding in localStorage
+    const storedIndicated = getStoredIndicatedWeddingId();
+    if (storedIndicated) {
+      const storedMatch =
+        findWeddingByRequestedParam(weddings, storedIndicated) ||
+        findWeddingByRequestedParam(initialWeddingsList, storedIndicated);
+      if (storedMatch) return storedMatch;
     }
 
     return weddings[0] || initialWeddingsList[0] || initialDefaultWedding;
@@ -1071,6 +1155,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Switch active wedding
   const selectWedding = (weddingId: string) => {
+    persistIndicatedWeddingId(weddingId);
+
     // If Level 3 planner, only allow selecting among accessible (created) weddings
     if (currentUser.isAuthenticated && currentUser.level === 3) {
       if (accessibleWeddings.some((w) => w.id === weddingId)) {
