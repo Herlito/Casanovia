@@ -361,7 +361,7 @@ export const TokensPurchaseScreen: React.FC = () => {
           </div>
 
           <p className="text-xs uppercase tracking-[0.25em] text-[#8C8276] font-bold">
-            Servicios Digitales & Coordinación Nupcial
+            Gestión nupcial digital
           </p>
         </div>
       </header>
