@@ -846,15 +846,27 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // -------------------------------------------------------------
   useEffect(() => {
     let unsubscribeWeddings: (() => void) | undefined;
+    let fallbackTimer: NodeJS.Timeout | undefined;
 
     const initFirestoreSync = () => {
       try {
         const weddingsColl = collection(db, 'weddings');
 
+        fallbackTimer = setTimeout(() => {
+          setIsFirebaseLoading((prev) => {
+            if (prev) {
+              console.info('[Firestore] Fallback timer reached.');
+              return false;
+            }
+            return false;
+          });
+        }, 4000);
+
         // Setup real-time listener for all weddings
         unsubscribeWeddings = onSnapshot(
           weddingsColl,
           async (querySnapshot) => {
+            if (fallbackTimer) clearTimeout(fallbackTimer);
             // Auto-seed initial weddings if collection is confirmed empty on server
             if (querySnapshot.empty && !querySnapshot.metadata.hasPendingWrites && !querySnapshot.metadata.fromCache) {
               try {
@@ -867,6 +879,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
               } catch (seedErr) {
                 console.warn('[Firestore] Weddings seeding skipped/deferred:', seedErr);
               }
+              setIsFirebaseLoading(false);
+              setIsFirebaseConnected(true);
               return;
             }
 
@@ -937,6 +951,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
             setIsFirebaseConnected(true);
           },
           (error) => {
+            if (fallbackTimer) clearTimeout(fallbackTimer);
             if ((error as any)?.code === 'unavailable') {
               console.info('[Firestore] weddings listener running with offline cache.');
             } else {
@@ -947,6 +962,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
         );
       } catch (err) {
+        if (fallbackTimer) clearTimeout(fallbackTimer);
         console.error('[Firestore] Error conectando a weddings:', err);
         setIsFirebaseLoading(false);
       }
@@ -955,6 +971,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     initFirestoreSync();
 
     return () => {
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       if (unsubscribeWeddings) unsubscribeWeddings();
     };
   }, []);

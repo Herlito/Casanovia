@@ -16,11 +16,12 @@ import { NewWeddingModal } from './components/modals/NewWeddingModal';
 import { UserManagementModal } from './components/modals/UserManagementModal';
 import { ShareWeddingModal } from './components/modals/ShareWeddingModal';
 import { PublicFooter } from './components/public/PublicFooter';
+import { CasanoviaLoadingScreen } from './components/CasanoviaLoadingScreen';
 import { Heart, Sparkles } from 'lucide-react';
 import { isRsvpDeadlinePassed } from './lib/dateUtils';
 
 const MainLayout: React.FC = () => {
-  const { viewMode, settings } = useWedding();
+  const { viewMode, settings, isFirebaseLoading } = useWedding();
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
   useEffect(() => {
@@ -30,6 +31,11 @@ const MainLayout: React.FC = () => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // While wedding data is resolving from Firebase, display centered Casanovia logo loading screen
+  if (isFirebaseLoading) {
+    return <CasanoviaLoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-[#2D2A26] font-sans antialiased selection:bg-[#8B3A4A]/20 selection:text-[#8B3A4A]">
