@@ -14,16 +14,10 @@ import {
   Settings, 
   Building2, 
   Smartphone, 
-  Info,
   Mail,
-  Users,
   Shield,
   Crown,
-  Gem,
-  Plus,
-  Minus,
-  Share2,
-  CheckCheck
+  Gem
 } from 'lucide-react';
 import { TokensAdminSettingsModal } from './TokensAdminSettingsModal';
 
@@ -119,9 +113,9 @@ const PRICING_PLANS: PricingPlan[] = [
 ];
 
 export const TokensPurchaseScreen: React.FC = () => {
-  const { currentUser, isLevel1Admin, tokensPaymentConfig, activeWeddingId } = useWedding();
+  const { isLevel1Admin, tokensPaymentConfig } = useWedding();
 
-  // Selection state for the 4 plans: active status and quantity
+  // Selection state for the 4 plans
   // Plan 1 is independent.
   // Plans 2, 3 and 4 are mutually exclusive (only one can be chosen at a time).
   const [selectedPlans, setSelectedPlans] = useState<{ [id: string]: boolean }>({
@@ -129,13 +123,6 @@ export const TokensPurchaseScreen: React.FC = () => {
     'pack-silver': false,
     'pack-gold': false,
     'pack-platinum': false
-  });
-
-  const [quantities, setQuantities] = useState<{ [id: string]: number }>({
-    'invitacion-lujo': 1,
-    'pack-silver': 1,
-    'pack-gold': 1,
-    'pack-platinum': 1
   });
 
   // Payment upload state
@@ -158,7 +145,6 @@ export const TokensPurchaseScreen: React.FC = () => {
   // Copy feedback states for quick payment buttons
   const [copiedBank, setCopiedBank] = useState<boolean>(false);
   const [copiedYape, setCopiedYape] = useState<boolean>(false);
-  const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
   // Toggle selection for a plan
   // Plan 1 is completely independent.
@@ -194,28 +180,18 @@ export const TokensPurchaseScreen: React.FC = () => {
     });
   };
 
-  // Quantity changes
-  const handleQuantityChange = (id: string, delta: number) => {
-    setQuantities(prev => ({
-      ...prev,
-      [id]: Math.max(1, (prev[id] || 1) + delta)
-    }));
-  };
-
   // Calculations
   const formatPrice = (val: number) => `S/ ${val.toFixed(2)}`;
 
   const activePlansList = PRICING_PLANS.filter(p => selectedPlans[p.id]);
-  const activeItemsCount = activePlansList.reduce((acc, p) => acc + (quantities[p.id] || 1), 0);
+  const activeItemsCount = activePlansList.length;
 
-  const subtotal = PRICING_PLANS.reduce((acc, plan) => {
+  const totalToPay = PRICING_PLANS.reduce((acc, plan) => {
     if (selectedPlans[plan.id]) {
-      return acc + plan.price * (quantities[plan.id] || 1);
+      return acc + plan.price;
     }
     return acc;
   }, 0);
-
-  const totalToPay = subtotal;
 
   // File handling
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -294,20 +270,6 @@ export const TokensPurchaseScreen: React.FC = () => {
     setTimeout(() => setCopiedYape(false), 2200);
   };
 
-  const copyPreciosLink = () => {
-    try {
-      const origin = window.location.origin;
-      const pathname = window.location.pathname;
-      const bodaParam = activeWeddingId ? `?boda=${encodeURIComponent(activeWeddingId)}&page=precios` : '?page=precios';
-      const fullUrl = `${origin}${pathname}${bodaParam}`;
-      navigator.clipboard.writeText(fullUrl);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2200);
-    } catch {
-      // ignore
-    }
-  };
-
   // Submit Order
   const handlePurchase = () => {
     if (totalToPay <= 0) {
@@ -324,7 +286,7 @@ export const TokensPurchaseScreen: React.FC = () => {
     const summary = `*PEDIDO PLANES & PRECIOS* - Código: ${orderCode}\n` +
       `• Total a Pagar: ${formatPrice(totalToPay)}\n` +
       `• Opciones Seleccionadas:\n` +
-      activePlansList.map(p => `  - ${p.number}.- ${p.name} (${quantities[p.id]} u.): ${formatPrice(p.price * (quantities[p.id] || 1))}`).join('\n');
+      activePlansList.map(p => `  - ${p.number}.- ${p.name}: ${formatPrice(p.price)}`).join('\n');
 
     navigator.clipboard.writeText(summary);
     setOrderCopied(true);
@@ -401,27 +363,6 @@ export const TokensPurchaseScreen: React.FC = () => {
           <p className="text-xs uppercase tracking-[0.25em] text-[#8C8276] font-bold">
             Servicios Digitales & Coordinación Nupcial
           </p>
-
-          {/* Share Precios Link Button */}
-          <button
-            type="button"
-            id="btn-copiar-link-precios"
-            onClick={copyPreciosLink}
-            className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white hover:bg-[#FAF8F5] border border-[#D9CEBF] text-xs font-semibold text-[#524B42] shadow-2xs transition-colors cursor-pointer"
-            title="Copiar enlace directo de la página de Precios"
-          >
-            {copiedLink ? (
-              <>
-                <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-emerald-700 font-bold">¡Enlace de Precios Copiado!</span>
-              </>
-            ) : (
-              <>
-                <Share2 className="w-3.5 h-3.5 text-[#8B3A4A]" />
-                <span>Copiar Enlace de Precios</span>
-              </>
-            )}
-          </button>
         </div>
       </header>
 
@@ -434,17 +375,13 @@ export const TokensPurchaseScreen: React.FC = () => {
             
             {/* Table Header Bar (Warm Gold Bar matching Casanovia) */}
             <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-3.5 rounded-xl bg-[#E5B869] text-[#2A1810] text-xs font-bold uppercase tracking-wider shadow-xs items-center">
-              <div className="col-span-6">Servicio / Pack</div>
-              <div className="col-span-2 text-center">Precio Unit.</div>
-              <div className="col-span-2 text-center">Cantidad</div>
-              <div className="col-span-2 text-right">Subtotal</div>
+              <div className="col-span-9 sm:col-span-10">Servicio / Pack</div>
+              <div className="col-span-3 sm:col-span-2 text-right">Precio</div>
             </div>
 
             {/* List of 4 Pricing Options */}
             {PRICING_PLANS.map((plan) => {
               const isSelected = selectedPlans[plan.id];
-              const qty = quantities[plan.id] || 1;
-              const planSubtotal = plan.price * qty;
 
               return (
                 <div 
@@ -455,10 +392,10 @@ export const TokensPurchaseScreen: React.FC = () => {
                       : 'border-[#E8DCCF] opacity-80 hover:opacity-100 hover:border-[#D9CEBF]'
                   }`}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start sm:items-center">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     
-                    {/* Details Column with Checkbox & Icon */}
-                    <div className="sm:col-span-6 flex items-start space-x-3.5">
+                    {/* Left: Checkbox + Icon + Info */}
+                    <div className="flex items-start space-x-3.5 flex-1 min-w-0">
                       <button
                         type="button"
                         onClick={() => togglePlanSelection(plan.id)}
@@ -504,51 +441,12 @@ export const TokensPurchaseScreen: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Unit Price */}
-                    <div className="sm:col-span-2 text-left sm:text-center pl-9 sm:pl-0">
+                    {/* Right: Unit Price */}
+                    <div className="shrink-0 text-left sm:text-right pl-9 sm:pl-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-[#F0EAE1]">
                       <span className="sm:hidden text-xs text-[#7A7268] mr-2">Precio:</span>
-                      <span className="text-xs sm:text-sm font-bold text-[#2A1810]">
+                      <span className="text-base sm:text-lg font-bold text-[#2A1810] font-mono">
                         {formatPrice(plan.price)}
                       </span>
-                    </div>
-
-                    {/* Quantity Stepper */}
-                    <div className="sm:col-span-2 flex items-center justify-start sm:justify-center pl-9 sm:pl-0">
-                      <div className="inline-flex items-center rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] overflow-hidden shadow-2xs">
-                        <button
-                          type="button"
-                          disabled={!isSelected}
-                          onClick={() => handleQuantityChange(plan.id, -1)}
-                          className="p-1 sm:p-1.5 text-[#524B42] hover:bg-[#EFEAE3] active:bg-[#E2DDD5] disabled:opacity-30 cursor-pointer transition-colors"
-                          title="Disminuir cantidad"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <input
-                          type="number"
-                          min="1"
-                          max="99"
-                          value={qty}
-                          onChange={(e) => setQuantities({ ...quantities, [plan.id]: Math.max(1, parseInt(e.target.value) || 1) })}
-                          disabled={!isSelected}
-                          className="w-10 sm:w-12 py-1 text-center font-bold text-xs sm:text-sm text-[#2A1810] bg-transparent focus:outline-hidden disabled:opacity-50"
-                        />
-                        <button
-                          type="button"
-                          disabled={!isSelected}
-                          onClick={() => handleQuantityChange(plan.id, 1)}
-                          className="p-1 sm:p-1.5 text-[#524B42] hover:bg-[#EFEAE3] active:bg-[#E2DDD5] disabled:opacity-30 cursor-pointer transition-colors"
-                          title="Aumentar cantidad"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Subtotal */}
-                    <div className="sm:col-span-2 text-left sm:text-right pl-9 sm:pl-0 font-mono font-bold text-sm sm:text-base text-[#2A1810]">
-                      <span className="sm:hidden text-xs font-sans text-[#7A7268] mr-2">Subtotal:</span>
-                      {formatPrice(isSelected ? planSubtotal : 0)}
                     </div>
 
                   </div>
@@ -578,17 +476,12 @@ export const TokensPurchaseScreen: React.FC = () => {
                   <div className="py-2 border-y border-[#F0EAE1] space-y-1.5 text-xs text-[#524B42]">
                     {activePlansList.map(plan => (
                       <div key={plan.id} className="flex justify-between items-center">
-                        <span className="truncate max-w-[180px]">• {plan.number}.- {plan.name} x{quantities[plan.id]}</span>
-                        <span className="font-mono font-semibold">{formatPrice(plan.price * (quantities[plan.id] || 1))}</span>
+                        <span className="truncate max-w-[180px]">• {plan.number}.- {plan.name}</span>
+                        <span className="font-mono font-semibold">{formatPrice(plan.price)}</span>
                       </div>
                     ))}
                   </div>
                 )}
-
-                <div className="flex items-center justify-between text-[#7A7268]">
-                  <span>Subtotal</span>
-                  <span className="font-mono font-bold text-[#2A1810]">{formatPrice(subtotal)}</span>
-                </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-[#E8DCCF] text-sm sm:text-base font-extrabold text-[#2A1810]">
                   <span>Total</span>
@@ -779,8 +672,8 @@ export const TokensPurchaseScreen: React.FC = () => {
                 <p className="font-semibold text-[#2D2A26]">Detalle de Opciones:</p>
                 {activePlansList.map(plan => (
                   <div key={plan.id} className="flex justify-between">
-                    <span>• {plan.number}.- {plan.name} ({quantities[plan.id]} u.)</span>
-                    <span className="font-mono">{formatPrice(plan.price * (quantities[plan.id] || 1))}</span>
+                    <span>• {plan.number}.- {plan.name}</span>
+                    <span className="font-mono">{formatPrice(plan.price)}</span>
                   </div>
                 ))}
               </div>

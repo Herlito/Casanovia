@@ -458,9 +458,13 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (typeof window !== 'undefined' && window.history && window.history.pushState) {
         const url = new URL(window.location.href);
         if (newMode === 'tokens') {
-          url.searchParams.set('page', 'precios');
+          // Clean URL: casanovia.vercel.app/?page=precios
+          url.search = '?page=precios';
         } else {
           url.searchParams.delete('page');
+          if (activeWeddingId && activeWeddingId !== 'default' && !url.searchParams.get('boda')) {
+            url.searchParams.set('boda', activeWeddingId);
+          }
         }
         window.history.pushState({}, '', url.toString());
       }
