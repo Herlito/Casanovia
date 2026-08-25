@@ -37,14 +37,14 @@ export const DressCodeSection: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#8A9A86]/20 text-[#3C5038] text-xs font-semibold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#8A9A86]/20 theme-badge text-[#3C5038] text-xs font-semibold uppercase tracking-wider mb-2">
             <Shirt className="w-3.5 h-3.5" />
             <span>Etiqueta & Estilo</span>
           </div>
           <h2 className="font-serif-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#2D2A26]">
             Código de Vestimenta (Dress Code)
           </h2>
-          <p className="font-serif-display text-lg text-[#8B3A4A] font-semibold mt-1">
+          <p className="font-serif-display text-lg text-[#8B3A4A] theme-primary-text font-semibold mt-1">
             {settings.dressCodeStyle || 'Formal Rigurosa'}
           </p>
           <p className="text-xs sm:text-sm text-[#7A7268] max-w-xl mx-auto mt-2 leading-relaxed">

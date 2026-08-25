@@ -23,7 +23,9 @@ import {
   RsvpStatus,
   VendorItem,
   WeddingTable,
-  TokensPaymentConfig
+  TokensPaymentConfig,
+  WeddingCustomTheme,
+  DressCodeColor
 } from '../types';
 import { 
   initialGuests, 
@@ -41,6 +43,7 @@ import {
 import { sortWeddingsByDate, sortTimelineMilestones } from '../lib/dateUtils';
 import { syncVendorsIntoBudget, buildBudgetDirectlyFromVendors } from '../lib/budgetSyncUtils';
 import { formatAltibajas } from '../lib/formatUtils';
+import { generateWeddingTheme, getDefaultWeddingTheme } from '../lib/themeUtils';
 
 export const LEVEL_1_USER = {
   username: 'Herly Lizarazo',
@@ -188,6 +191,11 @@ interface WeddingContextType {
   importDataJson: (jsonString: string) => Promise<boolean>;
   resetToDemoData: () => Promise<void>;
   
+  // Custom Theme for this wedding
+  currentWeddingTheme: WeddingCustomTheme;
+  applyWeddingColorsTheme: (colors?: DressCodeColor[]) => Promise<WeddingCustomTheme>;
+  resetWeddingColorsTheme: () => Promise<void>;
+
   // Shared Active Guest for Guide Modal
   selectedGuestForGuide: Guest | null;
   setSelectedGuestForGuide: (guest: Guest | null) => void;
@@ -1498,6 +1506,35 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // -------------------------------------------------------------
+  // Wedding Custom Theme & Color Palette Operations
+  // -------------------------------------------------------------
+  const currentWeddingTheme: WeddingCustomTheme = (settings?.customTheme && settings.customTheme.enabled)
+    ? settings.customTheme
+    : getDefaultWeddingTheme();
+
+  const applyWeddingColorsTheme = async (colorsToUse?: DressCodeColor[]): Promise<WeddingCustomTheme> => {
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
+    const currentSettings = currentWedding?.settings || settings || initialWeddingSettings;
+    const list = colorsToUse || currentSettings.suggestedColors || [];
+    const generatedTheme = generateWeddingTheme(list);
+    await updateSettings({
+      suggestedColors: list,
+      customTheme: generatedTheme,
+    });
+    return generatedTheme;
+  };
+
+  const resetWeddingColorsTheme = async (): Promise<void> => {
+    const defaultTheme = {
+      ...getDefaultWeddingTheme(),
+      enabled: false,
+    };
+    await updateSettings({
+      customTheme: defaultTheme,
+    });
+  };
+
+  // -------------------------------------------------------------
   // Guests operations
   // -------------------------------------------------------------
   const addGuest = async (guestData: Omit<Guest, 'id'>): Promise<Guest> => {
@@ -2196,6 +2233,9 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         exportDataJson,
         importDataJson,
         resetToDemoData,
+        currentWeddingTheme,
+        applyWeddingColorsTheme,
+        resetWeddingColorsTheme,
         selectedGuestForGuide,
         setSelectedGuestForGuide,
         tokensPaymentConfig,

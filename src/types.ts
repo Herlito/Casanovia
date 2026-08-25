@@ -242,6 +242,24 @@ export interface DressCodeColor {
   recommendedFor?: string;
 }
 
+export interface WeddingCustomTheme {
+  enabled: boolean;
+  primary: string;
+  primaryForeground: string;
+  primaryHover?: string;
+  secondary: string;
+  secondaryForeground: string;
+  secondaryHover?: string;
+  accent: string;
+  accentForeground: string;
+  bgSoft: string;
+  bgCard: string;
+  textMain: string;
+  textMuted: string;
+  borderSoft: string;
+  appliedAt?: string;
+}
+
 export interface AdditionalVenue {
   id: string;
   name: string; // e.g. "Hotel Casa Grande - Vallecito", "Iglesia Santa Marta", "Jardines de Sabandía"
@@ -302,6 +320,7 @@ export interface WeddingSettings {
   generalContactPhone: string;
   romanticQuote?: string; // e.g. "El amor no se mira con los ojos, sino con el corazón."
   totalRealBudget?: number; // Presupuesto Total Real editable por Anfitrión, Wedding Planner y Administrador
+  customTheme?: WeddingCustomTheme;
 }
 
 export interface VendorItem {

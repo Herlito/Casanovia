@@ -16,6 +16,7 @@ import { NewWeddingModal } from './components/modals/NewWeddingModal';
 import { UserManagementModal } from './components/modals/UserManagementModal';
 import { ShareWeddingModal } from './components/modals/ShareWeddingModal';
 import { PublicFooter } from './components/public/PublicFooter';
+import { WeddingThemeWrapper } from './components/public/WeddingThemeWrapper';
 import { CasanoviaLoadingScreen } from './components/CasanoviaLoadingScreen';
 import { CasanoviaHomeLanding } from './components/public/CasanoviaHomeLanding';
 import { Heart, Sparkles } from 'lucide-react';
@@ -51,7 +52,7 @@ const MainLayout: React.FC = () => {
             /* Home Landing: Solo el logo de Casanovia centrado en la pantalla */
             <CasanoviaHomeLanding />
           ) : (
-            <>
+            <WeddingThemeWrapper>
               {/* 1. Hero & Real-time Countdown */}
               <HeroCountdown />
 
@@ -75,7 +76,7 @@ const MainLayout: React.FC = () => {
 
               {/* Public Footer with Editable Romantic Quote, Couple Names & Contacts */}
               <PublicFooter />
-            </>
+            </WeddingThemeWrapper>
           )}
         </main>
       ) : viewMode === 'new_wedding_tasks' ? (

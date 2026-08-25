@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { TokensPaymentConfig } from '../../types';
 import { 
@@ -12,8 +12,13 @@ import {
   Smartphone, 
   FileText,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  Cloud,
+  CloudCheck,
+  Loader2,
+  ExternalLink
 } from 'lucide-react';
+import { uploadQrToCloudStorage } from '../../lib/storageUtils';
 
 interface TokensAdminSettingsModalProps {
   isOpen: boolean;
@@ -27,15 +32,28 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
   const { tokensPaymentConfig, updateTokensPaymentConfig } = useWedding();
   const [formData, setFormData] = useState<TokensPaymentConfig>({ ...tokensPaymentConfig });
   const [qrPreview, setQrPreview] = useState<string>(tokensPaymentConfig.qrImageUrl || '');
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isCloudStored, setIsCloudStored] = useState<boolean>(Boolean(tokensPaymentConfig.qrImageUrl));
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync state whenever modal opens or context updates
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({ ...tokensPaymentConfig });
+      setQrPreview(tokensPaymentConfig.qrImageUrl || '');
+      setIsCloudStored(Boolean(tokensPaymentConfig.qrImageUrl));
+      setUploadError(null);
+    }
+  }, [isOpen, tokensPaymentConfig]);
 
   if (!isOpen) return null;
 
-  // Handler for uploading 1:1 QR image
-  const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handler for uploading 1:1 QR image directly to Firebase Cloud Storage
+  const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setUploadError(null);
     const file = e.target.files?.[0];
     if (!file) return;
@@ -46,22 +64,34 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError('La imagen excede el límite de 5MB.');
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('La imagen excede el límite de 10MB.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      setQrPreview(result);
-      setFormData(prev => ({ ...prev, qrImageUrl: result }));
-    };
-    reader.readAsDataURL(file);
+    setIsUploading(true);
+    setUploadStatus('Optimizando imagen...');
+
+    try {
+      const result = await uploadQrToCloudStorage(file, (msg) => {
+        setUploadStatus(msg);
+      });
+
+      setQrPreview(result.url);
+      setFormData(prev => ({ ...prev, qrImageUrl: result.url }));
+      setIsCloudStored(true);
+    } catch (err: any) {
+      console.error('Error subiendo QR a la nube:', err);
+      setUploadError(err?.message || 'Error al procesar y subir la imagen.');
+    } finally {
+      setIsUploading(false);
+      setUploadStatus('');
+    }
   };
 
   const handleRemoveQr = () => {
     setQrPreview('');
+    setIsCloudStored(false);
     setFormData(prev => ({ ...prev, qrImageUrl: '' }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -71,6 +101,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setUploadError(null);
     try {
       await updateTokensPaymentConfig(formData);
       setSaveSuccess(true);
@@ -78,9 +109,9 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
         setSaveSuccess(false);
         onClose();
       }, 1200);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error guardando configuración de pagos:', err);
-      setUploadError('Ocurrió un error al guardar los cambios.');
+      setUploadError('Ocurrió un error al guardar los cambios en la nube.');
     } finally {
       setIsSaving(false);
     }
@@ -106,36 +137,47 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
             <span>Configuración Administrador (Nivel 1)</span>
           </div>
           <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
-            Datos de Pago & QR Oficial
+            Datos de Pago & QR Oficial en la Nube
           </h2>
           <p className="text-xs text-[#7A7268]">
-            Edita los datos bancarios, número de Yape y el código QR oficial (proporción 1:1) que verán los usuarios en el carrito de compras.
+            Edita los datos bancarios, número de Yape y carga el código QR oficial en la nube (proporción 1:1) para que todos los usuarios (logueados y visitantes) puedan visualizarlo y escanearlo en la página de precios.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           
-          {/* Section 1: Subir Archivo 1:1 de un QR */}
+          {/* Section 1: Subir Archivo 1:1 de un QR a la Nube */}
           <div className="bg-white p-5 rounded-2xl border border-[#E8DCCF] space-y-4 shadow-2xs">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <label className="text-xs font-bold uppercase tracking-wider text-[#2D2A26] flex items-center space-x-2">
                 <QrCode className="w-4 h-4 text-[#8B3A4A]" />
-                <span>Código QR Oficial de Pago (Proporción 1:1)</span>
+                <span>Código QR Oficial de Pago (Almacenado en la Nube)</span>
               </label>
-              <span className="text-[11px] text-[#8C8276]">JPG, PNG o WebP</span>
+              
+              {isCloudStored && qrPreview && (
+                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-semibold border border-emerald-200">
+                  <Cloud className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Disponible en la Nube</span>
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-5">
               {/* QR Preview Square 1:1 */}
               <div className="w-32 h-32 sm:w-36 sm:h-36 aspect-square rounded-2xl border-2 border-dashed border-[#D9CEBF] bg-[#FAF8F5] flex items-center justify-center overflow-hidden shrink-0 relative group shadow-inner">
-                {qrPreview ? (
+                {isUploading ? (
+                  <div className="text-center p-3 space-y-2">
+                    <Loader2 className="w-8 h-8 text-[#8B3A4A] animate-spin mx-auto" />
+                    <span className="text-[10px] text-[#8B3A4A] font-bold block">{uploadStatus || 'Subiendo...'}</span>
+                  </div>
+                ) : qrPreview ? (
                   <>
                     <img 
                       src={qrPreview} 
                       alt="Código QR de Pago 1:1" 
                       className="w-full h-full object-contain p-2"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <button
                         type="button"
                         onClick={handleRemoveQr}
@@ -162,6 +204,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
                   onChange={handleQrUpload}
+                  disabled={isUploading}
                   className="hidden"
                   id="admin-qr-file-input"
                 />
@@ -169,14 +212,24 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                   <button
                     type="button"
+                    disabled={isUploading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-[#1E2B3E] hover:bg-[#15202E] text-white text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                    className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#1E2B3E] hover:bg-[#15202E] text-white text-xs font-semibold transition-all cursor-pointer shadow-xs disabled:opacity-60"
                   >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{qrPreview ? 'Cambiar Imagen QR (1:1)' : 'Subir Archivo QR (1:1)'}</span>
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Subiendo a la nube...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{qrPreview ? 'Cambiar Imagen QR en la Nube (1:1)' : 'Cargar QR a la Nube (1:1)'}</span>
+                      </>
+                    )}
                   </button>
 
-                  {qrPreview && (
+                  {qrPreview && !isUploading && (
                     <button
                       type="button"
                       onClick={handleRemoveQr}
@@ -189,7 +242,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                 </div>
 
                 <p className="text-[11px] text-[#7A7268] leading-relaxed">
-                  Para una visualización nítida, sube una imagen cuadrada (ejemplo: 500x500 px) de tu código QR de Yape o cuenta bancaria.
+                  Al subir tu código QR, se almacena en la nube de forma segura y se sincroniza en tiempo real para que visitantes y usuarios registrados puedan escanearlo.
                 </p>
 
                 {uploadError && (
@@ -324,25 +377,26 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-[#D9CEBF] bg-white hover:bg-[#FAF3ED] text-[#2D2A26] text-xs font-semibold transition-colors cursor-pointer"
+              disabled={isSaving || isUploading}
+              className="px-5 py-2.5 rounded-xl border border-[#D9CEBF] bg-white hover:bg-[#FAF3ED] text-[#2D2A26] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancelar
             </button>
 
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isSaving || isUploading}
               className="px-6 py-2.5 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
             >
               {saveSuccess ? (
                 <>
                   <Check className="w-4 h-4 stroke-[3]" />
-                  <span>¡Cambios Guardados!</span>
+                  <span>¡Guardado en la Nube!</span>
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  <span>{isSaving ? 'Guardando...' : 'Guardar Configuración'}</span>
+                  <span>{isSaving ? 'Guardando en la nube...' : 'Guardar Configuración'}</span>
                 </>
               )}
             </button>

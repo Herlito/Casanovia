@@ -12,8 +12,11 @@ import {
   AlertCircle, 
   Palette,
   ShieldCheck,
-  RotateCcw
+  RotateCcw,
+  Paintbrush,
+  CheckCircle2
 } from 'lucide-react';
+import { getContrastRatio, getAccessibleTextColor } from '../../lib/themeUtils';
 
 interface DressCodeEditModalProps {
   isOpen: boolean;
@@ -52,7 +55,14 @@ const PRESET_PALETTES: { name: string; colors: DressCodeColor[] }[] = [
 ];
 
 export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, onClose }) => {
-  const { settings, updateSettings, currentUser, isLevel1Admin } = useWedding();
+  const { 
+    settings, 
+    updateSettings, 
+    currentUser, 
+    isLevel1Admin,
+    applyWeddingColorsTheme,
+    resetWeddingColorsTheme
+  } = useWedding();
 
   const [dressCodeStyle, setDressCodeStyle] = useState(settings.dressCodeStyle || '');
   const [dressCodeDescription, setDressCodeDescription] = useState(settings.dressCodeDescription || '');
@@ -61,6 +71,8 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
   
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [themeMsg, setThemeMsg] = useState<string | null>(null);
+  const [isApplyingTheme, setIsApplyingTheme] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -371,9 +383,21 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
 
           {/* Live Preview Box */}
           <div className="p-4 rounded-2xl bg-[#FDFBF7] border border-[#E8DCCF] text-center space-y-3">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#8C8276] block">
-              Vista Previa de la Paleta en la Web
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#8C8276]">
+                Vista Previa de la Paleta en la Web
+              </span>
+              {settings.customTheme?.enabled ? (
+                <span className="text-[10px] font-bold text-[#3C5038] bg-[#8A9A86]/20 px-2 py-0.5 rounded-full">
+                  ✓ Tema Personalizado Activo
+                </span>
+              ) : (
+                <span className="text-[10px] font-medium text-[#7A7268] bg-stone-100 px-2 py-0.5 rounded-full">
+                  Tema Clásico Original
+                </span>
+              )}
+            </div>
+
             <div className="flex flex-wrap items-center justify-center gap-3">
               {suggestedColors.map((c, i) => (
                 <div key={i} className="flex flex-col items-center">
@@ -385,6 +409,58 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                 </div>
               ))}
             </div>
+
+            {/* Quick Apply and Reset in Modal */}
+            <div className="pt-2 border-t border-[#EFEAE2] flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                disabled={isApplyingTheme || suggestedColors.length === 0}
+                onClick={async () => {
+                  try {
+                    setIsApplyingTheme(true);
+                    await applyWeddingColorsTheme(suggestedColors);
+                    setThemeMsg('¡Colores aplicados a la página de esta boda con contraste verificado!');
+                    setTimeout(() => setThemeMsg(null), 4000);
+                  } catch (err) {
+                    console.error('Error aplicando tema:', err);
+                  } finally {
+                    setIsApplyingTheme(false);
+                  }
+                }}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-[11px] font-bold shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Paintbrush className="w-3.5 h-3.5" />
+                <span>Aplicar colores a la página ahora</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isApplyingTheme}
+                onClick={async () => {
+                  try {
+                    setIsApplyingTheme(true);
+                    await resetWeddingColorsTheme();
+                    setThemeMsg('¡Colores restablecidos a la paleta original!');
+                    setTimeout(() => setThemeMsg(null), 4000);
+                  } catch (err) {
+                    console.error('Error restableciendo tema:', err);
+                  } finally {
+                    setIsApplyingTheme(false);
+                  }
+                }}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-stone-50 text-[#524B42] border border-[#D9CEBF] text-[11px] font-semibold transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-[#7A7268]" />
+                <span>Restablecer</span>
+              </button>
+            </div>
+
+            {themeMsg && (
+              <div className="p-2 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-medium flex items-center justify-center space-x-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{themeMsg}</span>
+              </div>
+            )}
           </div>
 
           {/* Bottom Actions */}

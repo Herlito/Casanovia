@@ -31,8 +31,12 @@ import {
   Coins,
   Edit,
   Building2,
-  MapPinned
+  MapPinned,
+  RotateCcw,
+  CheckCircle2,
+  Paintbrush
 } from 'lucide-react';
+import { getContrastRatio, getAccessibleTextColor } from '../../lib/themeUtils';
 
 export const SettingsModule: React.FC = () => {
   const { 
@@ -46,11 +50,16 @@ export const SettingsModule: React.FC = () => {
     isLevel1Admin,
     isPlannerOrAdmin,
     canEditActiveWedding,
-    currentUser
+    currentUser,
+    currentWeddingTheme,
+    applyWeddingColorsTheme,
+    resetWeddingColorsTheme
   } = useWedding();
 
   const [formData, setFormData] = useState<WeddingSettings>(settings);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [themeSuccessMsg, setThemeSuccessMsg] = useState<string | null>(null);
+  const [isApplyingTheme, setIsApplyingTheme] = useState(false);
 
   // Additional venues local management state
   const [showVenueForm, setShowVenueForm] = useState(false);
@@ -1175,6 +1184,134 @@ export const SettingsModule: React.FC = () => {
                   </button>
                 </div>
               ))}
+            </div>
+
+            {/* Aplicar colores ahora / Restablecer Theme Engine Control */}
+            <div className="mt-4 p-4 rounded-2xl bg-linear-to-r from-[#FAF7F2] to-[#F5EFE6] border border-[#E0D3C1] space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h4 className="text-xs font-bold text-[#2D2A26] flex items-center space-x-1.5">
+                    <Paintbrush className="w-4 h-4 text-[#8B3A4A]" />
+                    <span>Aplicar Paleta a la Página de esta Boda</span>
+                  </h4>
+                  <p className="text-[11px] text-[#685F54] mt-0.5">
+                    Cambia la paleta de colores de la página solo para esta boda usando los tonos indicados con contraste y legibilidad garantizados.
+                  </p>
+                </div>
+
+                {/* Theme Active Status */}
+                <div>
+                  {formData.customTheme?.enabled ? (
+                    <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#3C5038]/10 text-[#3C5038] text-[11px] font-bold border border-[#3C5038]/20">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#3C5038]" />
+                      <span>Paleta Personalizada Activa</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#7A7268]/10 text-[#7A7268] text-[11px] font-medium border border-[#7A7268]/20">
+                      <span>Paleta Original Casanovia</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Live Contrast Verification Preview */}
+              {formData.suggestedColors && formData.suggestedColors.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
+                  <span className="text-[#685F54] font-medium">Previsualización de contraste:</span>
+                  <div 
+                    style={{ 
+                      backgroundColor: formData.suggestedColors[0]?.hex || '#8B3A4A', 
+                      color: getAccessibleTextColor(formData.suggestedColors[0]?.hex || '#8B3A4A') 
+                    }}
+                    className="px-2.5 py-0.5 rounded-md font-semibold text-[11px] shadow-2xs"
+                  >
+                    Botones & Títulos: {formData.suggestedColors[0]?.name || 'Tono Primario'}
+                  </div>
+                  {formData.suggestedColors[1] && (
+                    <div 
+                      style={{ 
+                        backgroundColor: formData.suggestedColors[1]?.hex, 
+                        color: getAccessibleTextColor(formData.suggestedColors[1]?.hex) 
+                      }}
+                      className="px-2.5 py-0.5 rounded-md font-semibold text-[11px] shadow-2xs"
+                    >
+                      Acentos: {formData.suggestedColors[1]?.name}
+                    </div>
+                  )}
+                  <span className="text-[#3C5038] font-medium text-[10px] bg-[#8A9A86]/20 px-2 py-0.5 rounded-md">
+                    ✓ Contraste {getContrastRatio(formData.suggestedColors[0]?.hex || '#8B3A4A', getAccessibleTextColor(formData.suggestedColors[0]?.hex || '#8B3A4A')).toFixed(1)}:1 (Legible WCAG)
+                  </span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#E8DCCF]">
+                <button
+                  type="button"
+                  id="btn-apply-wedding-theme"
+                  disabled={isApplyingTheme}
+                  onClick={async () => {
+                    try {
+                      setIsApplyingTheme(true);
+                      const colorsToApply = formData.suggestedColors || [];
+                      if (colorsToApply.length === 0) {
+                        setThemeSuccessMsg('Agrega al menos un color antes de aplicar.');
+                        setTimeout(() => setThemeSuccessMsg(null), 4000);
+                        return;
+                      }
+                      const generated = await applyWeddingColorsTheme(colorsToApply);
+                      setFormData(prev => ({
+                        ...prev,
+                        customTheme: generated
+                      }));
+                      setThemeSuccessMsg('¡Paleta de colores aplicada a la página pública de esta boda con contraste y legibilidad óptimos!');
+                      setTimeout(() => setThemeSuccessMsg(null), 5000);
+                    } catch (err) {
+                      console.error('Error aplicando paleta:', err);
+                    } finally {
+                      setIsApplyingTheme(false);
+                    }
+                  }}
+                  className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer"
+                >
+                  <Paintbrush className="w-3.5 h-3.5" />
+                  <span>Aplicar colores ahora</span>
+                </button>
+
+                <button
+                  type="button"
+                  id="btn-reset-wedding-theme"
+                  disabled={isApplyingTheme}
+                  onClick={async () => {
+                    try {
+                      setIsApplyingTheme(true);
+                      await resetWeddingColorsTheme();
+                      setFormData(prev => ({
+                        ...prev,
+                        customTheme: undefined
+                      }));
+                      setThemeSuccessMsg('¡Colores restablecidos a la paleta original de Casanovia!');
+                      setTimeout(() => setThemeSuccessMsg(null), 5000);
+                    } catch (err) {
+                      console.error('Error restableciendo paleta:', err);
+                    } finally {
+                      setIsApplyingTheme(false);
+                    }
+                  }}
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#524B42] hover:text-[#2D2A26] border border-[#D9CEBF] text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-[#7A7268]" />
+                  <span>Restablecer</span>
+                </button>
+              </div>
+
+              {/* Feedback toast message */}
+              {themeSuccessMsg && (
+                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-medium flex items-center space-x-2 animate-fadeIn">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{themeSuccessMsg}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
