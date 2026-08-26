@@ -25,7 +25,7 @@ import {
   Copy,
   ShoppingCart,
   Image as ImageIcon,
-  Map,
+  Map as MapIcon,
   Ruler
 } from 'lucide-react';
 
@@ -528,7 +528,7 @@ export const Navbar: React.FC = () => {
                                 className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-[#E8DCCF]/80 hover:border-[#8B3A4A] shadow-2xs"
                               >
                                 <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#8B3A4A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-rose-200 shadow-2xs">
-                                  <Map className="w-4 h-4" />
+                                  <MapIcon className="w-4 h-4" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="font-bold flex items-center justify-between text-[#8B3A4A]">

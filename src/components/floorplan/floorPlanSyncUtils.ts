@@ -190,8 +190,11 @@ export function buildFloorPlanFromWedding(
       );
 
       const tableCap = matchedTable?.capacity || elem.seatCount || elem.seats?.length || 8;
-      const tName = elem.name || matchedTable?.name || `Mesa ${elem.tableNumber || idx + 1}`;
-      const tNum = elem.tableNumber ?? matchedTable ? extractTableNumber(matchedTable.name) ?? (idx + 1) : idx + 1;
+      const tName = matchedTable?.name || elem.name || `Mesa ${elem.tableNumber || idx + 1}`;
+      const tNum = matchedTable ? (extractTableNumber(matchedTable.name) ?? elem.tableNumber ?? (idx + 1)) : (elem.tableNumber ?? (idx + 1));
+      const isRect = matchedTable 
+        ? (matchedTable.shape === 'rectangular' || matchedTable.shape === 'imperial' || matchedTable.shape === 'square')
+        : (elem.type === 'rectangular_table');
 
       if (matchedTable) {
         processedWeddingTableIds.add(matchedTable.id);
@@ -207,9 +210,12 @@ export function buildFloorPlanFromWedding(
 
       updatedElements.push({
         ...elem,
+        type: isRect ? 'rectangular_table' : 'round_table',
         name: tName,
         tableNumber: tNum,
         seatCount,
+        seatsLongSide: isRect ? (elem.seatsLongSide || Math.max(2, Math.floor((seatCount - 2) / 2))) : undefined,
+        seatsHead: isRect ? (elem.seatsHead !== undefined ? elem.seatsHead : 1) : undefined,
         seats,
       });
     });

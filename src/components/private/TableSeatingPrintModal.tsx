@@ -42,13 +42,13 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
   };
 
   // Group guests by table
-  const guestsByTable = tables.map((tbl) => {
-    const seatedGuests = guests.filter(
-      (g) => g.assignedTable && g.assignedTable.trim().toLowerCase() === tbl.name.trim().toLowerCase()
+  const guestsByTable = (tables || []).map((tbl) => {
+    const seatedGuests = (guests || []).filter(
+      (g) => g && g.assignedTable && (g.assignedTable || '').trim().toLowerCase() === (tbl?.name || '').trim().toLowerCase()
     );
     // Companions (with mainGuestId) are not added to the pass sum because the titular guest already includes them
     const totalSeatedPasses = seatedGuests.reduce((acc, g) => {
-      if (g.mainGuestId) return acc;
+      if (!g || g.mainGuestId) return acc;
       return acc + (g.confirmedPasses || g.totalPasses || 1);
     }, 0);
 
@@ -61,14 +61,14 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
 
   // Unassigned guests
   const unassignedGuests = sortGuestsWithCompanions(
-    guests.filter(
-      (g) => !g.assignedTable || g.assignedTable.trim() === '' || g.assignedTable.toLowerCase().includes('por asignar')
+    (guests || []).filter(
+      (g) => g && (!g.assignedTable || g.assignedTable.trim() === '' || g.assignedTable.toLowerCase().includes('por asignar'))
     )
   );
 
   // Alphabetical list of all guests
-  const sortedAlphabeticalGuests = [...guests].sort((a, b) =>
-    a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' })
+  const sortedAlphabeticalGuests = [...(guests || [])].filter(Boolean).sort((a, b) =>
+    (a?.fullName || '').localeCompare(b?.fullName || '', 'es', { sensitivity: 'base' })
   );
 
   const getRoleLabel = (cat: string) => {

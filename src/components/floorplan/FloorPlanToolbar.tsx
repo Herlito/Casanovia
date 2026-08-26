@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Circle,
   Square,
@@ -19,13 +19,27 @@ import {
   Layers,
   Sliders,
   ChevronDown,
-  Plus
+  Plus,
+  UtensilsCrossed,
+  Users,
+  CheckCircle2,
+  Search,
+  ExternalLink,
+  Link as LinkIcon,
+  Tag,
+  AlertCircle
 } from 'lucide-react';
-import { FloorPlanElement, FloorPlanElementType, FloorPlanSeat } from '../../types';
+import { FloorPlanElement, FloorPlanElementType, FloorPlanSeat, WeddingTable, Guest } from '../../types';
+import { extractTableNumber, isGuestAssignedToTable } from './floorPlanSyncUtils';
 
 interface FloorPlanToolbarProps {
   selectedElement: FloorPlanElement | null;
+  tables?: WeddingTable[];
+  guests?: Guest[];
+  elements?: FloorPlanElement[];
   onAddElement: (type: FloorPlanElementType) => void;
+  onAddTableFromWedding?: (table: WeddingTable) => void;
+  onLinkTableToElement?: (elementId: string, table: WeddingTable) => void;
   onUpdateElement: (id: string, updates: Partial<FloorPlanElement>) => void;
   onDuplicateElement: (id: string) => void;
   onDeleteElement: (id: string) => void;
@@ -47,13 +61,70 @@ const PRESET_COLORS = [
 
 export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
   selectedElement,
+  tables = [],
+  guests = [],
+  elements = [],
   onAddElement,
+  onAddTableFromWedding,
+  onLinkTableToElement,
   onUpdateElement,
   onDuplicateElement,
   onDeleteElement,
   onBringToFront,
   onSendToBack,
 }) => {
+  const [tableSearchQuery, setTableSearchQuery] = useState('');
+  const [toolbarTab, setToolbarTab] = useState<'wedding_tables' | 'furniture'>('wedding_tables');
+
+  // Compute table occupancy for the wedding tables
+  const tableOccupancyMap = useMemo(() => {
+    const map = new Map<string, { guestCount: number; guests: Guest[] }>();
+    (tables || []).forEach((t) => {
+      if (t && t.name) {
+        const seated = (guests || []).filter(
+          (g) => g && isGuestAssignedToTable(g.assignedTable, t.name, extractTableNumber(t.name) ?? undefined)
+        );
+        const totalPasses = seated.reduce((acc, g) => {
+          if (!g || g.mainGuestId) return acc;
+          return acc + (g.confirmedPasses || g.totalPasses || 1);
+        }, 0);
+        map.set(t.name.trim().toLowerCase(), { guestCount: totalPasses, guests: seated });
+      }
+    });
+    return map;
+  }, [tables, guests]);
+
+  // Check which tables are placed on canvas
+  const placedTableNames = useMemo(() => {
+    const set = new Set<string>();
+    (elements || []).forEach((e) => {
+      if (e.name) {
+        set.add(e.name.trim().toLowerCase());
+      }
+      if (e.id.startsWith('elem_table_')) {
+        const tblId = e.id.replace('elem_table_', '');
+        const found = (tables || []).find((t) => t.id === tblId);
+        if (found) set.add(found.name.trim().toLowerCase());
+      }
+    });
+    return set;
+  }, [elements, tables]);
+
+  // Filter wedding tables
+  const filteredWeddingTables = useMemo(() => {
+    let list = [...(tables || [])].filter(Boolean);
+    if (tableSearchQuery.trim()) {
+      const q = tableSearchQuery.toLowerCase();
+      list = list.filter(
+        (t) =>
+          (t.name && t.name.toLowerCase().includes(q)) ||
+          (t.zone && t.zone.toLowerCase().includes(q)) ||
+          (t.shape && t.shape.toLowerCase().includes(q))
+      );
+    }
+    return list.sort((a, b) => (a?.name || '').localeCompare(b?.name || '', 'es', { numeric: true, sensitivity: 'base' }));
+  }, [tables, tableSearchQuery]);
+
   // Update seats array when seat count changes for round tables
   const handleSeatCountChange = (newCount: number) => {
     if (!selectedElement) return;
@@ -105,159 +176,330 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
     });
   };
 
+  // Seated guests on currently selected element
+  const selectedElementSeatedGuests = useMemo(() => {
+    if (!selectedElement || !selectedElement.seats) return [];
+    return selectedElement.seats.filter((s) => s.guestName);
+  }, [selectedElement]);
+
   return (
-    <div className="w-72 bg-[#FAF8F5] border-r border-[#E8DCCF] flex flex-col h-full overflow-y-auto text-[#2D2A26] select-none text-xs">
-      {/* 1. Element Palette Header */}
-      <div className="p-3.5 border-b border-[#E8DCCF] bg-white sticky top-0 z-10">
-        <h3 className="font-bold text-xs uppercase tracking-wider text-[#8C8276] flex items-center justify-between">
-          <span>Elementos & Mobiliario</span>
-          <Plus className="w-3.5 h-3.5 text-[#8B3A4A]" />
-        </h3>
+    <div className="w-80 bg-[#FAF8F5] border-r border-[#E8DCCF] flex flex-col h-full overflow-y-auto text-[#2D2A26] select-none text-xs">
+      {/* 1. Element Palette Header & Mode Tabs */}
+      <div className="p-3 border-b border-[#E8DCCF] bg-white sticky top-0 z-10 space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-xs uppercase tracking-wider text-[#8C8276] flex items-center space-x-1.5">
+            <UtensilsCrossed className="w-3.5 h-3.5 text-[#8B3A4A]" />
+            <span>Mobiliario & Mesas</span>
+          </h3>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-[#8B3A4A] border border-rose-200">
+            {tables.length} {tables.length === 1 ? 'Mesa' : 'Mesas'}
+          </span>
+        </div>
+
+        {/* Tab Selector */}
+        <div className="grid grid-cols-2 p-0.5 bg-[#FAF8F5] rounded-xl border border-[#E8DCCF]">
+          <button
+            type="button"
+            onClick={() => setToolbarTab('wedding_tables')}
+            className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
+              toolbarTab === 'wedding_tables'
+                ? 'bg-white text-[#8B3A4A] shadow-2xs font-bold'
+                : 'text-[#8C8276] hover:text-[#2D2A26]'
+            }`}
+          >
+            <Sparkles className="w-3 h-3 text-[#8B3A4A]" />
+            <span>Mesas de Boda</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setToolbarTab('furniture')}
+            className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
+              toolbarTab === 'furniture'
+                ? 'bg-white text-[#8B3A4A] shadow-2xs font-bold'
+                : 'text-[#8C8276] hover:text-[#2D2A26]'
+            }`}
+          >
+            <Layers className="w-3 h-3 text-[#8B3A4A]" />
+            <span>Mobiliario Libre</span>
+          </button>
+        </div>
       </div>
 
       <div className="p-3 space-y-3">
-        {/* Mesas Principales */}
-        <div>
-          <span className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider block mb-1.5">
-            Mesas de Banquete
-          </span>
-          <div className="grid grid-cols-2 gap-1.5">
-            <button
-              onClick={() => onAddElement('round_table')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-rose-50 text-[#8B3A4A] flex items-center justify-center shrink-0 border border-rose-100 group-hover:scale-105 transition-transform">
-                <Circle className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="font-bold text-[11px] truncate">Mesa Redonda</div>
-                <span className="text-[9px] text-[#8C8276]">2 a 12 sillas</span>
-              </div>
-            </button>
+        {/* ========================================================
+            TAB 1: MESAS DE BODA (REGISTRADAS EN SECCIÓN MESAS)
+           ======================================================== */}
+        {toolbarTab === 'wedding_tables' && (
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider block">
+                Mesas Registradas ({filteredWeddingTables.length})
+              </span>
+              <span className="text-[9px] text-[#8C8276]">Haz clic para colocar</span>
+            </div>
 
-            <button
-              onClick={() => onAddElement('rectangular_table')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-amber-50 text-[#B45309] flex items-center justify-center shrink-0 border border-amber-100 group-hover:scale-105 transition-transform">
-                <Square className="w-4 h-4" />
+            {/* Search filter for wedding tables */}
+            {tables.length > 4 && (
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8C8276]" />
+                <input
+                  type="text"
+                  placeholder="Buscar mesa o zona..."
+                  value={tableSearchQuery}
+                  onChange={(e) => setTableSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-2.5 py-1.5 bg-white border border-[#E8DCCF] rounded-xl text-xs placeholder-[#8C8276] focus:outline-hidden focus:border-[#8B3A4A]"
+                />
               </div>
-              <div className="min-w-0">
-                <div className="font-bold text-[11px] truncate">Mesa Imperial</div>
-                <span className="text-[9px] text-[#8C8276]">Rectangular</span>
+            )}
+
+            {filteredWeddingTables.length === 0 ? (
+              <div className="p-4 text-center rounded-2xl bg-white border border-[#E8DCCF] text-[#8C8276] space-y-1">
+                <UtensilsCrossed className="w-6 h-6 mx-auto text-[#8C8276]/60" />
+                <p className="text-xs font-semibold">No hay mesas registradas</p>
+                <p className="text-[10px]">Crea mesas en la sección MESAS o usa Mobiliario Libre.</p>
               </div>
-            </button>
+            ) : (
+              <div className="space-y-1.5 max-h-[280px] overflow-y-auto pr-0.5">
+                {filteredWeddingTables.map((tbl) => {
+                  const isPlaced = placedTableNames.has(tbl.name.trim().toLowerCase());
+                  const occ = tableOccupancyMap.get(tbl.name.trim().toLowerCase());
+                  const seatedCount = occ?.guestCount || 0;
+                  const isRect =
+                    tbl.shape === 'rectangular' || tbl.shape === 'imperial' || tbl.shape === 'square';
+                  const isHonor =
+                    tbl.name.toLowerCase().includes('honor') ||
+                    tbl.name.toLowerCase().includes('novios') ||
+                    tbl.name.toLowerCase().includes('principal');
+
+                  return (
+                    <div
+                      key={tbl.id}
+                      onClick={() => onAddTableFromWedding && onAddTableFromWedding(tbl)}
+                      className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-between group shadow-2xs ${
+                        isPlaced
+                          ? 'bg-emerald-50/40 border-emerald-200 hover:bg-emerald-50'
+                          : isHonor
+                          ? 'bg-rose-50/50 border-rose-200 hover:bg-rose-50'
+                          : 'bg-white border-[#E8DCCF] hover:border-[#8B3A4A] hover:bg-[#FAF8F5]'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2 min-w-0 flex-1">
+                        <div
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
+                            isRect
+                              ? 'bg-amber-50 border-amber-200 text-amber-800'
+                              : 'bg-rose-50 border-rose-200 text-[#8B3A4A]'
+                          }`}
+                        >
+                          {isRect ? <Square className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center space-x-1">
+                            <span className="font-bold text-[11px] truncate text-[#2D2A26]">
+                              {tbl.name}
+                            </span>
+                            {isHonor && (
+                              <span className="text-[8px] bg-[#8B3A4A] text-white px-1 rounded-sm font-bold">
+                                HONOR
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-1.5 text-[9px] text-[#7A7268]">
+                            <span>{tbl.zone || 'Salón Principal'}</span>
+                            <span>•</span>
+                            <span className="font-semibold text-[#8B3A4A]">
+                              {seatedCount}/{tbl.capacity} pax
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 flex items-center space-x-1 ml-1.5">
+                        {isPlaced ? (
+                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded-md flex items-center space-x-0.5">
+                            <CheckCircle2 className="w-2.5 h-2.5" />
+                            <span>En plano</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="text-[10px] font-bold text-[#8B3A4A] bg-white border border-[#8B3A4A]/30 px-2 py-0.5 rounded-lg group-hover:bg-[#8B3A4A] group-hover:text-white transition-colors"
+                          >
+                            + Colocar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* Estructuras & Escenario */}
-        <div>
-          <span className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider block mb-1.5">
-            Estructuras & Entretenimiento
-          </span>
-          <div className="grid grid-cols-2 gap-1.5">
-            <button
-              onClick={() => onAddElement('stage')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-stone-800 text-white flex items-center justify-center shrink-0">
-                <Music className="w-3.5 h-3.5" />
-              </div>
-              <span className="font-medium text-[11px] truncate">Escenario</span>
-            </button>
+        {/* ========================================================
+            TAB 2: MOBILIARIO LIBRE (ELEMENTOS GENÉRICOS)
+           ======================================================== */}
+        {toolbarTab === 'furniture' && (
+          <div className="space-y-3">
+            {/* Mesas Principales */}
+            <div>
+              <span className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider block mb-1.5">
+                Mesas Genéricas
+              </span>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => onAddElement('round_table')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-rose-50 text-[#8B3A4A] flex items-center justify-center shrink-0 border border-rose-100 group-hover:scale-105 transition-transform">
+                    <Circle className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-[11px] truncate">Mesa Redonda</div>
+                    <span className="text-[9px] text-[#8C8276]">2 a 12 sillas</span>
+                  </div>
+                </button>
 
-            <button
-              onClick={() => onAddElement('dance_floor')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                <Sparkles className="w-3.5 h-3.5" />
+                <button
+                  type="button"
+                  onClick={() => onAddElement('rectangular_table')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center shrink-0 border border-amber-100 group-hover:scale-105 transition-transform">
+                    <Square className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-[11px] truncate">Mesa Rectangular</div>
+                    <span className="text-[9px] text-[#8C8276]">Imperial</span>
+                  </div>
+                </button>
               </div>
-              <span className="font-medium text-[11px] truncate">Pista de Baile</span>
-            </button>
+            </div>
 
-            <button
-              onClick={() => onAddElement('bar')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-amber-900 text-amber-100 flex items-center justify-center shrink-0">
-                <Wine className="w-3.5 h-3.5" />
-              </div>
-              <span className="font-medium text-[11px] truncate">Barra Bar</span>
-            </button>
+            {/* Escenario & Entretenimiento */}
+            <div>
+              <span className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider block mb-1.5">
+                Escenario & Fiesta
+              </span>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => onAddElement('stage')}
+                  className="flex flex-col items-center p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-center transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-stone-100 text-[#2D2A26] flex items-center justify-center mb-1">
+                    <Music className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-medium text-[10px] truncate w-full">Escenario</span>
+                </button>
 
-            <button
-              onClick={() => onAddElement('dj_booth')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-sky-900 text-sky-200 flex items-center justify-center shrink-0">
-                <Radio className="w-3.5 h-3.5" />
+                <button
+                  type="button"
+                  onClick={() => onAddElement('dance_floor')}
+                  className="flex flex-col items-center p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-center transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center mb-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-medium text-[10px] truncate w-full">Pista Baile</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onAddElement('dj_booth')}
+                  className="flex flex-col items-center p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-center transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center mb-1">
+                    <Radio className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-medium text-[10px] truncate w-full">Cabina DJ</span>
+                </button>
               </div>
-              <span className="font-medium text-[11px] truncate">Cabina DJ</span>
-            </button>
+            </div>
+
+            {/* Servicios & Decoración */}
+            <div>
+              <span className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider block mb-1.5">
+                Zonas & Servicios
+              </span>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => onAddElement('bar')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                    <Wine className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-medium text-[11px] truncate">Barra Bar</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onAddElement('cake_table')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                    <Cake className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-medium text-[11px] truncate">Mesa Torta</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onAddElement('lounge')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                    <Armchair className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-medium text-[11px] truncate">Zona Lounge</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onAddElement('entrance')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                    <DoorOpen className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-medium text-[11px] truncate">Entrada</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onAddElement('photo_booth')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                    <Camera className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-medium text-[11px] truncate">Foto Booth</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onAddElement('text_label')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-stone-100 text-stone-700 flex items-center justify-center shrink-0">
+                    <Type className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-medium text-[11px] truncate">Texto / Zona</span>
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* Servicios & Decoración */}
-        <div>
-          <span className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider block mb-1.5">
-            Zonas & Servicios
-          </span>
-          <div className="grid grid-cols-2 gap-1.5">
-            <button
-              onClick={() => onAddElement('cake_table')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-                <Cake className="w-3.5 h-3.5" />
-              </div>
-              <span className="font-medium text-[11px] truncate">Mesa Torta</span>
-            </button>
-
-            <button
-              onClick={() => onAddElement('lounge')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                <Armchair className="w-3.5 h-3.5" />
-              </div>
-              <span className="font-medium text-[11px] truncate">Zona Lounge</span>
-            </button>
-
-            <button
-              onClick={() => onAddElement('entrance')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                <DoorOpen className="w-3.5 h-3.5" />
-              </div>
-              <span className="font-medium text-[11px] truncate">Entrada</span>
-            </button>
-
-            <button
-              onClick={() => onAddElement('photo_booth')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                <Camera className="w-3.5 h-3.5" />
-              </div>
-              <span className="font-medium text-[11px] truncate">Foto Booth</span>
-            </button>
-
-            <button
-              onClick={() => onAddElement('text_label')}
-              className="col-span-2 flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-stone-100 text-stone-700 flex items-center justify-center shrink-0">
-                <Type className="w-3.5 h-3.5" />
-              </div>
-              <span className="font-medium text-[11px] truncate">Etiqueta de Texto</span>
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* 2. Inspector de Propiedades del Objeto Seleccionado */}
+      {/* ========================================================
+          2. INSPECTOR DE PROPIEDADES DEL OBJETO SELECCIONADO
+         ======================================================== */}
       <div className="border-t border-[#E8DCCF] bg-white p-3.5 flex-1 space-y-3">
         <h3 className="font-bold text-xs uppercase tracking-wider text-[#8C8276] flex items-center justify-between">
           <span>Propiedades del Objeto</span>
@@ -266,6 +508,43 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
 
         {selectedElement ? (
           <div className="space-y-3">
+            {/* Quick Link to Registered Table (MESAS) */}
+            {(selectedElement.type === 'round_table' || selectedElement.type === 'rectangular_table') && (
+              <div className="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#E8DCCF] space-y-1.5">
+                <label className="block text-[10px] font-bold text-[#8C8276] uppercase flex items-center justify-between">
+                  <span className="flex items-center space-x-1">
+                    <LinkIcon className="w-3 h-3 text-[#8B3A4A]" />
+                    <span>Vincular a Mesa Registrada</span>
+                  </span>
+                  <span className="text-[9px] text-[#8B3A4A] font-normal">Sincroniza invitados</span>
+                </label>
+
+                <select
+                  value={
+                    tables.find(
+                      (t) =>
+                        t.name.trim().toLowerCase() === selectedElement.name.trim().toLowerCase() ||
+                        `elem_table_${t.id}` === selectedElement.id
+                    )?.id || ''
+                  }
+                  onChange={(e) => {
+                    const targetTable = tables.find((t) => t.id === e.target.value);
+                    if (targetTable && onLinkTableToElement) {
+                      onLinkTableToElement(selectedElement.id, targetTable);
+                    }
+                  }}
+                  className="w-full px-2 py-1.5 bg-white border border-[#D9CEBF] rounded-lg text-xs font-semibold text-[#2D2A26] focus:outline-hidden focus:border-[#8B3A4A]"
+                >
+                  <option value="">Seleccionar mesa de la boda... ▼</option>
+                  {tables.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name} ({t.shape === 'round' ? 'Redonda' : 'Imperial'}, {t.capacity} pax)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Nombre */}
             <div>
               <label className="block text-[10px] font-bold text-[#8C8276] uppercase mb-1">
@@ -372,10 +651,11 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                     {[0, 1, 2].map((head) => (
                       <button
                         key={head}
+                        type="button"
                         onClick={() =>
                           handleRectSeatsChange(selectedElement.seatsLongSide || 3, head)
                         }
-                        className={`py-1 rounded-md text-xs font-semibold border ${
+                        className={`py-1 rounded-md text-xs font-semibold border cursor-pointer ${
                           (selectedElement.seatsHead !== undefined ? selectedElement.seatsHead : 1) === head
                             ? 'bg-[#8B3A4A] text-white border-[#8B3A4A]'
                             : 'bg-white text-[#2D2A26] border-[#D9CEBF] hover:bg-[#F3EFEA]'
@@ -386,6 +666,39 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                     ))}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* List of assigned guests in this table */}
+            {(selectedElement.type === 'round_table' || selectedElement.type === 'rectangular_table') && (
+              <div className="p-2.5 rounded-xl bg-stone-50 border border-[#E8DCCF] space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-[#8C8276] uppercase flex items-center space-x-1">
+                    <Users className="w-3 h-3 text-[#8B3A4A]" />
+                    <span>Invitados Sentados ({selectedElementSeatedGuests.length})</span>
+                  </span>
+                </div>
+                {selectedElementSeatedGuests.length === 0 ? (
+                  <p className="text-[10px] text-[#8C8276] italic">Ningún invitado sentado aún en este elemento.</p>
+                ) : (
+                  <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                    {selectedElementSeatedGuests.map((s, idx) => (
+                      <div
+                        key={s.id || idx}
+                        className="flex items-center justify-between text-[11px] bg-white p-1.5 rounded-lg border border-[#E8DCCF]"
+                      >
+                        <span className="font-semibold truncate text-[#2D2A26]">
+                          #{s.seatNumber}. {s.guestName}
+                        </span>
+                        {s.dietaryRequirement && (
+                          <span className="text-[8px] bg-amber-50 text-amber-800 border border-amber-200 px-1 rounded font-bold">
+                            {s.dietaryRequirement}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -477,6 +790,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   className="flex-1 accent-[#8B3A4A] cursor-pointer"
                 />
                 <button
+                  type="button"
                   onClick={() =>
                     onUpdateElement(selectedElement.id, {
                       rotation: ((selectedElement.rotation || 0) + 45) % 360,
@@ -499,6 +813,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 {PRESET_COLORS.map((col, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() =>
                       onUpdateElement(selectedElement.id, {
                         color: col.bg,
@@ -521,6 +836,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             <div className="pt-2 border-t border-[#E8DCCF] space-y-1.5">
               <div className="grid grid-cols-2 gap-1.5">
                 <button
+                  type="button"
                   onClick={() =>
                     onUpdateElement(selectedElement.id, {
                       isLocked: !selectedElement.isLocked,
@@ -546,6 +862,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => onDuplicateElement(selectedElement.id)}
                   className="flex items-center justify-center space-x-1.5 py-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#F3EFEA] border border-[#D9CEBF] text-[#2D2A26] text-xs font-semibold transition-colors cursor-pointer"
                 >
@@ -556,12 +873,14 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
 
               <div className="grid grid-cols-2 gap-1.5">
                 <button
+                  type="button"
                   onClick={() => onBringToFront(selectedElement.id)}
                   className="py-1 px-2 rounded-lg bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-[11px] font-medium text-[#2D2A26] transition-colors cursor-pointer"
                 >
                   Traer al Frente
                 </button>
                 <button
+                  type="button"
                   onClick={() => onSendToBack(selectedElement.id)}
                   className="py-1 px-2 rounded-lg bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-[11px] font-medium text-[#2D2A26] transition-colors cursor-pointer"
                 >
@@ -570,6 +889,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
               </div>
 
               <button
+                type="button"
                 onClick={() => onDeleteElement(selectedElement.id)}
                 className="w-full py-1.5 mt-1 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
               >
@@ -580,7 +900,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
           </div>
         ) : (
           <div className="py-6 text-center text-[#8C8276] space-y-1">
-            <p className="text-xs">Selecciona un elemento en el plano para editar sus medidas, asientos o colores.</p>
+            <p className="text-xs">Selecciona un elemento en el plano para editar sus medidas, asientos o vincularlo a una mesa registrada.</p>
           </div>
         )}
       </div>

@@ -27,7 +27,8 @@ import {
   FloorPlanElementType,
   FloorPlanSeat,
   Guest,
-  WeddingFloorPlan
+  WeddingFloorPlan,
+  WeddingTable,
 } from '../../types';
 import { FloorPlanCanvas } from './FloorPlanCanvas';
 import { FloorPlanToolbar } from './FloorPlanToolbar';
@@ -35,7 +36,7 @@ import { FloorPlanGuestSidebar } from './FloorPlanGuestSidebar';
 import { FloorPlanPhpSqlModal } from './FloorPlanPhpSqlModal';
 import { renderPdfFirstPageToImage } from '../../lib/pdfUtils';
 import { exportFloorPlanToPdf } from './FloorPlanExportPdf';
-import { buildFloorPlanFromWedding } from './floorPlanSyncUtils';
+import { buildFloorPlanFromWedding, buildTableSeats, extractTableNumber } from './floorPlanSyncUtils';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { cleanFirestoreData } from '../../lib/firestoreUtils';
@@ -383,6 +384,98 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
     setElements((prev) => [...prev, newElem]);
     setSelectedElementId(newId);
+  };
+
+  const handleAddTableFromWedding = (table: WeddingTable) => {
+    // Check if element already exists on canvas
+    const existing = elements.find(
+      (e) =>
+        e.id === `elem_table_${table.id}` ||
+        (e.name && e.name.trim().toLowerCase() === table.name.trim().toLowerCase())
+    );
+    if (existing) {
+      setSelectedElementId(existing.id);
+      setPan({
+        x: -existing.x * zoom + 400,
+        y: -existing.y * zoom + 300,
+      });
+      return;
+    }
+
+    const isRect =
+      table.shape === 'rectangular' ||
+      table.shape === 'imperial' ||
+      table.shape === 'square';
+    const elemId = `elem_table_${table.id || Date.now()}`;
+    const tNum = extractTableNumber(table.name) || (elements.filter((e) => e.type === 'round_table' || e.type === 'rectangular_table').length + 1);
+
+    const { seats, seatCount } = buildTableSeats(
+      elemId,
+      table.name,
+      tNum,
+      table.capacity || 10,
+      guests
+    );
+
+    const spawnX = Math.round(-pan.x / zoom + 380 + (Math.random() * 40 - 20));
+    const spawnY = Math.round(-pan.y / zoom + 280 + (Math.random() * 40 - 20));
+
+    const isHonor = table.name.toLowerCase().includes('honor') || table.name.toLowerCase().includes('novios') || table.name.toLowerCase().includes('principal');
+
+    const newElem: FloorPlanElement = {
+      id: elemId,
+      type: isRect ? 'rectangular_table' : 'round_table',
+      name: table.name,
+      tableNumber: tNum,
+      x: spawnX,
+      y: spawnY,
+      width: isRect ? (table.shape === 'square' ? 120 : 200) : 130,
+      height: isRect ? (table.shape === 'square' ? 120 : 95) : 130,
+      radius: isRect ? undefined : 65,
+      rotation: 0,
+      seatCount,
+      seatsLongSide: isRect ? Math.max(2, Math.floor((seatCount - 2) / 2)) : undefined,
+      seatsHead: isRect ? 1 : undefined,
+      seats,
+      color: '#FFFFFF',
+      textColor: isHonor ? '#8B3A4A' : '#2D2A26',
+      zIndex: 10,
+    };
+
+    setElements((prev) => [...prev, newElem]);
+    setSelectedElementId(elemId);
+  };
+
+  const handleLinkTableToElement = (elementId: string, table: WeddingTable) => {
+    const isRect =
+      table.shape === 'rectangular' ||
+      table.shape === 'imperial' ||
+      table.shape === 'square';
+    const tNum = extractTableNumber(table.name) || 1;
+
+    const { seats, seatCount } = buildTableSeats(
+      elementId,
+      table.name,
+      tNum,
+      table.capacity || 10,
+      guests
+    );
+
+    const isHonor = table.name.toLowerCase().includes('honor') || table.name.toLowerCase().includes('novios') || table.name.toLowerCase().includes('principal');
+
+    handleUpdateElement(elementId, {
+      name: table.name,
+      tableNumber: tNum,
+      type: isRect ? 'rectangular_table' : 'round_table',
+      seatCount,
+      seats,
+      width: isRect ? (table.shape === 'square' ? 120 : 200) : 130,
+      height: isRect ? (table.shape === 'square' ? 120 : 95) : 130,
+      radius: isRect ? undefined : 65,
+      seatsLongSide: isRect ? Math.max(2, Math.floor((seatCount - 2) / 2)) : undefined,
+      seatsHead: isRect ? 1 : undefined,
+      textColor: isHonor ? '#8B3A4A' : '#2D2A26',
+    });
   };
 
   const handleUpdateElement = (id: string, updates: Partial<FloorPlanElement>) => {
@@ -903,7 +996,12 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         {/* Left Sidebar: Furniture & Properties */}
         <FloorPlanToolbar
           selectedElement={selectedElement}
+          tables={tables}
+          guests={guests}
+          elements={elements}
           onAddElement={handleAddElement}
+          onAddTableFromWedding={handleAddTableFromWedding}
+          onLinkTableToElement={handleLinkTableToElement}
           onUpdateElement={handleUpdateElement}
           onDuplicateElement={handleDuplicateElement}
           onDeleteElement={handleDeleteElement}

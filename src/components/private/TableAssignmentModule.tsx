@@ -35,31 +35,35 @@ import {
   LayoutGrid,
   ListFilter,
   GripVertical,
-  Map
+  Map as MapIcon
 } from 'lucide-react';
 
 export function sortGuestsWithCompanions(guestList: Guest[]): Guest[] {
+  if (!guestList || !Array.isArray(guestList)) return [];
   const result: Guest[] = [];
   const visited = new Set<string>();
 
   // 1. First iterate over primary guests (those without mainGuestId)
-  const primaryGuests = guestList.filter((g) => !g.mainGuestId);
+  const primaryGuests = guestList.filter((g) => g && !g.mainGuestId);
 
   primaryGuests.forEach((primary) => {
+    if (!primary || !primary.id) return;
     result.push(primary);
     visited.add(primary.id);
 
     // Find all companions of this primary guest in the current guestList
-    const companions = guestList.filter((c) => c.mainGuestId === primary.id && !visited.has(c.id));
+    const companions = guestList.filter((c) => c && c.mainGuestId === primary.id && !visited.has(c.id));
     companions.forEach((comp) => {
-      result.push(comp);
-      visited.add(comp.id);
+      if (comp && comp.id) {
+        result.push(comp);
+        visited.add(comp.id);
+      }
     });
   });
 
   // 2. Add any remaining guests (e.g. companions whose primary guest is not in this list, or standalone guests)
   guestList.forEach((g) => {
-    if (!visited.has(g.id)) {
+    if (g && g.id && !visited.has(g.id)) {
       result.push(g);
       visited.add(g.id);
     }
@@ -70,8 +74,8 @@ export function sortGuestsWithCompanions(guestList: Guest[]): Guest[] {
 
 export const TableAssignmentModule: React.FC = () => {
   const { 
-    guests, 
-    tables, 
+    guests = [], 
+    tables = [], 
     updateGuest, 
     addTable, 
     updateTable, 
@@ -110,9 +114,11 @@ export const TableAssignmentModule: React.FC = () => {
   // Extract all distinct zones from tables
   const allZones = useMemo(() => {
     const set = new Set<string>();
-    tables.forEach((t) => {
-      if (t.zone) set.add(t.zone);
-    });
+    if (Array.isArray(tables)) {
+      tables.forEach((t) => {
+        if (t && t.zone) set.add(t.zone);
+      });
+    }
     return Array.from(set);
   }, [tables]);
 
@@ -124,23 +130,30 @@ export const TableAssignmentModule: React.FC = () => {
     const map = new Map<string, { guests: Guest[]; totalPasses: number }>();
     
     // Initialize for all defined tables
-    tables.forEach((t) => {
-      map.set(t.name.trim().toLowerCase(), { guests: [], totalPasses: 0 });
-    });
+    if (Array.isArray(tables)) {
+      tables.forEach((t) => {
+        if (t && t.name) {
+          map.set((t.name || '').trim().toLowerCase(), { guests: [], totalPasses: 0 });
+        }
+      });
+    }
 
     // Populate with guests
-    guests.forEach((g) => {
-      if (g.assignedTable && g.assignedTable.trim() !== '' && !g.assignedTable.toLowerCase().includes('por asignar')) {
-        const key = g.assignedTable.trim().toLowerCase();
-        const current = map.get(key) || { guests: [], totalPasses: 0 };
-        current.guests.push(g);
-        map.set(key, current);
-      }
-    });
+    if (Array.isArray(guests)) {
+      guests.forEach((g) => {
+        if (g && g.assignedTable && typeof g.assignedTable === 'string' && g.assignedTable.trim() !== '' && !g.assignedTable.toLowerCase().includes('por asignar')) {
+          const key = g.assignedTable.trim().toLowerCase();
+          const current = map.get(key) || { guests: [], totalPasses: 0 };
+          current.guests.push(g);
+          map.set(key, current);
+        }
+      });
+    }
 
     // Calculate effective passes per table and order so each primary guest is followed by their companion(s)
     map.forEach((data) => {
       data.totalPasses = data.guests.reduce((acc, g) => {
+        if (!g) return acc;
         // Companions with a mainGuestId are already covered by their titular guest's passes
         if (g.mainGuestId) {
           return acc;
@@ -154,18 +167,18 @@ export const TableAssignmentModule: React.FC = () => {
   }, [tables, guests]);
 
   // Global metrics
-  const totalGuestsCount = guests.length; // All individuals (titulares + acompañantes)
-  const primaryGuests = useMemo(() => guests.filter((g) => !g.mainGuestId), [guests]);
+  const totalGuestsCount = (guests || []).length; // All individuals (titulares + acompañantes)
+  const primaryGuests = useMemo(() => (guests || []).filter((g) => g && !g.mainGuestId), [guests]);
   const totalGuestsPasses = useMemo(() => {
-    return primaryGuests.reduce((acc, g) => acc + (g.confirmedPasses || g.totalPasses || 1), 0);
+    return primaryGuests.reduce((acc, g) => acc + (g?.confirmedPasses || g?.totalPasses || 1), 0);
   }, [primaryGuests]);
   
   const assignedGuests = useMemo(() => {
-    return guests.filter((g) => g.assignedTable && g.assignedTable.trim() !== '' && !g.assignedTable.toLowerCase().includes('por asignar'));
+    return (guests || []).filter((g) => g && g.assignedTable && g.assignedTable.trim() !== '' && !g.assignedTable.toLowerCase().includes('por asignar'));
   }, [guests]);
 
   const unassignedGuests = useMemo(() => {
-    return guests.filter((g) => !g.assignedTable || g.assignedTable.trim() === '' || g.assignedTable.toLowerCase().includes('por asignar'));
+    return (guests || []).filter((g) => g && (!g.assignedTable || g.assignedTable.trim() === '' || g.assignedTable.toLowerCase().includes('por asignar')));
   }, [guests]);
 
   // Total passes assigned across all active tables
@@ -177,18 +190,22 @@ export const TableAssignmentModule: React.FC = () => {
     return total;
   }, [tableOccupancyMap]);
 
-  const totalTableCapacity = tables.reduce((acc, t) => acc + (t.capacity || 0), 0);
+  const totalTableCapacity = useMemo(() => {
+    return (tables || []).reduce((acc, t) => acc + (t?.capacity || 0), 0);
+  }, [tables]);
+
   const remainingFreeSeats = Math.max(0, totalTableCapacity - assignedPassesCount);
   const occupancyPercentage = totalTableCapacity > 0 ? Math.min(100, Math.round((assignedPassesCount / totalTableCapacity) * 100)) : 0;
 
   // Filtered Guests in Left Panel
   const filteredGuests = useMemo(() => {
-    let list = activeGuestTab === 'unassigned' ? unassignedGuests : guests;
+    let list = activeGuestTab === 'unassigned' ? unassignedGuests : (guests || []);
+    list = (list || []).filter(Boolean);
 
-    if (guestSearchQuery.trim()) {
+    if (guestSearchQuery && guestSearchQuery.trim()) {
       const q = guestSearchQuery.toLowerCase();
       list = list.filter((g) => 
-        g.fullName.toLowerCase().includes(q) ||
+        (g.fullName && g.fullName.toLowerCase().includes(q)) ||
         (g.phone && g.phone.toLowerCase().includes(q)) ||
         (g.assignedTable && g.assignedTable.toLowerCase().includes(q)) ||
         (g.dietaryRestrictions && g.dietaryRestrictions.toLowerCase().includes(q))
@@ -208,12 +225,13 @@ export const TableAssignmentModule: React.FC = () => {
 
   // Filtered Tables in Right Panel
   const filteredTables = useMemo(() => {
-    let list = [...tables];
+    if (!Array.isArray(tables)) return [];
+    let list = [...tables].filter(Boolean);
     if (zoneFilter !== 'all') {
-      list = list.filter((t) => t.zone === zoneFilter);
+      list = list.filter((t) => t && t.zone === zoneFilter);
     }
     // Ordenar mesas por "Nombre o Número de Mesa" en orden alfabético
-    return list.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true, sensitivity: 'base' }));
+    return list.sort((a, b) => (a?.name || '').localeCompare(b?.name || '', 'es', { numeric: true, sensitivity: 'base' }));
   }, [tables, zoneFilter]);
 
   // Quick Action: Assign single guest (SOLO SI ESTÁ CONFIRMADO)
@@ -499,7 +517,7 @@ export const TableAssignmentModule: React.FC = () => {
             className="px-4 py-2.5 rounded-xl bg-[#F7E7CE] hover:bg-white text-[#54212C] text-xs font-bold transition-all shadow-md flex items-center space-x-1.5 cursor-pointer"
             title="Diseñador visual interactivo de planos en 2D con carga de PDF y asignación de asientos"
           >
-            <Map className="w-4 h-4 text-[#8B3A4A]" />
+            <MapIcon className="w-4 h-4 text-[#8B3A4A]" />
             <span>Diseñador de Planos 2D / PDF</span>
           </button>
 
@@ -566,7 +584,7 @@ export const TableAssignmentModule: React.FC = () => {
             </span>
           </div>
           <p className="text-[11px] text-[#7A7268]">
-            {tables.filter(t => (tableOccupancyMap.get(t.name.trim().toLowerCase())?.totalPasses || 0) >= t.capacity).length} llenas • {tables.filter(t => (tableOccupancyMap.get(t.name.trim().toLowerCase())?.totalPasses || 0) < t.capacity).length} con lugares
+            {tables.filter(t => (tableOccupancyMap.get((t?.name || '').trim().toLowerCase())?.totalPasses || 0) >= (t?.capacity || 10)).length} llenas • {tables.filter(t => (tableOccupancyMap.get((t?.name || '').trim().toLowerCase())?.totalPasses || 0) < (t?.capacity || 10)).length} con lugares
           </p>
         </div>
 
@@ -966,9 +984,10 @@ export const TableAssignmentModule: React.FC = () => {
                           >
                             <option value="">Asignar a Mesa... ▼</option>
                             {[...tables]
-                              .sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true, sensitivity: 'base' }))
+                              .filter(Boolean)
+                              .sort((a, b) => (a?.name || '').localeCompare(b?.name || '', 'es', { numeric: true, sensitivity: 'base' }))
                               .map((t) => {
-                                const occ = tableOccupancyMap.get(t.name.trim().toLowerCase())?.totalPasses || 0;
+                                const occ = tableOccupancyMap.get((t?.name || '').trim().toLowerCase())?.totalPasses || 0;
                                 return (
                                   <option key={t.id} value={t.name}>
                                     {t.name} ({occ}/{t.capacity} lugares)
@@ -1038,7 +1057,7 @@ export const TableAssignmentModule: React.FC = () => {
           {/* Tables Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredTables.map((table) => {
-              const occData = tableOccupancyMap.get(table.name.trim().toLowerCase()) || { guests: [], totalPasses: 0 };
+              const occData = tableOccupancyMap.get((table?.name || '').trim().toLowerCase()) || { guests: [], totalPasses: 0 };
               const seatedGuests = occData.guests;
               const totalSeatedPasses = occData.totalPasses;
               const isOverCapacity = totalSeatedPasses > table.capacity;
