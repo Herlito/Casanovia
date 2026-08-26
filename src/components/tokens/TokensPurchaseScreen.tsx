@@ -17,9 +17,12 @@ import {
   Mail,
   Shield,
   Crown,
-  Gem
+  Gem,
+  Cloud,
+  Loader2
 } from 'lucide-react';
 import { TokensAdminSettingsModal } from './TokensAdminSettingsModal';
+import { uploadImageToCloudStorage } from '../../lib/storageUtils';
 
 interface PricingPlan {
   id: string;
@@ -113,7 +116,7 @@ const PRICING_PLANS: PricingPlan[] = [
 ];
 
 export const TokensPurchaseScreen: React.FC = () => {
-  const { isLevel1Admin, tokensPaymentConfig } = useWedding();
+  const { isLevel1Admin, tokensPaymentConfig, currentUser, saveUploadedImage } = useWedding();
 
   // Selection state for the 4 plans
   // Plan 1 is independent.
@@ -129,6 +132,9 @@ export const TokensPurchaseScreen: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [isUploadingVoucher, setIsUploadingVoucher] = useState<boolean>(false);
+  const [uploadProgressText, setUploadProgressText] = useState<string>('');
+  const [voucherCloudUrl, setVoucherCloudUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [modalIsDragging, setModalIsDragging] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -202,7 +208,7 @@ export const TokensPurchaseScreen: React.FC = () => {
     }
   };
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.jpg') && !file.name.toLowerCase().endsWith('.jpeg') && !file.name.toLowerCase().endsWith('.png')) {
       setFileError('Por favor selecciona una imagen válida en formato .jpg o .png.');
@@ -219,6 +225,45 @@ export const TokensPurchaseScreen: React.FC = () => {
       setFilePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
+
+    // Auto upload to Cloud Storage & save record in Firestore for Admin review
+    setIsUploadingVoucher(true);
+    setUploadProgressText('Procesando imagen...');
+    try {
+      const uploadRes = await uploadImageToCloudStorage(file, 'vouchers', (status) => {
+        setUploadProgressText(status);
+      });
+      setVoucherCloudUrl(uploadRes.url);
+
+      const code = orderCode || `PRE-${Math.floor(100000 + Math.random() * 900000)}`;
+      if (!orderCode) setOrderCode(code);
+
+      const plansSummary = activePlansList.map(p => p.name).join(', ');
+
+      await saveUploadedImage({
+        url: uploadRes.url,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        category: 'voucher',
+        uploadedBy: {
+          userId: currentUser.id,
+          username: currentUser.isAuthenticated ? currentUser.username : 'Visitante Público',
+          isVisitor: !currentUser.isAuthenticated,
+          roleTitle: currentUser.roleTitle,
+        },
+        orderCode: code,
+        orderTotal: totalToPay,
+        selectedPlansSummary: plansSummary,
+      });
+
+      setUploadProgressText('¡Comprobante guardado en la nube!');
+    } catch (uploadErr) {
+      console.warn('Error al subir comprobante:', uploadErr);
+      setFileError('Hubo un inconveniente al conectar con la nube, pero se conservó la imagen localmente.');
+    } finally {
+      setIsUploadingVoucher(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -241,7 +286,9 @@ export const TokensPurchaseScreen: React.FC = () => {
   const removeFile = () => {
     setSelectedFile(null);
     setFilePreview(null);
+    setVoucherCloudUrl(null);
     setFileError(null);
+    setUploadProgressText('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -277,7 +324,7 @@ export const TokensPurchaseScreen: React.FC = () => {
       return;
     }
 
-    const generatedCode = `PRE-${Math.floor(100000 + Math.random() * 900000)}`;
+    const generatedCode = orderCode || `PRE-${Math.floor(100000 + Math.random() * 900000)}`;
     setOrderCode(generatedCode);
     setOrderModalOpen(true);
   };
@@ -286,7 +333,7 @@ export const TokensPurchaseScreen: React.FC = () => {
     const summary = `*PEDIDO PLANES & PRECIOS* - Código: ${orderCode}\n` +
       `• Total a Pagar: ${formatPrice(totalToPay)}\n` +
       `• Opciones Seleccionadas:\n` +
-      activePlansList.map(p => `  - ${p.number}.- ${p.name}: ${formatPrice(p.price)}`).join('\n');
+      activePlansList.map(p => `  - ${p.name}: ${formatPrice(p.price)}`).join('\n');
 
     navigator.clipboard.writeText(summary);
     setOrderCopied(true);
@@ -416,7 +463,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                       <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex items-center space-x-2 flex-wrap">
                           <h2 className="font-bold text-sm sm:text-base text-[#2A1810]">
-                            {plan.number}.- {plan.name}
+                            {plan.name}
                           </h2>
                           {plan.badge && (
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${plan.badgeColor || 'bg-stone-100 text-stone-700'}`}>
@@ -476,7 +523,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                   <div className="py-2 border-y border-[#F0EAE1] space-y-1.5 text-xs text-[#524B42]">
                     {activePlansList.map(plan => (
                       <div key={plan.id} className="flex justify-between items-center">
-                        <span className="truncate max-w-[180px]">• {plan.number}.- {plan.name}</span>
+                        <span className="truncate max-w-[180px]">• {plan.name}</span>
                         <span className="font-mono font-semibold">{formatPrice(plan.price)}</span>
                       </div>
                     ))}
@@ -603,25 +650,42 @@ export const TokensPurchaseScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-2 px-3 rounded-lg bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-2xs"
+                  disabled={isUploadingVoucher}
+                  className="w-full py-2 px-3 rounded-lg bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-2xs disabled:opacity-50"
                 >
-                  <Paperclip className="w-3.5 h-3.5 text-[#E5B869]" />
-                  <span>Subir Imagen (JPG / PNG)</span>
+                  {isUploadingVoucher ? (
+                    <Loader2 className="w-3.5 h-3.5 text-[#E5B869] animate-spin" />
+                  ) : (
+                    <Paperclip className="w-3.5 h-3.5 text-[#E5B869]" />
+                  )}
+                  <span>{isUploadingVoucher ? (uploadProgressText || 'Subiendo...') : (selectedFile ? 'Cambiar Imagen (JPG / PNG)' : 'Subir Imagen (JPG / PNG)')}</span>
                 </button>
 
                 {selectedFile && (
                   <div className="mt-2 text-[11px] text-[#2A1810] flex items-center justify-between bg-white p-2 rounded-lg border border-emerald-200">
-                    <span className="truncate flex items-center text-emerald-800 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mr-1 shrink-0" />
-                      {selectedFile.name}
+                    <span className="truncate flex items-center text-emerald-800 font-medium max-w-[240px]">
+                      {isUploadingVoucher ? (
+                        <Loader2 className="w-3.5 h-3.5 text-amber-600 animate-spin mr-1 shrink-0" />
+                      ) : (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mr-1 shrink-0" />
+                      )}
+                      <span className="truncate">{selectedFile.name}</span>
                     </span>
-                    <button
-                      type="button"
-                      onClick={removeFile}
-                      className="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center space-x-1">
+                      {voucherCloudUrl && !isUploadingVoucher && (
+                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                          Nube OK
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={removeFile}
+                        className="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"
+                        title="Eliminar comprobante"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -672,7 +736,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                 <p className="font-semibold text-[#2D2A26]">Detalle de Opciones:</p>
                 {activePlansList.map(plan => (
                   <div key={plan.id} className="flex justify-between">
-                    <span>• {plan.number}.- {plan.name}</span>
+                    <span>• {plan.name}</span>
                     <span className="font-mono">{formatPrice(plan.price)}</span>
                   </div>
                 ))}
@@ -731,26 +795,42 @@ export const TokensPurchaseScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => modalFileInputRef.current?.click()}
-                  className="w-full py-2 px-3 rounded-lg bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-2xs"
+                  disabled={isUploadingVoucher}
+                  className="w-full py-2 px-3 rounded-lg bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-2xs disabled:opacity-50"
                 >
-                  <Paperclip className="w-3.5 h-3.5 text-[#E5B869]" />
-                  <span>{selectedFile ? 'Cambiar Imagen (JPG / PNG)' : 'Subir Imagen (JPG / PNG)'}</span>
+                  {isUploadingVoucher ? (
+                    <Loader2 className="w-3.5 h-3.5 text-[#E5B869] animate-spin" />
+                  ) : (
+                    <Paperclip className="w-3.5 h-3.5 text-[#E5B869]" />
+                  )}
+                  <span>{isUploadingVoucher ? (uploadProgressText || 'Subiendo...') : (selectedFile ? 'Cambiar Imagen (JPG / PNG)' : 'Subir Imagen (JPG / PNG)')}</span>
                 </button>
 
                 {selectedFile && (
                   <div className="mt-2 text-[11px] text-[#2A1810] flex items-center justify-between bg-white p-2 rounded-lg border border-emerald-200">
-                    <span className="truncate flex items-center text-emerald-800 font-medium max-w-[280px]">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mr-1 shrink-0" />
-                      {selectedFile.name}
+                    <span className="truncate flex items-center text-emerald-800 font-medium max-w-[240px]">
+                      {isUploadingVoucher ? (
+                        <Loader2 className="w-3.5 h-3.5 text-amber-600 animate-spin mr-1 shrink-0" />
+                      ) : (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mr-1 shrink-0" />
+                      )}
+                      <span className="truncate">{selectedFile.name}</span>
                     </span>
-                    <button
-                      type="button"
-                      onClick={removeFile}
-                      className="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"
-                      title="Eliminar comprobante"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center space-x-1">
+                      {voucherCloudUrl && !isUploadingVoucher && (
+                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                          Nube OK
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={removeFile}
+                        className="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"
+                        title="Eliminar comprobante"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 )}
 

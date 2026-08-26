@@ -404,3 +404,25 @@ export interface TokensPaymentConfig {
   yapeHolder: string;
   extraNotes?: string;
 }
+
+export interface UploadedImageRecord {
+  id: string;
+  url: string;
+  name: string;
+  size?: number;
+  type?: string;
+  category: 'voucher' | 'gallery' | 'general';
+  uploadedAt: string;
+  uploadedBy?: {
+    userId?: string;
+    username: string;
+    level?: number;
+    isVisitor?: boolean;
+    roleTitle?: string;
+  };
+  orderCode?: string;
+  orderTotal?: number;
+  selectedPlansSummary?: string;
+  weddingId?: string;
+  notes?: string;
+}

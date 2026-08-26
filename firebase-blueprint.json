@@ -147,6 +147,19 @@
         "updatedAt": { "type": "string", "description": "Last update timestamp" }
       },
       "required": ["id", "username", "clave", "level", "roleTitle"]
+    },
+    "UploadedImageRecord": {
+      "title": "UploadedImageRecord",
+      "description": "Images and payment receipts uploaded by visitors or users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier of the image record" },
+        "url": { "type": "string", "description": "Cloud URL or data URL of the image" },
+        "name": { "type": "string", "description": "Original file name" },
+        "category": { "type": "string", "description": "Category of image" },
+        "uploadedAt": { "type": "string", "description": "Upload timestamp" }
+      },
+      "required": ["id", "url", "name", "category", "uploadedAt"]
     }
   },
   "firestore": {
@@ -181,6 +194,10 @@
     "/system_configs/{configId}": {
       "schema": "TokensPaymentConfig",
       "description": "System configuration for tokens and payments"
+    },
+    "/uploaded_images/{imageId}": {
+      "schema": "UploadedImageRecord",
+      "description": "Images and payment receipts uploaded by visitors or users"
     }
   }
 }

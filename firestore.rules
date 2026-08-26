@@ -93,6 +93,13 @@ service cloud.firestore {
       allow delete: if isValidId(configId);
     }
 
+    // Uploaded images / vouchers collection (Visitor and user uploads)
+    match /uploaded_images/{imageId} {
+      allow read: if true;
+      allow create, update: if isValidId(imageId);
+      allow delete: if isValidId(imageId);
+    }
+
     // Test connection document
     match /test/{testId} {
       allow read: if true;

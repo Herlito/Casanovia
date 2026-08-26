@@ -67,6 +67,112 @@ export async function processAndOptimizeQrImage(
 }
 
 /**
+ * Normalizes and compresses an image (photos, receipts, vouchers, QR codes) on an HTML5 canvas.
+ * Maintains optimal crispness and low payload.
+ */
+export async function processAndOptimizeImage(
+  file: File,
+  maxDimension = 1200,
+  quality = 0.85
+): Promise<{ blob: Blob; dataUrl: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Error al leer el archivo de imagen'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Formato de imagen inválido o archivo corrupto'));
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('No se pudo inicializar el contexto de imagen'));
+          return;
+        }
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const dataUrl = canvas.toDataURL(mimeType, quality);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve({ blob, dataUrl });
+            } else {
+              reject(new Error('Error al procesar el archivo optimizado'));
+            }
+          },
+          mimeType,
+          quality
+        );
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Uploads any image (voucher, photo, attachment) to Firebase Cloud Storage.
+ * Falls back safely to optimized light data URL if storage is unavailable.
+ */
+export async function uploadImageToCloudStorage(
+  file: File,
+  folder = 'vouchers',
+  onProgress?: (status: string) => void
+): Promise<{ url: string; isCloudStorage: boolean }> {
+  onProgress?.('Optimizando imagen...');
+  const { blob, dataUrl } = await processAndOptimizeImage(file);
+
+  try {
+    onProgress?.('Subiendo a Firebase Cloud Storage...');
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filename = `${folder}/${Date.now()}_${safeName}`;
+    const storageRef = ref(storage, filename);
+
+    await uploadBytes(storageRef, blob, {
+      contentType: file.type || 'image/jpeg',
+      customMetadata: {
+        originalName: file.name,
+        uploadedAt: new Date().toISOString(),
+        folder,
+      },
+    });
+
+    const downloadUrl = await getDownloadURL(storageRef);
+    return {
+      url: downloadUrl,
+      isCloudStorage: true,
+    };
+  } catch (storageError) {
+    console.warn('[Firebase Storage] Fallback to optimized cloud data payload:', storageError);
+    return {
+      url: dataUrl,
+      isCloudStorage: false,
+    };
+  }
+}
+
+/**
  * Uploads QR code to Firebase Storage and returns the public download URL.
  * Falls back safely to optimized light data URL if storage is unavailable.
  */

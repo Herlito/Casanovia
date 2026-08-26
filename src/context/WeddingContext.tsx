@@ -24,6 +24,7 @@ import {
   VendorItem,
   WeddingTable,
   TokensPaymentConfig,
+  UploadedImageRecord,
   WeddingCustomTheme,
   DressCodeColor
 } from '../types';
@@ -204,6 +205,13 @@ interface WeddingContextType {
   tokensPaymentConfig: TokensPaymentConfig;
   updateTokensPaymentConfig: (updates: Partial<TokensPaymentConfig>) => Promise<void>;
 
+  // Uploaded Images & Payment Receipts (Admin & Visitor uploads)
+  uploadedImages: UploadedImageRecord[];
+  showUploadedImagesModal: boolean;
+  setShowUploadedImagesModal: (show: boolean) => void;
+  saveUploadedImage: (record: Omit<UploadedImageRecord, 'id' | 'uploadedAt'> & { id?: string; uploadedAt?: string }) => Promise<string>;
+  deleteUploadedImage: (id: string) => Promise<void>;
+
   // Navigation & URL status
   hasWeddingUrlParam: boolean;
   isPublicHomeLanding: boolean;
@@ -268,6 +276,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [showNewWeddingModal, setShowNewWeddingModal] = useState(false);
   const [showUserManagementModal, setShowUserManagementModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showUploadedImagesModal, setShowUploadedImagesModal] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImageRecord[]>([]);
 
   // Helper to extract requested wedding from URL query parameters or pathname/hash
   const getRequestedWeddingIdFromUrl = (): string => {
@@ -556,6 +566,34 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     initUsersSync();
     initTokensConfigSync();
 
+    let unsubscribeUploadedImages: (() => void) | undefined;
+    const initUploadedImagesSync = () => {
+      try {
+        const imagesColl = collection(db, 'uploaded_images');
+        unsubscribeUploadedImages = onSnapshot(
+          imagesColl,
+          (snapshot) => {
+            const list: UploadedImageRecord[] = [];
+            snapshot.forEach((docSnap) => {
+              const data = docSnap.data();
+              list.push({
+                id: docSnap.id,
+                ...data,
+              } as UploadedImageRecord);
+            });
+            list.sort((a, b) => new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime());
+            setUploadedImages(list);
+          },
+          (err) => {
+            console.info('[Firestore] uploaded_images listener note:', err);
+          }
+        );
+      } catch (err) {
+        console.error('[Firestore] Error conectando a uploaded_images:', err);
+      }
+    };
+    initUploadedImagesSync();
+
     // Listen to browser forward/back or hash changes for URL routing
     const handleUrlNav = () => {
       if (isTokensUrlRequested()) {
@@ -578,6 +616,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return () => {
       if (unsubscribeUsers) unsubscribeUsers();
       if (unsubscribeTokensConfig) unsubscribeTokensConfig();
+      if (unsubscribeUploadedImages) unsubscribeUploadedImages();
       window.removeEventListener('popstate', handleUrlNav);
       window.removeEventListener('hashchange', handleUrlNav);
     };
@@ -852,6 +891,39 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.error('Error updating tokens payment config:', err);
       throw err;
     }
+  };
+
+  const saveUploadedImage = async (
+    record: Omit<UploadedImageRecord, 'id' | 'uploadedAt'> & { id?: string; uploadedAt?: string }
+  ): Promise<string> => {
+    const id = record.id || `img_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const uploadedAt = record.uploadedAt || new Date().toISOString();
+    const fullRecord: UploadedImageRecord = {
+      ...record,
+      id,
+      uploadedAt,
+    };
+    try {
+      const docRef = doc(db, 'uploaded_images', id);
+      await setDoc(docRef, cleanFirestoreData(fullRecord));
+    } catch (e) {
+      console.warn('[Firestore] Error saving uploaded image:', e);
+    }
+    setUploadedImages((prev) => {
+      const filtered = prev.filter((item) => item.id !== id);
+      return [fullRecord, ...filtered];
+    });
+    return id;
+  };
+
+  const deleteUploadedImage = async (id: string): Promise<void> => {
+    try {
+      const docRef = doc(db, 'uploaded_images', id);
+      await deleteDoc(docRef);
+    } catch (e) {
+      console.warn('[Firestore] Error deleting uploaded image:', e);
+    }
+    setUploadedImages((prev) => prev.filter((item) => item.id !== id));
   };
 
   // -------------------------------------------------------------
@@ -2240,6 +2312,11 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setSelectedGuestForGuide,
         tokensPaymentConfig,
         updateTokensPaymentConfig,
+        uploadedImages,
+        showUploadedImagesModal,
+        setShowUploadedImagesModal,
+        saveUploadedImage,
+        deleteUploadedImage,
         hasWeddingUrlParam: Boolean(getRequestedWeddingIdFromUrl()),
         isPublicHomeLanding: !currentUser.isAuthenticated && !Boolean(getRequestedWeddingIdFromUrl()) && viewMode !== 'tokens',
         getRequestedWeddingIdFromUrl,

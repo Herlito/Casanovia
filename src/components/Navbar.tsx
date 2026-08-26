@@ -23,7 +23,8 @@ import {
   Briefcase,
   Share2,
   Copy,
-  ShoppingCart
+  ShoppingCart,
+  Image as ImageIcon
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -56,6 +57,8 @@ export const Navbar: React.FC = () => {
     setShowNewWeddingModal, 
     setShowUserManagementModal,
     setShowShareModal,
+    setShowUploadedImagesModal,
+    uploadedImages,
     getShareableWeddingUrl,
     isPublicHomeLanding
   } = useWedding();
@@ -475,6 +478,36 @@ export const Navbar: React.FC = () => {
                                   </div>
                                   <p className="text-[10px] text-[#8C8276] truncate font-normal">
                                     Planes de invitaciones y gestión nupcial
+                                  </p>
+                                </div>
+                              </button>
+                            )}
+
+                            {/* 4. Imágenes & Comprobantes Subidos (Solo Administrador) */}
+                            {isLevel1Admin && (
+                              <button
+                                type="button"
+                                id="sandwich-btn-uploaded-images"
+                                onClick={() => {
+                                  setSandwichMenuOpen(false);
+                                  setShowUploadedImagesModal(true);
+                                }}
+                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-transparent hover:border-[#E8DCCF]"
+                              >
+                                <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-purple-200 shadow-2xs">
+                                  <ImageIcon className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-bold flex items-center justify-between">
+                                    <span>Imágenes Subidas</span>
+                                    {uploadedImages.length > 0 && (
+                                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-800">
+                                        {uploadedImages.length}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-[#8C8276] truncate font-normal">
+                                    Ver comprobantes y fotos subidas por visitantes
                                   </p>
                                 </div>
                               </button>

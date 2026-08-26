@@ -15,6 +15,7 @@ import { AuthModal } from './components/modals/AuthModal';
 import { NewWeddingModal } from './components/modals/NewWeddingModal';
 import { UserManagementModal } from './components/modals/UserManagementModal';
 import { ShareWeddingModal } from './components/modals/ShareWeddingModal';
+import { AdminUploadedImagesModal } from './components/modals/AdminUploadedImagesModal';
 import { PublicFooter } from './components/public/PublicFooter';
 import { WeddingThemeWrapper } from './components/public/WeddingThemeWrapper';
 import { CasanoviaLoadingScreen } from './components/CasanoviaLoadingScreen';
@@ -23,7 +24,14 @@ import { Heart, Sparkles } from 'lucide-react';
 import { isRsvpDeadlinePassed } from './lib/dateUtils';
 
 const MainLayout: React.FC = () => {
-  const { viewMode, settings, isFirebaseLoading, isPublicHomeLanding } = useWedding();
+  const { 
+    viewMode, 
+    settings, 
+    isFirebaseLoading, 
+    isPublicHomeLanding,
+    showUploadedImagesModal,
+    setShowUploadedImagesModal
+  } = useWedding();
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
   useEffect(() => {
@@ -101,6 +109,10 @@ const MainLayout: React.FC = () => {
       <NewWeddingModal />
       <UserManagementModal />
       <ShareWeddingModal />
+      <AdminUploadedImagesModal
+        isOpen={showUploadedImagesModal}
+        onClose={() => setShowUploadedImagesModal(false)}
+      />
 
     </div>
   );
