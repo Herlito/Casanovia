@@ -16,6 +16,7 @@ import { NewWeddingModal } from './components/modals/NewWeddingModal';
 import { UserManagementModal } from './components/modals/UserManagementModal';
 import { ShareWeddingModal } from './components/modals/ShareWeddingModal';
 import { AdminUploadedImagesModal } from './components/modals/AdminUploadedImagesModal';
+import { FloorPlanDesignerModal } from './components/floorplan/FloorPlanDesignerModal';
 import { PublicFooter } from './components/public/PublicFooter';
 import { WeddingThemeWrapper } from './components/public/WeddingThemeWrapper';
 import { CasanoviaLoadingScreen } from './components/CasanoviaLoadingScreen';
@@ -30,7 +31,9 @@ const MainLayout: React.FC = () => {
     isFirebaseLoading, 
     isPublicHomeLanding,
     showUploadedImagesModal,
-    setShowUploadedImagesModal
+    setShowUploadedImagesModal,
+    showFloorPlanModal,
+    setShowFloorPlanModal
   } = useWedding();
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
@@ -112,6 +115,10 @@ const MainLayout: React.FC = () => {
       <AdminUploadedImagesModal
         isOpen={showUploadedImagesModal}
         onClose={() => setShowUploadedImagesModal(false)}
+      />
+      <FloorPlanDesignerModal
+        isOpen={showFloorPlanModal}
+        onClose={() => setShowFloorPlanModal(false)}
       />
 
     </div>

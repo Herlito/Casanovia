@@ -212,6 +212,10 @@ interface WeddingContextType {
   saveUploadedImage: (record: Omit<UploadedImageRecord, 'id' | 'uploadedAt'> & { id?: string; uploadedAt?: string }) => Promise<string>;
   deleteUploadedImage: (id: string) => Promise<void>;
 
+  // Floor Plan Designer Modal (Admin & Planner)
+  showFloorPlanModal: boolean;
+  setShowFloorPlanModal: (show: boolean) => void;
+
   // Navigation & URL status
   hasWeddingUrlParam: boolean;
   isPublicHomeLanding: boolean;
@@ -277,6 +281,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [showUserManagementModal, setShowUserManagementModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showUploadedImagesModal, setShowUploadedImagesModal] = useState(false);
+  const [showFloorPlanModal, setShowFloorPlanModal] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<UploadedImageRecord[]>([]);
 
   // Helper to extract requested wedding from URL query parameters or pathname/hash
@@ -2315,6 +2320,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         uploadedImages,
         showUploadedImagesModal,
         setShowUploadedImagesModal,
+        showFloorPlanModal,
+        setShowFloorPlanModal,
         saveUploadedImage,
         deleteUploadedImage,
         hasWeddingUrlParam: Boolean(getRequestedWeddingIdFromUrl()),

@@ -34,7 +34,8 @@ import {
   Armchair,
   LayoutGrid,
   ListFilter,
-  GripVertical
+  GripVertical,
+  Map
 } from 'lucide-react';
 
 export function sortGuestsWithCompanions(guestList: Guest[]): Guest[] {
@@ -76,6 +77,7 @@ export const TableAssignmentModule: React.FC = () => {
     updateTable, 
     deleteTable, 
     batchAssignGuestsToTable,
+    setShowFloorPlanModal,
     settings 
   } = useWedding();
 
@@ -493,11 +495,21 @@ export const TableAssignmentModule: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             type="button"
+            onClick={() => setShowFloorPlanModal(true)}
+            className="px-4 py-2.5 rounded-xl bg-[#F7E7CE] hover:bg-white text-[#54212C] text-xs font-bold transition-all shadow-md flex items-center space-x-1.5 cursor-pointer"
+            title="Diseñador visual interactivo de planos en 2D con carga de PDF y asignación de asientos"
+          >
+            <Map className="w-4 h-4 text-[#8B3A4A]" />
+            <span>Diseñador de Planos 2D / PDF</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => {
               setTableToEdit(null);
               setIsTableModalOpen(true);
             }}
-            className="px-4 py-2.5 rounded-xl bg-[#F7E7CE] hover:bg-white text-[#54212C] text-xs font-bold transition-all shadow-md flex items-center space-x-1.5 cursor-pointer"
+            className="px-3.5 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-all border border-white/30 flex items-center space-x-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>+ Nueva Mesa</span>

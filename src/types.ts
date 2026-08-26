@@ -426,3 +426,78 @@ export interface UploadedImageRecord {
   weddingId?: string;
   notes?: string;
 }
+
+// Floor Plan & PDF Seating Designer Types
+export type FloorPlanElementType =
+  | 'round_table'
+  | 'rectangular_table'
+  | 'stage'
+  | 'dance_floor'
+  | 'bar'
+  | 'dj_booth'
+  | 'restrooms'
+  | 'entrance'
+  | 'photo_booth'
+  | 'cake_table'
+  | 'lounge'
+  | 'text_label';
+
+export interface FloorPlanSeat {
+  id: string;
+  seatNumber: number;
+  guestId?: string;
+  guestName?: string;
+  guestInitials?: string;
+  guestPhone?: string;
+  dietaryRequirement?: string;
+  companionCount?: number;
+}
+
+export interface FloorPlanElement {
+  id: string;
+  type: FloorPlanElementType;
+  name: string;
+  tableNumber?: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  radius?: number; // for round tables / circles
+  rotation: number; // in degrees
+  seatCount?: number; // for round table (2-12)
+  seatsLongSide?: number; // for rectangular table
+  seatsHead?: number; // for rectangular table (0, 1, 2)
+  seats: FloorPlanSeat[];
+  color?: string;
+  textColor?: string;
+  isLocked?: boolean;
+  zIndex?: number;
+  customNotes?: string;
+}
+
+export interface FloorPlanScaleCalibration {
+  isCalibrated: boolean;
+  pixelDistance: number;
+  realMeters: number;
+  pixelsPerMeter: number;
+}
+
+export interface WeddingFloorPlan {
+  id: string;
+  weddingId: string;
+  backgroundImageUrl?: string;
+  backgroundFileName?: string;
+  backgroundWidth?: number;
+  backgroundHeight?: number;
+  backgroundOpacity?: number;
+  scale: FloorPlanScaleCalibration;
+  elements: FloorPlanElement[];
+  gridSnap: boolean;
+  gridSize: number;
+  canvasWidth: number;
+  canvasHeight: number;
+  notes?: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+

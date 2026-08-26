@@ -160,6 +160,17 @@
         "uploadedAt": { "type": "string", "description": "Upload timestamp" }
       },
       "required": ["id", "url", "name", "category", "uploadedAt"]
+    },
+    "WeddingFloorPlan": {
+      "title": "WeddingFloorPlan",
+      "description": "Interactive floor plan layout with venue background, tables, elements, scale calibration and seat guest allocations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Wedding plan identifier or wedding ID" },
+        "weddingId": { "type": "string", "description": "Target wedding identifier" },
+        "updatedAt": { "type": "string", "description": "Timestamp of last modification" }
+      },
+      "required": ["id", "weddingId", "updatedAt"]
     }
   },
   "firestore": {
@@ -198,6 +209,10 @@
     "/uploaded_images/{imageId}": {
       "schema": "UploadedImageRecord",
       "description": "Images and payment receipts uploaded by visitors or users"
+    },
+    "/floor_plans/{planId}": {
+      "schema": "WeddingFloorPlan",
+      "description": "Interactive floor plans with PDF backgrounds and seat guest assignments"
     }
   }
 }

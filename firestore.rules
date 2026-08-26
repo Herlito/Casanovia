@@ -100,6 +100,13 @@ service cloud.firestore {
       allow delete: if isValidId(imageId);
     }
 
+    // Floor Plans collection (Wedding interactive floor plan layouts)
+    match /floor_plans/{planId} {
+      allow read: if true;
+      allow create, update: if isValidId(planId);
+      allow delete: if isValidId(planId);
+    }
+
     // Test connection document
     match /test/{testId} {
       allow read: if true;
