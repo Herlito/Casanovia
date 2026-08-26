@@ -26,7 +26,8 @@ import {
   ShoppingCart,
   Image as ImageIcon,
   Map as MapIcon,
-  Ruler
+  Ruler,
+  Palette
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -539,6 +540,35 @@ export const Navbar: React.FC = () => {
                                   </div>
                                   <p className="text-[10px] text-[#8C8276] truncate font-normal">
                                     Diseñador interactivo, importar PDF y asignar asientos
+                                  </p>
+                                </div>
+                              </button>
+                            )}
+
+                            {/* 6. Diseñar Tarjetas (Si puede editar boda) */}
+                            {canEditActiveWedding && (
+                              <button
+                                type="button"
+                                id="sandwich-btn-design-cards"
+                                onClick={() => {
+                                  setSandwichMenuOpen(false);
+                                  setActiveView('private');
+                                  setTimeout(() => window.dispatchEvent(new CustomEvent('navigate-dashboard', { detail: 'invitations' })), 100);
+                                }}
+                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-[#E8DCCF]/80 hover:border-[#8B3A4A] shadow-2xs"
+                              >
+                                <div className="w-8 h-8 rounded-xl bg-[#8B3A4A]/10 text-[#8B3A4A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-[#8B3A4A]/20 shadow-2xs">
+                                  <Palette className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-bold flex items-center justify-between text-[#8B3A4A]">
+                                    <span>Diseñar Tarjetas</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[#8B3A4A]/10 text-[#8B3A4A]">
+                                      Canvas
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-[#8C8276] truncate font-normal">
+                                    Crea y personaliza plantillas para tu evento
                                   </p>
                                 </div>
                               </button>

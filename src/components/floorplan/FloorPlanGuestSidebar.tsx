@@ -202,11 +202,6 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
                         <span className="font-bold text-xs truncate text-[#2D2A26]">
                           {guest.fullName}
                         </span>
-                        {passes > 1 && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 shrink-0">
-                            {passes} pases
-                          </span>
-                        )}
                       </div>
 
                       {/* Wedding assigned table and group */}
@@ -231,8 +226,8 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
                     </div>
                   </div>
 
-                  {/* RSVP Indicator */}
-                  <div className="shrink-0">
+                  {/* RSVP Indicator & Unassign */}
+                  <div className="shrink-0 flex items-center space-x-1">
                     {guest.rsvpStatus === 'confirmed' ? (
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" title="Confirmado" />
                     ) : guest.rsvpStatus === 'declined' ? (
@@ -240,43 +235,20 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
                     ) : (
                       <Clock className="w-3.5 h-3.5 text-amber-500" title="Pendiente" />
                     )}
-                  </div>
-                </div>
-
-                {/* Assignment Status Pill */}
-                <div className="mt-2 pt-1.5 border-t border-[#F3EFEA] flex items-center justify-between text-[11px]">
-                  {isAssigned ? (
-                    <div className="flex items-center justify-between w-full">
-                      <button
-                        onClick={() => onFocusTable && onFocusTable(assignment.elementId)}
-                        className="text-emerald-800 font-semibold flex items-center space-x-1 hover:underline truncate max-w-[190px]"
-                        title="Ver mesa en plano"
-                      >
-                        <UserCheck className="w-3 h-3 text-emerald-600 shrink-0" />
-                        <span className="truncate">
-                          {assignment.tableName} • Silla #{assignment.seatNumber}
-                        </span>
-                      </button>
+                    
+                    {isAssigned && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onUnassignGuest(guest.id);
                         }}
-                        className="p-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
+                        className="p-0.5 text-rose-500 hover:text-rose-800 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
                         title="Desasignar asiento"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-3.5 h-3.5" />
                       </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between w-full text-amber-700">
-                      <span className="flex items-center space-x-1">
-                        <UserX className="w-3 h-3 text-amber-500" />
-                        <span className="text-[10px]">Sin silla asignada</span>
-                      </span>
-                      <span className="text-[9px] text-[#8C8276]">Arrastra a una silla</span>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             );

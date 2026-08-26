@@ -771,6 +771,11 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     requestAnimationFrame(renderCanvas);
   }, [renderCanvas]);
 
+  const renderCanvasRef = useRef(renderCanvas);
+  useEffect(() => {
+    renderCanvasRef.current = renderCanvas;
+  }, [renderCanvas]);
+
   // Handle Canvas Resizing with DPR
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -780,18 +785,25 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     const resize = () => {
       const dpr = window.devicePixelRatio || 1;
       const rect = container.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-      requestCanvasRender();
+      const newWidth = rect.width * dpr;
+      const newHeight = rect.height * dpr;
+      
+      if (canvas.width !== newWidth || canvas.height !== newHeight) {
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        canvas.style.width = `${rect.width}px`;
+        canvas.style.height = `${rect.height}px`;
+        requestAnimationFrame(() => {
+          if (canvasRef.current) renderCanvasRef.current();
+        });
+      }
     };
 
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(container);
     return () => ro.disconnect();
-  }, [requestCanvasRender]);
+  }, []); // Only run once on mount
 
   // Re-render on changes
   useEffect(() => {
@@ -1092,17 +1104,6 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           {hoveredSeat.seat.guestId ? (
             <div className="space-y-0.5">
               <p className="font-semibold text-white truncate text-[11px]">{hoveredSeat.seat.guestName}</p>
-              {hoveredSeat.seat.companionCount && hoveredSeat.seat.companionCount > 1 && (
-                <p className="text-[10px] text-stone-300">
-                  Pases totales: <strong className="text-amber-300">{hoveredSeat.seat.companionCount}</strong>
-                </p>
-              )}
-              {hoveredSeat.seat.dietaryRequirement && (
-                <p className="text-[10px] text-emerald-300">
-                  Dieta: {hoveredSeat.seat.dietaryRequirement}
-                </p>
-              )}
-              <p className="text-[9px] text-stone-400 pt-1">Clic para cambiar o desasignar</p>
             </div>
           ) : (
             <p className="text-[10px] text-stone-300">

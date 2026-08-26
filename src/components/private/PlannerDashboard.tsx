@@ -35,10 +35,12 @@ import {
   Briefcase,
   UtensilsCrossed,
   ChevronDown,
-  Share2
+  Share2,
+  Palette
 } from 'lucide-react';
+import { InvitationsModule } from './InvitationsModule';
 
-export type PlannerDashboardTab = 'panel' | 'guests' | 'seating' | 'vendors' | 'budget' | 'timeline' | 'checklist' | 'settings';
+export type PlannerDashboardTab = 'panel' | 'guests' | 'seating' | 'vendors' | 'budget' | 'timeline' | 'checklist' | 'settings' | 'invitations';
 
 export const PlannerDashboard: React.FC = () => {
   const { 
@@ -69,6 +71,16 @@ export const PlannerDashboard: React.FC = () => {
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [weddingDropdownOpen, setWeddingDropdownOpen] = useState(false);
   const weddingDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleNavigation = (e: CustomEvent<PlannerDashboardTab>) => {
+      setActiveTab(e.detail);
+    };
+    window.addEventListener('navigate-dashboard', handleNavigation as EventListener);
+    return () => {
+      window.removeEventListener('navigate-dashboard', handleNavigation as EventListener);
+    };
+  }, []);
 
   // Close wedding selector dropdown when clicking outside
   useEffect(() => {
@@ -263,6 +275,7 @@ export const PlannerDashboard: React.FC = () => {
     { id: 'panel', label: 'Panel', icon: LayoutDashboard },
     { id: 'guests', label: 'Invitados', icon: Users },
     { id: 'seating', label: 'Mesas', icon: UtensilsCrossed },
+    { id: 'invitations', label: 'Invitaciones', icon: Palette },
     { id: 'vendors', label: 'Proveedores', icon: Building2 },
     { id: 'budget', label: 'Presupuesto', icon: DollarSign },
     { id: 'timeline', label: 'Cronograma', icon: Clock },
@@ -518,6 +531,9 @@ export const PlannerDashboard: React.FC = () => {
           )}
           {activeTab === 'seating' && (
             <TableAssignmentModule />
+          )}
+          {activeTab === 'invitations' && (
+            <InvitationsModule />
           )}
           {activeTab === 'vendors' && (
             <div className="bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs">

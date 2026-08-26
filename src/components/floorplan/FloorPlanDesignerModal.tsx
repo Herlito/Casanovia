@@ -798,7 +798,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="font-bold text-xs sm:text-sm text-[#2D2A26] font-serif">
-                Diseñador Interactivo de Planos & Protocolo
+                Diseñador de Planos
               </h1>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200">
                 PDF & Asientos

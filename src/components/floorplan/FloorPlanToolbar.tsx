@@ -317,9 +317,8 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
 
                       <div className="shrink-0 flex items-center space-x-1 ml-1.5">
                         {isPlaced ? (
-                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded-md flex items-center space-x-0.5">
-                            <CheckCircle2 className="w-2.5 h-2.5" />
-                            <span>En plano</span>
+                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded-md flex items-center justify-center" title="En plano">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
                           </span>
                         ) : (
                           <button
@@ -669,38 +668,6 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
               </div>
             )}
 
-            {/* List of assigned guests in this table */}
-            {(selectedElement.type === 'round_table' || selectedElement.type === 'rectangular_table') && (
-              <div className="p-2.5 rounded-xl bg-stone-50 border border-[#E8DCCF] space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-[#8C8276] uppercase flex items-center space-x-1">
-                    <Users className="w-3 h-3 text-[#8B3A4A]" />
-                    <span>Invitados Sentados ({selectedElementSeatedGuests.length})</span>
-                  </span>
-                </div>
-                {selectedElementSeatedGuests.length === 0 ? (
-                  <p className="text-[10px] text-[#8C8276] italic">Ningún invitado sentado aún en este elemento.</p>
-                ) : (
-                  <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
-                    {selectedElementSeatedGuests.map((s, idx) => (
-                      <div
-                        key={s.id || idx}
-                        className="flex items-center justify-between text-[11px] bg-white p-1.5 rounded-lg border border-[#E8DCCF]"
-                      >
-                        <span className="font-semibold truncate text-[#2D2A26]">
-                          #{s.seatNumber}. {s.guestName}
-                        </span>
-                        {s.dietaryRequirement && (
-                          <span className="text-[8px] bg-amber-50 text-amber-800 border border-amber-200 px-1 rounded font-bold">
-                            {s.dietaryRequirement}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Diámetro / Dimensiones */}
             {selectedElement.type === 'round_table' || selectedElement.type === 'cake_table' ? (
