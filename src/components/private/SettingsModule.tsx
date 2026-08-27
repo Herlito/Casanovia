@@ -36,6 +36,7 @@ import {
   CheckCircle2,
   Paintbrush
 } from 'lucide-react';
+import { ColorPickerWithImageModal } from "../modals/ColorPickerWithImageModal";
 import { getContrastRatio, getAccessibleTextColor } from '../../lib/themeUtils';
 
 export const SettingsModule: React.FC = () => {
@@ -60,6 +61,7 @@ export const SettingsModule: React.FC = () => {
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [themeSuccessMsg, setThemeSuccessMsg] = useState<string | null>(null);
   const [isApplyingTheme, setIsApplyingTheme] = useState(false);
+  const [editingColorIndex, setEditingColorIndex] = useState<number | null>(null);
 
   // Additional venues local management state
   const [showVenueForm, setShowVenueForm] = useState(false);
@@ -184,7 +186,7 @@ export const SettingsModule: React.FC = () => {
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
-  return (
+  return (<>
     <div className="space-y-6">
       
       {/* Header */}
@@ -1130,20 +1132,14 @@ export const SettingsModule: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {(formData.suggestedColors || []).map((col, idx) => (
                 <div key={idx} className="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] flex items-center space-x-2 text-xs">
-                  <div className="relative shrink-0">
-                    <input
-                      type="color"
-                      value={col.hex.startsWith('#') && col.hex.length === 7 ? col.hex : '#8A9A86'}
-                      onChange={(e) => {
-                        const updated = [...(formData.suggestedColors || [])];
-                        updated[idx] = { ...updated[idx], hex: e.target.value };
-                        setFormData({ ...formData, suggestedColors: updated });
-                      }}
-                      className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-                    />
+                  <div 
+                    className="relative shrink-0 cursor-pointer"
+                    onClick={() => setEditingColorIndex(idx)}
+                    title="Seleccionar color o extraer desde imagen"
+                  >
                     <div 
                       style={{ backgroundColor: col.hex }}
-                      className="w-8 h-8 rounded-full border-2 border-white shadow-xs"
+                      className="w-8 h-8 rounded-full border-2 border-white shadow-xs hover:scale-105 transition-transform"
                     />
                   </div>
 
@@ -1434,5 +1430,20 @@ export const SettingsModule: React.FC = () => {
         </div>
       </form>
     </div>
+
+    <ColorPickerWithImageModal 
+      isOpen={editingColorIndex !== null}
+      onClose={() => setEditingColorIndex(null)}
+      initialHex={editingColorIndex !== null && formData.suggestedColors && formData.suggestedColors[editingColorIndex] ? formData.suggestedColors[editingColorIndex].hex : '#000000'}
+      onColorChange={(hex) => {
+        if (editingColorIndex !== null) {
+          const updated = [...(formData.suggestedColors || [])];
+          updated[editingColorIndex] = { ...updated[editingColorIndex], hex };
+          setFormData({ ...formData, suggestedColors: updated });
+        }
+      }}
+      colorName={editingColorIndex !== null && formData.suggestedColors && formData.suggestedColors[editingColorIndex] ? formData.suggestedColors[editingColorIndex].name : undefined}
+    />
+    </>
   );
 };

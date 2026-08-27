@@ -16,6 +16,7 @@ import {
   Paintbrush,
   CheckCircle2
 } from 'lucide-react';
+import { ColorPickerWithImageModal } from "./ColorPickerWithImageModal";
 import { getContrastRatio, getAccessibleTextColor } from '../../lib/themeUtils';
 
 interface DressCodeEditModalProps {
@@ -71,6 +72,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
   
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [editingColorIndex, setEditingColorIndex] = useState<number | null>(null);
   const [themeMsg, setThemeMsg] = useState<string | null>(null);
   const [isApplyingTheme, setIsApplyingTheme] = useState(false);
 
@@ -135,7 +137,8 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
       <div className="bg-white rounded-3xl max-w-2xl w-full my-8 overflow-hidden shadow-2xl border border-[#E8DCCF] transition-all">
         
         {/* Header */}
@@ -307,17 +310,14 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                 >
                   {/* Color Picker & Circle Preview */}
                   <div className="flex items-center space-x-2 shrink-0">
-                    <div className="relative">
-                      <input
-                        type="color"
-                        value={color.hex.startsWith('#') && color.hex.length === 7 ? color.hex : '#8A9A86'}
-                        onChange={(e) => handleColorChange(idx, 'hex', e.target.value)}
-                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-                        title="Seleccionar color"
-                      />
+                    <div 
+                      className="relative cursor-pointer"
+                      onClick={() => setEditingColorIndex(idx)}
+                      title="Seleccionar color o extraer desde imagen"
+                    >
                       <div 
                         style={{ backgroundColor: color.hex }}
-                        className="w-10 h-10 rounded-full border-2 border-white shadow-md flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+                        className="w-10 h-10 rounded-full border-2 border-white shadow-md flex items-center justify-center hover:scale-105 transition-transform"
                       />
                     </div>
                     <div>
@@ -494,5 +494,17 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
         </form>
       </div>
     </div>
+    <ColorPickerWithImageModal 
+      isOpen={editingColorIndex !== null}
+      onClose={() => setEditingColorIndex(null)}
+      initialHex={editingColorIndex !== null && suggestedColors[editingColorIndex] ? suggestedColors[editingColorIndex].hex : '#000000'}
+      onColorChange={(hex) => {
+        if (editingColorIndex !== null) {
+          handleColorChange(editingColorIndex, 'hex', hex);
+        }
+      }}
+      colorName={editingColorIndex !== null && suggestedColors[editingColorIndex] ? suggestedColors[editingColorIndex].name : undefined}
+    />
+    </>
   );
 };

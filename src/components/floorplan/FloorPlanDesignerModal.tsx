@@ -58,6 +58,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     guests,
     tables,
     settings,
+    isLevel1Admin,
   } = useWedding();
 
   // Floor plan layout state
@@ -888,7 +889,13 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             className="hidden"
           />
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => {
+              if (!isLevel1Admin) {
+                alert("Opción no disponible para su plan");
+              } else {
+                fileInputRef.current?.click();
+              }
+            }}
             disabled={isProcessingPdf}
             className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
             title="Importar plano de local desde PDF o Imagen"
@@ -916,14 +923,16 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           </button>
 
           {/* PHP Endpoints & SQL view button */}
-          <button
-            onClick={() => setShowPhpSqlModal(true)}
-            className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-semibold transition-colors cursor-pointer"
-            title="Ver endpoints PHP y SQL"
-          >
-            <Server className="w-3.5 h-3.5 text-amber-700" />
-            <span className="hidden lg:inline">Endpoints PHP</span>
-          </button>
+          {isLevel1Admin && (
+            <button
+              onClick={() => setShowPhpSqlModal(true)}
+              className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-semibold transition-colors cursor-pointer"
+              title="Ver endpoints PHP y SQL"
+            >
+              <Server className="w-3.5 h-3.5 text-amber-700" />
+              <span className="hidden lg:inline">Endpoints PHP</span>
+            </button>
+          )}
 
           {/* Export PDF */}
           <button

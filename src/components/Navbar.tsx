@@ -398,36 +398,34 @@ export const Navbar: React.FC = () => {
                             </span>
 
                             {/* 1. Administrar Usuarios / Anfitriones */}
-                            <button
-                              type="button"
-                              id="sandwich-btn-manage-users"
-                              onClick={() => {
-                                setSandwichMenuOpen(false);
-                                if (canManageUsers) {
+                            {canManageUsers && (
+                              <button
+                                type="button"
+                                id="sandwich-btn-manage-users"
+                                onClick={() => {
+                                  setSandwichMenuOpen(false);
                                   setShowUserManagementModal(true);
-                                } else {
-                                  setShowAuthModal(true);
-                                }
-                              }}
-                              className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-transparent hover:border-[#E8DCCF]"
-                            >
-                              <div className="w-8 h-8 rounded-xl bg-[#2D2A26] text-[#D4AF37] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
-                                <Users className="w-4 h-4" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="font-bold flex items-center justify-between">
-                                  <span>{isLevel3Planner ? 'Asignar Anfitriones' : 'Administrar Usuarios'}</span>
-                                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
-                                    isLevel1Admin ? 'bg-amber-100 text-amber-800' : 'bg-teal-100 text-teal-800'
-                                  }`}>
-                                    {isLevel1Admin ? 'Nivel 1' : 'Nivel 3'}
-                                  </span>
+                                }}
+                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-transparent hover:border-[#E8DCCF]"
+                              >
+                                <div className="w-8 h-8 rounded-xl bg-[#2D2A26] text-[#D4AF37] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                                  <Users className="w-4 h-4" />
                                 </div>
-                                <p className="text-[10px] text-[#8C8276] truncate font-normal">
-                                  {isLevel3Planner ? 'Asignar permisos a parejas y novios' : 'Roles, accesos y permisos de anfitriones'}
-                                </p>
-                              </div>
-                            </button>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-bold flex items-center justify-between">
+                                    <span>{isLevel3Planner ? 'Asignar Anfitriones' : 'Administrar Usuarios'}</span>
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
+                                      isLevel1Admin ? 'bg-amber-100 text-amber-800' : 'bg-teal-100 text-teal-800'
+                                    }`}>
+                                      {isLevel1Admin ? 'Nivel 1' : 'Nivel 3'}
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-[#8C8276] truncate font-normal">
+                                    {isLevel3Planner ? 'Asignar permisos a parejas y novios' : 'Roles, accesos y permisos de anfitriones'}
+                                  </p>
+                                </div>
+                              </button>
+                            )}
 
                             {/* 2. Nueva Boda */}
                             <button
