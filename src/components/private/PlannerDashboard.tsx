@@ -36,11 +36,11 @@ import {
   UtensilsCrossed,
   ChevronDown,
   Share2,
-  Palette
+  Palette,
+  Map
 } from 'lucide-react';
-import { InvitationsModule } from './InvitationsModule';
 
-export type PlannerDashboardTab = 'panel' | 'guests' | 'seating' | 'vendors' | 'budget' | 'timeline' | 'checklist' | 'settings' | 'invitations';
+export type PlannerDashboardTab = 'panel' | 'guests' | 'seating' | 'vendors' | 'budget' | 'timeline' | 'checklist' | 'settings';
 
 export const PlannerDashboard: React.FC = () => {
   const { 
@@ -64,7 +64,8 @@ export const PlannerDashboard: React.FC = () => {
     userCreatedWeddings,
     activeWeddingId,
     activeWedding,
-    selectWedding
+    selectWedding,
+    setShowFloorPlanModal
   } = useWedding();
 
   const [activeTab, setActiveTab] = useState<PlannerDashboardTab>('panel');
@@ -271,11 +272,11 @@ export const PlannerDashboard: React.FC = () => {
 
   const coupleInitials = getInitials(settings.coupleNames || 'Sofia & Alejandro');
 
-  const navTabs: { id: PlannerDashboardTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  const navTabs: { id: PlannerDashboardTab | 'floorplan'; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'panel', label: 'Panel', icon: LayoutDashboard },
     { id: 'guests', label: 'Invitados', icon: Users },
     { id: 'seating', label: 'Mesas', icon: UtensilsCrossed },
-    { id: 'invitations', label: 'Invitaciones', icon: Palette },
+    { id: 'floorplan', label: 'Plano de Bodas', icon: Map },
     { id: 'vendors', label: 'Proveedores', icon: Building2 },
     { id: 'budget', label: 'Presupuesto', icon: DollarSign },
     { id: 'timeline', label: 'Cronograma', icon: Clock },
@@ -459,7 +460,13 @@ export const PlannerDashboard: React.FC = () => {
                   <button
                     key={tab.id}
                     type="button"
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => {
+                      if (tab.id === 'floorplan') {
+                        setShowFloorPlanModal(true);
+                      } else {
+                        setActiveTab(tab.id as PlannerDashboardTab);
+                      }
+                    }}
                     className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 ${
                       isActive
                         ? 'bg-[#8B3A4A] text-white shadow-xs font-semibold ring-1 ring-white/30'
@@ -493,7 +500,13 @@ export const PlannerDashboard: React.FC = () => {
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    if (tab.id === 'floorplan') {
+                      setShowFloorPlanModal(true);
+                    } else {
+                      setActiveTab(tab.id as PlannerDashboardTab);
+                    }
+                  }}
                   title={tab.label}
                   className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
                     isActive
@@ -531,9 +544,6 @@ export const PlannerDashboard: React.FC = () => {
           )}
           {activeTab === 'seating' && (
             <TableAssignmentModule />
-          )}
-          {activeTab === 'invitations' && (
-            <InvitationsModule />
           )}
           {activeTab === 'vendors' && (
             <div className="bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs">

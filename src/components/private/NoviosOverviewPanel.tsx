@@ -353,31 +353,6 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
             </div>
           </div>
 
-          {/* Invitation Design Link */}
-          <div className="bg-[#FFFDFB] rounded-3xl p-5 border border-[#E8DCCF] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 transition-all hover:shadow-md hover:border-[#8B3A4A]/30">
-            <div className="flex items-center space-x-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-[#8B3A4A]/10 text-[#8B3A4A] flex items-center justify-center shrink-0 shadow-xs border border-[#8B3A4A]/20">
-                <Palette className="w-6 h-6" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-serif-display text-base font-bold text-[#2D2A26]">
-                  Diseño de Invitaciones
-                </h3>
-                <p className="text-xs text-[#7A7268] mt-0.5">
-                  Crea y personaliza plantillas para tu evento.
-                </p>
-              </div>
-            </div>
-            
-            <button
-              onClick={() => onNavigateTab('invitations')}
-              className="w-full sm:w-auto px-4 py-2.5 bg-[#8B3A4A] text-white rounded-xl text-xs font-bold transition-all hover:bg-[#6E2937] shadow-sm flex items-center justify-center space-x-2 shrink-0 cursor-pointer"
-            >
-              <Palette className="w-4 h-4" />
-              <span>Diseñar Tarjetas</span>
-            </button>
-          </div>
-
           {/* CARD 2: Últimas Confirmaciones (RSVP) */}
           <div className="bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md">
             <div className="flex items-center justify-between mb-4">
