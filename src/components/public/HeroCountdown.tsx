@@ -160,7 +160,7 @@ export const HeroCountdown: React.FC = () => {
           </div>
 
           <p className="text-xs sm:text-sm text-[#8C8276] font-light">
-            Cada segundo cuenta para encontrarnos y celebrar este sueño de amor.
+            Cada segundo cuenta para encontrarnos y celebrar
           </p>
         </div>
 
