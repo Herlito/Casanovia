@@ -94,8 +94,10 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveSuccessNotice, setSaveSuccessNotice] = useState<boolean>(false);
   const [syncSuccessNotice, setSyncSuccessNotice] = useState<boolean>(false);
+  const [autoSync, setAutoSync] = useState<boolean>(false);
   const [isProcessingPdf, setIsProcessingPdf] = useState<boolean>(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [showExportMenu, setShowExportMenu] = useState<boolean>(false);
 
   // Seat Click Picker popup
   const [activeSeatPicker, setActiveSeatPicker] = useState<{
@@ -113,59 +115,65 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     let isMounted = true;
 
     const loadPlan = async () => {
+      let loadedElements = null;
+      let loadedData = null;
+
       try {
         // Try Firestore
         const docRef = doc(db, 'floor_plans', activeWeddingId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists() && isMounted) {
-          const data = docSnap.data() as WeddingFloorPlan;
-          // Synchronize seats and tables with current wedding data
-          const syncedElements = buildFloorPlanFromWedding(tables, guests, data.elements);
-          setElements(syncedElements);
-          if (data.backgroundImageUrl) setBackgroundImageUrl(data.backgroundImageUrl);
-          if (data.backgroundFileName) setBackgroundFileName(data.backgroundFileName);
-          if (data.backgroundOpacity !== undefined) setBackgroundOpacity(data.backgroundOpacity);
-          if (data.scale) setScaleCalibration(data.scale);
-          if (data.gridSnap !== undefined) setGridSnap(data.gridSnap);
-          if (data.gridSize) setGridSize(data.gridSize);
-          if (data.canvasWidth) setCanvasWidth(data.canvasWidth);
-          if (data.canvasHeight) setCanvasHeight(data.canvasHeight);
-          return;
+          loadedData = docSnap.data();
+          loadedElements = loadedData.elements;
         }
       } catch (err) {
         console.info('[FloorPlan] Firestore read note (using local fallback):', err);
       }
 
-      // Try Local Storage fallback
-      try {
-        const localData = localStorage.getItem(`casanovia_floor_plan_${activeWeddingId}`);
-        if (localData && isMounted) {
-          const parsed: WeddingFloorPlan = JSON.parse(localData);
-          const syncedElements = buildFloorPlanFromWedding(tables, guests, parsed.elements);
-          setElements(syncedElements);
-          if (parsed.backgroundImageUrl) setBackgroundImageUrl(parsed.backgroundImageUrl);
-          if (parsed.backgroundFileName) setBackgroundFileName(parsed.backgroundFileName);
-          if (parsed.scale) setScaleCalibration(parsed.scale);
-        } else if (isMounted) {
-          // Generate initial layout taking the current wedding tables and guest assignments
-          const initialLayout = buildFloorPlanFromWedding(tables, guests);
-          setElements(initialLayout);
-        }
-      } catch {
-        if (isMounted) {
-          const initialLayout = buildFloorPlanFromWedding(tables, guests);
-          setElements(initialLayout);
+      if (!loadedElements && isMounted) {
+        // Try Local Storage fallback
+        try {
+          const localData = localStorage.getItem(`casanovia_floor_plan_${activeWeddingId}`);
+          if (localData) {
+            loadedData = JSON.parse(localData);
+            loadedElements = loadedData.elements;
+          }
+        } catch (err) {}
+      }
+
+      if (isMounted) {
+        if (loadedElements) {
+          // We have a saved plan
+          if (autoSync) {
+            setElements(buildFloorPlanFromWedding(tables, guests, loadedElements));
+          } else {
+            setElements(loadedElements);
+          }
+          if (loadedData.backgroundImageUrl) setBackgroundImageUrl(loadedData.backgroundImageUrl);
+          if (loadedData.backgroundFileName) setBackgroundFileName(loadedData.backgroundFileName);
+          if (loadedData.backgroundOpacity !== undefined) setBackgroundOpacity(loadedData.backgroundOpacity);
+          if (loadedData.scale) setScaleCalibration(loadedData.scale);
+          if (loadedData.gridSnap !== undefined) setGridSnap(loadedData.gridSnap);
+          if (loadedData.gridSize) setGridSize(loadedData.gridSize);
+          if (loadedData.canvasWidth) setCanvasWidth(loadedData.canvasWidth);
+          if (loadedData.canvasHeight) setCanvasHeight(loadedData.canvasHeight);
+        } else {
+          // NO saved plan
+          if (autoSync) {
+            setElements(buildFloorPlanFromWedding(tables, guests));
+          } else {
+            setElements([]);
+          }
         }
       }
     };
 
     loadPlan();
-
     return () => {
       isMounted = false;
     };
-  }, [isOpen, activeWeddingId, tables, guests]);
+  }, [isOpen, activeWeddingId, tables, guests, autoSync]);
 
   const selectedElement = useMemo(
     () => elements.find((e) => e.id === selectedElementId) || null,
@@ -740,7 +748,8 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   };
 
   // Export PDF
-  const handleExportPdf = async () => {
+  const handleExportPdf = async (mode: 'all' | 'plan_only' | 'list_only' = 'all') => {
+    setShowExportMenu(false);
     const canvas = document.querySelector('canvas');
     if (!canvas) return;
 
@@ -765,6 +774,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         settings,
         canvasElement: canvas,
         weddingTitle,
+        exportMode: mode,
       });
     } catch (err) {
       console.error('Error exportando PDF:', err);
@@ -794,24 +804,42 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         {/* Left: Brand & Wedding Selector */}
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#8B3A4A] border border-rose-200 flex items-center justify-center font-serif font-bold text-sm shadow-2xs">
-            P
+            {weddingTitle.charAt(0).toUpperCase()}
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="font-bold text-xs sm:text-sm text-[#2D2A26] font-serif">
-                Diseñador de Planos
-              </h1>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200">
-                PDF & Asientos
-              </span>
+          <div className="flex items-center space-x-4">
+            <div>
+              <div className="flex items-center space-x-2">
+                <h1 className="font-bold text-xs sm:text-sm text-[#2D2A26] font-serif">
+                  {weddingTitle}
+                </h1>
+              </div>
+              <div className="flex items-center space-x-2 text-[11px] text-[#8C8276]">
+                {scaleCalibration.isCalibrated && (
+                  <span className="text-emerald-700 font-semibold hidden sm:inline">
+                    📏 1m = {scaleCalibration.pixelsPerMeter.toFixed(1)}px
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center space-x-2 text-[11px] text-[#8C8276]">
-              <span>Boda: <strong className="text-[#2D2A26]">{weddingTitle}</strong></span>
-              {scaleCalibration.isCalibrated && (
-                <span className="text-emerald-700 font-semibold hidden sm:inline">
-                  • 📏 1m = {scaleCalibration.pixelsPerMeter.toFixed(1)}px
-                </span>
-              )}
+
+            {/* Canvas Dimensions Editor */}
+            <div className="hidden md:flex items-center space-x-2 bg-blue-50 p-1.5 rounded-lg border border-blue-200">
+              <span className="text-[10px] font-bold text-blue-800 uppercase">Lienzo</span>
+              <input 
+                type="number" 
+                value={canvasWidth}
+                onChange={(e) => setCanvasWidth(Number(e.target.value) || 1600)}
+                className="w-16 h-6 px-1 text-xs border border-blue-300 rounded focus:outline-hidden text-center"
+                title="Ancho del lienzo (px)"
+              />
+              <span className="text-xs text-blue-500 font-bold">x</span>
+              <input 
+                type="number" 
+                value={canvasHeight}
+                onChange={(e) => setCanvasHeight(Number(e.target.value) || 1200)}
+                className="w-16 h-6 px-1 text-xs border border-blue-300 rounded focus:outline-hidden text-center"
+                title="Alto del lienzo (px)"
+              />
             </div>
           </div>
         </div>
@@ -864,21 +892,33 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         {/* Right: Actions */}
         <div className="flex items-center space-x-2">
           
-          {/* Sync Tables & Guests button */}
-          <button
-            onClick={handleSyncWithWedding}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shadow-2xs cursor-pointer ${
-              syncSuccessNotice
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 ring-2 ring-emerald-200'
-                : 'bg-white hover:bg-rose-50 text-[#8B3A4A] border-rose-200 hover:border-[#8B3A4A]'
-            }`}
-            title="Sincronizar mesas y asientos con la distribución actual de invitados y acompañantes"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#8B3A4A] ${syncSuccessNotice ? 'animate-spin' : ''}`} />
-            <span className="font-bold">
-              {syncSuccessNotice ? '¡Mesas Sincronizadas!' : 'Sincronizar Mesas'}
-            </span>
-          </button>
+                    {/* Sync Tables & Guests button */}
+          <div className="flex items-center bg-white border border-rose-200 rounded-xl shadow-2xs overflow-hidden">
+            <button
+              onClick={handleSyncWithWedding}
+              className={`flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                syncSuccessNotice
+                  ? 'bg-emerald-50 text-emerald-800'
+                  : 'hover:bg-rose-50 text-[#8B3A4A]'
+              }`}
+              title="Sincronizar mesas y asientos con la distribución actual de invitados y acompañantes"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-[#8B3A4A] ${syncSuccessNotice ? 'animate-spin' : ''}`} />
+              <span className="font-bold">
+                {syncSuccessNotice ? '¡Sincronizado!' : 'Sincronizar Mesas'}
+              </span>
+            </button>
+            <div className="w-px h-5 bg-rose-100"></div>
+            <label className="flex items-center space-x-1 px-2 py-1.5 cursor-pointer hover:bg-rose-50 transition-colors" title="Sincronización Automática al cargar">
+              <input 
+                type="checkbox" 
+                checked={autoSync}
+                onChange={(e) => setAutoSync(e.target.checked)}
+                className="w-3 h-3 text-[#8B3A4A] border-rose-200 rounded focus:ring-[#8B3A4A]"
+              />
+              <span className="text-[10px] font-bold text-[#8C8276]">Auto</span>
+            </label>
+          </div>
 
           {/* Import PDF button */}
           <input
@@ -934,15 +974,32 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             </button>
           )}
 
-          {/* Export PDF */}
-          <button
-            onClick={handleExportPdf}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors shadow-2xs cursor-pointer"
-            title="Exportar documento PDF de alta calidad para montaje"
-          >
-            <FileDown className="w-3.5 h-3.5 text-[#8B3A4A]" />
-            <span className="hidden sm:inline">Exportar PDF</span>
-          </button>
+                    {/* Export PDF */}
+          <div className="relative">
+            <button
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors shadow-2xs cursor-pointer"
+              title="Exportar documento PDF de alta calidad para montaje"
+            >
+              <FileDown className="w-3.5 h-3.5 text-[#8B3A4A]" />
+              <span className="hidden sm:inline">Exportar PDF</span>
+            </button>
+            {showExportMenu && (
+              <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-[#E8DCCF] rounded-xl shadow-xl z-50 overflow-hidden">
+                <div className="p-1.5 flex flex-col">
+                  <button onClick={() => handleExportPdf('all')} className="text-left px-3 py-2 text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] rounded-lg transition-colors cursor-pointer">
+                    📄 Todo (Plano + Lista)
+                  </button>
+                  <button onClick={() => handleExportPdf('plan_only')} className="text-left px-3 py-2 text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] rounded-lg transition-colors cursor-pointer">
+                    🖼️ Solo Plano de Distribución
+                  </button>
+                  <button onClick={() => handleExportPdf('list_only')} className="text-left px-3 py-2 text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] rounded-lg transition-colors cursor-pointer">
+                    👥 Solo Lista de Invitados
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Save Plan Button */}
           <button

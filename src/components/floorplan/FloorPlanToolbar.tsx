@@ -16,9 +16,10 @@ import {
   Copy,
   Trash2,
   RotateCw,
+  ChevronDown,
+  ChevronUp,
   Layers,
   Sliders,
-  ChevronDown,
   Plus,
   UtensilsCrossed,
   Users,
@@ -75,6 +76,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
 }) => {
   const [tableSearchQuery, setTableSearchQuery] = useState('');
   const [toolbarTab, setToolbarTab] = useState<'wedding_tables' | 'furniture'>('wedding_tables');
+  const [isTablesCollapsed, setIsTablesCollapsed] = useState(false);
 
   // Compute table occupancy for the wedding tables
   const tableOccupancyMap = useMemo(() => {
@@ -231,15 +233,27 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
            ======================================================== */}
         {toolbarTab === 'wedding_tables' && (
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider block">
-                Mesas Registradas ({filteredWeddingTables.length})
-              </span>
-              <span className="text-[9px] text-[#8C8276]">Haz clic para colocar</span>
+            <div 
+              className="flex items-center justify-between cursor-pointer group"
+              onClick={() => setIsTablesCollapsed(!isTablesCollapsed)}
+            >
+              <div className="flex items-center space-x-1">
+                <span className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider block group-hover:text-[#2D2A26] transition-colors">
+                  Mesas Registradas ({filteredWeddingTables.length})
+                </span>
+                {isTablesCollapsed ? (
+                  <ChevronDown className="w-3 h-3 text-[#8C8276] group-hover:text-[#2D2A26]" />
+                ) : (
+                  <ChevronUp className="w-3 h-3 text-[#8C8276] group-hover:text-[#2D2A26]" />
+                )}
+              </div>
+              {!isTablesCollapsed && <span className="text-[9px] text-[#8C8276]">Haz clic para colocar</span>}
             </div>
 
-            {/* Search filter for wedding tables */}
-            {tables.length > 4 && (
+            {!isTablesCollapsed && (
+              <>
+                {/* Search filter for wedding tables */}
+                {tables.length > 4 && (
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8C8276]" />
                 <input
@@ -334,6 +348,8 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 })}
               </div>
             )}
+              </>
+            )}
           </div>
         )}
 
@@ -373,6 +389,76 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   <div className="min-w-0">
                     <div className="font-bold text-[11px] truncate">Mesa Rectangular</div>
                     <span className="text-[9px] text-[#8C8276]">Imperial</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            
+            {/* Asientos & Butacas */}
+            <div>
+              <span className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider block mb-1.5">
+                Asientos & Butacas
+              </span>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => onAddElement('single_chair')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-100 group-hover:scale-105 transition-transform">
+                    <Armchair className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-[11px] truncate">Silla Individual</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAddElement('chair_row')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-100 group-hover:scale-105 transition-transform">
+                    <Armchair className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-[11px] truncate">Fila de Sillas</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAddElement('armchair_luis_xv')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 border border-purple-100 group-hover:scale-105 transition-transform">
+                    <Armchair className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-[11px] truncate">Sillón Luis XV</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAddElement('sofa_1_seat')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-700 flex items-center justify-center shrink-0 border border-orange-100 group-hover:scale-105 transition-transform">
+                    <Armchair className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-[11px] truncate">Butaca (1 Cuerpo)</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAddElement('sofa_2_seat')}
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-700 flex items-center justify-center shrink-0 border border-orange-100 group-hover:scale-105 transition-transform">
+                    <Armchair className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-[11px] truncate">Butaca (2 Cuerpos)</div>
                   </div>
                 </button>
               </div>
@@ -544,18 +630,49 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
               </div>
             )}
 
-            {/* Nombre */}
+                        {/* Nombre */}
             <div>
               <label className="block text-[10px] font-bold text-[#8C8276] uppercase mb-1">
                 Nombre / Identificador
               </label>
-              <input
-                type="text"
-                value={selectedElement.name}
-                onChange={(e) => onUpdateElement(selectedElement.id, { name: e.target.value })}
-                className="w-full px-2.5 py-1.5 bg-[#FAF8F5] border border-[#D9CEBF] rounded-lg text-xs font-semibold focus:outline-hidden focus:border-[#8B3A4A]"
-              />
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={selectedElement.name}
+                  onChange={(e) => onUpdateElement(selectedElement.id, { name: e.target.value })}
+                  className="w-full px-2.5 py-1.5 bg-[#FAF8F5] border border-[#D9CEBF] rounded-lg text-xs font-semibold focus:outline-hidden focus:border-[#8B3A4A]"
+                />
+                <div className="relative shrink-0" title="Color del texto">
+                  <input
+                    type="color"
+                    value={selectedElement.textColor || '#2D2A26'}
+                    onChange={(e) => onUpdateElement(selectedElement.id, { textColor: e.target.value })}
+                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                  />
+                  <div 
+                    style={{ backgroundColor: selectedElement.textColor || '#2D2A26' }}
+                    className="w-7 h-7 rounded-lg border border-[#D9CEBF] shadow-xs hover:scale-105 transition-transform mt-0.5"
+                  />
+                </div>
+              </div>
             </div>
+
+            {/* Número de Sillas en Fila */}
+            {selectedElement.type === 'chair_row' && (
+              <div>
+                <label className="block text-[10px] font-bold text-[#8C8276] uppercase mb-1">
+                  Cantidad de Sillas
+                </label>
+                <input
+                  type="number"
+                  min="2"
+                  max="50"
+                  value={selectedElement.chairCount || 4}
+                  onChange={(e) => onUpdateElement(selectedElement.id, { chairCount: parseInt(e.target.value) || 4 })}
+                  className="w-full px-2.5 py-1.5 bg-[#FAF8F5] border border-[#D9CEBF] rounded-lg text-xs font-semibold focus:outline-hidden focus:border-[#8B3A4A]"
+                />
+              </div>
+            )}
 
             {/* Número de Mesa si aplica */}
             {(selectedElement.type === 'round_table' || selectedElement.type === 'rectangular_table') && (

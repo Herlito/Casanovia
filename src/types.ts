@@ -440,7 +440,12 @@ export type FloorPlanElementType =
   | 'photo_booth'
   | 'cake_table'
   | 'lounge'
-  | 'text_label';
+  | 'text_label'
+  | 'single_chair'
+  | 'chair_row'
+  | 'armchair_luis_xv'
+  | 'sofa_1_seat'
+  | 'sofa_2_seat';
 
 export interface FloorPlanSeat {
   id: string;
@@ -470,6 +475,7 @@ export interface FloorPlanElement {
   seats: FloorPlanSeat[];
   color?: string;
   textColor?: string;
+  chairCount?: number; // for chair_row
   isLocked?: boolean;
   zIndex?: number;
   customNotes?: string;

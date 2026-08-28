@@ -1,11 +1,14 @@
 import { jsPDF } from 'jspdf';
 import { WeddingFloorPlan, WeddingSettings } from '../../types';
 
+export type PdfExportMode = 'all' | 'plan_only' | 'list_only';
+
 interface ExportPdfOptions {
   plan: WeddingFloorPlan;
   settings: WeddingSettings;
   canvasElement: HTMLCanvasElement | null;
   weddingTitle: string;
+  exportMode?: PdfExportMode;
 }
 
 export async function exportFloorPlanToPdf({
@@ -13,6 +16,7 @@ export async function exportFloorPlanToPdf({
   settings,
   canvasElement,
   weddingTitle,
+  exportMode = 'all',
 }: ExportPdfOptions): Promise<void> {
   if (!canvasElement) {
     throw new Error('Canvas no disponible para exportar');
@@ -21,16 +25,20 @@ export async function exportFloorPlanToPdf({
   // Create high quality snapshot of the canvas
   const canvasDataUrl = canvasElement.toDataURL('image/png', 1.0);
 
-  // Initialize jsPDF in Landscape mode A4 (297mm x 210mm)
+  // If we ONLY want the guest list, start directly in portrait
   const doc = new jsPDF({
-    orientation: 'landscape',
+    orientation: exportMode === 'list_only' ? 'portrait' : 'landscape',
     unit: 'mm',
     format: 'a4',
   });
-
-  const pageWidth = 297;
-  const pageHeight = 210;
   const margin = 14;
+
+  if (exportMode === 'all' || exportMode === 'plan_only') {
+    // ----------------------------------------------------
+    // PAGE 1: FLOOR PLAN (LANDSCAPE)
+    // ----------------------------------------------------
+    const pageWidth = 297;
+    const pageHeight = 210;
 
   // Background accent banner
   doc.setFillColor(250, 248, 245);
@@ -123,6 +131,9 @@ export async function exportFloorPlanToPdf({
     pageHeight - 5
   );
 
+  } // end of if (exportMode === 'all' || exportMode === 'plan_only')
+
+  if (exportMode === 'all' || exportMode === 'list_only') {
   // ==========================================
   // PAGE 2: DETAILED SEATING BREAKDOWN
   // ==========================================
@@ -131,7 +142,9 @@ export async function exportFloorPlanToPdf({
   );
 
   if (tableElements.length > 0) {
-    doc.addPage('a4', 'portrait');
+    if (exportMode === 'all') {
+      doc.addPage('a4', 'portrait');
+    }
     const portWidth = 210;
     const portHeight = 297;
 
@@ -224,6 +237,8 @@ export async function exportFloorPlanToPdf({
 
       currentY += 5;
     });
+  }
+
   }
 
   // Save the generated PDF
