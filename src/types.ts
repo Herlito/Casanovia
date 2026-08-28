@@ -271,7 +271,10 @@ export interface AdditionalVenue {
   notes?: string;
 }
 
+export type EventType = 'Boda' | 'Quinceañero' | 'Fiesta de Promoción' | 'Aniversario' | 'Corporativo' | 'Baby Shower' | 'Graduación' | 'Otro';
+
 export interface WeddingSettings {
+  eventType?: EventType | string;
   coupleNames: string;
   brideName: string;
   groomName: string;
@@ -308,6 +311,9 @@ export interface WeddingSettings {
     accountNumber: string;
     concept: string;
   };
+  showGiftRegistry?: boolean;
+  giftRegistryTitle?: string;
+  giftRegistryMessage?: string;
   showBankDetails?: boolean; // Toggle si se muestra o no la información bancaria en la Web de Invitados
   rsvpDeadline?: string; // Fecha límite para confirmar asistencia (ej. '2026-10-10' o '2026-10-10T23:59:59')
   giftRegistries: {

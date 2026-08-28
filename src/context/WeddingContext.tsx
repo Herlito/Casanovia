@@ -119,6 +119,7 @@ interface WeddingContextType {
   activeWedding: Wedding | null;
   selectWedding: (weddingId: string) => void;
   createNewWedding: (data: {
+    eventType?: string;
     coupleNames: string;
     brideName?: string;
     groomName?: string;
@@ -1327,6 +1328,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Create a new wedding (Level 1 Admin only)
   const createNewWedding = async (data: {
+    eventType?: string;
     coupleNames: string;
     brideName?: string;
     groomName?: string;
@@ -1346,6 +1348,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const newSettings: WeddingSettings = {
       ...initialWeddingSettings,
+      eventType: data.eventType || 'Boda',
       coupleNames: data.coupleNames,
       brideName,
       groomName,

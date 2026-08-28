@@ -210,7 +210,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             }`}
           >
             <Sparkles className="w-3 h-3 text-[#8B3A4A]" />
-            <span>Mesas de Boda</span>
+            <span>Mesas Principales</span>
           </button>
           <button
             type="button"

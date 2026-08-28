@@ -446,7 +446,7 @@ export const Navbar: React.FC = () => {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="font-bold flex items-center justify-between">
-                                  <span>Nueva Boda</span>
+                                  <span>Crear Evento</span>
                                   <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-rose-100 text-[#8B3A4A]">
                                     Crear
                                   </span>
@@ -531,7 +531,7 @@ export const Navbar: React.FC = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="font-bold flex items-center justify-between text-[#8B3A4A]">
-                                    <span>Plano de Bodas</span>
+                                    <span>Planos</span>
                                     <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-rose-100 text-[#8B3A4A]">
                                       PDF & Canvas
                                     </span>

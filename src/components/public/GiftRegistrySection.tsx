@@ -16,6 +16,8 @@ export const GiftRegistrySection: React.FC = () => {
   const { settings } = useWedding();
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
+  if (settings.showGiftRegistry === false) return null;
+
   const copyText = (text: string, fieldName: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(fieldName);
@@ -33,10 +35,10 @@ export const GiftRegistrySection: React.FC = () => {
             <span>Mesa de Regalos</span>
           </div>
           <h2 className="font-serif-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#2D2A26]">
-            Mesa de Regalos & Transferencias
+            {settings.giftRegistryTitle || 'Mesa de Regalos & Transferencias'}
           </h2>
           <p className="text-xs sm:text-sm text-[#7A7268] max-w-lg mx-auto mt-2">
-            Tu presencia es nuestro mejor regalo. Si deseas tener un detalle adicional con nosotros para nuestro nuevo hogar y luna de miel, ponemos a tu disposición nuestras opciones.
+            {settings.giftRegistryMessage || 'Tu presencia es nuestro mejor regalo. Si deseas tener un detalle adicional con nosotros para nuestro nuevo hogar y luna de miel, ponemos a tu disposición nuestras opciones.'}
           </p>
         </div>
 

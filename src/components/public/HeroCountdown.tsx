@@ -53,24 +53,33 @@ export const HeroCountdown: React.FC = () => {
     '12:00m'
   );
 
+    const isWedding = !settings.eventType || settings.eventType === 'Boda';
   const brideFirstName = (settings.brideName ? settings.brideName.split(' ')[0] : settings.coupleNames?.split('&')[0]?.trim()) || 'Novia';
   const groomFirstName = (settings.groomName ? settings.groomName.split(' ')[0] : settings.coupleNames?.split('&')[1]?.trim()) || 'Novio';
+
+  const displayTitle = isWedding ? (
+    <>
+      {brideFirstName}{' '}
+      <span className="font-editorial italic font-normal text-[#8B3A4A] theme-primary-text text-4xl sm:text-6xl md:text-7xl inline-block mx-0.5 align-middle">
+        &
+      </span>{' '}
+      {groomFirstName}
+    </>
+  ) : (
+    <>{settings.coupleNames}</>
+  );
 
   return (
     <section className="relative overflow-hidden pt-6 pb-12 sm:pt-10 sm:pb-16 bg-[#FDFBF7]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
         {/* Couple Names in Large Display Serif Typography */}
         <h1 className="font-serif-display text-4xl sm:text-5xl md:text-6xl font-bold text-[#2D2A26] tracking-tight leading-none mb-2">
-          {brideFirstName}{' '}
-          <span className="font-editorial italic font-normal text-[#8B3A4A] theme-primary-text text-4xl sm:text-6xl md:text-7xl inline-block mx-0.5 align-middle">
-            &
-          </span>{' '}
-          {groomFirstName}
+          {displayTitle}
         </h1>
 
         {/* Subtitle / Blessing Quote */}
         <p className="font-editorial italic text-base sm:text-lg md:text-xl text-[#6B6358] max-w-xl mx-auto mb-3 sm:mb-4 leading-normal sm:leading-snug">
-          Con la bendición de Dios y de nuestros padres, tenemos el honor de invitarte a celebrar la unión de nuestras vidas.
+          {settings.romanticQuote || 'Con la bendición de Dios y de nuestros padres, tenemos el honor de invitarte a celebrar la unión de nuestras vidas.'}
         </p>
 
         {/* Date Section framed by parallel lines - All items aligned on exact same horizontal baseline with matching #8B3A4A color */}

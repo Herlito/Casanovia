@@ -50,6 +50,7 @@ export const SettingsModule: React.FC = () => {
     deleteWedding, 
     setShowNewWeddingModal,
     isLevel1Admin,
+    isLevel3Planner,
     isPlannerOrAdmin,
     canEditActiveWedding,
     currentUser,
@@ -194,11 +195,11 @@ export const SettingsModule: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
-            {isPlannerOrAdmin ? 'Configuración & Gestión de Bodas' : 'Configuración de la Boda'}
+            {isPlannerOrAdmin ? 'Configuración' : 'Configuración'}
           </h2>
           <p className="text-xs sm:text-sm text-[#7A7268]">
             {isPlannerOrAdmin 
-              ? 'Edita los datos de la boda activa, sedes de ceremonia/recepción, código de vestimenta, paleta visual y finanzas.'
+              ? 'Edita los datos del evento, sedes de ceremonia/recepción, código de vestimenta, paleta visual y finanzas.'
               : `Edita los datos de tu boda (${settings.coupleNames}), sedes de ceremonia/recepción, código de vestimenta, paleta visual y finanzas.`}
           </p>
         </div>
@@ -249,7 +250,7 @@ export const SettingsModule: React.FC = () => {
               <div>
                 <div className="flex items-center space-x-2">
                   <h3 className="font-serif-display text-base font-bold text-[#2D2A26]">
-                    Bodas Activas en la Plataforma ({sortedWeddings.length})
+                    Mis Eventos ({sortedWeddings.length})
                   </h3>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
                     Ordenadas por fecha (más cercanas primero)
@@ -268,7 +269,7 @@ export const SettingsModule: React.FC = () => {
                 className="px-4 py-2 bg-[#8B3A4A] text-white rounded-xl text-xs font-bold hover:bg-[#6E2937] transition-all flex items-center space-x-1.5 shadow-2xs self-start sm:self-auto cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" />
-                <span>+ Nueva Boda</span>
+                <span>+ Crear Evento</span>
               </button>
             )}
           </div>
@@ -340,7 +341,7 @@ export const SettingsModule: React.FC = () => {
                         </button>
                       )}
 
-                      {isLevel1Admin && weddings.length > 1 && (
+                      {(isLevel1Admin || isLevel3Planner) && weddings.length > 1 && (
                         <button
                           type="button"
                           onClick={() => {
@@ -349,7 +350,7 @@ export const SettingsModule: React.FC = () => {
                             }
                           }}
                           className="p-1.5 text-stone-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Eliminar boda"
+                          title="Eliminar evento"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -369,13 +370,48 @@ export const SettingsModule: React.FC = () => {
         <div className="bg-white rounded-2xl p-6 border border-[#E8DCCF] shadow-2xs space-y-4">
           <h3 className="font-serif-display text-lg font-bold text-[#2D2A26] flex items-center space-x-2">
             <Heart className="w-4 h-4 text-[#8B3A4A]" />
-            <span>Datos Principales de los Novios ({settings.coupleNames})</span>
+            <span>Datos Principales del Evento ({settings.coupleNames})</span>
           </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs mb-4">
+            <div>
+              <label className="block font-semibold text-[#524B42] mb-1">
+                Tipo de Evento
+              </label>
+              <select
+                value={formData.eventType || 'Boda'}
+                onChange={(e) => setFormData({ ...formData, eventType: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+              >
+                <option value="Boda">Boda</option>
+                <option value="Quinceañero">Quinceañero</option>
+                <option value="Fiesta de Promoción">Fiesta de Promoción</option>
+                <option value="Aniversario">Aniversario</option>
+                <option value="Corporativo">Corporativo</option>
+                <option value="Baby Shower">Baby Shower</option>
+                <option value="Graduación">Graduación</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+            
+            <div className="lg:col-span-3">
+              <label className="block font-semibold text-[#524B42] mb-1">
+                Frase de Invitación / Subtítulo
+              </label>
+              <input
+                type="text"
+                value={formData.romanticQuote || ''}
+                onChange={(e) => setFormData({ ...formData, romanticQuote: e.target.value })}
+                placeholder="Ej. Con la bendición de Dios y de nuestros padres..."
+                className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+              />
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
               <label className="block font-semibold text-[#524B42] mb-1">
-                Nombres de la Pareja
+                Nombre del Evento
               </label>
               <input
                 type="text"
@@ -943,37 +979,75 @@ export const SettingsModule: React.FC = () => {
           )}
         </div>
 
-        {/* 3. Bank Details */}
+                {/* 3. Gift Registry & Bank Details */}
         <div className="bg-white rounded-2xl p-6 border border-[#E8DCCF] shadow-2xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#F0EAE1]">
             <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
               <CreditCard className="w-4 h-4 text-[#D4AF37]" />
-              <span>Datos Bancarios para Transferencias & Mesa de Regalos</span>
+              <span>Mesa de Regalos & Transferencias</span>
             </h3>
 
-            {/* Checkbox Toggle para mostrar u ocultar en la Web de Invitados */}
+            {/* Checkbox Toggle para mostrar u ocultar la sección completa en la Web de Invitados */}
             <label className="inline-flex items-center space-x-2.5 px-3 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#E8DCCF] hover:bg-[#F3EFEA] cursor-pointer transition-colors select-none">
               <input
                 type="checkbox"
-                id="checkbox-show-bank-details"
-                checked={formData.showBankDetails !== false}
+                id="checkbox-show-gift-registry"
+                checked={formData.showGiftRegistry !== false}
                 onChange={(e) => setFormData({
                   ...formData,
-                  showBankDetails: e.target.checked
+                  showGiftRegistry: e.target.checked
                 })}
                 className="w-4 h-4 rounded text-[#8B3A4A] focus:ring-[#8B3A4A]/30 border-[#D9CEBF] cursor-pointer"
               />
               <span className="text-xs font-semibold text-[#2D2A26]">
-                Mostrar datos bancarios en la Web de Invitados
+                Mostrar sección en la Web de Invitados
               </span>
             </label>
           </div>
 
-          <p className="text-xs text-[#7A7268]">
-            {formData.showBankDetails !== false 
-              ? '✓ Los datos bancarios y número de cuenta están visibles para los invitados en la sección de Mesa de Regalos.' 
-              : '✕ Los datos bancarios están ocultos en la Web de Invitados (solo se mostrarán las tiendas departamentales registradas).'}
-          </p>
+          <div className={`space-y-4 transition-opacity ${formData.showGiftRegistry === false ? 'opacity-60' : 'opacity-100'}`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold text-[#524B42] mb-1 text-xs">Título de la Sección</label>
+                <input
+                  type="text"
+                  value={formData.giftRegistryTitle || 'Mesa de Regalos & Transferencias'}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    giftRegistryTitle: e.target.value
+                  })}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-[#524B42] mb-1 text-xs">Mensaje Descriptivo</label>
+                <textarea
+                  value={formData.giftRegistryMessage || 'Tu presencia es nuestro mejor regalo. Si deseas tener un detalle adicional con nosotros para nuestro nuevo hogar y luna de miel, ponemos a tu disposición nuestras opciones.'}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    giftRegistryMessage: e.target.value
+                  })}
+                  rows={2}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between mt-4 pb-2 border-b border-[#F0EAE1]">
+              <h4 className="font-semibold text-sm text-[#2D2A26]">Datos Bancarios para Transferencias</h4>
+              <label className="inline-flex items-center space-x-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.showBankDetails !== false}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    showBankDetails: e.target.checked
+                  })}
+                  className="w-4 h-4 rounded text-[#8B3A4A] border-[#D9CEBF]"
+                />
+                <span className="text-xs text-[#524B42]">Mostrar Datos Bancarios</span>
+              </label>
+            </div>
 
           <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs transition-opacity ${
             formData.showBankDetails === false ? 'opacity-60' : 'opacity-100'
@@ -1041,8 +1115,8 @@ export const SettingsModule: React.FC = () => {
                 })}
                 className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
               />
-            </div>
-          </div>
+            </div>          </div>
+        </div>
         </div>
 
         {/* 4. Dress Code & Suggested Color Palette */}
@@ -1333,7 +1407,7 @@ export const SettingsModule: React.FC = () => {
             {/* Nombres Pareja Pie de Página */}
             <div>
               <label className="block font-semibold text-[#524B42] mb-1">
-                Firma / Nombres de la Pareja en Pie de Página
+                Firma / Nombre del Evento en Pie de Página
               </label>
               <div className="relative">
                 <Sparkles className="w-4 h-4 text-[#D4AF37] absolute left-3 top-1/2 -translate-y-1/2" />

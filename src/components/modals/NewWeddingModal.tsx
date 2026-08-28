@@ -22,6 +22,7 @@ export const NewWeddingModal: React.FC = () => {
     currentUser
   } = useWedding();
 
+  const [eventType, setEventType] = useState('Boda');
   const [coupleNames, setCoupleNames] = useState('');
   const [brideName, setBrideName] = useState('');
   const [groomName, setGroomName] = useState('');
@@ -84,21 +85,42 @@ export const NewWeddingModal: React.FC = () => {
                 {isLevel1Admin ? 'Nivel 1 • Super Administrador' : isLevel3Planner ? `Nivel 3 • Wedding Planner (${currentUser.username})` : currentUser.username}
               </span>
               <h3 className="font-serif-display text-xl font-bold text-white">
-                Crear Nueva Boda
+                Crear Nuevo Evento
               </h3>
             </div>
           </div>
           <p className="text-xs text-[#E8DCCF] font-light">
-            Se creará un nuevo paquete de boda en Firestore con la lista maestra de 6 fases y cronograma inicial listo para editar.
+            Se creará un nuevo paquete de evento en Firestore con la lista maestra de 6 fases y cronograma inicial listo para editar.
           </p>
         </div>
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
           
+          
           <div>
             <label className="block text-xs font-semibold text-[#524B42] mb-1">
-              Nombres de los Novios <span className="text-rose-500">*</span>
+              Tipo de Evento <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={eventType}
+              onChange={(e) => setEventType(e.target.value)}
+              className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+            >
+              <option value="Boda">Boda</option>
+              <option value="Quinceañero">Quinceañero</option>
+              <option value="Fiesta de Promoción">Fiesta de Promoción</option>
+              <option value="Aniversario">Aniversario</option>
+              <option value="Corporativo">Corporativo</option>
+              <option value="Baby Shower">Baby Shower</option>
+              <option value="Graduación">Graduación</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#524B42] mb-1">
+              Nombre del Evento <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
               <Heart className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C8276]" />
@@ -116,7 +138,7 @@ export const NewWeddingModal: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                Nombre de la Novia
+                Novia/Anfitrión
               </label>
               <input
                 type="text"
@@ -129,7 +151,7 @@ export const NewWeddingModal: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                Nombre del Novio
+                Novio/Anfitrión
               </label>
               <input
                 type="text"
@@ -236,12 +258,12 @@ export const NewWeddingModal: React.FC = () => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Creando Boda en Firestore...</span>
+                  <span>Creando Evento en Firestore...</span>
                 </>
               ) : (
                 <>
                   <PlusCircle className="w-4 h-4" />
-                  <span>Crear Boda y Abrir Panel</span>
+                  <span>Crear Evento y Abrir Panel</span>
                 </>
               )}
             </button>

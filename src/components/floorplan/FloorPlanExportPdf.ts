@@ -67,8 +67,8 @@ export async function exportFloorPlanToPdf({
   doc.setTextColor(45, 42, 38);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
-  const titleText = weddingTitle || settings.coupleNames || `${settings.brideName || ''} & ${settings.groomName || ''}`.trim() || 'Nuestra Boda';
-  doc.text(`Boda: ${titleText}`, margin, 26);
+  const titleText = weddingTitle || settings.coupleNames || `${settings.brideName || ''} & ${settings.groomName || ''}`.trim() || 'Nuestro Evento';
+  doc.text(titleText, margin, 26);
 
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'normal');
@@ -98,8 +98,8 @@ export async function exportFloorPlanToPdf({
   // Insert Canvas Image
   const imgMarginX = margin;
   const imgMarginY = 34;
-  const availableWidth = pageWidth - margin * 2;
-  const availableHeight = pageHeight - imgMarginY - 12;
+  const availableWidth = exportMode === 'plan_only' ? pageWidth - 10 : pageWidth - margin * 2;
+  const availableHeight = exportMode === 'plan_only' ? pageHeight - imgMarginY - 5 : pageHeight - imgMarginY - 12;
 
   // Aspect ratio calculation
   const imgRatio = canvasElement.width / canvasElement.height;
@@ -111,7 +111,7 @@ export async function exportFloorPlanToPdf({
     renderWidth = renderHeight * imgRatio;
   }
 
-  const posX = margin + (availableWidth - renderWidth) / 2;
+  const posX = (exportMode === 'plan_only' ? 5 : margin) + (availableWidth - renderWidth) / 2;
   const posY = imgMarginY + (availableHeight - renderHeight) / 2;
 
   // Border frame for plan
@@ -242,6 +242,6 @@ export async function exportFloorPlanToPdf({
   }
 
   // Save the generated PDF
-  const safeFilename = `Plano_Distribucion_Boda_${weddingTitle.replace(/[^a-zA-Z0-9]/g, '_') || 'Casanovia'}.pdf`;
+  const safeFilename = `Plano_Distribucion_${weddingTitle.replace(/[^a-zA-Z0-9]/g, '_') || 'Casanovia'}.pdf`;
   doc.save(safeFilename);
 }

@@ -186,7 +186,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     activeWedding?.title ||
     settings.coupleNames ||
     `${settings.brideName || ''} & ${settings.groomName || ''}`.trim() ||
-    'Boda Actual';
+    'Evento Actual';
 
   // Add Element to Canvas
   const handleAddElement = (type: FloorPlanElementType) => {
@@ -789,7 +789,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     const dataUrl = canvas.toDataURL('image/png', 1.0);
     const link = document.createElement('a');
     link.href = dataUrl;
-    link.download = `Plano_Boda_${weddingTitle.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+    link.download = `Plano_${weddingTitle.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -329,6 +329,9 @@ export const initialWeddingSettings: WeddingSettings = {
     accountNumber: '1234 5678 9012',
     concept: 'Regalo Boda Sofía y Ale',
   },
+  showGiftRegistry: true,
+  giftRegistryTitle: 'Mesa de Regalos & Transferencias',
+  giftRegistryMessage: 'Tu presencia es nuestro mejor regalo. Si deseas tener un detalle adicional con nosotros para nuestro nuevo hogar y luna de miel, ponemos a tu disposición nuestras opciones.',
   showBankDetails: true,
   rsvpDeadline: '2026-10-10',
   giftRegistries: [
