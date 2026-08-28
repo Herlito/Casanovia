@@ -1,3 +1,4 @@
+import { FurnitureSVGs } from './FurniturePaths';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import {
   FloorPlanElement,
@@ -552,6 +553,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         case 'chair_row': {
           const count = elem.type === 'single_chair' ? 1 : (elem.chairCount || 4);
           const chairW = elem.width / count;
+          const svgData = FurnitureSVGs.single_chair;
           
           ctx.shadowColor = 'rgba(0,0,0,0.1)';
           ctx.shadowBlur = 4;
@@ -560,24 +562,25 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             const cx = -elem.width / 2 + (i * chairW) + (chairW / 2);
             const w = chairW - 4;
             const h = elem.height - 4;
-            const x = cx - w / 2;
-            const y = -elem.height / 2 + 2;
             
+            ctx.save();
+            ctx.translate(cx, 0); // Center of this specific chair
+            
+            // The SVG draws from 0,0 to width,height. So we scale and translate.
+            const scaleX = w / svgData.width;
+            const scaleY = h / svgData.height;
+            ctx.scale(scaleX, scaleY);
+            ctx.translate(-svgData.width / 2, -svgData.height / 2);
+            
+            const p = new Path2D(svgData.path);
             ctx.fillStyle = elem.color || '#FFFFFF';
+            ctx.fill(p, 'evenodd');
             ctx.strokeStyle = isSelected ? '#8B3A4A' : '#D9CEBF';
-            ctx.lineWidth = 1.5;
+            // Need to divide line width by scale so it doesn't get huge or tiny
+            ctx.lineWidth = 1.5 / Math.min(scaleX, scaleY); 
+            ctx.stroke(p);
             
-            // Seat
-            ctx.beginPath();
-            ctx.roundRect(x + w*0.1, y + h*0.3, w*0.8, h*0.6, 4);
-            ctx.fill();
-            ctx.stroke();
-            
-            // Backrest
-            ctx.beginPath();
-            ctx.roundRect(x, y, w, h*0.4, 6);
-            ctx.fill();
-            ctx.stroke();
+            ctx.restore();
           }
           ctx.shadowColor = 'transparent';
           
