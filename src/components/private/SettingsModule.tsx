@@ -43,7 +43,8 @@ export const SettingsModule: React.FC = () => {
   const { 
     settings, 
     updateSettings, 
-    weddings, 
+    weddings,
+    accessibleWeddings, 
     activeWeddingId, 
     selectWedding, 
     deleteWedding, 
@@ -173,7 +174,7 @@ export const SettingsModule: React.FC = () => {
   };
 
   // Sort weddings by date with closest upcoming wedding first
-  const sortedWeddings: Wedding[] = sortWeddingsByDate(weddings);
+  const sortedWeddings: Wedding[] = sortWeddingsByDate(accessibleWeddings);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

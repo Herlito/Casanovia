@@ -80,7 +80,7 @@ export const UserManagementModal: React.FC = () => {
     setClave(user.clave);
     setLevel(user.level);
     setRoleTitle(user.roleTitle);
-    setAssignedWeddingIds(user.assignedWeddingIds || user.createdWeddingIds || []);
+    setAssignedWeddingIds(user.assignedWeddingIds || []);
     setIsEditing(true);
     setFormShowPassword(true);
   };
@@ -111,7 +111,7 @@ export const UserManagementModal: React.FC = () => {
           level,
           roleTitle: roleTitle.trim(),
           assignedWeddingIds: level === 1 ? [] : assignedWeddingIds,
-          createdWeddingIds: level === 3 ? assignedWeddingIds : [],
+          createdWeddingIds: editingUserId ? (systemUsers.find(u => u.id === editingUserId)?.createdWeddingIds || []) : [],
         });
         setAlertMsg({ type: 'success', text: `Usuario "${username}" actualizado exitosamente.` });
       } else {
@@ -122,7 +122,7 @@ export const UserManagementModal: React.FC = () => {
           level,
           roleTitle: roleTitle.trim(),
           assignedWeddingIds: level === 1 ? [] : assignedWeddingIds,
-          createdWeddingIds: level === 3 ? assignedWeddingIds : [],
+          createdWeddingIds: editingUserId ? (systemUsers.find(u => u.id === editingUserId)?.createdWeddingIds || []) : [],
         });
         setAlertMsg({ type: 'success', text: `Usuario "${username}" creado exitosamente con permisos de ${level === 3 ? 'Wedding Planner' : level === 1 ? 'Super Admin' : 'Anfitrión'}.` });
       }
