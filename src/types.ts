@@ -312,6 +312,7 @@ export interface WeddingSettings {
     concept: string;
   };
   showGiftRegistry?: boolean;
+  showWishesWall?: boolean; // Toggle si se muestra o no la sección de Mensajes y Bendiciones en la Web Invitados
   giftRegistryTitle?: string;
   giftRegistryMessage?: string;
   showBankDetails?: boolean; // Toggle si se muestra o no la información bancaria en la Web de Invitados

@@ -83,7 +83,7 @@ const MainLayout: React.FC = () => {
               <GiftRegistrySection />
 
               {/* 7. Wall of Wishes from Confirmed Guests */}
-              <WishesWall />
+              {settings?.showWishesWall !== false && <WishesWall />}
 
               {/* Public Footer with Editable Romantic Quote, Couple Names & Contacts */}
               <PublicFooter />

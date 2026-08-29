@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ArrowUpToLine,
   ArrowDownToLine,
@@ -79,6 +79,14 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
   const [tableSearchQuery, setTableSearchQuery] = useState('');
   const [toolbarTab, setToolbarTab] = useState<'wedding_tables' | 'furniture'>('wedding_tables');
   const [isTablesCollapsed, setIsTablesCollapsed] = useState(false);
+
+  // Contraer "Mesas Registradas" automáticamente cuando se selecciona un objeto
+  useEffect(() => {
+    if (selectedElement) {
+      setIsTablesCollapsed(true);
+    }
+  }, [selectedElement]);
+
 
   // Compute table occupancy for the wedding tables
   const tableOccupancyMap = useMemo(() => {
