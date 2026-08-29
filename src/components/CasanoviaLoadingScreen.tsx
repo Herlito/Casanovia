@@ -22,7 +22,7 @@ export const CasanoviaLoadingScreen: React.FC = () => {
         </div>
 
         <p className="mt-3 text-[11px] tracking-[0.2em] uppercase font-serif text-[#8B3A4A]/70 font-medium">
-          Cargando Boda...
+          Cargando...
         </p>
       </div>
     </div>

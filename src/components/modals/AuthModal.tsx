@@ -73,19 +73,19 @@ export const AuthModal: React.FC = () => {
           
           <div className="flex items-center space-x-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-[#8B3A4A] flex items-center justify-center shadow-md">
-              <ShieldCheck className="w-5 h-5 text-white" />
+              <User className="w-5 h-5 text-white" />
             </div>
             <div>
               <span className="text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block">
                 Control de Acceso & Permisos
               </span>
               <h3 className="font-serif-display text-xl font-bold text-white">
-                Acceso al Sistema
+                Acceso
               </h3>
             </div>
           </div>
           <p className="text-xs text-stone-300 font-light mt-1">
-            Inicia sesión según tu rol para gestionar bodas, editar cronogramas y asignar permisos de anfitriones.
+            Inicia sesión según tu rol para editar cronogramas y asignar permisos de anfitriones.
           </p>
         </div>
 
@@ -185,14 +185,12 @@ export const AuthModal: React.FC = () => {
                 className="w-full py-3 px-4 rounded-xl bg-[#8B3A4A] text-white text-xs font-bold hover:bg-[#6E2937] transition-all shadow-md flex items-center justify-center space-x-2 cursor-pointer"
               >
                 <Lock className="w-4 h-4" />
-                <span>Ingresar al Sistema</span>
+                <span>Ingresar</span>
               </button>
 
               <div className="pt-2 border-t border-[#EFEAE2] space-y-2">
-                <span className="text-[11px] text-[#7A7268] block text-center font-medium">
-                  Accesos rápidos de demostración:
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => handleSelectQuickUser(LEVEL_1_USER.username)}
@@ -206,18 +204,7 @@ export const AuthModal: React.FC = () => {
                     </div>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleSelectQuickUser('Guest Planner')}
-                    className="flex items-center space-x-1.5 p-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-semibold transition-colors cursor-pointer text-left"
-                    title="Cargar usuario Guest Planner"
-                  >
-                    <Briefcase className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                    <div className="text-left truncate">
-                      <span className="block truncate font-bold text-[11px]">Guest Planner</span>
-                      <span className="text-[9px] text-teal-700 block">Nv 3 (Wedding Planner)</span>
-                    </div>
-                  </button>
+
 
                   <button
                     type="button"
@@ -236,12 +223,7 @@ export const AuthModal: React.FC = () => {
             </form>
           )}
 
-          <div className="bg-[#FAF8F5] rounded-xl p-3 text-[11px] text-[#7A7268] space-y-1.5 border border-[#E8DCCF]">
-            <p className="font-semibold text-[#524B42]">Niveles de Privilegio & Roles:</p>
-            <p>• <strong className="text-emerald-800">Nivel 1 (Super Admin):</strong> Acceso total a todas las bodas, creación de bodas y administración completa de usuarios.</p>
-            <p>• <strong className="text-teal-800">Nivel 3 (Wedding Planner):</strong> Gestión y edición de bodas creadas por ella y potestad para asignar usuarios con rol de <strong>"Novio/a"</strong>.</p>
-            <p>• <strong className="text-purple-800">Nivel 2 (Novios):</strong> Parejas y novios con permisos de edición <em>únicamente</em> en sus bodas asignadas.</p>
-          </div>
+
         </div>
 
       </div>
