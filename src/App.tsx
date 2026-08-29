@@ -18,6 +18,7 @@ import { ShareWeddingModal } from './components/modals/ShareWeddingModal';
 import { AdminUploadedImagesModal } from './components/modals/AdminUploadedImagesModal';
 import { FloorPlanDesignerModal } from './components/floorplan/FloorPlanDesignerModal';
 import { PublicFooter } from './components/public/PublicFooter';
+import { WeddingCraftEditor } from './WeddingCraft/components/WeddingCraftEditor';
 import { WeddingThemeWrapper } from './components/public/WeddingThemeWrapper';
 import { CasanoviaLoadingScreen } from './components/CasanoviaLoadingScreen';
 import { CasanoviaHomeLanding } from './components/public/CasanoviaHomeLanding';
@@ -33,6 +34,8 @@ const MainLayout: React.FC = () => {
     showUploadedImagesModal,
     setShowUploadedImagesModal,
     showFloorPlanModal,
+    showWeddingCraftModal,
+    setShowWeddingCraftModal,
     setShowFloorPlanModal
   } = useWedding();
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
@@ -120,6 +123,19 @@ const MainLayout: React.FC = () => {
         isOpen={showFloorPlanModal}
         onClose={() => setShowFloorPlanModal(false)}
       />
+      {showWeddingCraftModal && (
+        <WeddingCraftEditor
+          externalAPI={{
+            getEventData: () => ({
+              eventId: settings?.id || 'demo_event',
+              coupleNames: [settings?.coupleNames?.split(' & ')[0] || 'Novio', settings?.coupleNames?.split(' & ')[1] || 'Novia'],
+              eventDate: settings?.date || new Date().toISOString(),
+              venueName: settings?.ceremonyVenue || 'Lugar',
+            })
+          }}
+          onClose={() => setShowWeddingCraftModal(false)}
+        />
+      )}
 
     </div>
   );

@@ -216,6 +216,8 @@ interface WeddingContextType {
   // Floor Plan Designer Modal (Admin & Planner)
   showFloorPlanModal: boolean;
   setShowFloorPlanModal: (show: boolean) => void;
+  showWeddingCraftModal: boolean;
+  setShowWeddingCraftModal: (show: boolean) => void;
 
   // Navigation & URL status
   hasWeddingUrlParam: boolean;
@@ -284,6 +286,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [showShareModal, setShowShareModal] = useState(false);
   const [showUploadedImagesModal, setShowUploadedImagesModal] = useState(false);
   const [showFloorPlanModal, setShowFloorPlanModal] = useState(false);
+  const [showWeddingCraftModal, setShowWeddingCraftModal] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<UploadedImageRecord[]>([]);
 
   // Helper to extract requested wedding from URL query parameters or pathname/hash
@@ -2369,6 +2372,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setShowUploadedImagesModal,
         showFloorPlanModal,
         setShowFloorPlanModal,
+        showWeddingCraftModal,
+        setShowWeddingCraftModal,
         saveUploadedImage,
         deleteUploadedImage,
         hasWeddingUrlParam: Boolean(getRequestedWeddingIdFromUrl()),
