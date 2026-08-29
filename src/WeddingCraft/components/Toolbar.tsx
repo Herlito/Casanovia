@@ -282,6 +282,19 @@ export const Toolbar: React.FC = () => {
           <Save className="w-3.5 h-3.5 text-[#524B42]" />
           <span>Guardar Borrador</span>
         </button>
+        <button 
+          onClick={() => {
+            const name = prompt("Nombre de la plantilla:");
+            if (name) {
+              useEditorStore.getState().saveTemplate(name);
+              alert("Plantilla guardada.");
+            }
+          }}
+          className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-[#D9CEBF] rounded hover:bg-[#F3EFEA] transition-colors"
+        >
+          <Save className="w-3.5 h-3.5 text-[#524B42]" />
+          <span>Guardar Plantilla</span>
+        </button>
         <button onClick={() => downloadHTML(useEditorStore.getState().document)} className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-[#8B3A4A] text-white rounded hover:bg-[#7a3240] transition-colors">
           <Download className="w-3.5 h-3.5" />
           <span>Exportar Diseño</span>

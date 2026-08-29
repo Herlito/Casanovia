@@ -3,6 +3,7 @@ import { produce } from 'immer';
 import { v4 as uuidv4 } from 'uuid';
 import { WeddingDesignDocument, CanvasElement, EventDataInput } from '../types';
 import { ThemePreset, predefinedThemes } from '../themes';
+import { get as idbGet, set as idbSet } from 'idb-keyval';
 
 interface EditorState {
   // Event Data (Read Only)
@@ -20,6 +21,11 @@ interface EditorState {
     past: WeddingDesignDocument[];
     future: WeddingDesignDocument[];
   };
+  templates: { id: string; name: string; document: WeddingDesignDocument }[];
+  isPreviewModalOpen: boolean;
+  setPreviewModalOpen: (isOpen: boolean) => void;
+  saveTemplate: (name: string) => void;
+  loadTemplates: (templates: any[]) => void;
 
   // Actions
   setEventData: (data: EventDataInput) => void;
@@ -69,6 +75,21 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   zoom: 1,
   
   history: { past: [], future: [] },
+  templates: [],
+  isPreviewModalOpen: false,
+  setPreviewModalOpen: (isOpen) => set({ isPreviewModalOpen: isOpen }),
+loadTemplates: (templates) => set({ templates }),
+  saveTemplate: (name) => set((state) => {
+    idbGet('wedding_craft_templates').then((existing) => {
+      const templates = existing || [];
+      const newTemplate = { id: Date.now().toString(), name, document: JSON.parse(JSON.stringify(state.document)) };
+      templates.push(newTemplate);
+      idbSet('wedding_craft_templates', templates).then(() => {
+        useEditorStore.getState().loadTemplates(templates);
+      });
+    });
+    return state;
+  }),
 
   setEventData: (data) => set({ eventData: data }),
   

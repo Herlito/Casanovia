@@ -10,6 +10,7 @@ import { get, set } from 'idb-keyval';
 import { EventDataAdapter } from '../adapter/EventDataAdapter';
 import { WeddingDesignDocument } from '../types';
 import { X } from 'lucide-react';
+import { exportToHTML } from '../lib/exportHTML';
 
 interface WeddingCraftEditorProps {
   externalAPI: any;
@@ -19,6 +20,7 @@ interface WeddingCraftEditorProps {
 
 export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ externalAPI, onClose, initialDocument }) => {
   const { setEventData, initializeDocument } = useEditorStore();
+  const isPreviewModalOpen = useEditorStore((state) => state.isPreviewModalOpen);
   useKeyboardShortcuts();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,12 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
           initializeDocument(initialDocument);
         } else {
           // Check IndexedDB for draft
+          // Load templates
+          const savedTemplates = await get('wedding_craft_templates');
+          if (savedTemplates) {
+             useEditorStore.getState().loadTemplates(savedTemplates);
+          }
+          
           const draftKey = `wedding_design_draft_${eventData.eventId}`;
           const savedDraft = await get(draftKey);
           if (savedDraft) {
@@ -107,6 +115,30 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
       </div>
       
       <MobileNavigation />
+      {/* Preview Modal */}
+      {isPreviewModalOpen && (
+        <div className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-8">
+          <div className="bg-white rounded-2xl shadow-2xl w-full h-full max-w-md md:max-w-4xl flex flex-col overflow-hidden relative">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <h3 className="font-bold text-gray-800">Previsualización (Animaciones)</h3>
+              <button 
+                onClick={() => useEditorStore.getState().setPreviewModalOpen(false)}
+                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 bg-gray-50 flex items-center justify-center relative overflow-hidden">
+               <iframe 
+                  srcDoc={exportToHTML(useEditorStore.getState().document)} 
+                  className="w-full h-full border-none"
+                  sandbox="allow-scripts allow-same-origin"
+               />
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Close button float */}
       <button 
         onClick={onClose}

@@ -140,6 +140,15 @@ export const AnimationPanel: React.FC = () => {
       </div>
 
       <div className="p-3 space-y-4">
+
+        <button 
+          onClick={() => useEditorStore.getState().setPreviewModalOpen(true)}
+          className="w-full flex items-center justify-center space-x-2 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors shadow-sm font-semibold text-xs mt-2"
+        >
+          <Play className="w-3.5 h-3.5" />
+          <span>Aplicar y Previsualizar</span>
+        </button>
+
         {renderConfig('Entrada', 'entrance', ['fadeIn', 'slideUp', 'slideDown', 'slideLeft', 'slideRight', 'zoomIn', 'zoomOut', 'bounceIn'])}
         {renderConfig('Permanente (Loop)', 'permanent', ['pulse', 'float', 'spin', 'shake', 'swing', 'heartbeat'])}
         {renderConfig('Salida', 'exit', ['fadeOut', 'slideUpOut', 'slideDownOut', 'zoomOut'])}
