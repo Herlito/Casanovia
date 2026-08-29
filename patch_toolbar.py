@@ -1,25 +1,15 @@
 import re
 
-with open('src/components/floorplan/FloorPlanToolbar.tsx', 'r') as f:
+with open('src/WeddingCraft/components/Toolbar.tsx', 'r') as f:
     text = f.read()
 
-# Add useEffect to import
-text = text.replace("import React, { useState, useMemo } from 'react';", "import React, { useState, useMemo, useEffect } from 'react';")
+# We need to find the specific div that wraps the buttons, which starts with:
+# <div className="flex items-center space-x-2">
+#          <button onClick={handleAddText}
+pattern = r'<div className="flex items-center space-x-2">\s*<button onClick=\{handleAddText\}'
+replacement = '<div className="hidden md:flex items-center space-x-2">\n          <button onClick={handleAddText}'
 
-# Add the useEffect
-hook_code = """  const [isTablesCollapsed, setIsTablesCollapsed] = useState(false);
+text = re.sub(pattern, replacement, text)
 
-  // Contraer "Mesas Registradas" automáticamente cuando se selecciona un objeto
-  useEffect(() => {
-    if (selectedElement) {
-      setIsTablesCollapsed(true);
-    }
-  }, [selectedElement]);
-"""
-
-text = text.replace("  const [isTablesCollapsed, setIsTablesCollapsed] = useState(false);", hook_code)
-
-with open('src/components/floorplan/FloorPlanToolbar.tsx', 'w') as f:
+with open('src/WeddingCraft/components/Toolbar.tsx', 'w') as f:
     f.write(text)
-
-print("Toolbar patched!")

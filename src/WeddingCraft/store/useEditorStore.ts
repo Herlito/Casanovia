@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { produce } from 'immer';
 import { v4 as uuidv4 } from 'uuid';
 import { WeddingDesignDocument, CanvasElement, EventDataInput } from '../types';
+import { ThemePreset, predefinedThemes } from '../themes';
 
 interface EditorState {
   // Event Data (Read Only)
@@ -37,6 +38,18 @@ interface EditorState {
   undo: () => void;
   redo: () => void;
   commitHistory: () => void;
+  bringToFront: (id: string) => void;
+  sendToBack: (id: string) => void;
+  bringForward: (id: string) => void;
+  sendBackward: (id: string) => void;
+
+  
+  // Theme actions
+  setTheme: (theme: ThemePreset) => void;
+  applyThemeToExistingElements: (theme: ThemePreset) => void;
+  addCustomTheme: (theme: ThemePreset) => void;
+  updateCustomTheme: (id: string, theme: ThemePreset) => void;
+  deleteCustomTheme: (id: string) => void;
 }
 
 export const useEditorStore = create<EditorState>()((set, get) => ({
@@ -46,14 +59,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     id: uuidv4(),
     parentEventId: '',
     metadata: { createdAt: Date.now(), lastModified: Date.now(), version: '1.0.0' },
-    canvas: { width: 375, height: 812, backgroundColor: '#F5F1E8' },
-    theme: {
-      id: 'default-elegant',
-      name: 'Elegancia Dorada',
-      palette: { primary: '#D4AF37', secondary: '#7C8B6F', background: '#F5F1E8', text: '#2C3E2D', muted: '#8B9A8B', accent: '#D4AF37' },
-      typography: { displayFont: 'serif', bodyFont: 'sans-serif' },
-      decorations: { defaultShapes: [] }
-    },
+    canvas: { width: 375, height: 812, backgroundColor: predefinedThemes[0].palette.background },
+    theme: predefinedThemes[0],
     pages: [{ id: 'cover', name: 'Portada', elements: [] }],
     assetReferences: []
   },
@@ -122,5 +129,102 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       state.history.past.push(JSON.parse(JSON.stringify(state.document)));
       state.document = next;
     }
-  }))
+  })),
+
+  bringToFront: (id) => {
+    get().commitHistory();
+    set(produce((state: EditorState) => {
+      const elements = state.document.pages[0].elements;
+      const index = elements.findIndex(el => el.id === id);
+      if (index > -1 && index < elements.length - 1) {
+        const [el] = elements.splice(index, 1);
+        elements.push(el);
+      }
+    }));
+  },
+  sendToBack: (id) => {
+    get().commitHistory();
+    set(produce((state: EditorState) => {
+      const elements = state.document.pages[0].elements;
+      const index = elements.findIndex(el => el.id === id);
+      if (index > 0) {
+        const [el] = elements.splice(index, 1);
+        elements.unshift(el);
+      }
+    }));
+  },
+  bringForward: (id) => {
+    get().commitHistory();
+    set(produce((state: EditorState) => {
+      const elements = state.document.pages[0].elements;
+      const index = elements.findIndex(el => el.id === id);
+      if (index > -1 && index < elements.length - 1) {
+        const el = elements[index];
+        elements[index] = elements[index + 1];
+        elements[index + 1] = el;
+      }
+    }));
+  },
+  sendBackward: (id) => {
+    get().commitHistory();
+    set(produce((state: EditorState) => {
+      const elements = state.document.pages[0].elements;
+      const index = elements.findIndex(el => el.id === id);
+      if (index > 0) {
+        const el = elements[index];
+        elements[index] = elements[index - 1];
+        elements[index - 1] = el;
+      }
+    }));
+  },
+  setTheme: (theme) => {
+    get().commitHistory();
+    set(produce((state: EditorState) => {
+      state.document.theme = theme;
+      state.document.canvas.backgroundColor = theme.palette.background;
+    }));
+    document.documentElement.style.setProperty('--wc-primary', theme.palette.primary);
+    document.documentElement.style.setProperty('--wc-secondary', theme.palette.secondary);
+    document.documentElement.style.setProperty('--wc-bg', theme.palette.background);
+    document.documentElement.style.setProperty('--wc-text', theme.palette.text);
+  },
+  addCustomTheme: (theme) => set(produce((state: EditorState) => {
+    if (!state.document.customThemes) state.document.customThemes = [];
+    state.document.customThemes.push(theme);
+  })),
+  updateCustomTheme: (id, theme) => set(produce((state: EditorState) => {
+    if (!state.document.customThemes) return;
+    const index = state.document.customThemes.findIndex((t: any) => t.id === id);
+    if (index !== -1) {
+      state.document.customThemes[index] = theme;
+      if (state.document.theme.id === id) {
+        state.document.theme = theme;
+        state.document.canvas.backgroundColor = theme.palette.background;
+      }
+    }
+  })),
+  deleteCustomTheme: (id) => set(produce((state: EditorState) => {
+    if (!state.document.customThemes) return;
+    state.document.customThemes = state.document.customThemes.filter((t: any) => t.id !== id);
+    if (state.document.theme.id === id) {
+      state.document.theme = predefinedThemes[0];
+      state.document.canvas.backgroundColor = predefinedThemes[0].palette.background;
+    }
+  })),
+
+  applyThemeToExistingElements: (theme) => {
+    get().commitHistory();
+    set(produce((state: EditorState) => {
+      state.document.pages[0].elements.forEach(el => {
+        if (el.style.isDefaultStyle) {
+          if (el.type === 'text') {
+            el.style.fill = theme.palette.text;
+            el.style.fontFamily = theme.typography.displayFont;
+          } else if (el.type === 'svg-shape') {
+            el.style.fill = theme.palette.primary;
+          }
+        }
+      });
+    }));
+  }
 }));

@@ -3,16 +3,21 @@ import re
 with open('src/context/WeddingContext.tsx', 'r') as f:
     text = f.read()
 
-# Interface addition
-text = text.replace("showFloorPlanModal: boolean;\n  setShowFloorPlanModal: (show: boolean) => void;", "showFloorPlanModal: boolean;\n  setShowFloorPlanModal: (show: boolean) => void;\n  showWeddingCraftModal: boolean;\n  setShowWeddingCraftModal: (show: boolean) => void;")
+# Add setActiveWeddingId, selectWedding to WeddingContextType
+type_str = """  isPlannerOrAdmin: boolean;
+  canCreateWedding: boolean;
+  canManageUsers: boolean;
+  canEditActiveWedding: boolean;
+  showAuthModal: boolean;
+  setShowAuthModal: (show: boolean) => void;
+  showNewWeddingModal: boolean;
+  setShowNewWeddingModal: (show: boolean) => void;
+"""
+type_str_new = type_str + """  setActiveWeddingId: (id: string) => void;
+  selectWedding: (id: string) => void;
+"""
 
-# State addition
-text = text.replace("const [showFloorPlanModal, setShowFloorPlanModal] = useState(false);", "const [showFloorPlanModal, setShowFloorPlanModal] = useState(false);\n  const [showWeddingCraftModal, setShowWeddingCraftModal] = useState(false);")
-
-# Context value addition
-text = text.replace("showFloorPlanModal,\n        setShowFloorPlanModal,", "showFloorPlanModal,\n        setShowFloorPlanModal,\n        showWeddingCraftModal,\n        setShowWeddingCraftModal,")
+text = text.replace(type_str, type_str_new)
 
 with open('src/context/WeddingContext.tsx', 'w') as f:
     f.write(text)
-
-print("Context patched!")

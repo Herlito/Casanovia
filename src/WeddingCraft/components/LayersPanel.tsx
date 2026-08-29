@@ -1,8 +1,8 @@
 import React from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { Layers, Image as ImageIcon, Type, Eye, EyeOff, Lock, Unlock, Trash2 } from 'lucide-react';
+import { Layers, Image as ImageIcon, Type, Eye, EyeOff, Lock, Unlock, Trash2, Clock, Link2 } from 'lucide-react';
 
-export const LayersPanel: React.FC = () => {
+export const LayersPanel: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => {
   const { document, selectedElementIds, selectElements, updateElement, deleteElements } = useEditorStore();
   const elements = document.pages[0].elements;
 
@@ -13,13 +13,15 @@ export const LayersPanel: React.FC = () => {
     switch(type) {
       case 'text': return <Type className="w-3.5 h-3.5" />;
       case 'image': return <ImageIcon className="w-3.5 h-3.5" />;
+      case 'countdown-widget': return <Clock className="w-3.5 h-3.5 text-blue-500" />;
+      case 'interactive-button': return <Link2 className="w-3.5 h-3.5 text-blue-500" />;
       default: return <Layers className="w-3.5 h-3.5" />;
     }
   };
 
   return (
-    <div className="w-64 bg-white border-r border-[#E8DCCF] flex flex-col h-full wc-layers">
-      <div className="p-3 border-b border-[#E8DCCF] flex items-center justify-between bg-[#FAF8F5]">
+    <div className={`flex flex-col h-full wc-layers shadow-sm overflow-hidden ${isMobile ? "w-full bg-transparent border-none rounded-none" : "w-64 bg-white/80 backdrop-blur-xl border border-gray-200/50 rounded-2xl"}`}>
+      <div className="p-3 border-b border-gray-200/50 flex items-center justify-between bg-white/50 sticky top-0 z-10">
         <h3 className="text-xs font-bold text-[#2D2A26] flex items-center space-x-1.5">
           <Layers className="w-4 h-4 text-[#8B3A4A]" />
           <span>Capas (Layers)</span>
@@ -38,13 +40,13 @@ export const LayersPanel: React.FC = () => {
             className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
               selectedElementIds.includes(el.id) 
                 ? 'bg-rose-50 border border-rose-200 text-[#8B3A4A] font-semibold' 
-                : 'hover:bg-[#FAF8F5] border border-transparent text-[#524B42]'
+                : 'hover:bg-white/50 sticky top-0 z-10 border border-transparent text-[#524B42]'
             }`}
           >
             <div className="flex items-center space-x-2 truncate flex-1">
               {getIcon(el.type)}
               <span className="truncate">
-                {el.type === 'text' ? (el.content.text || 'Texto') : 'Elemento'}
+                {el.type === 'text' ? (el.content.text || 'Texto') : el.type === 'countdown-widget' ? 'Cuenta Regresiva' : el.type === 'interactive-button' ? 'Botón Ubicación' : el.type === 'image' ? 'Imagen' : 'Forma'}
                 {el.dataBinding && <span className="ml-1 text-[#D4AF37]" title="Vinculado al evento">🔗</span>}
               </span>
             </div>

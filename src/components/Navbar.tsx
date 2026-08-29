@@ -547,7 +547,7 @@ export const Navbar: React.FC = () => {
                           </div>
 
                                                       {/* 6. WeddingCraft Studio */}
-                            {(isLevel1Admin || isLevel3Planner) && (
+                            {isLevel1Admin && (
                               <button
                                 type="button"
                                 id="sandwich-btn-weddingcraft"

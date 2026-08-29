@@ -1,225 +1,121 @@
 import re
 
-with open('src/components/floorplan/FloorPlanCanvas.tsx', 'r') as f:
-    code = f.read()
+with open('src/WeddingCraft/components/CanvasStage.tsx', 'r') as f:
+    text = f.read()
 
-import_statement = "import { FurnitureSVGs } from './FurniturePaths';\n"
-if "FurnitureSVGs" not in code:
-    code = code.replace("import React,", import_statement + "import React,")
-
-# Replace single_chair and chair_row rendering
-old_chairs = """
-        case 'single_chair':
-        case 'chair_row': {
-          const count = elem.type === 'single_chair' ? 1 : (elem.chairCount || 4);
-          const chairW = elem.width / count;
-          
-          ctx.shadowColor = 'rgba(0,0,0,0.1)';
-          ctx.shadowBlur = 4;
-          
-          for (let i = 0; i < count; i++) {
-            const cx = -elem.width / 2 + (i * chairW) + (chairW / 2);
-            const w = chairW - 4;
-            const h = elem.height - 4;
-            const x = cx - w / 2;
-            const y = -elem.height / 2 + 2;
-            
-            ctx.fillStyle = elem.color || '#FFFFFF';
-            ctx.strokeStyle = isSelected ? '#8B3A4A' : '#D9CEBF';
-            ctx.lineWidth = 1.5;
-            
-            // Seat
-            ctx.beginPath();
-            ctx.roundRect(x + w*0.1, y + h*0.3, w*0.8, h*0.6, 4);
-            ctx.fill();
-            ctx.stroke();
-            
-            // Backrest
-            ctx.beginPath();
-            ctx.roundRect(x, y, w, h*0.4, 6);
-            ctx.fill();
-            ctx.stroke();
-          }
-          ctx.shadowColor = 'transparent';
-          
-          ctx.fillStyle = elem.textColor || '#2D2A26';
-          ctx.font = 'bold 11px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(elem.name || (count === 1 ? 'Silla' : 'Fila'), 0, count === 1 ? 0 : -elem.height / 2 - 10);
-          break;
-        }
+# Add editing state
+state_to_add = """  const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [editingTextValue, setEditingTextValue] = useState('');
+  const [editingTextPos, setEditingTextPos] = useState({ x: 0, y: 0, width: 0, height: 0, rotation: 0, fontSize: 16, fontFamily: '' });
 """
+text = text.replace("  const [stageSize, setStageSize] = useState({ width: 0, height: 0 });", state_to_add)
 
-new_chairs = """
-        case 'single_chair':
-        case 'chair_row': {
-          const count = elem.type === 'single_chair' ? 1 : (elem.chairCount || 4);
-          const chairW = elem.width / count;
-          const svgData = FurnitureSVGs.silla;
-          
-          ctx.shadowColor = 'rgba(0,0,0,0.1)';
-          ctx.shadowBlur = 4;
-          
-          for (let i = 0; i < count; i++) {
-            const cx = -elem.width / 2 + (i * chairW) + (chairW / 2);
-            const w = chairW - 4;
-            const h = elem.height - 4;
-            
-            ctx.save();
-            ctx.translate(cx, 0); // Center of this specific chair
-            
-            // The SVG draws from 0,0 to width,height. So we scale and translate.
-            const scaleX = w / svgData.width;
-            const scaleY = h / svgData.height;
-            ctx.scale(scaleX, scaleY);
-            ctx.translate(-svgData.width / 2, -svgData.height / 2);
-            
-            const p = new Path2D(svgData.path);
-            ctx.fillStyle = elem.color || '#FFFFFF';
-            ctx.fill(p, 'evenodd');
-            ctx.strokeStyle = isSelected ? '#8B3A4A' : '#D9CEBF';
-            // Need to divide line width by scale so it doesn't get huge or tiny
-            ctx.lineWidth = 1.5 / Math.min(scaleX, scaleY); 
-            ctx.stroke(p);
-            
-            ctx.restore();
-          }
-          ctx.shadowColor = 'transparent';
-          
-          ctx.fillStyle = elem.textColor || '#2D2A26';
-          ctx.font = 'bold 11px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(elem.name || (count === 1 ? 'Silla' : 'Fila'), 0, count === 1 ? 0 : -elem.height / 2 - 10);
-          break;
-        }
-"""
+# Update checkDeselect
+deselect_patch = """  const checkDeselect = (e: any) => {
+    const clickedOnEmpty = e.target === e.target.getStage() || e.target.id() === 'background-rect';
+    if (clickedOnEmpty) {
+      selectElements([]);
+      if (editingTextId) handleFinishEditing();
+    }
+  };
 
-# Replace sofas rendering
-old_sofas = """
-        case 'armchair_luis_xv':
-        case 'sofa_1_seat':
-        case 'sofa_2_seat': {
-          const count = (elem.type === 'sofa_2_seat' && elem.chairCount === undefined) ? 2 : (elem.chairCount || 1);
-          const seatW = elem.width / count;
-          const isLuisXV = elem.type === 'armchair_luis_xv';
-          
-          ctx.shadowColor = 'rgba(0,0,0,0.15)';
-          ctx.shadowBlur = 6;
-          
-          ctx.fillStyle = elem.color || '#F0E6D2';
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : '#D4A373';
-          ctx.lineWidth = 2;
-          
-          for (let i = 0; i < count; i++) {
-            const cx = -elem.width / 2 + (i * seatW) + (seatW / 2);
-            const w = seatW - (count > 1 ? 0 : 4);
-            const h = elem.height - 4;
-            const x = cx - w / 2;
-            const y = -elem.height / 2 + 2;
-            
-            if (isLuisXV) {
-              // Ornate Backrest
-              ctx.beginPath();
-              ctx.moveTo(x + w*0.1, y + h*0.4);
-              ctx.quadraticCurveTo(x + w/2, y - h*0.2, x + w*0.9, y + h*0.4);
-              ctx.lineTo(x + w*0.8, y + h);
-              ctx.lineTo(x + w*0.2, y + h);
-              ctx.closePath();
-              ctx.fill();
-              ctx.stroke();
-              
-              // Cushions
-              ctx.fillStyle = '#FFFFFF';
-              ctx.beginPath();
-              ctx.ellipse(x + w/2, y + h*0.6, w*0.35, h*0.2, 0, 0, 2*Math.PI);
-              ctx.fill();
-              ctx.stroke();
-              ctx.fillStyle = elem.color || '#F0E6D2';
-            } else {
-              // Standard Sofa / Armchair
-              ctx.beginPath();
-              ctx.roundRect(x, y, w, h, 8);
-              ctx.fill();
-              ctx.stroke();
-              
-              // Inner cushion
-              ctx.beginPath();
-              ctx.roundRect(x + 4, y + h*0.2, w - 8, h*0.7, 4);
-              ctx.stroke();
-              
-              // Armrests (only on outer edges if it's a multi-seat sofa)
-              if (i === 0) { // Left armrest
-                ctx.beginPath();
-                ctx.roundRect(x, y + h*0.1, w*0.2, h*0.8, 4);
-                ctx.stroke();
-              }
-              if (i === count - 1) { // Right armrest
-                ctx.beginPath();
-                ctx.roundRect(x + w*0.8, y + h*0.1, w*0.2, h*0.8, 4);
-                ctx.stroke();
-              }
-            }
-          }
-          
-          ctx.shadowColor = 'transparent';
-          
-          ctx.fillStyle = elem.textColor || '#2D2A26';
-          ctx.font = 'bold 11px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(elem.name || 'Butaca', 0, 0);
-          break;
-        }
-"""
+  const handleFinishEditing = () => {
+    if (editingTextId) {
+      updateElement(editingTextId, { content: { text: editingTextValue } });
+      setEditingTextId(null);
+    }
+  };"""
+text = text.replace("  const checkDeselect = (e: any) => {\n    const clickedOnEmpty = e.target === e.target.getStage() || e.target.id() === 'background-rect';\n    if (clickedOnEmpty) {\n      selectElements([]);\n    }\n  };", deselect_patch)
 
-new_sofas = """
-        case 'armchair_luis_xv':
-        case 'sofa_1_seat':
-        case 'sofa_2_seat': {
-          let svgData;
-          if (elem.type === 'armchair_luis_xv') {
-            svgData = FurnitureSVGs.armchair_luis_xv;
-          } else if (elem.type === 'sofa_1_seat') {
-            svgData = FurnitureSVGs.sofa_1_seat;
-          } else {
-            svgData = FurnitureSVGs.sofa_2_seat;
-          }
-          
-          ctx.shadowColor = 'rgba(0,0,0,0.15)';
-          ctx.shadowBlur = 6;
-          
-          ctx.save();
-          // We scale the whole SVG to fit width and height of the element
-          const scaleX = elem.width / svgData.width;
-          const scaleY = elem.height / svgData.height;
-          ctx.scale(scaleX, scaleY);
-          ctx.translate(-svgData.width / 2, -svgData.height / 2);
-          
-          const p = new Path2D(svgData.path);
-          ctx.fillStyle = elem.color || '#F0E6D2';
-          ctx.fill(p, 'evenodd');
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : '#D4A373';
-          ctx.lineWidth = 2 / Math.min(scaleX, scaleY);
-          ctx.stroke(p);
-          
-          ctx.restore();
-          
-          ctx.shadowColor = 'transparent';
-          ctx.fillStyle = elem.textColor || '#2D2A26';
-          ctx.font = 'bold 11px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(elem.name || 'Butaca', 0, -elem.height / 2 - 10);
-          break;
-        }
-"""
+# Update text rendering
+text_render = """                if (el.type === 'text') {
+                  const resolvedText = getResolvedText(el);
+                  const isEditing = editingTextId === el.id;
+                  let displayValue = resolvedText;
+                  if (el.style.textTransform === 'uppercase') displayValue = displayValue.toUpperCase();
+                  if (el.style.textTransform === 'lowercase') displayValue = displayValue.toLowerCase();
+                  if (el.style.textTransform === 'capitalize') displayValue = displayValue.replace(/\b\w/g, l => l.toUpperCase());
+                  
+                  return (
+                    <Text
+                      key={el.id}
+                      {...commonProps}
+                      visible={!isEditing && el.visible}
+                      text={displayValue}
+                      fontSize={el.style.fontSize || 24}
+                      fill={el.style.fill || el.style.color || '#000'}
+                      fontFamily={el.style.fontFamily || 'Arial'}
+                      fontStyle={`${el.style.fontStyle || 'normal'} ${el.style.fontWeight || 'normal'}`.trim()}
+                      align={el.style.align || 'left'}
+                      letterSpacing={el.style.letterSpacing || 0}
+                      lineHeight={el.style.lineHeight || 1.2}
+                      opacity={el.style.opacity ?? 1}
+                      shadowColor={el.style.shadow?.enabled ? el.style.shadow.color : undefined}
+                      shadowBlur={el.style.shadow?.enabled ? el.style.shadow.blur : 0}
+                      shadowOffsetX={el.style.shadow?.enabled ? el.style.shadow.offsetX : 0}
+                      shadowOffsetY={el.style.shadow?.enabled ? el.style.shadow.offsetY : 0}
+                      stroke={el.style.strokeEnabled ? el.style.stroke : undefined}
+                      strokeWidth={el.style.strokeEnabled ? el.style.strokeWidth : 0}
+                      onDblClick={(e) => {
+                         if (!el.dataBinding) {
+                           const textNode = e.target;
+                           const absPos = textNode.getAbsolutePosition();
+                           setEditingTextPos({
+                             x: absPos.x,
+                             y: absPos.y,
+                             width: textNode.width() * textNode.scaleX(),
+                             height: textNode.height() * textNode.scaleY(),
+                             rotation: textNode.rotation(),
+                             fontSize: (el.style.fontSize || 24) * textNode.scaleY(),
+                             fontFamily: el.style.fontFamily || 'Arial'
+                           });
+                           setEditingTextValue(el.content.text || '');
+                           setEditingTextId(el.id);
+                         }
+                      }}
+                    />
+                  );
+                }"""
 
-code = code.replace(old_chairs.strip(), new_chairs.strip())
-code = code.replace(old_sofas.strip(), new_sofas.strip())
+text = re.sub(r"                if \(el\.type === 'text'\) \{.*?return null;\n              \}\)", text_render + "\n                if (el.type === 'svg-shape') {\n                  return (\n                    <Rect\n                      key={el.id}\n                      {...commonProps}\n                      fill={el.style.fill || '#cccccc'}\n                    />\n                  );\n                }\n                return null;\n              })", text, flags=re.DOTALL)
 
-with open('src/components/floorplan/FloorPlanCanvas.tsx', 'w') as f:
-    f.write(code)
+# Add textarea
+textarea_html = """          </Stage>
+          {editingTextId && (
+            <textarea
+              value={editingTextValue}
+              onChange={(e) => setEditingTextValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') handleFinishEditing();
+              }}
+              onBlur={handleFinishEditing}
+              autoFocus
+              style={{
+                position: 'absolute',
+                top: editingTextPos.y + 'px',
+                left: editingTextPos.x + 'px',
+                width: editingTextPos.width + 'px',
+                height: editingTextPos.height + 20 + 'px',
+                fontSize: editingTextPos.fontSize + 'px',
+                fontFamily: `"${editingTextPos.fontFamily}", sans-serif`,
+                border: '1px solid #8B3A4A',
+                padding: '0px',
+                margin: '0px',
+                overflow: 'hidden',
+                background: 'transparent',
+                outline: 'none',
+                resize: 'none',
+                lineHeight: 'normal',
+                transform: `rotate(${editingTextPos.rotation}deg)`,
+                transformOrigin: 'left top',
+                color: '#2D2A26',
+                zIndex: 100
+              }}
+            />
+          )}
+        </div>"""
+text = text.replace("          </Stage>\n        </div>", textarea_html)
 
-print("Canvas patched!")
+with open('src/WeddingCraft/components/CanvasStage.tsx', 'w') as f:
+    f.write(text)

@@ -22,7 +22,8 @@ export interface WeddingDesignDocument {
     backgroundColor: string;
     backgroundImage?: string;
   };
-  theme: ThemeConfig;
+  theme: any;
+  customThemes?: any[];
   pages: Page[];
   assetReferences: string[];
 }
@@ -39,9 +40,20 @@ export interface BackgroundLayer {
   imageUrl?: string;
 }
 
+export interface AnimationConfig {
+  type: string;
+  duration: number;
+  delay: number;
+  easing: string;
+  trigger: 'onLoad' | 'onScroll' | 'onClick';
+  infinite?: boolean;
+  direction?: 'normal' | 'reverse' | 'alternate';
+  intensity?: number;
+}
+
 export interface CanvasElement {
   id: string;
-  type: 'text' | 'image' | 'svg-shape' | 'countdown-widget' | 'decorative-element';
+  type: 'text' | 'image' | 'svg-shape' | 'countdown-widget' | 'decorative-element' | 'interactive-button';
   transform: {
     x: number;
     y: number;
@@ -61,37 +73,58 @@ export interface CanvasElement {
     field: 'coupleNames' | 'eventDate' | 'venueName';
     format?: string; // e.g. "{{0}} & {{1}}"
   };
+  animation?: {
+    entrance?: AnimationConfig;
+    permanent?: AnimationConfig;
+    exit?: AnimationConfig;
+  };
 }
 
 export interface ElementStyle {
+  variant?: string;
+  numberColor?: string;
+  labelColor?: string;
+  titleColor?: string;
+  backgroundColor?: string;
+  containerBackgroundColor?: string;
+  containerOpacity?: number;
+  borderColor?: string;
+  gap?: number;
+  borderRadius?: number;
+  paddingX?: number;
+  paddingY?: number;
+  numberSize?: number;
+  labelSize?: number;
+  numberFont?: string;
+  labelFont?: string;
+  isDefaultStyle?: boolean;
   fontSize?: number;
   color?: string;
-  fontFamily?: string;
-  opacity?: number;
   fill?: string;
+  fontFamily?: string;
+  fontWeight?: number | string;
+  fontStyle?: 'normal' | 'italic';
+  align?: 'left' | 'center' | 'right' | 'justify';
+  letterSpacing?: number;
+  lineHeight?: number;
+  textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+  opacity?: number;
+  shadow?: { enabled: boolean; color: string; blur: number; offsetX: number; offsetY: number };
   stroke?: string;
   strokeWidth?: number;
-}
-
-export interface ThemeConfig {
-  id: string;
-  name: string;
-  palette: {
-    primary: string;
-    secondary: string;
-    background: string;
-    text: string;
-    muted: string;
-    accent: string;
-  };
-  typography: {
-    displayFont: string;
-    bodyFont: string;
-    scriptFont?: string;
-  };
-  decorations: {
-    borderStyle?: string;
-    patternOverlay?: string;
-    defaultShapes: string[];
+  strokeEnabled?: boolean;
+  maskId?: string | null;
+  frameId?: string | null;
+  cropScale?: number;
+  cropX?: number;
+  cropY?: number;
+  objectFit?: string;
+  filters?: {
+    brightness?: number;
+    contrast?: number;
+    saturate?: number;
+    grayscale?: number;
+    blur?: number;
+    sepia?: number;
   };
 }

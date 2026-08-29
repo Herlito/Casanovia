@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Toolbar } from './Toolbar';
 import { LayersPanel } from './LayersPanel';
-import { PropertiesPanel } from './PropertiesPanel';
+import { RightSidebar } from './RightSidebar';
+import { MobileNavigation } from './MobileNavigation';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { CanvasStage } from './CanvasStage';
 import { useEditorStore } from '../store/useEditorStore';
+import { get, set } from 'idb-keyval';
 import { EventDataAdapter } from '../adapter/EventDataAdapter';
 import { WeddingDesignDocument } from '../types';
 import { X } from 'lucide-react';
@@ -16,6 +19,7 @@ interface WeddingCraftEditorProps {
 
 export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ externalAPI, onClose, initialDocument }) => {
   const { setEventData, initializeDocument } = useEditorStore();
+  useKeyboardShortcuts();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,11 +38,17 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
         if (initialDocument) {
           initializeDocument(initialDocument);
         } else {
-          // Check local storage for draft
+          // Check IndexedDB for draft
           const draftKey = `wedding_design_draft_${eventData.eventId}`;
-          const savedDraft = localStorage.getItem(draftKey);
+          const savedDraft = await get(draftKey);
           if (savedDraft) {
-            initializeDocument(JSON.parse(savedDraft));
+            // Support both stringified and plain objects depending on how it was saved
+            try {
+               const parsed = typeof savedDraft === 'string' ? JSON.parse(savedDraft) : savedDraft;
+               initializeDocument(parsed);
+            } catch (e) {
+               console.warn("Failed to parse saved draft", e);
+            }
           }
           // Else relies on the store's default document
         }
@@ -52,12 +62,14 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
 
     init();
 
-    // Auto-save effect logic could go here or in the store
+    // Auto-save effect logic using IndexedDB
     const saveInterval = setInterval(() => {
       const state = useEditorStore.getState();
       if (state.eventData) {
         const draftKey = `wedding_design_draft_${state.eventData.eventId}`;
-        localStorage.setItem(draftKey, JSON.stringify(state.document));
+        set(draftKey, JSON.stringify(state.document)).catch(e => {
+            console.warn('Failed to save draft to IndexedDB:', e);
+        });
       }
     }, 30000); // 30s autosave
 
@@ -86,14 +98,15 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-gray-50 flex flex-col wc-editor-root font-sans">
+    <div className="fixed inset-0 z-[9999] bg-[#f2f2f7] flex flex-col wc-editor-root font-sans">
       <Toolbar />
-      <div className="flex-1 flex overflow-hidden">
-        <LayersPanel />
+      <div className="flex-1 flex overflow-hidden p-0 md:p-3 md:gap-3">
+        <div className="hidden md:flex flex-col h-full"><LayersPanel /></div>
         <CanvasStage />
-        <PropertiesPanel />
+        <div className="hidden md:flex flex-col h-full"><RightSidebar /></div>
       </div>
       
+      <MobileNavigation />
       {/* Close button float */}
       <button 
         onClick={onClose}

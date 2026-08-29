@@ -127,10 +127,10 @@ const MainLayout: React.FC = () => {
         <WeddingCraftEditor
           externalAPI={{
             getEventData: () => ({
-              eventId: settings?.id || 'demo_event',
+              eventId: (settings as any)?.id || 'demo_event',
               coupleNames: [settings?.coupleNames?.split(' & ')[0] || 'Novio', settings?.coupleNames?.split(' & ')[1] || 'Novia'],
-              eventDate: settings?.date || new Date().toISOString(),
-              venueName: settings?.ceremonyVenue || 'Lugar',
+              eventDate: settings?.weddingDate || new Date().toISOString(),
+              venueName: settings?.ceremonyVenue?.name || 'Lugar',
             })
           }}
           onClose={() => setShowWeddingCraftModal(false)}

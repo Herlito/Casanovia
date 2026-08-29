@@ -229,11 +229,11 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
                   {/* RSVP Indicator & Unassign */}
                   <div className="shrink-0 flex items-center space-x-1">
                     {guest.rsvpStatus === 'confirmed' ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" title="Confirmado" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600"  />
                     ) : guest.rsvpStatus === 'declined' ? (
-                      <XCircle className="w-3.5 h-3.5 text-rose-500" title="Declinó" />
+                      <XCircle className="w-3.5 h-3.5 text-rose-500"  />
                     ) : (
-                      <Clock className="w-3.5 h-3.5 text-amber-500" title="Pendiente" />
+                      <Clock className="w-3.5 h-3.5 text-amber-500"  />
                     )}
                     
                     {isAssigned && (

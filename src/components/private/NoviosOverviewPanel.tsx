@@ -25,7 +25,7 @@ import {
 import { Guest, WeddingTask, BudgetItem } from '../../types';
 
 interface NoviosOverviewPanelProps {
-  onNavigateTab: (tab: 'guests' | 'seating' | 'vendors' | 'budget' | 'timeline' | 'checklist' | 'settings' | 'invitations') => void;
+  onNavigateTab: (tab: 'guests' | 'seating' | 'vendors' | 'budget' | 'timeline' | 'checklist' | 'settings') => void;
 }
 
 export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavigateTab }) => {

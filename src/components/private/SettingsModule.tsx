@@ -655,11 +655,11 @@ export const SettingsModule: React.FC = () => {
                 <label className="block font-semibold text-[#524B42] mb-1">Enlace de Google Maps / Waze</label>
                 <input
                   type="text"
-                  value={formData.ceremonyVenue.googleMapsUrl || formData.ceremonyVenue.mapUrl || ''}
+                  value={formData.ceremonyVenue.googleMapsUrl || ''}
                   disabled={formData.hasReligiousCeremony === false}
                   onChange={(e) => setFormData({
                     ...formData,
-                    ceremonyVenue: { ...formData.ceremonyVenue, googleMapsUrl: e.target.value, mapUrl: e.target.value }
+                    ceremonyVenue: { ...formData.ceremonyVenue, googleMapsUrl: e.target.value }
                   })}
                   className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] disabled:bg-stone-200"
                 />
@@ -718,10 +718,10 @@ export const SettingsModule: React.FC = () => {
                 <label className="block font-semibold text-[#524B42] mb-1">Enlace de Google Maps / Waze</label>
                 <input
                   type="text"
-                  value={formData.receptionVenue.mapUrl}
+                  value={formData.receptionVenue.googleMapsUrl || ''}
                   onChange={(e) => setFormData({
                     ...formData,
-                    receptionVenue: { ...formData.receptionVenue, mapUrl: e.target.value }
+                    receptionVenue: { ...formData.receptionVenue, googleMapsUrl: e.target.value }
                   })}
                   className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
                 />

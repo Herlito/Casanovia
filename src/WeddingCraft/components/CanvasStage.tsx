@@ -1,5 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Stage, Layer, Text, Rect, Transformer, Circle } from 'react-konva';
+import { CanvasImage } from './CanvasImage';
+import { CanvasCountdown } from './CanvasCountdown';
+import { CanvasInteractiveButton } from './CanvasInteractiveButton';
+
 import { useEditorStore } from '../store/useEditorStore';
 import { CanvasElement } from '../types';
 
@@ -8,6 +12,10 @@ export const CanvasStage: React.FC = () => {
   const stageRef = useRef<any>(null);
   const trRef = useRef<any>(null);
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [editingTextValue, setEditingTextValue] = useState('');
+  const [editingTextPos, setEditingTextPos] = useState({ x: 0, y: 0, width: 0, height: 0, rotation: 0, fontSize: 16, fontFamily: '' });
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   const elements = document.pages[0].elements;
@@ -28,6 +36,35 @@ export const CanvasStage: React.FC = () => {
     return () => window.removeEventListener('resize', checkSize);
   }, []);
 
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if editing text or typing in an input
+      if (editingTextId || e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (selectedElementIds.length === 1) {
+        const id = selectedElementIds[0];
+        if (e.key === ']' && e.ctrlKey) {
+          e.preventDefault();
+          useEditorStore.getState().bringToFront(id);
+        } else if (e.key === '[' && e.ctrlKey) {
+          e.preventDefault();
+          useEditorStore.getState().sendToBack(id);
+        } else if (e.key === ']') {
+          e.preventDefault();
+          useEditorStore.getState().bringForward(id);
+        } else if (e.key === '[') {
+          e.preventDefault();
+          useEditorStore.getState().sendBackward(id);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedElementIds, editingTextId]);
+
   // Update transformer when selection changes
   useEffect(() => {
     if (trRef.current && stageRef.current) {
@@ -41,10 +78,61 @@ export const CanvasStage: React.FC = () => {
     }
   }, [selectedElementIds, elements]);
 
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (eventData?.isReadOnly) return;
+    
+    stageRef.current?.setPointersPositions(e);
+    const pointerPosition = stageRef.current?.getPointerPosition();
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const src = ev.target?.result as string;
+          const img = new Image();
+          img.onload = () => {
+             useEditorStore.getState().addElement({
+                type: 'image',
+                content: { src, originalSrc: src, naturalWidth: img.width, naturalHeight: img.height },
+                style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
+                transform: { 
+                  x: pointerPosition ? pointerPosition.x : 50, 
+                  y: pointerPosition ? pointerPosition.y : 50, 
+                  width: Math.min(img.width, 200), 
+                  height: Math.min(img.height, 200 * (img.height / img.width)), 
+                  rotation: 0, scaleX: 1, scaleY: 1 
+                },
+                zIndex: 15,
+                locked: false,
+                visible: true
+             });
+          };
+          img.src = src;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
   const checkDeselect = (e: any) => {
     const clickedOnEmpty = e.target === e.target.getStage() || e.target.id() === 'background-rect';
     if (clickedOnEmpty) {
       selectElements([]);
+      if (editingTextId) handleFinishEditing();
+    }
+  };
+
+  const handleFinishEditing = () => {
+    if (editingTextId) {
+      updateElement(editingTextId, { content: { ...document.pages[0].elements.find(e => e.id === editingTextId)?.content, text: editingTextValue } });
+      setEditingTextId(null);
     }
   };
 
@@ -61,11 +149,13 @@ export const CanvasStage: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 bg-[#F5F1E8] relative overflow-hidden flex items-center justify-center wc-canvas-container" ref={containerRef}>
+    <div className="flex-1 bg-[#F5F1E8] relative overflow-hidden flex items-center justify-center wc-canvas-container" ref={containerRef} onDragOver={handleDragOver} onDrop={handleDrop}>
       {stageSize.width > 0 && (
         <div className="shadow-2xl bg-white relative" style={{ width: canvasConfig.width, height: canvasConfig.height }}>
           <Stage
             width={canvasConfig.width}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
             height={canvasConfig.height}
             onMouseDown={checkDeselect}
             onTouchStart={checkDeselect}
@@ -125,14 +215,50 @@ export const CanvasStage: React.FC = () => {
                 };
 
                 if (el.type === 'text') {
+                  const resolvedText = getResolvedText(el);
+                  const isEditing = editingTextId === el.id;
+                  let displayValue = resolvedText;
+                  if (el.style.textTransform === 'uppercase') displayValue = displayValue.toUpperCase();
+                  if (el.style.textTransform === 'lowercase') displayValue = displayValue.toLowerCase();
+                  if (el.style.textTransform === 'capitalize') displayValue = displayValue.replace(/\b\w/g, l => l.toUpperCase());
+                  
                   return (
                     <Text
                       key={el.id}
                       {...commonProps}
-                      text={getResolvedText(el)}
+                      visible={!isEditing && el.visible}
+                      text={displayValue}
                       fontSize={el.style.fontSize || 24}
-                      fill={el.style.fill || '#000'}
+                      fill={el.style.fill || el.style.color || '#000'}
                       fontFamily={el.style.fontFamily || 'Arial'}
+                      fontStyle={`${el.style.fontStyle || 'normal'} ${el.style.fontWeight || 'normal'}`.trim()}
+                      align={el.style.align || 'left'}
+                      letterSpacing={el.style.letterSpacing || 0}
+                      lineHeight={el.style.lineHeight || 1.2}
+                      opacity={el.style.opacity ?? 1}
+                      shadowColor={el.style.shadow?.enabled ? el.style.shadow.color : undefined}
+                      shadowBlur={el.style.shadow?.enabled ? el.style.shadow.blur : 0}
+                      shadowOffsetX={el.style.shadow?.enabled ? el.style.shadow.offsetX : 0}
+                      shadowOffsetY={el.style.shadow?.enabled ? el.style.shadow.offsetY : 0}
+                      stroke={el.style.strokeEnabled ? el.style.stroke : undefined}
+                      strokeWidth={el.style.strokeEnabled ? el.style.strokeWidth : 0}
+                      onDblClick={(e) => {
+                         if (!el.dataBinding) {
+                           const textNode = e.target;
+                           const absPos = textNode.getAbsolutePosition();
+                           setEditingTextPos({
+                             x: absPos.x,
+                             y: absPos.y,
+                             width: textNode.width() * textNode.scaleX(),
+                             height: textNode.height() * textNode.scaleY(),
+                             rotation: textNode.rotation(),
+                             fontSize: (el.style.fontSize || 24) * textNode.scaleY(),
+                             fontFamily: el.style.fontFamily || 'Arial'
+                           });
+                           setEditingTextValue(el.content.text || '');
+                           setEditingTextId(el.id);
+                         }
+                      }}
                     />
                   );
                 }
@@ -143,6 +269,37 @@ export const CanvasStage: React.FC = () => {
                       key={el.id}
                       {...commonProps}
                       fill={el.style.fill || '#cccccc'}
+                    />
+                  );
+                }
+                
+                if (el.type === 'image') {
+                  return (
+                    <CanvasImage 
+                      key={el.id}
+                      el={el}
+                      commonProps={commonProps}
+                      themePrimaryColor={document.theme.palette.primary}
+                    />
+                  );
+                }
+                
+                if (el.type === 'countdown-widget') {
+                  return (
+                    <CanvasCountdown
+                      key={el.id}
+                      el={el}
+                      commonProps={commonProps}
+                    />
+                  );
+                }
+                
+                if (el.type === 'interactive-button') {
+                  return (
+                    <CanvasInteractiveButton
+                      key={el.id}
+                      el={el}
+                      commonProps={commonProps}
                     />
                   );
                 }
@@ -165,6 +322,38 @@ export const CanvasStage: React.FC = () => {
               />
             </Layer>
           </Stage>
+          {editingTextId && (
+            <textarea
+              value={editingTextValue}
+              onChange={(e) => setEditingTextValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') handleFinishEditing();
+              }}
+              onBlur={handleFinishEditing}
+              autoFocus
+              style={{
+                position: 'absolute',
+                top: editingTextPos.y + 'px',
+                left: editingTextPos.x + 'px',
+                width: Math.max(200, editingTextPos.width) + 'px',
+                height: Math.max(50, editingTextPos.height + 20) + 'px',
+                fontSize: editingTextPos.fontSize + 'px',
+                fontFamily: `"${editingTextPos.fontFamily}", sans-serif`,
+                border: '1px solid #8B3A4A',
+                padding: '0px',
+                margin: '0px',
+                overflow: 'hidden',
+                background: 'transparent',
+                outline: 'none',
+                resize: 'none',
+                lineHeight: 'normal',
+                transform: `rotate(${editingTextPos.rotation}deg)`,
+                transformOrigin: 'left top',
+                color: '#2D2A26',
+                zIndex: 100
+              }}
+            />
+          )}
         </div>
       )}
     </div>

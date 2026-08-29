@@ -99,6 +99,7 @@ interface WeddingContextType {
   setShowAuthModal: (show: boolean) => void;
   showNewWeddingModal: boolean;
   setShowNewWeddingModal: (show: boolean) => void;
+  setActiveWeddingId: (id: string) => void;
   showUserManagementModal: boolean;
   setShowUserManagementModal: (show: boolean) => void;
   showShareModal: boolean;
@@ -2312,6 +2313,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         userCreatedWeddings,
         activeWeddingId,
         activeWedding,
+        setActiveWeddingId,
         selectWedding,
         createNewWedding,
         deleteWedding,

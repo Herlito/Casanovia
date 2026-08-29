@@ -1,11 +1,27 @@
 import re
 
-with open('src/types.ts', 'r') as f:
-    code = f.read()
+with open('src/WeddingCraft/types.ts', 'r') as f:
+    text = f.read()
 
-code = code.replace("  showBankDetails?: boolean; // Toggle si se muestra o no la información bancaria en la Web de Invitados",
-                    "  showGiftRegistry?: boolean;\n  giftRegistryTitle?: string;\n  giftRegistryMessage?: string;\n  showBankDetails?: boolean; // Toggle si se muestra o no la información bancaria en la Web de Invitados")
+# Add new properties to ElementStyle
+old_style = "export interface ElementStyle {"
+new_style = """export interface ElementStyle {
+  variant?: string;
+  numberColor?: string;
+  labelColor?: string;
+  titleColor?: string;
+  backgroundColor?: string;
+  borderColor?: string;
+  gap?: number;
+  borderRadius?: number;
+  paddingX?: number;
+  paddingY?: number;
+  numberSize?: number;
+  labelSize?: number;
+  numberFont?: string;
+  labelFont?: string;"""
 
-with open('src/types.ts', 'w') as f:
-    f.write(code)
-print("Updated types")
+text = text.replace(old_style, new_style)
+
+with open('src/WeddingCraft/types.ts', 'w') as f:
+    f.write(text)

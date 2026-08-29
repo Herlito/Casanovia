@@ -110,6 +110,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
       phase: newPhase,
       priority: newPriority,
       assignee: newAssignee,
+      isCompleted: false
     });
     setNewTitle('');
     setShowAddForm(false);

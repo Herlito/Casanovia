@@ -279,7 +279,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   if (!isOpen) return null;
 
   const weddingTitle =
-    activeWedding?.title ||
+    activeWedding?.coupleNames ||
     settings.coupleNames ||
     `${settings.brideName || ''} & ${settings.groomName || ''}`.trim() ||
     'Evento Actual';
