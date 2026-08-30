@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, initializeFirestore, doc, getDoc, setLogLevel } from 'firebase/firestore';
 
-setLogLevel('error');
+setLogLevel('silent');
 import { getStorage } from 'firebase/storage';
 import firebaseConfig from '../../firebase-applet-config.json';
 

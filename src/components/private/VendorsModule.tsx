@@ -24,7 +24,8 @@ import {
 } from 'lucide-react';
 
 export const VendorsModule: React.FC = () => {
-  const { 
+  const {
+    appTheme, 
     vendors, 
     addVendor, 
     updateVendor, 
@@ -35,6 +36,7 @@ export const VendorsModule: React.FC = () => {
     isPlannerOrAdmin,
     currentUser
   } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -130,7 +132,7 @@ export const VendorsModule: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white rounded-2xl p-4 border border-[#E8DCCF] shadow-2xs">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 border border-[#E8DCCF] shadow-2xs" : "bg-white rounded-2xl p-4 border border-[#E8DCCF] shadow-2xs"}>
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-bold text-[#7A7268] uppercase tracking-wider">Proveedores</span>
             <div className="w-7 h-7 rounded-lg bg-amber-50 text-[#D4AF37] flex items-center justify-center">
@@ -145,7 +147,7 @@ export const VendorsModule: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 border border-[#E8DCCF] shadow-2xs">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 border border-[#E8DCCF] shadow-2xs" : "bg-white rounded-2xl p-4 border border-[#E8DCCF] shadow-2xs"}>
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-bold text-[#7A7268] uppercase tracking-wider">Total Contratado</span>
             <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
@@ -160,7 +162,7 @@ export const VendorsModule: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 border border-[#E8DCCF] shadow-2xs">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 border border-[#E8DCCF] shadow-2xs" : "bg-white rounded-2xl p-4 border border-[#E8DCCF] shadow-2xs"}>
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-bold text-[#7A7268] uppercase tracking-wider">Pagado / Anticipos</span>
             <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -175,7 +177,7 @@ export const VendorsModule: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 border border-[#E8DCCF] shadow-2xs">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 border border-[#E8DCCF] shadow-2xs" : "bg-white rounded-2xl p-4 border border-[#E8DCCF] shadow-2xs"}>
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-bold text-[#7A7268] uppercase tracking-wider">Saldo por Liquidar</span>
             <div className="w-7 h-7 rounded-lg bg-rose-50 text-[#8B3A4A] flex items-center justify-center">
@@ -192,7 +194,7 @@ export const VendorsModule: React.FC = () => {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white rounded-2xl p-4 border border-[#E8DCCF] shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 border border-[#E8DCCF] shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3" : "bg-white rounded-2xl p-4 border border-[#E8DCCF] shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3"}>
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
           <input
@@ -232,7 +234,7 @@ export const VendorsModule: React.FC = () => {
 
       {/* Vendors Grid */}
       {filteredVendors.length === 0 ? (
-        <div className="bg-white rounded-2xl p-10 border border-[#E8DCCF] text-center space-y-3">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-10 border border-[#E8DCCF] text-center space-y-3" : "bg-white rounded-2xl p-10 border border-[#E8DCCF] text-center space-y-3"}>
           <div className="w-12 h-12 rounded-2xl bg-[#FAF8F5] border border-[#E8DCCF] text-stone-400 flex items-center justify-center mx-auto">
             <Building2 className="w-6 h-6" />
           </div>
@@ -266,7 +268,7 @@ export const VendorsModule: React.FC = () => {
             return (
               <div
                 key={vendor.id}
-                className="bg-[#FFFDFB] rounded-2xl p-5 border border-[#E8DCCF] shadow-xs flex flex-col justify-between space-y-4 hover:border-[#D4AF37] transition-all"
+                className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-[#E8DCCF] shadow-xs flex flex-col justify-between space-y-4 hover:border-[#D4AF37] transition-all" : "bg-[#FFFDFB] rounded-2xl p-5 border border-[#E8DCCF] shadow-xs flex flex-col justify-between space-y-4 hover:border-[#D4AF37] transition-all"}
               >
                 <div className="space-y-2.5">
                   {/* Top info and status */}
@@ -437,7 +439,7 @@ export const VendorsModule: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {vendorToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 border border-[#E8DCCF] shadow-2xl space-y-4">
+          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] max-w-sm w-full p-6 border border-[#E8DCCF] shadow-2xl space-y-4" : "bg-white rounded-2xl max-w-sm w-full p-6 border border-[#E8DCCF] shadow-2xl space-y-4"}>
             <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
               <AlertCircle className="w-5 h-5" />
             </div>

@@ -73,7 +73,8 @@ export function sortGuestsWithCompanions(guestList: Guest[]): Guest[] {
 }
 
 export const TableAssignmentModule: React.FC = () => {
-  const { 
+  const {
+    appTheme, 
     guests = [], 
     tables = [], 
     updateGuest, 
@@ -84,6 +85,7 @@ export const TableAssignmentModule: React.FC = () => {
     setShowFloorPlanModal,
     settings 
   } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   // State
   const [activeGuestTab, setActiveGuestTab] = useState<'unassigned' | 'all'>('unassigned');
@@ -568,7 +570,7 @@ export const TableAssignmentModule: React.FC = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         
         {/* Card 1: Cantidad de Mesas */}
-        <div className="bg-[#FFFDFB] rounded-2xl p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2" : "bg-[#FFFDFB] rounded-2xl p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2"}>
           <div className="flex items-center justify-between text-[#8C8276]">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Cantidad de Mesas</span>
             <div className="w-7 h-7 rounded-lg bg-rose-50 text-[#8B3A4A] flex items-center justify-center">
@@ -589,7 +591,7 @@ export const TableAssignmentModule: React.FC = () => {
         </div>
 
         {/* Card 2: Total Capacidad */}
-        <div className="bg-[#FFFDFB] rounded-2xl p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2" : "bg-[#FFFDFB] rounded-2xl p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2"}>
           <div className="flex items-center justify-between text-[#8C8276]">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Capacidad Total</span>
             <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center">
@@ -611,7 +613,7 @@ export const TableAssignmentModule: React.FC = () => {
         </div>
 
         {/* Card 3: Invitados Asignados */}
-        <div className="bg-[#FFFDFB] rounded-2xl p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2" : "bg-[#FFFDFB] rounded-2xl p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2"}>
           <div className="flex items-center justify-between text-[#8C8276]">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Invitados con Mesa</span>
             <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -657,7 +659,7 @@ export const TableAssignmentModule: React.FC = () => {
         </div>
 
         {/* Card 5: Asientos Libres */}
-        <div className="bg-[#FFFDFB] rounded-2xl p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2" : "bg-[#FFFDFB] rounded-2xl p-4 sm:p-5 border border-[#E8DCCF] shadow-2xs space-y-2"}>
           <div className="flex items-center justify-between text-[#8C8276]">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Asientos Disponibles</span>
             <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-800 flex items-center justify-center">
@@ -685,7 +687,7 @@ export const TableAssignmentModule: React.FC = () => {
         {/* ========================================================
             LEFT COLUMN (LG: 5 COLS): GUEST SELECTION & BATCH ASSIGN
            ======================================================== */}
-        <div className="lg:col-span-5 bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DCCF] shadow-xs space-y-4">
+        <div className={isNeumorphic ? "lg:col-span-5 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-5 sm:p-6 border border-[#E8DCCF] shadow-xs space-y-4" : "lg:col-span-5 bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DCCF] shadow-xs space-y-4"}>
           
           {/* Guest Tabs & Header */}
           <div className="flex items-center justify-between border-b border-[#F0EAE1] pb-3 gap-2">
@@ -1013,7 +1015,7 @@ export const TableAssignmentModule: React.FC = () => {
         <div className="lg:col-span-7 space-y-4">
           
           {/* Controls Bar: Zones Filter & Presets */}
-          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E8DCCF] shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-4 sm:p-5 border border-[#E8DCCF] shadow-xs flex flex-wrap items-center justify-between gap-3" : "bg-white rounded-3xl p-4 sm:p-5 border border-[#E8DCCF] shadow-xs flex flex-wrap items-center justify-between gap-3"}>
             
             {/* Zone Filter */}
             <div className="flex items-center space-x-2">
@@ -1263,7 +1265,7 @@ export const TableAssignmentModule: React.FC = () => {
           </div>
 
           {filteredTables.length === 0 && (
-            <div className="text-center py-12 px-6 bg-white rounded-3xl border border-[#E8DCCF] shadow-xs space-y-3">
+            <div className={isNeumorphic ? "text-center py-12 px-6 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-[#E8DCCF] shadow-xs space-y-3" : "text-center py-12 px-6 bg-white rounded-3xl border border-[#E8DCCF] shadow-xs space-y-3"}>
               <UtensilsCrossed className="w-10 h-10 text-[#8B3A4A] mx-auto" />
               <h3 className="font-serif-display font-bold text-lg text-[#2D2A26]">
                 No hay mesas registradas en esta zona

@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 
 export const BudgetModule: React.FC = () => {
-  const { 
+  const {
+    appTheme, 
     budget, 
     vendors,
     syncBudgetWithVendors,
@@ -33,6 +34,7 @@ export const BudgetModule: React.FC = () => {
     canEditActiveWedding, 
     isLevel1Admin 
   } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<BudgetItem | null>(null);
@@ -214,7 +216,7 @@ export const BudgetModule: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1: Presupuesto Real */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-[#E8DCCF] shadow-2xs" : "bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs"}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-[#7A7268]">Presupuesto Total Real</span>
             <div className="flex items-center space-x-1">
@@ -281,7 +283,7 @@ export const BudgetModule: React.FC = () => {
         </div>
 
         {/* Card 2: Anticipos Pagados */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-[#E8DCCF] shadow-2xs" : "bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs"}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-[#7A7268]">Anticipos Pagados</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
@@ -297,7 +299,7 @@ export const BudgetModule: React.FC = () => {
         </div>
 
         {/* Card 3: Saldo Pendiente */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-[#E8DCCF] shadow-2xs" : "bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs"}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-[#7A7268]">Saldo por Liquidar</span>
             <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
@@ -313,7 +315,7 @@ export const BudgetModule: React.FC = () => {
         </div>
 
         {/* Card 4: Progress Bar Card */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs flex flex-col justify-between">
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-[#E8DCCF] shadow-2xs flex flex-col justify-between" : "bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs flex flex-col justify-between"}>
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-[#7A7268]">Progreso de Pago</span>
@@ -361,7 +363,7 @@ export const BudgetModule: React.FC = () => {
       </div>
 
       {/* Budget Table */}
-      <div className="bg-white rounded-2xl border border-[#E8DCCF] shadow-xs overflow-hidden">
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-[#E8DCCF] shadow-xs overflow-hidden" : "bg-white rounded-2xl border border-[#E8DCCF] shadow-xs overflow-hidden"}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#FAF7F2] text-[#7A7268] border-b border-[#E8DCCF] uppercase tracking-wider font-semibold">

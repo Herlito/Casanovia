@@ -79,7 +79,8 @@ const PHASES_METADATA: PhaseDef[] = [
 ];
 
 export const ChecklistModule: React.FC = () => {
-  const { 
+  const {
+    appTheme, 
     tasks, 
     addTask, 
     toggleTask, 
@@ -88,6 +89,7 @@ export const ChecklistModule: React.FC = () => {
     deleteTask, 
     resetTasksToMaster 
   } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskPhase, setNewTaskPhase] = useState<TaskPhase>('fase_1');
@@ -323,7 +325,7 @@ export const ChecklistModule: React.FC = () => {
           return (
             <div 
               key={phase.key} 
-              className="bg-white rounded-2xl border border-[#E8DCCF] shadow-2xs overflow-hidden transition-all"
+              className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-[#E8DCCF] shadow-2xs overflow-hidden transition-all" : "bg-white rounded-2xl border border-[#E8DCCF] shadow-2xs overflow-hidden transition-all"}
             >
               {/* Phase Header Bar */}
               <div 

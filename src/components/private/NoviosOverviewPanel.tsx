@@ -37,9 +37,11 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
     settings, 
     toggleTask,
     activeWedding,
+    appTheme,
     setShowShareModal,
     getShareableWeddingUrl
   } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [guestGroupFilter, setGuestGroupFilter] = useState<'todos' | 'protocolar' | 'familia' | 'amigos' | 'general'>('todos');
   const [copiedLink, setCopiedLink] = useState(false);
@@ -206,7 +208,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
         <div className="lg:col-span-6 space-y-6">
 
           {/* CARD 1: Resumen General (KPIs) */}
-          <div className="bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs relative overflow-hidden transition-all hover:shadow-md">
+          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] relative overflow-hidden transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs relative overflow-hidden transition-all hover:shadow-md"}>
             {/* Corner Floral Bouquet */}
             <FloralBouquet className="absolute -top-1 -right-1 z-10" />
 
@@ -303,7 +305,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
           <FloorPlanPreviewCard />
 
           {/* CARD 3: Control de Presupuesto */}
-          <div className="bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md">
+          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md"}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-[#F0EAE1]">
               <h3 className="font-serif-display text-lg sm:text-xl font-bold text-[#2D2A26]">
                 Control de Presupuesto
@@ -374,7 +376,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
         <div className="lg:col-span-6 space-y-6">
 
           {/* CARD 4: Estado de Invitados */}
-          <div className="bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs relative overflow-hidden transition-all hover:shadow-md">
+          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] relative overflow-hidden transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs relative overflow-hidden transition-all hover:shadow-md"}>
             {/* Corner Floral Bouquet */}
             <FloralBouquet className="absolute -top-1 -right-1 z-10" />
 
@@ -543,7 +545,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
           </div>
 
           {/* CARD 5: Tareas Próximas */}
-          <div className="bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md">
+          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md"}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-serif-display text-lg sm:text-xl font-bold text-[#2D2A26]">
                 Tareas Próximas
@@ -612,7 +614,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
               <button
                 type="button"
                 onClick={() => onNavigateTab('checklist')}
-                className="w-full py-2 bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#524B42] rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 border border-[#E8DCCF]"
+                className={isNeumorphic ? "w-full py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-xl text-xs font-bold text-gray-700 transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider" : "w-full py-2 bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#524B42] rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 border border-[#E8DCCF]"}
               >
                 <span>Abrir Gestor Maestro de Tareas</span>
                 <ArrowRight className="w-3.5 h-3.5 text-[#8B3A4A]" />

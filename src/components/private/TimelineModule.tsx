@@ -125,7 +125,9 @@ const TimingIcons = {
 };
 
 export const TimelineModule: React.FC = () => {
-  const { timeline, settings, addMilestone, updateMilestone, deleteMilestone } = useWedding();
+  const {
+    appTheme, timeline, settings, addMilestone, updateMilestone, deleteMilestone } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<TimelineMilestone | null>(null);
@@ -339,7 +341,7 @@ export const TimelineModule: React.FC = () => {
 
       {/* Empty State */}
       {filteredTimeline.length === 0 && (
-        <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-[#D9CEBF] p-6">
+        <div className={isNeumorphic ? "text-center py-16 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-dashed border-[#D9CEBF] p-6" : "text-center py-16 bg-white rounded-3xl border border-dashed border-[#D9CEBF] p-6"}>
           <Sparkles className="w-10 h-10 text-[#8B3A4A]/40 mx-auto mb-3" />
           <h3 className="font-serif-display text-lg font-bold text-[#2D2A26]">
             No hay hitos en esta categoría

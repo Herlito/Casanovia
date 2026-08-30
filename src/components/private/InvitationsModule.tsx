@@ -10,7 +10,9 @@ import {
 import { fabric } from 'fabric';
 
 export const InvitationsModule: React.FC = () => {
-  const { activeWeddingId, settings, currentUser, tables, guests } = useWedding();
+  const {
+    appTheme, activeWeddingId, settings, currentUser, tables, guests } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
   const [activeTab, setActiveTab] = useState<'templates' | 'text' | 'image' | 'tables'>('templates');
   const [isSaving, setIsSaving] = useState(false);
   
@@ -163,7 +165,7 @@ export const InvitationsModule: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-[#E8DCCF] shadow-xs overflow-hidden flex flex-col h-[80vh] min-h-[600px]">
+    <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-[#E8DCCF] shadow-xs overflow-hidden flex flex-col h-[80vh] min-h-[600px]" : "bg-white rounded-3xl border border-[#E8DCCF] shadow-xs overflow-hidden flex flex-col h-[80vh] min-h-[600px]"}>
       
       {/* Top Toolbar */}
       <div className="h-16 bg-[#FAF8F5] border-b border-[#E8DCCF] flex items-center justify-between px-6 shrink-0">

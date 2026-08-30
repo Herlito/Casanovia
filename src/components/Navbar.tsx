@@ -150,6 +150,7 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
             
             {/* Left Column: View Switcher (Only icons without text for PC, tablet and mobile) */}
+            <div className={`transition-opacity ${isPublicHomeLanding ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
             <div className="flex items-center space-x-2 z-20">
               {currentUser.isAuthenticated && (
                 <div className="bg-[#EFEAE2] p-1 rounded-full flex items-center border border-[#D9CEBF] shadow-inner animate-fadeIn">
@@ -186,6 +187,7 @@ export const Navbar: React.FC = () => {
                 </div>
               )}
             </div>
+            </div>
 
             {/* Center: In home landing without login, display Sandwich Menu in the middle of header; otherwise official logo or wedding badge */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex items-center justify-center pointer-events-auto">
@@ -196,7 +198,9 @@ export const Navbar: React.FC = () => {
                     type="button"
                     id="btn-sandwich-menu-center"
                     onClick={() => {
-                      if (!currentUser.isAuthenticated) {
+                      if (isPublicHomeLanding) {
+                        setShowAuthModal(true);
+                      } else if (!currentUser.isAuthenticated) {
                         setShowAuthModal(true);
                       } else {
                         setSandwichMenuOpen(!sandwichMenuOpen);
@@ -205,7 +209,7 @@ export const Navbar: React.FC = () => {
                     aria-label="Abrir Menú de Opciones"
                     className={
                       (isPublicHomeLanding)
-                        ? "p-3 sm:p-4 rounded-full bg-[#F5F5F5] text-gray-500 shadow-[5px_5px_15px_rgba(0,0,0,0.1),-5px_-5px_15px_rgba(255,255,255,1),inset_3px_3px_6px_rgba(0,0,0,0.05),inset_-3px_-3px_6px_rgba(255,255,255,1)] hover:shadow-[inset_5px_5px_15px_rgba(0,0,0,0.1),inset_-5px_-5px_15px_rgba(255,255,255,1)] transition-all duration-200 cursor-pointer border-none"
+                        ? "p-3 sm:p-4 rounded-full bg-[#EBEBEB] text-gray-700 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all duration-200 cursor-pointer border-none"
                         : `p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
                             sandwichMenuOpen
                               ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-md ring-2 ring-[#8B3A4A]/30'
@@ -278,7 +282,7 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center justify-end space-x-2 sm:space-x-3 ml-auto z-20">
 
               {/* Cloud Sync Status Indicator - Solo para Administrador de Sistema */}
-              {isLevel1Admin && (
+              {!isPublicHomeLanding && isLevel1Admin && (
                 <div 
                   className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-medium shadow-2xs"
                   title="Sincronización en la nube automática activa con Firestore"
@@ -289,7 +293,7 @@ export const Navbar: React.FC = () => {
               )}
 
               {/* Botón Compartir Web Invitados - Solo cuando está autenticado y permitido */}
-              {currentUser.isAuthenticated && !isLevel3Planner && !isHostUser && (
+              {!isPublicHomeLanding && currentUser.isAuthenticated && !isLevel3Planner && !isHostUser && (
                 <button
                   type="button"
                   id="btn-nav-share-wedding"
@@ -303,7 +307,7 @@ export const Navbar: React.FC = () => {
               )}
 
               {/* User Session Pill - Solo cuando está autenticado */}
-              {currentUser.isAuthenticated && (
+              {!isPublicHomeLanding && currentUser.isAuthenticated && (
                 <div className="flex items-center">
                   <div className="hidden sm:flex items-center pl-2 border-l border-[#D9CEBF]">
                     <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white border border-[#E8DCCF] text-[#2D2A26] text-xs font-semibold shadow-2xs">
@@ -321,7 +325,9 @@ export const Navbar: React.FC = () => {
                     type="button"
                     id="btn-sandwich-menu"
                     onClick={() => {
-                      if (!currentUser.isAuthenticated) {
+                      if (isPublicHomeLanding) {
+                        setShowAuthModal(true);
+                      } else if (!currentUser.isAuthenticated) {
                         setShowAuthModal(true);
                       } else {
                         setSandwichMenuOpen(!sandwichMenuOpen);
@@ -330,7 +336,7 @@ export const Navbar: React.FC = () => {
                     aria-label="Abrir Menú de Opciones"
                     className={
                       (isPublicHomeLanding)
-                        ? "p-3 sm:p-4 rounded-full bg-[#F5F5F5] text-gray-500 shadow-[5px_5px_15px_rgba(0,0,0,0.1),-5px_-5px_15px_rgba(255,255,255,1),inset_3px_3px_6px_rgba(0,0,0,0.05),inset_-3px_-3px_6px_rgba(255,255,255,1)] hover:shadow-[inset_5px_5px_15px_rgba(0,0,0,0.1),inset_-5px_-5px_15px_rgba(255,255,255,1)] transition-all duration-200 cursor-pointer border-none"
+                        ? "p-3 sm:p-4 rounded-full bg-[#EBEBEB] text-gray-700 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all duration-200 cursor-pointer border-none"
                         : `p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
                             sandwichMenuOpen
                               ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-md ring-2 ring-[#8B3A4A]/30'
@@ -347,33 +353,37 @@ export const Navbar: React.FC = () => {
                   </button>
 
                   {/* Sandwich Menu Floating Dropdown */}
-                  {sandwichMenuOpen && (
+                  {sandwichMenuOpen && !isPublicHomeLanding && (
                   <>
                     {/* Backdrop for click outside */}
                     <div 
-                      className="fixed inset-0 z-50 bg-black/20 backdrop-blur-2xs"
+                      className="fixed inset-0 z-50 bg-black/20 backdrop-blur-2xs hidden sm:block"
                       onClick={() => setSandwichMenuOpen(false)}
                     />
 
                     <div 
-                      className={`absolute right-0 top-full mt-2 ${
-                        currentUser.isAuthenticated ? 'w-72 sm:w-80 p-3 space-y-3' : 'w-56 p-2'
-                      } bg-white rounded-3xl shadow-2xl border border-[#E8DCCF] z-[60] animate-fadeIn`}
+                      className={`fixed inset-0 top-0 h-[100dvh] w-full sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:h-auto overflow-y-auto sm:overflow-visible ${
+                        currentUser.isAuthenticated ? 'sm:w-80 p-[2px] sm:p-3 space-y-2 sm:space-y-3' : 'w-full sm:w-56 p-2'
+                      } bg-[#EBEBEB] sm:rounded-3xl shadow-none sm:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border-none z-[60] animate-fadeIn`}
                     >
                       {currentUser.isAuthenticated ? (
                         <>
+                          {/* Mobile Header with Close Button */}
+                          <div className="sm:hidden flex items-center justify-between p-3 mb-2 border-b border-[#d1d1d1] sticky top-0 bg-[#EBEBEB] z-10">
+                            <span className="font-serif-display font-bold text-gray-800 text-lg">Menú</span>
+                            <button 
+                              onClick={() => setSandwichMenuOpen(false)}
+                              className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center text-gray-600 transition-all"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
                           {/* Menu Header: User & Wedding Context */}
-                          <div className="p-3 rounded-2xl bg-linear-to-r from-[#FAF8F5] to-[#F3EFEA] border border-[#EADDCE]">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-[#8C8276]">
-                                Menú del Sistema
-                              </span>
-                            </div>
-                            <div className="font-serif-display font-bold text-sm text-[#2D2A26] truncate">
+                          <div className="p-2.5 sm:p-3 rounded-2xl bg-[#EBEBEB] shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff]">
+                            <div className="font-serif-display font-bold text-sm text-[#2D2A26] truncate pb-1">
                               {settings.coupleNames}
                             </div>
                             <div className="text-[11px] text-[#7A7268] flex items-center justify-between mt-1 pt-1 border-t border-black/5">
-                              <span>Sesión:</span>
                               <span className="font-semibold text-[#8B3A4A]">
                                 {`${currentUser.username} (${isLevel1Admin ? 'Nivel 1 Super Admin' : isLevel3Planner ? 'Nivel 3 Planner' : 'Nivel 2 Anfitrión'})`}
                               </span>
@@ -394,9 +404,9 @@ export const Navbar: React.FC = () => {
                                 setSandwichMenuOpen(false);
                                 setShowShareModal(true);
                               }}
-                              className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-[#E8DCCF]/60 hover:border-[#8B3A4A]"
+                              className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
                             >
-                              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#8B3A4A] to-[#6E2937] text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center shrink-0 transition-transform text-[#8B3A4A]">
                                 <Share2 className="w-4 h-4 text-[#F7E7CE]" />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -425,9 +435,9 @@ export const Navbar: React.FC = () => {
                                   setSandwichMenuOpen(false);
                                   setShowUserManagementModal(true);
                                 }}
-                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-transparent hover:border-[#E8DCCF]"
+                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
                               >
-                                <div className="w-8 h-8 rounded-xl bg-[#2D2A26] text-[#D4AF37] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center shrink-0 transition-transform text-[#8B3A4A]">
                                   <Users className="w-4 h-4" />
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -455,9 +465,9 @@ export const Navbar: React.FC = () => {
                                   setSandwichMenuOpen(false);
                                   setViewMode('manual');
                                 }}
-                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-transparent hover:border-[#E8DCCF]"
+                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
                               >
-                                <div className="w-8 h-8 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs border border-gray-300">
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center shrink-0 transition-transform text-[#8B3A4A]">
                                   <FileText className="w-4 h-4" />
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -471,15 +481,15 @@ export const Navbar: React.FC = () => {
                               </button>
 
                               {/* Theme Selector (Admin Only) */}
-                              <div className="pt-2 mt-2 border-t border-[#E8DCCF]/60">
-                                <div className="text-[10px] font-bold text-gray-400 uppercase px-2.5 mb-2">Tema Visual Global</div>
-                                <div className="flex bg-[#F5F5F5] rounded-xl p-1 gap-1">
+                              <div className="pt-2 mt-2 border-t border-[#d1d1d1]">
+                                <div className="text-[10px] font-bold text-gray-500 uppercase px-2.5 mb-2">Tema Visual Global</div>
+                                <div className="flex bg-[#EBEBEB] rounded-xl p-1 gap-1 shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]">
                                   <button
                                     onClick={() => {
                                       setAppTheme('classic');
                                       setSandwichMenuOpen(false);
                                     }}
-                                    className={`flex-1 text-xs font-semibold py-1.5 rounded-lg transition-all ${appTheme === 'classic' ? 'bg-white shadow-sm text-[#8B3A4A]' : 'text-gray-500 hover:bg-white/50'}`}
+                                    className={`flex-1 text-xs font-semibold py-1.5 rounded-lg transition-all border-none ${appTheme === 'classic' ? 'bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-[#8B3A4A]' : 'text-gray-500 bg-transparent hover:text-gray-700'}`}
                                   >
                                     Classic
                                   </button>
@@ -488,7 +498,7 @@ export const Navbar: React.FC = () => {
                                       setAppTheme('neumorphic');
                                       setSandwichMenuOpen(false);
                                     }}
-                                    className={`flex-1 text-xs font-semibold py-1.5 rounded-lg transition-all ${appTheme === 'neumorphic' ? 'bg-white shadow-sm text-[#8B3A4A]' : 'text-gray-500 hover:bg-white/50'}`}
+                                    className={`flex-1 text-xs font-semibold py-1.5 rounded-lg transition-all border-none ${appTheme === 'neumorphic' ? 'bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-[#8B3A4A]' : 'text-gray-500 bg-transparent hover:text-gray-700'}`}
                                   >
                                     Soft / Precios
                                   </button>
@@ -509,9 +519,9 @@ export const Navbar: React.FC = () => {
                                   setShowAuthModal(true);
                                 }
                               }}
-                              className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-transparent hover:border-[#E8DCCF]"
+                              className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
                             >
-                              <div className="w-8 h-8 rounded-xl bg-[#8B3A4A] text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center shrink-0 transition-transform text-[#8B3A4A]">
                                 <PlusCircle className="w-4 h-4" />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -536,7 +546,7 @@ export const Navbar: React.FC = () => {
                                   setSandwichMenuOpen(false);
                                   setActiveView('tokens');
                                 }}
-                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-transparent hover:border-[#E8DCCF]"
+                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
                               >
                                 <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-amber-200 shadow-2xs">
                                   <ShoppingCart className="w-4 h-4" />
@@ -564,7 +574,7 @@ export const Navbar: React.FC = () => {
                                   setSandwichMenuOpen(false);
                                   setShowUploadedImagesModal(true);
                                 }}
-                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-transparent hover:border-[#E8DCCF]"
+                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
                               >
                                 <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-purple-200 shadow-2xs">
                                   <ImageIcon className="w-4 h-4" />
@@ -594,7 +604,7 @@ export const Navbar: React.FC = () => {
                                   setSandwichMenuOpen(false);
                                   setShowFloorPlanModal(true);
                                 }}
-                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-[#E8DCCF]/80 hover:border-[#8B3A4A] shadow-2xs"
+                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
                               >
                                 <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#8B3A4A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-rose-200 shadow-2xs">
                                   <MapIcon className="w-4 h-4" />
@@ -623,7 +633,7 @@ export const Navbar: React.FC = () => {
                                   setSandwichMenuOpen(false);
                                   setShowWeddingCraftModal(true);
                                 }}
-                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-[#E8DCCF]/80 hover:border-[#8B3A4A] shadow-2xs"
+                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
                               >
                                 <div className="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-pink-200 shadow-2xs">
                                   <LayoutTemplate className="w-4 h-4" />
@@ -674,7 +684,7 @@ export const Navbar: React.FC = () => {
                                 logout();
                                 setSandwichMenuOpen(false);
                               }}
-                              className="w-full py-2 px-3 rounded-xl bg-stone-100 hover:bg-rose-50 text-stone-600 hover:text-rose-700 text-xs font-semibold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+                              className="w-full py-2 px-3 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-stone-600 hover:text-rose-700 text-xs font-semibold flex items-center justify-center space-x-2 transition-all cursor-pointer border-none"
                             >
                               <LogOut className="w-3.5 h-3.5" />
                               <span>Cerrar Sesión ({currentUser.username})</span>

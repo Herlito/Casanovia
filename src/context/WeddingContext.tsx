@@ -904,7 +904,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } catch {
       // ignore
     }
-    window.location.href = '/';
+    setShowAuthModal(true); setViewMode('public');
   };
 
   // System Users CRUD (for Level 1 Admin)

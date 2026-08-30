@@ -68,7 +68,9 @@ type SortField = 'name' | 'role' | 'table' | 'none';
 type SortDirection = 'asc' | 'desc';
 
 export const GuestManagement: React.FC = () => {
-  const { guests, addGuest, updateGuest, deleteGuest, reorderGuests, importGuests, settings } = useWedding();
+  const {
+    appTheme, guests, addGuest, updateGuest, deleteGuest, reorderGuests, importGuests, settings } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [rsvpFilter, setRsvpFilter] = useState<string>('all');
@@ -681,7 +683,7 @@ export const GuestManagement: React.FC = () => {
       )}
 
       {/* Main Table: Lista de Invitados */}
-      <div className="bg-white rounded-2xl border border-[#E8DCCF] shadow-xs overflow-hidden">
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-[#E8DCCF] shadow-xs overflow-hidden" : "bg-white rounded-2xl border border-[#E8DCCF] shadow-xs overflow-hidden"}>
         
         {/* Table Title Bar */}
         <div className="bg-[#FAF8F5] px-4 py-3 border-b border-[#E8DCCF] flex flex-wrap items-center justify-between gap-2">
@@ -1077,7 +1079,7 @@ export const GuestManagement: React.FC = () => {
       </div>
 
       {/* Bottom Actions: Exportar Excel & Importar Datos */}
-      <div className="bg-white rounded-2xl border border-[#E8DCCF] p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-[#E8DCCF] p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4" : "bg-white rounded-2xl border border-[#E8DCCF] p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4"}>
         <div className="space-y-1">
           <h3 className="text-sm font-bold text-[#2D2A26] flex items-center space-x-2">
             <FileSpreadsheet className="w-4 h-4 text-[#8B3A4A]" />
