@@ -226,3 +226,83 @@
   50% { transform: translateX(100%); }
   100% { transform: translateX(200%); }
 }
+
+
+/* ==========================================================================
+   THEME: NEUMORPHIC OVERRIDES
+   ========================================================================== */
+html[data-theme="neumorphic"],
+body[data-theme="neumorphic"],
+[data-theme="neumorphic"] {
+  background-color: #EBEBEB !important;
+}
+
+[data-theme="neumorphic"] .bg-\[\#FDFBF7\],
+[data-theme="neumorphic"] .bg-white,
+[data-theme="neumorphic"] .bg-gray-50,
+[data-theme="neumorphic"] .bg-\[\#F5F5F5\] {
+  background-color: #EBEBEB !important;
+}
+
+/* Borders */
+[data-theme="neumorphic"] .border,
+[data-theme="neumorphic"] .border-\[\#E8DCCF\],
+[data-theme="neumorphic"] .border-\[\#D4D4D4\],
+[data-theme="neumorphic"] .border-gray-200,
+[data-theme="neumorphic"] .border-gray-300 {
+  border-color: transparent !important;
+}
+
+/* Convex Shadows (Cards, Modals) */
+[data-theme="neumorphic"] .shadow-2xl,
+[data-theme="neumorphic"] .shadow-xl,
+[data-theme="neumorphic"] .shadow-lg {
+  box-shadow: 10px 10px 20px #d1d1d1, -10px -10px 20px #ffffff !important;
+}
+
+[data-theme="neumorphic"] .shadow-md,
+[data-theme="neumorphic"] .shadow {
+  box-shadow: 6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff !important;
+}
+
+/* Concave Shadows (Inputs, internal areas) */
+[data-theme="neumorphic"] input,
+[data-theme="neumorphic"] textarea,
+[data-theme="neumorphic"] select,
+[data-theme="neumorphic"] .bg-gray-100 {
+  background-color: #EBEBEB !important;
+  box-shadow: inset 5px 5px 10px #d1d1d1, inset -5px -5px 10px #ffffff !important;
+  border-color: transparent !important;
+}
+
+[data-theme="neumorphic"] .shadow-inner {
+  box-shadow: inset 6px 6px 12px #d1d1d1, inset -6px -6px 12px #ffffff !important;
+}
+
+/* Specific elements to protect from override */
+[data-theme="neumorphic"] button.bg-\[\#8B3A4A\],
+[data-theme="neumorphic"] button.bg-\[\#2A1810\],
+[data-theme="neumorphic"] button.bg-black {
+  background-color: inherit; /* Will let tailwind apply original colors by not touching them, because we targeted .bg-white above */
+}
+
+/* "dandole prioridad a la optimización de los espacios sobretodo en la vista movil" */
+@media (max-width: 640px) {
+  [data-theme="neumorphic"] .p-6,
+  [data-theme="neumorphic"] .p-8,
+  [data-theme="neumorphic"] .sm\:p-8 {
+    padding: 1.25rem !important; /* 20px instead of 24px/32px */
+  }
+  
+  [data-theme="neumorphic"] .px-6,
+  [data-theme="neumorphic"] .px-8,
+  [data-theme="neumorphic"] .sm\:px-8 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  [data-theme="neumorphic"] .gap-6,
+  [data-theme="neumorphic"] .gap-8 {
+    gap: 1rem !important;
+  }
+}

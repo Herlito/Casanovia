@@ -80,6 +80,8 @@ const DEFAULT_ANONYMOUS_USER: AuthUser = {
 interface WeddingContextType {
   // Navigation & View
   viewMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual';
+  appTheme: 'neumorphic' | 'classic';
+  setAppTheme: (theme: 'neumorphic' | 'classic') => void;
   setViewMode: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual') => void;
   activeView: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual';
   setActiveView: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual') => void;
@@ -259,6 +261,31 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
     return false;
   };
+
+  
+  const [appTheme, setAppThemeState] = useState<'neumorphic' | 'classic'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('casanovia_app_theme');
+      if (saved === 'classic') return 'classic';
+    }
+    return 'neumorphic';
+  });
+
+  const setAppTheme = (theme: 'neumorphic' | 'classic') => {
+    setAppThemeState(theme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('casanovia_app_theme', theme);
+      document.body.setAttribute('data-theme', theme);
+    }
+  };
+
+  // Add an effect to set it initially
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.body.setAttribute('data-theme', appTheme);
+    }
+  }, [appTheme]);
+
 
   const [viewMode, setViewModeState] = useState<'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual'>(() => {
     if (isTokensUrlRequested()) {
@@ -2280,6 +2307,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       value={{
         viewMode,
         setViewMode,
+    appTheme,
+    setAppTheme,
         activeView: viewMode,
         setActiveView,
         

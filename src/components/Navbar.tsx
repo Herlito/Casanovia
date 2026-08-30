@@ -67,7 +67,9 @@ export const Navbar: React.FC = () => {
     setShowWeddingCraftModal,
     uploadedImages,
     getShareableWeddingUrl,
-    isPublicHomeLanding
+    isPublicHomeLanding,
+    appTheme,
+    setAppTheme,
   } = useWedding();
 
   const [sandwichMenuOpen, setSandwichMenuOpen] = useState(false);
@@ -445,7 +447,7 @@ export const Navbar: React.FC = () => {
                             )}
 
                             {/* Manual de Usuario (Solo Admin Nivel 1) */}
-                            {isLevel1Admin && (
+                            {isLevel1Admin && (<>
                               <button
                                 type="button"
                                 id="sandwich-btn-manual"
@@ -467,7 +469,33 @@ export const Navbar: React.FC = () => {
                                   </p>
                                 </div>
                               </button>
-                            )}
+
+                              {/* Theme Selector (Admin Only) */}
+                              <div className="pt-2 mt-2 border-t border-[#E8DCCF]/60">
+                                <div className="text-[10px] font-bold text-gray-400 uppercase px-2.5 mb-2">Tema Visual Global</div>
+                                <div className="flex bg-[#F5F5F5] rounded-xl p-1 gap-1">
+                                  <button
+                                    onClick={() => {
+                                      setAppTheme('classic');
+                                      setSandwichMenuOpen(false);
+                                    }}
+                                    className={`flex-1 text-xs font-semibold py-1.5 rounded-lg transition-all ${appTheme === 'classic' ? 'bg-white shadow-sm text-[#8B3A4A]' : 'text-gray-500 hover:bg-white/50'}`}
+                                  >
+                                    Classic
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setAppTheme('neumorphic');
+                                      setSandwichMenuOpen(false);
+                                    }}
+                                    className={`flex-1 text-xs font-semibold py-1.5 rounded-lg transition-all ${appTheme === 'neumorphic' ? 'bg-white shadow-sm text-[#8B3A4A]' : 'text-gray-500 hover:bg-white/50'}`}
+                                  >
+                                    Soft / Precios
+                                  </button>
+                                </div>
+                              </div>
+
+                            </>)}
 
                             {/* 2. Nueva Boda */}
                             <button
