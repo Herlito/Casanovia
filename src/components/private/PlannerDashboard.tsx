@@ -272,16 +272,17 @@ export const PlannerDashboard: React.FC = () => {
 
   const coupleInitials = getInitials(settings.coupleNames || 'Sofia & Alejandro');
 
-  const navTabs: { id: PlannerDashboardTab | 'floorplan'; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { id: 'panel', label: 'Panel', icon: LayoutDashboard },
+  const navTabs: { id: PlannerDashboardTab | 'floorplan' | 'public'; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { id: 'panel', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'settings', label: isPlannerOrAdmin ? 'Ajustes' : 'Ajustes Boda', icon: Settings },
+    { id: 'checklist', label: 'Tareas', icon: CheckSquare },
     { id: 'guests', label: 'Invitados', icon: Users },
     { id: 'seating', label: 'Mesas', icon: UtensilsCrossed },
-    { id: 'floorplan', label: 'Planos', icon: Map },
+    { id: 'floorplan', label: 'Plano', icon: Map },
+    { id: 'timeline', label: 'Cronograma', icon: Clock },
     { id: 'vendors', label: 'Proveedores', icon: Building2 },
     { id: 'budget', label: 'Presupuesto', icon: DollarSign },
-    { id: 'timeline', label: 'Cronograma', icon: Clock },
-    { id: 'checklist', label: 'Tareas', icon: CheckSquare },
-    { id: 'settings', label: isPlannerOrAdmin ? 'Ajustes' : 'Ajustes Boda', icon: Settings },
+    { id: 'public', label: 'Web Invitados', icon: ExternalLink },
   ];
 
   return (
@@ -451,7 +452,7 @@ export const PlannerDashboard: React.FC = () => {
             </div>
 
             {/* Nav Tabs - flex-wrap allows responsive adjustment to wrap onto the next row on mobile devices */}
-            <nav className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 w-full sm:w-auto">
+            <nav className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 w-full sm:w-auto mt-3 sm:mt-0">
               {navTabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 const Icon = tab.icon;
@@ -463,6 +464,11 @@ export const PlannerDashboard: React.FC = () => {
                     onClick={() => {
                       if (tab.id === 'floorplan') {
                         setShowFloorPlanModal(true);
+                      } else if (tab.id === 'public') {
+                        if (activeWeddingId) {
+                          window.history.pushState({}, '', `/?w=${activeWeddingId}`);
+                        }
+                        setViewMode('public');
                       } else {
                         setActiveTab(tab.id as PlannerDashboardTab);
                       }
@@ -479,7 +485,6 @@ export const PlannerDashboard: React.FC = () => {
                 );
               })}
             </nav>
-
           </div>
         </div>
       </header>
@@ -503,6 +508,8 @@ export const PlannerDashboard: React.FC = () => {
                   onClick={() => {
                     if (tab.id === 'floorplan') {
                       setShowFloorPlanModal(true);
+                    } else if (tab.id === 'public') {
+                      setViewMode('public');
                     } else {
                       setActiveTab(tab.id as PlannerDashboardTab);
                     }

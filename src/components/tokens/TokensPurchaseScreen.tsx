@@ -356,11 +356,11 @@ export const TokensPurchaseScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F4EE] text-[#2D2A26] selection:bg-[#E5B869]/30 selection:text-[#2D2A26]">
+    <div className="min-h-screen bg-[#EBEBEB] text-[#2D2A26] selection:bg-[#E5B869]/30 selection:text-[#2D2A26]">
       
       {/* Top Bar with Admin Controls */}
       {isLevel1Admin && (
-        <div className="bg-white border-b border-[#E8DCCF] px-4 py-2">
+        <div className="bg-[#EBEBEB] border-b border-[#E8DCCF] px-4 py-2">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#FAF3ED] text-[#8B3A4A] text-[11px] font-bold border border-[#E8DCCF]">
@@ -383,34 +383,27 @@ export const TokensPurchaseScreen: React.FC = () => {
       )}
 
       {/* Centered Logo & Header */}
-      <header className="pt-8 pb-6 px-4 text-center">
-        <div className="max-w-4xl mx-auto flex flex-col items-center justify-center space-y-2.5">
-          
-          {/* Centered Brand Emblem / Logo Icon */}
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-linear-to-tr from-[#2A1810] to-[#4A2E1B] flex items-center justify-center text-[#E5B869] shadow-md border-2 border-[#E5B869]/40">
+      <header className="pt-8 pb-10 px-4 text-center flex flex-col items-center">
+        {/* Neumorphic Heart Icon */}
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#EBEBEB] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] flex items-center justify-center mb-6">
             <svg 
-              className="w-7 h-7 sm:w-8 sm:h-8" 
+              className="w-8 h-8 sm:w-10 sm:h-10 text-gray-800" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
-              strokeWidth="1.75" 
+              strokeWidth="1.5" 
               strokeLinecap="round" 
               strokeLinejoin="round"
             >
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
             </svg>
-          </div>
-
-          <div className="flex items-center justify-center space-x-2">
-            <h1 className="text-2xl sm:text-3xl font-serif-display font-bold text-[#2A1810]">
-              Planes & Precios
-            </h1>
-          </div>
-
-          <p className="text-xs uppercase tracking-[0.25em] text-[#8C8276] font-bold">
-            Gestión nupcial digital
-          </p>
         </div>
+        <h1 className="font-serif-display text-3xl sm:text-[2.5rem] font-bold text-gray-900 mb-2">
+          Planes & Precios
+        </h1>
+        <p className="text-[10px] sm:text-xs font-bold tracking-[0.25em] text-gray-500 uppercase">
+          Gestión Nupcial Digital
+        </p>
       </header>
 
       {/* Main 2-Column Content Layout */}
@@ -420,94 +413,83 @@ export const TokensPurchaseScreen: React.FC = () => {
           {/* Left Column (Items Table / List): lg:col-span-8 */}
           <div className="lg:col-span-8 space-y-4">
             
-            {/* Table Header Bar (Warm Gold Bar matching Casanovia) */}
-            <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-3.5 rounded-xl bg-[#E5B869] text-[#2A1810] text-xs font-bold uppercase tracking-wider shadow-xs items-center">
+            {/* Table Header Bar (Neumorphic Inset) */}
+            <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-4 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-bold uppercase tracking-wider shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] items-center">
               <div className="col-span-9 sm:col-span-10">Servicio / Pack</div>
               <div className="col-span-3 sm:col-span-2 text-right">Precio</div>
             </div>
 
             {/* List of 4 Pricing Options */}
-            {PRICING_PLANS.map((plan) => {
-              const isSelected = selectedPlans[plan.id];
+            <div className="space-y-6">
+              {PRICING_PLANS.map((plan) => {
+                const isSelected = selectedPlans[plan.id];
+                return (
+                  <div 
+                    key={plan.id}
+                    onClick={() => togglePlanSelection(plan.id)}
+                    className={`bg-[#EBEBEB] rounded-[2rem] p-6 sm:p-8 flex flex-col sm:flex-row gap-6 cursor-pointer transition-all duration-300 ${
+                      isSelected 
+                        ? 'shadow-[inset_8px_8px_16px_#d1d1d1,inset_-8px_-8px_16px_#ffffff]'
+                        : 'shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff]'
+                    }`}
+                  >
+                    {/* Radio / Selection Circle */}
+                    <div className="shrink-0 pt-1">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                        isSelected
+                          ? 'bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]'
+                          : 'bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff]'
+                      }`}>
+                        {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-gray-700" />}
+                      </div>
+                    </div>
 
-              return (
-                <div 
-                  key={plan.id}
-                  className={`p-4 sm:p-5 rounded-2xl border transition-all duration-200 bg-white shadow-2xs ${
-                    isSelected 
-                      ? 'border-[#E5B869] ring-1 ring-[#E5B869]/40 shadow-sm' 
-                      : 'border-[#E8DCCF] opacity-80 hover:opacity-100 hover:border-[#D9CEBF]'
-                  }`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    
-                    {/* Left: Checkbox + Icon + Info */}
-                    <div className="flex items-start space-x-3.5 flex-1 min-w-0">
-                      <button
-                        type="button"
-                        onClick={() => togglePlanSelection(plan.id)}
-                        className={`w-6 h-6 mt-1 sm:mt-0.5 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0 ${
-                          isSelected
-                            ? 'bg-[#2A1810] border-[#2A1810] text-white shadow-xs'
-                            : 'border-[#D9CEBF] bg-[#FAF8F5] hover:border-[#2A1810]'
-                        }`}
-                        aria-label={`Seleccionar ${plan.name}`}
-                      >
-                        {isSelected && <Check className="w-4 h-4 stroke-[3] text-[#E5B869]" />}
-                      </button>
-
-                      <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 ${plan.iconBg} ${plan.iconColor}`}>
+                    {/* Icon */}
+                    <div className="shrink-0 pt-1">
+                      <div className="w-12 h-12 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center text-gray-700">
                         {renderPlanIcon(plan)}
                       </div>
+                    </div>
 
-                      <div className="space-y-1.5 min-w-0 flex-1">
-                        <div className="flex items-center space-x-2 flex-wrap">
-                          <h2 className="font-bold text-sm sm:text-base text-[#2A1810]">
-                            {plan.name}
-                          </h2>
-                          {plan.badge && (
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${plan.badgeColor || 'bg-stone-100 text-stone-700'}`}>
-                              {plan.badge}
-                            </span>
-                          )}
-                        </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-3 mb-1.5">
+                        <h3 className="font-bold text-lg text-gray-900">{plan.name}</h3>
+                        {plan.badge && (
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide shadow-[inset_2px_2px_4px_rgba(0,0,0,0.05),inset_-2px_-2px_4px_rgba(255,255,255,0.5)] ${plan.badgeColor}`}>
+                            {plan.badge}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4 pr-4">{plan.shortDesc}</p>
+                      
+                      <ul className="space-y-2">
+                        {plan.items.map((item, i) => (
+                          <li key={i} className="flex items-start space-x-2 text-xs text-gray-500">
+                            <span className="w-1 h-1 rounded-full bg-gray-400 mt-1.5 shrink-0" />
+                            <span className="leading-relaxed">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
 
-                        <p className="text-xs text-[#524B42] leading-snug font-medium">
-                          {plan.shortDesc}
-                        </p>
-
-                        {/* Feature bullets */}
-                        <div className="pt-1 space-y-1">
-                          {plan.items.map((item, idx) => (
-                            <div key={idx} className="flex items-start space-x-1.5 text-[11px] text-[#7A7268] leading-tight">
-                              <span className="text-[#8B3A4A] font-bold text-xs leading-none mt-0.5">•</span>
-                              <span>{item}</span>
-                            </div>
-                          ))}
-                        </div>
+                    {/* Price */}
+                    <div className="shrink-0 sm:pl-4 sm:border-l border-transparent flex flex-col justify-start">
+                      <div className="text-lg font-bold text-gray-900 font-mono tracking-tight whitespace-nowrap mt-4 sm:mt-0">
+                        S/ {plan.price.toFixed(2)}
                       </div>
                     </div>
-
-                    {/* Right: Unit Price */}
-                    <div className="shrink-0 text-left sm:text-right pl-9 sm:pl-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-[#F0EAE1]">
-                      <span className="sm:hidden text-xs text-[#7A7268] mr-2">Precio:</span>
-                      <span className="text-base sm:text-lg font-bold text-[#2A1810] font-mono">
-                        {formatPrice(plan.price)}
-                      </span>
-                    </div>
-
                   </div>
-                </div>
-              );
-            })}
-
+                );
+              })}
+            </div>
           </div>
 
-          {/* Right Column: Resumen del Pedido & Checkout (lg:col-span-4) */}
+                    {/* Right Column: Resumen del Pedido & Checkout (lg:col-span-4) */}
           <div className="lg:col-span-4 space-y-5">
             
             {/* Order Summary Card */}
-            <div className="bg-white rounded-2xl border border-[#E8DCCF] p-6 shadow-sm space-y-4">
+            <div className="bg-[#EBEBEB] rounded-2xl border border-[#E8DCCF] p-6 shadow-sm space-y-4">
               <h2 className="text-base sm:text-lg font-bold text-[#2A1810] tracking-wide border-b border-[#F0EAE1] pb-3">
                 Resumen del Pedido
               </h2>
@@ -549,7 +531,7 @@ export const TokensPurchaseScreen: React.FC = () => {
             </div>
 
             {/* Payment Details & Quick Copy (Yape & Transferencia) */}
-            <div className="bg-white rounded-2xl border border-[#E8DCCF] p-5 shadow-2xs space-y-4">
+            <div className="bg-[#EBEBEB] rounded-2xl border border-[#E8DCCF] p-5 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-[#F0EAE1] pb-2">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#2A1810]">
                   Datos de Pago
@@ -568,7 +550,7 @@ export const TokensPurchaseScreen: React.FC = () => {
 
               {/* QR Image 1:1 Display */}
               <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#FAF8F5] border border-[#E8DCCF]">
-                <div className="w-32 h-32 aspect-square rounded-xl bg-white p-1.5 border border-[#D9CEBF] shadow-xs flex items-center justify-center overflow-hidden">
+                <div className="w-32 h-32 aspect-square rounded-xl bg-[#EBEBEB] p-1.5 border border-[#D9CEBF] shadow-xs flex items-center justify-center overflow-hidden">
                   {tokensPaymentConfig.qrImageUrl ? (
                     <img 
                       src={tokensPaymentConfig.qrImageUrl} 
@@ -623,7 +605,7 @@ export const TokensPurchaseScreen: React.FC = () => {
             </div>
 
             {/* Voucher Upload Card */}
-            <div className="bg-white rounded-2xl border border-[#E8DCCF] p-5 shadow-2xs space-y-3">
+            <div className="bg-[#EBEBEB] rounded-2xl border border-[#E8DCCF] p-5 shadow-2xs space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#2A1810]">
                 Subir Comprobante (JPG / PNG)
               </h3>
@@ -651,7 +633,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingVoucher}
-                  className="w-full py-2 px-3 rounded-lg bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-2xs disabled:opacity-50"
+                  className="w-full py-2 px-3 rounded-lg bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-2xs disabled:opacity-50"
                 >
                   {isUploadingVoucher ? (
                     <Loader2 className="w-3.5 h-3.5 text-[#E5B869] animate-spin" />
@@ -662,7 +644,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                 </button>
 
                 {selectedFile && (
-                  <div className="mt-2 text-[11px] text-[#2A1810] flex items-center justify-between bg-white p-2 rounded-lg border border-emerald-200">
+                  <div className="mt-2 text-[11px] text-[#2A1810] flex items-center justify-between bg-[#EBEBEB] p-2 rounded-lg border border-emerald-200">
                     <span className="truncate flex items-center text-emerald-800 font-medium max-w-[240px]">
                       {isUploadingVoucher ? (
                         <Loader2 className="w-3.5 h-3.5 text-amber-600 animate-spin mr-1 shrink-0" />
@@ -706,7 +688,7 @@ export const TokensPurchaseScreen: React.FC = () => {
       {/* Confirmation / Order Summary Modal */}
       {orderModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-[#FDFBF7] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-[#E8DCCF] space-y-6 relative">
+          <div className="bg-[#EBEBEB] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-[#E8DCCF] space-y-6 relative">
             <button
               onClick={() => setOrderModalOpen(false)}
               className="absolute top-4 right-4 text-[#8C8276] hover:text-[#2D2A26] p-1 rounded-full hover:bg-black/5"
@@ -726,7 +708,7 @@ export const TokensPurchaseScreen: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 border border-[#E8DCCF] space-y-3 text-xs">
+            <div className="bg-[#EBEBEB] rounded-2xl p-4 border border-[#E8DCCF] space-y-3 text-xs">
               <div className="flex justify-between font-bold text-sm border-b border-[#F0EAE1] pb-2 text-[#2D2A26]">
                 <span>Total a Transferir:</span>
                 <span className="font-mono text-[#2A1810] font-extrabold">{formatPrice(totalToPay)}</span>
@@ -751,7 +733,7 @@ export const TokensPurchaseScreen: React.FC = () => {
             </div>
 
             {/* Voucher Upload Section in Modal */}
-            <div className="bg-white rounded-2xl border border-[#E8DCCF] p-4 shadow-2xs space-y-2.5">
+            <div className="bg-[#EBEBEB] rounded-2xl border border-[#E8DCCF] p-4 shadow-2xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#2A1810]">
                   Subir Comprobante (JPG / PNG)
@@ -796,7 +778,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                   type="button"
                   onClick={() => modalFileInputRef.current?.click()}
                   disabled={isUploadingVoucher}
-                  className="w-full py-2 px-3 rounded-lg bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-2xs disabled:opacity-50"
+                  className="w-full py-2 px-3 rounded-lg bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-2xs disabled:opacity-50"
                 >
                   {isUploadingVoucher ? (
                     <Loader2 className="w-3.5 h-3.5 text-[#E5B869] animate-spin" />
@@ -807,7 +789,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                 </button>
 
                 {selectedFile && (
-                  <div className="mt-2 text-[11px] text-[#2A1810] flex items-center justify-between bg-white p-2 rounded-lg border border-emerald-200">
+                  <div className="mt-2 text-[11px] text-[#2A1810] flex items-center justify-between bg-[#EBEBEB] p-2 rounded-lg border border-emerald-200">
                     <span className="truncate flex items-center text-emerald-800 font-medium max-w-[240px]">
                       {isUploadingVoucher ? (
                         <Loader2 className="w-3.5 h-3.5 text-amber-600 animate-spin mr-1 shrink-0" />
@@ -848,7 +830,7 @@ export const TokensPurchaseScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={copyOrderDetails}
-                className="w-full py-2.5 px-4 rounded-xl border border-[#D9CEBF] bg-white hover:bg-[#FAF3ED] text-[#2D2A26] text-xs font-semibold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] hover:bg-[#FAF3ED] text-[#2D2A26] text-xs font-semibold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
               >
                 <Copy className="w-4 h-4 text-[#2A1810]" />
                 <span>{orderCopied ? '¡Detalles Copiados!' : 'Copiar Resumen de Pedido'}</span>

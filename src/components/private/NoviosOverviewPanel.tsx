@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useWedding } from '../../context/WeddingContext';
+import { FloorPlanPreviewCard } from './FloorPlanPreviewCard';
 import { FloralBouquet } from './FloralBouquet';
 import { formatCurrency, formatCurrencyShort } from '../../lib/formatUtils';
 import { 
@@ -193,61 +194,6 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
   return (
     <div className="space-y-6 animate-fadeIn">
 
-      {/* Public Wedding Link Sharing Bar */}
-      <div className="bg-gradient-to-r from-[#8B3A4A]/10 via-[#FFFDFB] to-[#F7E7CE]/20 rounded-3xl p-4 sm:p-5 border border-[#8B3A4A]/20 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center space-x-3.5 w-full md:w-auto">
-          <div className="w-10 h-10 rounded-2xl bg-[#8B3A4A] text-white flex items-center justify-center shrink-0 shadow-xs">
-            <Share2 className="w-5 h-5 text-[#F7E7CE]" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center space-x-2">
-              <h3 className="font-bold text-xs sm:text-sm text-[#2D2A26]">
-                Enlace Público de la Boda ({settings.coupleNames})
-              </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 shrink-0">
-                Sin Login
-              </span>
-            </div>
-            <p className="text-[11px] text-[#7A7268] truncate max-w-xl">
-              Tus invitados pueden entrar a este enlace sin registrarse para confirmar asistencia, ver dress code y cuenta bancaria.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2 w-full md:w-auto justify-end shrink-0">
-          <button
-            type="button"
-            onClick={handleCopyLink}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer border shadow-2xs ${
-              copiedLink 
-                ? 'bg-emerald-600 text-white border-emerald-600 ring-2 ring-emerald-300' 
-                : 'bg-white hover:bg-[#FAF8F5] text-[#2D2A26] border-[#D9CEBF]'
-            }`}
-          >
-            {copiedLink ? (
-              <>
-                <Check className="w-3.5 h-3.5" />
-                <span>¡Copiado!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-[#8B3A4A]" />
-                <span>Copiar Enlace</span>
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowShareModal(true)}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#8B3A4A] hover:bg-[#6E2937] text-white flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <span>Compartir</span>
-          </button>
-        </div>
-      </div>
-
       {/* Main 2-Column Responsive Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
@@ -353,68 +299,8 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
             </div>
           </div>
 
-          {/* CARD 2: Últimas Confirmaciones (RSVP) */}
-          <div className="bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-serif-display text-lg sm:text-xl font-bold text-[#2D2A26]">
-                Últimas Confirmaciones (RSVP)
-              </h3>
-              <button
-                type="button"
-                onClick={() => onNavigateTab('guests')}
-                className="text-xs font-semibold text-[#8B3A4A] hover:text-[#6E2937] flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <span>Ver lista completa</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* RSVP Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-[#F0EAE1] text-[#7A7268] font-semibold">
-                    <th className="pb-2.5 font-medium">Name</th>
-                    <th className="pb-2.5 font-medium text-center">Confirmación</th>
-                    <th className="pb-2.5 font-medium text-center">Personas</th>
-                    <th className="pb-2.5 font-medium text-right pr-2">
-                      <Users className="w-3.5 h-3.5 inline-block text-[#8C8276]" />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F6F1EA]">
-                  {recentRsvps.map((rsvp, idx) => (
-                    <tr key={rsvp.id || idx} className="hover:bg-[#FAF7F2] transition-colors group">
-                      <td className="py-3 font-medium text-[#2D2A26] group-hover:text-[#8B3A4A] transition-colors">
-                        {rsvp.name}
-                      </td>
-                      <td className="py-3 text-center text-[#7A7268]">
-                        {rsvp.date}
-                      </td>
-                      <td className="py-3 text-center font-semibold text-[#2D2A26]">
-                        {rsvp.passes}
-                      </td>
-                      <td className="py-3 text-right pr-2">
-                        {rsvp.status === 'confirmed' ? (
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#203A43] text-white">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                          </span>
-                        ) : rsvp.status === 'declined' ? (
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-100 text-rose-700">
-                            <XCircle className="w-3.5 h-3.5" />
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-800">
-                            <Clock className="w-3.5 h-3.5" />
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {/* CARD 2: Vista previa del Plano */}
+          <FloorPlanPreviewCard />
 
           {/* CARD 3: Control de Presupuesto */}
           <div className="bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md">

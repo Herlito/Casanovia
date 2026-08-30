@@ -877,7 +877,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } catch {
       // ignore
     }
-    setViewModeState('public');
+    window.location.href = '/';
   };
 
   // System Users CRUD (for Level 1 Admin)
@@ -2379,7 +2379,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         saveUploadedImage,
         deleteUploadedImage,
         hasWeddingUrlParam: Boolean(getRequestedWeddingIdFromUrl()),
-        isPublicHomeLanding: !currentUser.isAuthenticated && !Boolean(getRequestedWeddingIdFromUrl()) && viewMode !== 'tokens',
+        isPublicHomeLanding: !Boolean(getRequestedWeddingIdFromUrl()) && viewMode === 'public',
         getRequestedWeddingIdFromUrl,
         isFirebaseLoading,
         isFirebaseConnected,

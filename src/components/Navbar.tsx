@@ -139,7 +139,7 @@ export const Navbar: React.FC = () => {
   return (
     <>
       {/* Updated Header Background */}
-      <header className={`sticky top-0 z-50 backdrop-blur-md border-b shadow-xs ${isPublicHomeLanding && !currentUser.isAuthenticated ? "bg-[#EBEBEB] border-[#D4D4D4]" : "bg-[#FDFBF7]/95 border-[#EADDCE]"}`}>
+      <header className={`sticky top-0 z-50 backdrop-blur-md border-b shadow-xs ${isPublicHomeLanding ? "bg-[#EBEBEB] border-[#D4D4D4]" : "bg-[#FDFBF7]/95 border-[#EADDCE]"}`}>
         {/* Top Gold Ornament Bar */}
         <div className="h-1.5 bg-linear-to-r from-[#D4AF37] via-[#C5A880] to-[#8B3A4A] w-full" />
 
@@ -201,7 +201,7 @@ export const Navbar: React.FC = () => {
                     }}
                     aria-label="Abrir Menú de Opciones"
                     className={
-                      (!currentUser.isAuthenticated && isPublicHomeLanding)
+                      (isPublicHomeLanding)
                         ? "p-3 sm:p-4 rounded-full bg-[#F5F5F5] text-gray-500 shadow-[5px_5px_15px_rgba(0,0,0,0.1),-5px_-5px_15px_rgba(255,255,255,1),inset_3px_3px_6px_rgba(0,0,0,0.05),inset_-3px_-3px_6px_rgba(255,255,255,1)] hover:shadow-[inset_5px_5px_15px_rgba(0,0,0,0.1),inset_-5px_-5px_15px_rgba(255,255,255,1)] transition-all duration-200 cursor-pointer border-none"
                         : `p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
                             sandwichMenuOpen
@@ -212,9 +212,9 @@ export const Navbar: React.FC = () => {
                     title="Menú de Acciones y Herramientas"
                   >
                     {sandwichMenuOpen ? (
-                      <X className={!currentUser.isAuthenticated && isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 transition-transform"} />
+                      <X className={isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 transition-transform"} />
                     ) : (
-                      <Menu className={!currentUser.isAuthenticated && isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 text-[#8B3A4A] transition-transform"} />
+                      <Menu className={isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 text-[#8B3A4A] transition-transform"} />
                     )}
                   </button>
 
@@ -250,14 +250,7 @@ export const Navbar: React.FC = () => {
                   type="button"
                   id="btn-nav-logo-home"
                   onClick={() => {
-                    if (currentUser.isAuthenticated) {
-                      setActiveView('public');
-                    } else if (activeView === 'tokens') {
-                      setActiveView('tokens');
-                    } else {
-                      setActiveView('public');
-                    }
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.location.href = '/';
                   }}
                   className="cursor-pointer bg-transparent border-0 p-0 m-0 flex items-center justify-center hover:opacity-80 active:scale-98 transition-all focus:outline-hidden group"
                   title="Casanovia"
@@ -333,7 +326,7 @@ export const Navbar: React.FC = () => {
                     }}
                     aria-label="Abrir Menú de Opciones"
                     className={
-                      (!currentUser.isAuthenticated && isPublicHomeLanding)
+                      (isPublicHomeLanding)
                         ? "p-3 sm:p-4 rounded-full bg-[#F5F5F5] text-gray-500 shadow-[5px_5px_15px_rgba(0,0,0,0.1),-5px_-5px_15px_rgba(255,255,255,1),inset_3px_3px_6px_rgba(0,0,0,0.05),inset_-3px_-3px_6px_rgba(255,255,255,1)] hover:shadow-[inset_5px_5px_15px_rgba(0,0,0,0.1),inset_-5px_-5px_15px_rgba(255,255,255,1)] transition-all duration-200 cursor-pointer border-none"
                         : `p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
                             sandwichMenuOpen
@@ -344,9 +337,9 @@ export const Navbar: React.FC = () => {
                     title="Menú de Acciones y Herramientas"
                   >
                     {sandwichMenuOpen ? (
-                      <X className={!currentUser.isAuthenticated && isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 transition-transform"} />
+                      <X className={isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 transition-transform"} />
                     ) : (
-                      <Menu className={!currentUser.isAuthenticated && isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 text-[#8B3A4A] transition-transform"} />
+                      <Menu className={isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 text-[#8B3A4A] transition-transform"} />
                     )}
                   </button>
 
