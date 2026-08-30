@@ -195,49 +195,41 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
   }, [selectedElement]);
 
   return (
-    <div className="w-full sm:w-80 bg-[#FAF8F5] border-r border-[#E8DCCF] flex flex-col h-full overflow-y-auto text-[#2D2A26] select-none text-xs">
+    <div className="w-[50vw] sm:max-w-none sm:w-80 bg-[#FAF8F5] border-r border-[#E8DCCF] flex flex-col h-full overflow-y-auto text-[#2D2A26] select-none text-xs">
       {/* 1. Element Palette Header & Mode Tabs */}
       <div className="p-3 border-b border-[#E8DCCF] bg-white sticky top-0 z-10 space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-xs uppercase tracking-wider text-[#8C8276] flex items-center space-x-1.5">
-            <UtensilsCrossed className="w-3.5 h-3.5 text-[#8B3A4A]" />
-            <span>Mobiliario & Mesas</span>
-          </h3>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-[#8B3A4A] border border-rose-200">
-            {tables.length} {tables.length === 1 ? 'Mesa' : 'Mesas'}
-          </span>
-        </div>
+
 
         {/* Tab Selector */}
         <div className="grid grid-cols-2 p-0.5 bg-[#FAF8F5] rounded-xl border border-[#E8DCCF]">
           <button
             type="button"
             onClick={() => setToolbarTab('wedding_tables')}
-            className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
+            className={`py-1.5 px-0.5 sm:px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
               toolbarTab === 'wedding_tables'
                 ? 'bg-white text-[#8B3A4A] shadow-2xs font-bold'
                 : 'text-[#8C8276] hover:text-[#2D2A26]'
             }`}
           >
             <Sparkles className="w-3 h-3 text-[#8B3A4A]" />
-            <span>Mesas Principales</span>
+            <span className="hidden sm:inline">Mesas Principales</span>
           </button>
           <button
             type="button"
             onClick={() => setToolbarTab('furniture')}
-            className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
+            className={`py-1.5 px-0.5 sm:px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
               toolbarTab === 'furniture'
                 ? 'bg-white text-[#8B3A4A] shadow-2xs font-bold'
                 : 'text-[#8C8276] hover:text-[#2D2A26]'
             }`}
           >
             <Layers className="w-3 h-3 text-[#8B3A4A]" />
-            <span>Mobiliario Libre</span>
+            <span className="hidden sm:inline">Mobiliario Libre</span>
           </button>
         </div>
       </div>
 
-      <div className="p-3 space-y-3">
+      <div className="px-[2px] py-3 space-y-3">
         {/* ========================================================
             TAB 1: MESAS DE BODA (REGISTRADAS EN SECCIÓN MESAS)
            ======================================================== */}
@@ -257,7 +249,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   <ChevronUp className="w-3 h-3 text-[#8C8276] group-hover:text-[#2D2A26]" />
                 )}
               </div>
-              {!isTablesCollapsed && <span className="text-[9px] text-[#8C8276]">Haz clic para colocar</span>}
+              
             </div>
 
             {!isTablesCollapsed && (
@@ -283,7 +275,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <p className="text-[10px]">Crea mesas en la sección MESAS o usa Mobiliario Libre.</p>
               </div>
             ) : (
-              <div className="space-y-1.5 max-h-[280px] overflow-y-auto pr-0.5">
+              <div className="space-y-[2px] max-h-[280px] overflow-y-auto pr-0.5">
                 {filteredWeddingTables.map((tbl) => {
                   const isPlaced = placedTableNames.has(tbl.name.trim().toLowerCase());
                   const occ = tableOccupancyMap.get(tbl.name.trim().toLowerCase());
@@ -299,7 +291,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                     <div
                       key={tbl.id}
                       onClick={() => onAddTableFromWedding && onAddTableFromWedding(tbl)}
-                      className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-between group shadow-2xs ${
+                      className={`p-2 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5 group shadow-2xs ${
                         isPlaced
                           ? 'bg-emerald-50/40 border-emerald-200 hover:bg-emerald-50'
                           : isHonor
@@ -307,51 +299,54 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                           : 'bg-white border-[#E8DCCF] hover:border-[#8B3A4A] hover:bg-[#FAF8F5]'
                       }`}
                     >
-                      <div className="flex items-center space-x-2 min-w-0 flex-1">
-                        <div
-                          className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
-                            isRect
-                              ? 'bg-amber-50 border-amber-200 text-amber-800'
-                              : 'bg-rose-50 border-rose-200 text-[#8B3A4A]'
-                          }`}
-                        >
-                          {isRect ? <Square className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />}
-                        </div>
+                      {/* Row 1: Name */}
+                      <div className="flex items-center space-x-1 w-full">
+                        <span className="font-bold text-[11px] truncate text-[#2D2A26]">
+                          {tbl.name}
+                        </span>
+                        {isHonor && (
+                          <span className="text-[8px] bg-[#8B3A4A] text-white px-1 rounded-sm font-bold">
+                            HONOR
+                          </span>
+                        )}
+                      </div>
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center space-x-1">
-                            <span className="font-bold text-[11px] truncate text-[#2D2A26]">
-                              {tbl.name}
-                            </span>
-                            {isHonor && (
-                              <span className="text-[8px] bg-[#8B3A4A] text-white px-1 rounded-sm font-bold">
-                                HONOR
-                              </span>
-                            )}
+                      {/* Row 2: Icon, Zone/Pax, Action */}
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center space-x-2 min-w-0 flex-1">
+                          <div
+                            className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border ${
+                              isRect
+                                ? 'bg-amber-50 border-amber-200 text-amber-800'
+                                : 'bg-rose-50 border-rose-200 text-[#8B3A4A]'
+                            }`}
+                          >
+                            {isRect ? <Square className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
                           </div>
-                          <div className="flex items-center space-x-1.5 text-[9px] text-[#7A7268]">
-                            <span>{tbl.zone || 'Salón Principal'}</span>
+                          
+                          <div className="flex flex-wrap items-center space-x-1 text-[9px] text-[#7A7268] min-w-0">
+                            <span className="truncate max-w-[80px]">{tbl.zone || 'Salón Principal'}</span>
                             <span>•</span>
                             <span className="font-semibold text-[#8B3A4A]">
                               {seatedCount}/{tbl.capacity} pax
                             </span>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="shrink-0 flex items-center space-x-1 ml-1.5">
-                        {isPlaced ? (
-                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded-md flex items-center justify-center" title="En plano">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            className="text-[10px] font-bold text-[#8B3A4A] bg-white border border-[#8B3A4A]/30 px-2 py-0.5 rounded-lg group-hover:bg-[#8B3A4A] group-hover:text-white transition-colors"
-                          >
-                            + Colocar
-                          </button>
-                        )}
+                        <div className="shrink-0 flex items-center ml-1.5">
+                          {isPlaced ? (
+                            <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded-md flex items-center justify-center" title="En plano">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="text-[10px] font-bold text-[#8B3A4A] bg-white border border-[#8B3A4A]/30 px-2 py-0.5 rounded-lg group-hover:bg-[#8B3A4A] group-hover:text-white transition-colors"
+                            >
+                              + Colocar
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -597,7 +592,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
          ======================================================== */}
       <div className="border-t border-[#E8DCCF] bg-white p-3.5 flex-1 space-y-3">
         <h3 className="font-bold text-xs uppercase tracking-wider text-[#8C8276] flex items-center justify-between">
-          <span>Propiedades del Objeto</span>
+          <span className="hidden sm:inline truncate">Propiedades del Objeto</span><span className="sm:hidden truncate">Propiedades</span>
           <Sliders className="w-3.5 h-3.5 text-[#8B3A4A]" />
         </h3>
 
@@ -695,7 +690,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   <label className="text-[10px] font-bold text-[#8C8276] uppercase">
                     Número de Asientos
                   </label>
-                  <span className="font-bold text-[#8B3A4A] bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                  <span className="font-bold text-[#8B3A4A] bg-rose-50 px-1 sm:px-2 py-0.5 rounded-full border border-rose-200">
                     {selectedElement.seats.length} sillas
                   </span>
                 </div>

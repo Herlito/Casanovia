@@ -19,6 +19,9 @@ import {
   Info,
   Layers,
   ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   RefreshCw,
   Undo2,
   Users,
@@ -82,6 +85,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   // Mobile sidebar toggles
   const [showMobileToolbar, setShowMobileToolbar] = useState<boolean>(false);
   const [showMobileGuests, setShowMobileGuests] = useState<boolean>(false);
+  const [showMobileTopBar, setShowMobileTopBar] = useState<boolean>(false);
 
   // Auto-show toolbar (which has properties) on mobile when element selected
   useEffect(() => {
@@ -205,6 +209,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   const [saveSuccessNotice, setSaveSuccessNotice] = useState<boolean>(false);
   const [syncSuccessNotice, setSyncSuccessNotice] = useState<boolean>(false);
   const [autoSync, setAutoSync] = useState<boolean>(false);
+  const [syncConfirmAction, setSyncConfirmAction] = useState<'auto' | 'manual' | null>(null);
   const [isProcessingPdf, setIsProcessingPdf] = useState<boolean>(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [showExportMenu, setShowExportMenu] = useState<boolean>(false);
@@ -991,10 +996,12 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     <div className="fixed inset-0 z-50 flex flex-col bg-[#FAF8F5] select-none animate-in fade-in duration-200">
       
       {/* 1. TOP MASTER HEADER BAR */}
-      <div className="h-14 overflow-x-auto border-b border-[#E8DCCF] bg-white flex items-center justify-between px-4 sm:px-6 shadow-2xs z-30">
+      <div className={`relative flex flex-col md:flex-row md:items-center justify-between border-b border-[#E8DCCF] bg-white shadow-2xs z-30 transition-all duration-300 ${showMobileTopBar ? 'h-auto pb-3 md:pb-0' : 'h-14 overflow-hidden md:overflow-visible'}`}>
         
-        {/* Left: Brand & Wedding Selector */}
-        <div className="flex items-center space-x-3">
+        {/* Mobile Header Row */}
+        <div className="flex items-center justify-between h-14 px-4 sm:px-6 w-full md:w-auto shrink-0">
+          {/* Left: Brand & Wedding Selector */}
+          <div className="flex items-center space-x-3">
           <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#8B3A4A] border border-rose-200 flex items-center justify-center font-serif font-bold text-sm shadow-2xs">
             {weddingTitle.charAt(0).toUpperCase()}
           </div>
@@ -1035,9 +1042,29 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             </div>
           </div>
         </div>
+        
+        {/* Mobile Handle & Close */}
+        <div className="flex items-center space-x-1 md:hidden">
+          <button
+            onClick={() => setShowMobileTopBar(!showMobileTopBar)}
+            className="p-2 text-[#8B3A4A] bg-rose-50 rounded-xl transition-colors"
+          >
+            {showMobileTopBar ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-xl transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Tools & Actions Row */}
+      <div className={`flex flex-wrap md:flex-nowrap items-center justify-center md:justify-end gap-2 px-4 sm:px-6 w-full md:flex-1`}>
 
         {/* Center: Quick Canvas Navigation Controls */}
-        <div className="hidden lg:flex items-center space-x-1.5 bg-[#FAF8F5] p-1 rounded-xl border border-[#E8DCCF]">
+        <div className="hidden md:flex items-center space-x-1.5 bg-[#FAF8F5] p-1 rounded-xl border border-[#E8DCCF]">
           <button
             onClick={() => setZoom((z) => Math.min(z * 1.15, 3.5))}
             className="p-1.5 text-[#8C8276] hover:text-[#2D2A26] hover:bg-white rounded-lg transition-colors cursor-pointer"
@@ -1082,7 +1109,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           
           {/* Undo / Redo */}
           <div className="flex items-center space-x-1 mr-1">
@@ -1107,7 +1134,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           {/* Sync Tables & Guests button */}
           <div className="flex items-center bg-white border border-rose-200 rounded-xl shadow-2xs overflow-hidden">
             <button
-              onClick={handleSyncWithWedding}
+              onClick={() => setSyncConfirmAction('manual')}
               className={`flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
                 syncSuccessNotice
                   ? 'bg-emerald-50 text-emerald-800'
@@ -1125,7 +1152,13 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
               <input 
                 type="checkbox" 
                 checked={autoSync}
-                onChange={(e) => setAutoSync(e.target.checked)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSyncConfirmAction('auto');
+                  } else {
+                    setAutoSync(false);
+                  }
+                }}
                 className="w-3 h-3 text-[#8B3A4A] border-rose-200 rounded focus:ring-[#8B3A4A]"
               />
               <span className="text-[10px] font-bold text-[#8C8276]">Auto</span>
@@ -1232,7 +1265,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           {/* Close modal */}
           <button
             onClick={onClose}
-            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-xl transition-colors cursor-pointer ml-1"
+            className="hidden md:flex p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-xl transition-colors cursor-pointer ml-1"
           >
             <X className="w-5 h-5" />
           </button>
@@ -1240,6 +1273,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
       </div>
 
+      </div>
       {/* 2. ERROR NOTICE / PDF ERROR BANNER */}
       {pdfError && (
         <div className="px-6 py-2 bg-rose-50 border-b border-rose-200 text-rose-800 text-xs flex items-center justify-between">
@@ -1271,8 +1305,47 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       {/* 3. MAIN 3-PANEL WORKSPACE (Toolbar | Canvas | Guest Manager) */}
       <div className="flex-1 flex overflow-hidden relative">
         
+        {/* Mobile Zoom Controls (Footer) */}
+        {!showMobileToolbar && !showMobileGuests && (
+          <div className="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-1.5 bg-white/90 backdrop-blur-sm p-1.5 rounded-full border border-[#E8DCCF] shadow-lg">
+          <button
+            onClick={() => setZoom((z) => Math.min(z * 1.15, 3.5))}
+            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-full transition-colors"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+          <span className="text-xs font-mono font-bold text-[#2D2A26] px-1">
+            {Math.round(zoom * 100)}%
+          </span>
+          <button
+            onClick={() => setZoom((z) => Math.max(z * 0.85, 0.25))}
+            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-full transition-colors"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => {
+              setZoom(1.0);
+              setPan({ x: 50, y: 50 });
+            }}
+            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-full transition-colors"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
+          <div className="w-px h-5 bg-[#D9CEBF] mx-1" />
+          <button
+            onClick={() => setGridSnap((s) => !s)}
+            className={`p-2 rounded-full transition-colors flex items-center justify-center ${
+              gridSnap ? 'bg-[#FAF8F5] text-[#8B3A4A] shadow-inner border border-[#D9CEBF]' : 'text-[#8C8276] hover:text-[#2D2A26]'
+            }`}
+          >
+            <Magnet className="w-4 h-4" />
+          </button>
+        </div>
+        )}
+        
         {/* Left Sidebar: Furniture & Properties */}
-        <div className={`absolute md:relative z-50 h-full transition-transform duration-300 ${showMobileToolbar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <div className={`absolute md:relative z-50 h-full transition-transform duration-300 flex shadow-2xl md:shadow-none ${showMobileToolbar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
           <FloorPlanToolbar
           selectedElement={selectedElement}
           tables={tables}
@@ -1287,27 +1360,18 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}
         />
+          {/* Collapse/Expand Handle Left */}
+          <button
+            onClick={() => { setShowMobileToolbar(!showMobileToolbar); setShowMobileGuests(false); }}
+            className="md:hidden absolute -right-8 bottom-4 w-8 h-16 bg-white border border-l-0 border-[#E8DCCF] rounded-r-xl flex items-center justify-center shadow-[4px_0_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer z-50"
+          >
+            {showMobileToolbar ? <ChevronLeft className="w-5 h-5 text-[#8B3A4A]" /> : <ChevronRight className="w-5 h-5 text-[#8B3A4A]" />}
+          </button>
         </div>
 
         {/* Center: Interactive Canvas */}
         <div className="flex-1 h-full relative">
-          {/* Mobile Sidebar Toggles */}
-          <div className="md:hidden absolute top-4 left-4 z-40 flex space-x-2">
-            <button 
-              onClick={() => { setShowMobileToolbar(!showMobileToolbar); setShowMobileGuests(false); }}
-              className="p-2 bg-white rounded-xl shadow-lg border border-[#E8DCCF] text-[#8B3A4A] cursor-pointer"
-            >
-              <Layers className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="md:hidden absolute top-4 right-4 z-40 flex space-x-2">
-            <button 
-              onClick={() => { setShowMobileGuests(!showMobileGuests); setShowMobileToolbar(false); }}
-              className="p-2 bg-white rounded-xl shadow-lg border border-[#E8DCCF] text-[#8B3A4A] cursor-pointer"
-            >
-              <Users className="w-5 h-5" />
-            </button>
-          </div>
+
 
           <FloorPlanCanvas
             elements={elements}
@@ -1366,7 +1430,14 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         </div>
 
         {/* Right Sidebar: Seating Guest List */}
-        <div className={`absolute right-0 md:relative z-50 h-full transition-transform duration-300 ${showMobileGuests ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}>
+        <div className={`absolute right-0 md:relative z-50 h-full transition-transform duration-300 flex shadow-2xl md:shadow-none ${showMobileGuests ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}>
+          {/* Collapse/Expand Handle Right */}
+          <button
+            onClick={() => { setShowMobileGuests(!showMobileGuests); setShowMobileToolbar(false); }}
+            className="md:hidden absolute -left-8 bottom-4 w-8 h-16 bg-white border border-r-0 border-[#E8DCCF] rounded-l-xl flex items-center justify-center shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer z-50"
+          >
+            {showMobileGuests ? <ChevronRight className="w-5 h-5 text-[#8B3A4A]" /> : <ChevronLeft className="w-5 h-5 text-[#8B3A4A]" />}
+          </button>
           <FloorPlanGuestSidebar
           guests={guests}
           elements={elements}
@@ -1507,6 +1578,41 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
                   </span>
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM MODAL FOR SYNC */}
+      {syncConfirmAction && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#2D2A26]/40 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-80 max-w-[90vw] text-center border border-[#E8DCCF]">
+            <h3 className="text-lg font-bold text-[#2D2A26] mb-2 font-serif">¿Está seguro/a?</h3>
+            <p className="text-sm text-[#8C8276] mb-6">
+              {syncConfirmAction === 'manual' 
+                ? 'Esto actualizará las mesas en el plano para que coincidan con la lista de invitados actual. Puede alterar mesas existentes.' 
+                : 'Esto habilitará la sincronización automática de mesas al cargar el plano en el futuro.'}
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button 
+                onClick={() => setSyncConfirmAction(null)}
+                className="px-5 py-2.5 rounded-xl border border-[#E8DCCF] text-[#8C8276] font-semibold hover:bg-[#FAF8F5] transition-colors cursor-pointer"
+              >
+                NO
+              </button>
+              <button 
+                onClick={() => {
+                  if (syncConfirmAction === 'manual') {
+                    handleSyncWithWedding();
+                  } else {
+                    setAutoSync(true);
+                  }
+                  setSyncConfirmAction(null);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-[#8B3A4A] text-white font-semibold hover:bg-[#722F3D] transition-colors cursor-pointer shadow-md"
+              >
+                SÍ
+              </button>
             </div>
           </div>
         </div>

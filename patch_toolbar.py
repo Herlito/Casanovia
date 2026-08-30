@@ -1,15 +1,20 @@
 import re
 
-with open('src/WeddingCraft/components/Toolbar.tsx', 'r') as f:
+with open('src/components/floorplan/FloorPlanToolbar.tsx', 'r') as f:
     text = f.read()
 
-# We need to find the specific div that wraps the buttons, which starts with:
-# <div className="flex items-center space-x-2">
-#          <button onClick={handleAddText}
-pattern = r'<div className="flex items-center space-x-2">\s*<button onClick=\{handleAddText\}'
-replacement = '<div className="hidden md:flex items-center space-x-2">\n          <button onClick={handleAddText}'
+# Remove the title and badge from the top of the toolbar
+header_title_block = """        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-xs uppercase tracking-wider text-[#8C8276] flex items-center space-x-1.5">
+            <UtensilsCrossed className="w-3.5 h-3.5 text-[#8B3A4A]" />
+            <span>Mobiliario & Mesas</span>
+          </h3>
+          <span className="text-[10px] font-bold px-1 sm:px-2 py-0.5 rounded-full bg-rose-50 text-[#8B3A4A] border border-rose-200">
+            {tables.length} {tables.length === 1 ? 'Mesa' : 'Mesas'}
+          </span>
+        </div>"""
 
-text = re.sub(pattern, replacement, text)
+text = text.replace(header_title_block, "")
 
-with open('src/WeddingCraft/components/Toolbar.tsx', 'w') as f:
+with open('src/components/floorplan/FloorPlanToolbar.tsx', 'w') as f:
     f.write(text)

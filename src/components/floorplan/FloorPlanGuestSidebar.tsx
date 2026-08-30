@@ -98,31 +98,8 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
   };
 
   return (
-    <div className="w-full sm:w-80 bg-[#FAF8F5] border-l border-[#E8DCCF] flex flex-col h-full overflow-hidden text-[#2D2A26] select-none text-xs">
-      {/* Header */}
-      <div className="p-3.5 border-b border-[#E8DCCF] bg-white">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-bold text-xs uppercase tracking-wider text-[#8C8276] flex items-center space-x-1.5">
-            <Users className="w-4 h-4 text-[#8B3A4A]" />
-            <span>Gestor de Asientos ({totalGuests})</span>
-          </h3>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-            Capacidad: {totalTableCapacity} sillas
-          </span>
-        </div>
-
-        {/* Stats summary bar */}
-        <div className="grid grid-cols-2 gap-1.5 text-center">
-          <div className="p-1.5 bg-[#FAF8F5] rounded-lg border border-[#E8DCCF]">
-            <span className="text-[10px] text-[#8C8276] block">Asientos en Plano</span>
-            <span className="font-bold text-[#8B3A4A] text-sm">{assignedCount}</span>
-          </div>
-          <div className="p-1.5 bg-[#FAF8F5] rounded-lg border border-[#E8DCCF]">
-            <span className="text-[10px] text-[#8C8276] block">Sin Asignar</span>
-            <span className="font-bold text-amber-700 text-sm">{unassignedCount}</span>
-          </div>
-        </div>
-      </div>
+    <div className="w-[50vw] sm:max-w-none sm:w-80 bg-[#FAF8F5] border-l border-[#E8DCCF] flex flex-col h-full overflow-hidden text-[#2D2A26] select-none text-xs">
+      
 
       {/* Search & Filters */}
       <div className="p-3 border-b border-[#E8DCCF] bg-[#FAF8F5] space-y-2">
@@ -175,7 +152,7 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
       </div>
 
       {/* Guest Cards List */}
-      <div className="flex-1 p-3 overflow-y-auto space-y-2">
+      <div className="flex-1 px-[2px] py-2 overflow-y-auto space-y-[2px]">
         {filteredGuests.length > 0 ? (
           filteredGuests.map((guest) => {
             const assignment = guestSeatMap.get(guest.id);
@@ -188,7 +165,7 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
                 draggable
                 onDragStart={(e) => handleDragStart(e, guest)}
                 onDragEnd={onDragEndGuest}
-                className={`p-2.5 rounded-xl border transition-all cursor-grab active:cursor-grabbing bg-white shadow-2xs hover:shadow-xs group ${
+                className={`px-2 py-[2px] rounded-xl border transition-all cursor-grab active:cursor-grabbing bg-white shadow-2xs hover:shadow-xs group ${
                   isAssigned
                     ? 'border-emerald-200 hover:border-emerald-400'
                     : 'border-[#E8DCCF] hover:border-[#8B3A4A]'
@@ -216,12 +193,7 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
                             {guest.protocolRoleTitle}
                           </span>
                         )}
-                        {guest.dietaryRestrictions && (
-                          <span className="text-emerald-700 font-medium flex items-center shrink-0">
-                            <Utensils className="w-2.5 h-2.5 mr-0.5" />
-                            {guest.dietaryRestrictions}
-                          </span>
-                        )}
+
                       </div>
                     </div>
                   </div>
