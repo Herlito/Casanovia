@@ -140,7 +140,7 @@ export const Navbar: React.FC = () => {
   return (
     <>
       {/* Updated Header Background */}
-      <header className={`sticky top-0 z-50 backdrop-blur-md border-b shadow-xs ${isPublicHomeLanding ? "bg-[#EBEBEB] border-[#D4D4D4]" : "bg-[#FDFBF7]/95 border-[#EADDCE]"}`}>
+      <header className={`print:hidden sticky top-0 z-50 backdrop-blur-md border-b shadow-xs ${isPublicHomeLanding ? "bg-[#EBEBEB] border-[#D4D4D4]" : "bg-[#FDFBF7]/95 border-[#EADDCE]"}`}>
         {/* Top Gold Ornament Bar */}
         <div className="h-1.5 bg-linear-to-r from-[#D4AF37] via-[#C5A880] to-[#8B3A4A] w-full" />
 
