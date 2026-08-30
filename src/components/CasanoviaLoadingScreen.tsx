@@ -4,26 +4,29 @@ export const CasanoviaLoadingScreen: React.FC = () => {
   return (
     <div
       id="casanovia-loading-screen"
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#FDFBF7] text-[#2D2A26] px-6 select-none transition-opacity duration-300"
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#EBEBEB] px-6 select-none transition-opacity duration-300"
     >
-      <div className="flex flex-col items-center max-w-sm w-full animate-fadeIn text-center">
-        {/* Centered Casanovia SVG Logo */}
-        <div className="relative mb-6 flex items-center justify-center">
+      <div className="flex flex-col items-center max-w-md w-full animate-fadeIn text-center h-full justify-between py-24">
+        
+        <div className="flex-1"></div>
+        
+        {/* Centered Circle with Logo */}
+        <div className="relative flex items-center justify-center w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] bg-[#F5F5F5] rounded-full shadow-[15px_15px_35px_rgba(0,0,0,0.15),-5px_-5px_15px_rgba(255,255,255,1),inset_10px_10px_20px_rgba(0,0,0,0.1),inset_-10px_-10px_20px_rgba(255,255,255,1)]">
           <img
-            src="/casanovia.svg"
-            alt="Casanovia"
-            className="w-56 sm:w-72 max-w-[80vw] h-auto object-contain drop-shadow-sm transition-transform duration-700 ease-in-out"
+            src="/n.svg"
+            alt="N Logo"
+            className="w-[80px] h-[80px] sm:w-[90px] sm:h-[90px] object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.15)]"
           />
         </div>
 
-        {/* Minimalist, luxury loading progress indicator */}
-        <div className="w-36 sm:w-44 h-1 bg-[#8B3A4A]/10 rounded-full overflow-hidden relative shadow-inner">
-          <div className="absolute top-0 bottom-0 left-0 right-0 bg-gradient-to-r from-[#8B3A4A]/40 via-[#8B3A4A] to-[#8B3A4A]/40 rounded-full animate-pulse" />
+        {/* Spacer */}
+        <div className="flex-1 flex flex-col justify-end pb-8 w-full items-center">
+          {/* Minimalist gray loading progress indicator */}
+          <div className="w-[200px] sm:w-[240px] h-[6px] bg-[#D4D4D4] relative overflow-hidden">
+            <div className="absolute top-0 bottom-0 left-0 w-[40%] bg-[#9E9E9E] animate-[slide_2s_ease-in-out_infinite]" />
+          </div>
         </div>
-
-        <p className="mt-3 text-[11px] tracking-[0.2em] uppercase font-serif text-[#8B3A4A]/70 font-medium">
-          Cargando...
-        </p>
+        
       </div>
     </div>
   );
