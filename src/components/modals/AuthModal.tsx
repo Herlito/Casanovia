@@ -9,7 +9,6 @@ import {
   CheckCircle2, 
   AlertCircle,
   KeyRound,
-  ArrowRight,
   Briefcase
 } from 'lucide-react';
 
@@ -20,11 +19,11 @@ export const AuthModal: React.FC = () => {
     login, 
     isLevel1Admin, 
     isLevel3Planner,
-    isHostUser,
     logout, 
     currentUser 
   } = useWedding();
-  const [username, setUsername] = useState('Herly Lizarazo');
+
+  const [username, setUsername] = useState('');
   const [clave, setClave] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -36,7 +35,6 @@ export const AuthModal: React.FC = () => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
-
     const res = login(username, clave);
     if (res.success) {
       setSuccessMsg(res.message);
@@ -48,148 +46,120 @@ export const AuthModal: React.FC = () => {
     }
   };
 
-  const handleSelectQuickUser = (selectedUsername: string) => {
-    setUsername(selectedUsername);
-    setClave('');
-    setErrorMsg('');
-    setSuccessMsg('');
-    setTimeout(() => {
-      claveInputRef.current?.focus();
-    }, 50);
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-[#E8DCCF] transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-[#EBEBEB] rounded-[2.5rem] max-w-sm w-full shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] transition-all p-8 relative">
         
-        {/* Header */}
-        <div className="bg-linear-to-r from-[#2D2A26] to-[#4A3B32] text-white p-6 relative">
-          <button
-            onClick={() => setShowAuthModal(false)}
-            className="absolute top-5 right-5 p-1.5 rounded-full text-stone-300 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-          
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-[#8B3A4A] flex items-center justify-center shadow-md">
-              <User className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              
-              <h3 className="font-serif-display text-xl font-bold text-white">
-                Acceso
-              </h3>
-            </div>
-          </div>
-          
-        </div>
+        {/* Close Button */}
+        <button
+          onClick={() => setShowAuthModal(false)}
+          className="absolute top-6 right-6 w-10 h-10 rounded-full bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] flex items-center justify-center text-gray-500 hover:text-gray-800 transition-all cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+        </button>
 
         {/* Content */}
-        <div className="p-6 space-y-5">
+        <div className="space-y-6 pt-2">
           {currentUser.isAuthenticated ? (
-            <div className={`border rounded-2xl p-4 text-center space-y-3 ${
-              isLevel1Admin 
-                ? 'bg-emerald-50 border-emerald-200' 
-                : isLevel3Planner 
-                ? 'bg-teal-50 border-teal-200' 
-                : 'bg-purple-50 border-purple-200'
-            }`}>
-              <div className={`w-10 h-10 rounded-full mx-auto flex items-center justify-center ${
-                isLevel1Admin 
-                  ? 'bg-emerald-100 text-emerald-700' 
-                  : isLevel3Planner 
-                  ? 'bg-teal-100 text-teal-700' 
-                  : 'bg-purple-100 text-purple-700'
-              }`}>
+            <div className="bg-[#EBEBEB] rounded-3xl p-6 shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] text-center space-y-5">
+              <div className="w-16 h-16 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] mx-auto flex items-center justify-center text-gray-700">
                 {isLevel1Admin ? <ShieldCheck className="w-6 h-6" /> : isLevel3Planner ? <Briefcase className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
               </div>
+              
               <div>
-                <h4 className="font-bold text-[#2D2A26] text-sm">Sesión Activa: {currentUser.username}</h4>
-                <p className="text-xs text-[#7A7268] mt-0.5">{currentUser.roleTitle}</p>
+                <h4 className="font-bold text-gray-900 text-lg">{currentUser.username}</h4>
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mt-1">{currentUser.roleTitle}</p>
               </div>
-              <div className="flex justify-center gap-3 pt-2">
+
+              <div className="flex flex-col gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowAuthModal(false)}
-                  className="px-4 py-2 bg-[#8B3A4A] text-white rounded-xl text-xs font-semibold hover:bg-[#6E2937] transition-colors cursor-pointer"
+                  className="w-full py-3.5 rounded-2xl bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-800 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                 >
-                  Continuar al Dashboard
+                  Continuar
                 </button>
                 <button
                   type="button"
                   onClick={logout}
-                  className="px-4 py-2 bg-white text-stone-700 border border-stone-300 rounded-xl text-xs font-semibold hover:bg-stone-50 transition-colors cursor-pointer"
+                  className="w-full py-3.5 rounded-2xl bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-rose-600 hover:text-rose-700 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                 >
                   Cerrar Sesión
                 </button>
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {errorMsg && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-800 text-xs p-3 rounded-xl flex items-start space-x-2 animate-shake">
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                  <span>{errorMsg}</span>
+            <>
+              {/* Header */}
+              <div className="flex flex-col items-center mb-8">
+                <div className="w-16 h-16 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center justify-center mb-4 text-gray-700">
+                  <User className="w-6 h-6" />
                 </div>
-              )}
-
-              {successMsg && (
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3 rounded-xl flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{successMsg}</span>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1.5">
-                  Usuario
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C8276]" />
-                  <input
-                    type="text"
-                    required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Herly Lizarazo, Guest Planner, Zenaida Anahua..."
-                    className="w-full pl-10 pr-3 py-2.5 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
-                  />
-                </div>
+                <h3 className="font-serif-display text-2xl font-bold text-gray-900">
+                  Acceso
+                </h3>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1.5">
-                  Clave de Acceso
-                </label>
-                <div className="relative">
-                  <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C8276]" />
-                  <input
-                    ref={claveInputRef}
-                    type="password"
-                    required
-                    value={clave}
-                    onChange={(e) => setClave(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-3 py-2.5 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
-                  />
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {errorMsg && (
+                  <div className="bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-rose-600 text-xs p-4 rounded-2xl flex items-start space-x-2 animate-shake font-semibold">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
+                {successMsg && (
+                  <div className="bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-emerald-600 text-xs p-4 rounded-2xl flex items-center space-x-2 font-semibold">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>{successMsg}</span>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-2 uppercase tracking-wider pl-2">
+                    Usuario
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      required
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder=""
+                      className="w-full pl-11 pr-4 py-4 text-sm rounded-2xl bg-[#EBEBEB] text-gray-800 shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] focus:outline-none focus:shadow-[inset_6px_6px_12px_#c8c8c8,inset_-6px_-6px_12px_#ffffff] transition-all"
+                    />
+                  </div>
                 </div>
-              </div>
+                
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-2 uppercase tracking-wider pl-2">
+                    Clave de Acceso
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      ref={claveInputRef}
+                      type="password"
+                      required
+                      value={clave}
+                      onChange={(e) => setClave(e.target.value)}
+                      placeholder=""
+                      className="w-full pl-11 pr-4 py-4 text-sm rounded-2xl bg-[#EBEBEB] text-gray-800 shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] focus:outline-none focus:shadow-[inset_6px_6px_12px_#c8c8c8,inset_-6px_-6px_12px_#ffffff] transition-all"
+                    />
+                  </div>
+                </div>
 
-              <button
-                type="submit"
-                className="w-full py-3 px-4 rounded-xl bg-[#8B3A4A] text-white text-xs font-bold hover:bg-[#6E2937] transition-all shadow-md flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <Lock className="w-4 h-4" />
-                <span>Ingresar</span>
-              </button>
-
+                <button
+                  type="submit"
+                  className="w-full mt-8 py-4 px-4 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] text-gray-800 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <Lock className="w-4 h-4" />
+                  <span>Ingresar</span>
+                </button>
               </form>
+            </>
           )}
-
-
         </div>
-
       </div>
     </div>
   );
