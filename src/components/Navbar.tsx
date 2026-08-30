@@ -191,7 +191,13 @@ export const Navbar: React.FC = () => {
                   <button
                     type="button"
                     id="btn-sandwich-menu-center"
-                    onClick={() => setSandwichMenuOpen(!sandwichMenuOpen)}
+                    onClick={() => {
+                      if (!currentUser.isAuthenticated) {
+                        setShowAuthModal(true);
+                      } else {
+                        setSandwichMenuOpen(!sandwichMenuOpen);
+                      }
+                    }}
                     aria-label="Abrir Menú de Opciones"
                     className={`p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
                       sandwichMenuOpen
@@ -313,7 +319,13 @@ export const Navbar: React.FC = () => {
                   <button
                     type="button"
                     id="btn-sandwich-menu"
-                    onClick={() => setSandwichMenuOpen(!sandwichMenuOpen)}
+                    onClick={() => {
+                      if (!currentUser.isAuthenticated) {
+                        setShowAuthModal(true);
+                      } else {
+                        setSandwichMenuOpen(!sandwichMenuOpen);
+                      }
+                    }}
                     aria-label="Abrir Menú de Opciones"
                     className={`p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
                       sandwichMenuOpen

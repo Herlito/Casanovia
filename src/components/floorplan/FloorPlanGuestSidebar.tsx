@@ -98,7 +98,7 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
   };
 
   return (
-    <div className="w-80 bg-[#FAF8F5] border-l border-[#E8DCCF] flex flex-col h-full overflow-hidden text-[#2D2A26] select-none text-xs">
+    <div className="w-full sm:w-80 bg-[#FAF8F5] border-l border-[#E8DCCF] flex flex-col h-full overflow-hidden text-[#2D2A26] select-none text-xs">
       {/* Header */}
       <div className="p-3.5 border-b border-[#E8DCCF] bg-white">
         <div className="flex items-center justify-between mb-2">

@@ -195,7 +195,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
   }, [selectedElement]);
 
   return (
-    <div className="w-80 bg-[#FAF8F5] border-r border-[#E8DCCF] flex flex-col h-full overflow-y-auto text-[#2D2A26] select-none text-xs">
+    <div className="w-full sm:w-80 bg-[#FAF8F5] border-r border-[#E8DCCF] flex flex-col h-full overflow-y-auto text-[#2D2A26] select-none text-xs">
       {/* 1. Element Palette Header & Mode Tabs */}
       <div className="p-3 border-b border-[#E8DCCF] bg-white sticky top-0 z-10 space-y-2">
         <div className="flex items-center justify-between">

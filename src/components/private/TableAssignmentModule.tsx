@@ -518,7 +518,7 @@ export const TableAssignmentModule: React.FC = () => {
             title="Diseñador visual interactivo de planos en 2D con carga de PDF y asignación de asientos"
           >
             <MapIcon className="w-4 h-4 text-[#8B3A4A]" />
-            <span>Diseñador de Planos 2D / PDF</span>
+            <span className="hidden sm:inline">Diseñador 2D / PDF</span>
           </button>
 
           <button
@@ -530,7 +530,7 @@ export const TableAssignmentModule: React.FC = () => {
             className="px-3.5 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-all border border-white/30 flex items-center space-x-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Nueva Mesa</span>
+            <span className="hidden sm:inline">Nueva Mesa</span>
           </button>
 
           <button
@@ -540,7 +540,7 @@ export const TableAssignmentModule: React.FC = () => {
             title="Asigna automáticamente invitados sin mesa a los lugares libres"
           >
             <Wand2 className="w-4 h-4 text-[#F7E7CE]" />
-            <span>Auto-Distribuir</span>
+            <span className="hidden sm:inline">Auto-Distribuir</span>
           </button>
 
           <button
@@ -549,7 +549,7 @@ export const TableAssignmentModule: React.FC = () => {
             className="px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-semibold transition-all border border-white/20 flex items-center space-x-1.5 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            <span>Imprimir Plano</span>
+            <span className="hidden sm:inline">Imprimir</span>
           </button>
         </div>
       </div>

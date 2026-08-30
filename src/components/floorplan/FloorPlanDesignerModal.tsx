@@ -21,6 +21,7 @@ import {
   ChevronDown,
   RefreshCw,
   Undo2,
+  Users,
   Redo2
 } from 'lucide-react';
 import { useWedding } from '../../context/WeddingContext';
@@ -77,6 +78,19 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   const [gridSize, setGridSize] = useState<number>(30);
   const [canvasWidth, setCanvasWidth] = useState<number>(1600);
   const [canvasHeight, setCanvasHeight] = useState<number>(1200);
+
+  // Mobile sidebar toggles
+  const [showMobileToolbar, setShowMobileToolbar] = useState<boolean>(false);
+  const [showMobileGuests, setShowMobileGuests] = useState<boolean>(false);
+
+  // Auto-show toolbar (which has properties) on mobile when element selected
+  useEffect(() => {
+    if (selectedElementId && window.innerWidth < 768) {
+      setShowMobileToolbar(true);
+      setShowMobileGuests(false);
+    }
+  }, [selectedElementId]);
+
 
   // Scale Calibration State
   const [scaleCalibration, setScaleCalibration] = useState({
@@ -977,7 +991,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     <div className="fixed inset-0 z-50 flex flex-col bg-[#FAF8F5] select-none animate-in fade-in duration-200">
       
       {/* 1. TOP MASTER HEADER BAR */}
-      <div className="h-14 border-b border-[#E8DCCF] bg-white flex items-center justify-between px-4 sm:px-6 shadow-2xs z-30">
+      <div className="h-14 overflow-x-auto border-b border-[#E8DCCF] bg-white flex items-center justify-between px-4 sm:px-6 shadow-2xs z-30">
         
         {/* Left: Brand & Wedding Selector */}
         <div className="flex items-center space-x-3">
@@ -1212,7 +1226,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             ) : (
               <Save className="w-3.5 h-3.5 text-amber-300" />
             )}
-            <span>{saveSuccessNotice ? '¡Guardado!' : 'Guardar Plano'}</span>
+            <span className="hidden sm:inline">{saveSuccessNotice ? '¡Guardado!' : 'Guardar Plano'}</span>
           </button>
 
           {/* Close modal */}
@@ -1258,7 +1272,8 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       <div className="flex-1 flex overflow-hidden relative">
         
         {/* Left Sidebar: Furniture & Properties */}
-        <FloorPlanToolbar
+        <div className={`absolute md:relative z-50 h-full transition-transform duration-300 ${showMobileToolbar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+          <FloorPlanToolbar
           selectedElement={selectedElement}
           tables={tables}
           guests={guests}
@@ -1272,9 +1287,28 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}
         />
+        </div>
 
         {/* Center: Interactive Canvas */}
         <div className="flex-1 h-full relative">
+          {/* Mobile Sidebar Toggles */}
+          <div className="md:hidden absolute top-4 left-4 z-40 flex space-x-2">
+            <button 
+              onClick={() => { setShowMobileToolbar(!showMobileToolbar); setShowMobileGuests(false); }}
+              className="p-2 bg-white rounded-xl shadow-lg border border-[#E8DCCF] text-[#8B3A4A] cursor-pointer"
+            >
+              <Layers className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="md:hidden absolute top-4 right-4 z-40 flex space-x-2">
+            <button 
+              onClick={() => { setShowMobileGuests(!showMobileGuests); setShowMobileToolbar(false); }}
+              className="p-2 bg-white rounded-xl shadow-lg border border-[#E8DCCF] text-[#8B3A4A] cursor-pointer"
+            >
+              <Users className="w-5 h-5" />
+            </button>
+          </div>
+
           <FloorPlanCanvas
             elements={elements}
             selectedElementId={selectedElementId}
@@ -1332,7 +1366,8 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         </div>
 
         {/* Right Sidebar: Seating Guest List */}
-        <FloorPlanGuestSidebar
+        <div className={`absolute right-0 md:relative z-50 h-full transition-transform duration-300 ${showMobileGuests ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}>
+          <FloorPlanGuestSidebar
           guests={guests}
           elements={elements}
           onUnassignGuest={handleUnassignGuest}
@@ -1349,6 +1384,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             }
           }}
         />
+        </div>
 
       </div>
 

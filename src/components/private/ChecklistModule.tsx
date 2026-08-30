@@ -154,7 +154,7 @@ export const ChecklistModule: React.FC = () => {
             className="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 text-xs font-bold transition-colors flex items-center space-x-1 cursor-pointer"
           >
             <CheckSquare className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Marcar todas</span>
+            <span className="hidden sm:inline">Marcar todas</span>
           </button>
 
           {/* Desmarcar todas */}
@@ -165,7 +165,7 @@ export const ChecklistModule: React.FC = () => {
             className="px-3 py-2 rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-300 text-xs font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
           >
             <Square className="w-3.5 h-3.5 text-stone-500" />
-            <span>Desmarcar</span>
+            <span className="hidden sm:inline">Desmarcar</span>
           </button>
 
           {/* Borrar todas */}
@@ -180,7 +180,7 @@ export const ChecklistModule: React.FC = () => {
             className="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-            <span>Borrar todas</span>
+            <span className="hidden sm:inline">Borrar todas</span>
           </button>
 
           {/* Restaurar Lista Maestra */}
@@ -267,7 +267,7 @@ export const ChecklistModule: React.FC = () => {
               className="px-4 py-2.5 bg-[#8B3A4A] text-white text-xs font-semibold rounded-xl hover:bg-[#6E2937] transition-all shadow-xs flex items-center justify-center space-x-1 cursor-pointer shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span>Añadir</span>
+              <span className="hidden sm:inline">Añadir</span>
             </button>
           </div>
         </form>

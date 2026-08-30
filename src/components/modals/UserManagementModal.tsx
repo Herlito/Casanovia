@@ -192,15 +192,10 @@ export const UserManagementModal: React.FC = () => {
                 </span>
               </div>
               <h3 className="font-serif-display text-xl font-bold text-white">
-                Gestión de Usuarios & Anfitriones
+                Gestión de Usuarios
               </h3>
             </div>
           </div>
-          <p className="text-xs text-stone-300 font-light mt-1 max-w-xl">
-            {isLevel1Admin 
-              ? 'Administra todos los niveles de acceso: Super Administradores (Nivel 1), Wedding Planners (Nivel 3) y Anfitriones de Bodas (Nivel 2).'
-              : 'Como Wedding Planner (Nivel 3), puedes crear y asignar permisos de acceso como "Anfitrión" (Nivel 2) para las parejas y novios de tus bodas gestionadas.'}
-          </p>
         </div>
 
         {/* Body Content */}
@@ -584,11 +579,7 @@ export const UserManagementModal: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-white border-t border-[#E8DCCF] flex items-center justify-between text-xs text-[#7A7268] shrink-0">
-          <div className="flex items-center space-x-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Sincronización en tiempo real con <strong>Firebase Firestore</strong></span>
-          </div>
+        <div className="p-4 bg-white border-t border-[#E8DCCF] flex items-center justify-end text-xs text-[#7A7268] shrink-0">
           <button
             type="button"
             onClick={() => setShowUserManagementModal(false)}

@@ -122,7 +122,7 @@ export const VendorsModule: React.FC = () => {
               className="px-4 py-2.5 bg-[#8B3A4A] text-white rounded-xl text-xs font-bold hover:bg-[#6E2937] transition-all flex items-center space-x-2 shadow-sm cursor-pointer active:scale-95"
             >
               <Plus className="w-4 h-4" />
-              <span>Registrar Proveedor</span>
+              <span className="hidden sm:inline">Nuevo Proveedor</span>
             </button>
           </div>
         )}

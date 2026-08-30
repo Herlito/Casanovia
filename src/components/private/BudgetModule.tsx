@@ -152,7 +152,7 @@ export const BudgetModule: React.FC = () => {
             title="Sincronizar todos los datos de Gestión de Proveedores & Servicios con este Presupuesto"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            <span>Sincronizar con Proveedores ({vendors.length})</span>
+            <span className="hidden sm:inline">Sincronizar Proveedores</span>
           </button>
 
           <button
@@ -162,7 +162,7 @@ export const BudgetModule: React.FC = () => {
             className="px-5 py-2.5 rounded-xl bg-[#8B3A4A] text-white text-xs font-semibold hover:bg-[#6E2937] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Agregar Concepto</span>
+            <span className="hidden sm:inline">Nuevo Concepto</span>
           </button>
         </div>
       </div>

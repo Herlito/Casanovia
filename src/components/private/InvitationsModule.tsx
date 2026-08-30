@@ -194,7 +194,7 @@ export const InvitationsModule: React.FC = () => {
             className="px-4 py-2 bg-white border border-[#D9CEBF] text-[#2D2A26] rounded-xl text-xs font-semibold hover:bg-[#F3EFEA] transition-colors flex items-center space-x-1.5 cursor-pointer shadow-2xs"
           >
             <Save className="w-4 h-4 text-[#8B3A4A]" />
-            <span>{isSaving ? 'Guardando...' : 'Guardar Borrador'}</span>
+            <span className="hidden sm:inline">{isSaving ? 'Guardando...' : 'Guardar Borrador'}</span>
           </button>
           
           <button
@@ -202,7 +202,7 @@ export const InvitationsModule: React.FC = () => {
             className="px-4 py-2 bg-[#8B3A4A] text-white rounded-xl text-xs font-bold hover:bg-[#6E2937] transition-colors flex items-center space-x-1.5 cursor-pointer shadow-sm"
           >
             <Download className="w-4 h-4" />
-            <span>Exportar PNG</span>
+            <span className="hidden sm:inline">Exportar PNG</span>
           </button>
         </div>
       </div>

@@ -315,7 +315,7 @@ export const TimelineModule: React.FC = () => {
             className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#8B3A4A] text-white text-xs font-semibold hover:bg-[#6E2937] transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Añadir Hito</span>
+            <span className="hidden sm:inline">Añadir Hito</span>
           </button>
         </div>
       </div>

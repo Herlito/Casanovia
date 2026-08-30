@@ -389,7 +389,7 @@ export const GuestManagement: React.FC = () => {
             title="Exportar base de datos a Excel (.xlsx)"
           >
             <Download className="w-3.5 h-3.5 text-emerald-700" />
-            <span>Excel</span>
+            <span className="hidden sm:inline">Excel</span>
           </button>
 
           <button
@@ -399,7 +399,7 @@ export const GuestManagement: React.FC = () => {
             title="Importar invitados desde Excel o CSV"
           >
             <Upload className="w-3.5 h-3.5 text-[#8B3A4A]" />
-            <span>Importar</span>
+            <span className="hidden sm:inline">Importar</span>
           </button>
 
           <button
@@ -409,7 +409,7 @@ export const GuestManagement: React.FC = () => {
             className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
-            <span>+ Agregar Invitado</span>
+            <span className="hidden sm:inline">Nuevo Invitado</span>
           </button>
         </div>
       </div>
