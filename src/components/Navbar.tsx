@@ -138,7 +138,8 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-[#EADDCE] shadow-xs">
+      {/* Updated Header Background */}
+      <header className={`sticky top-0 z-50 backdrop-blur-md border-b shadow-xs ${isPublicHomeLanding && !currentUser.isAuthenticated ? "bg-[#EBEBEB] border-[#D4D4D4]" : "bg-[#FDFBF7]/95 border-[#EADDCE]"}`}>
         {/* Top Gold Ornament Bar */}
         <div className="h-1.5 bg-linear-to-r from-[#D4AF37] via-[#C5A880] to-[#8B3A4A] w-full" />
 
@@ -199,17 +200,21 @@ export const Navbar: React.FC = () => {
                       }
                     }}
                     aria-label="Abrir Menú de Opciones"
-                    className={`p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
-                      sandwichMenuOpen
-                        ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-md ring-2 ring-[#8B3A4A]/30'
-                        : 'bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#2D2A26] border-[#D9CEBF]'
-                    }`}
+                    className={
+                      (!currentUser.isAuthenticated && isPublicHomeLanding)
+                        ? "p-3 sm:p-4 rounded-full bg-[#F5F5F5] text-gray-500 shadow-[5px_5px_15px_rgba(0,0,0,0.1),-5px_-5px_15px_rgba(255,255,255,1),inset_3px_3px_6px_rgba(0,0,0,0.05),inset_-3px_-3px_6px_rgba(255,255,255,1)] hover:shadow-[inset_5px_5px_15px_rgba(0,0,0,0.1),inset_-5px_-5px_15px_rgba(255,255,255,1)] transition-all duration-200 cursor-pointer border-none"
+                        : `p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
+                            sandwichMenuOpen
+                              ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-md ring-2 ring-[#8B3A4A]/30'
+                              : 'bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#2D2A26] border-[#D9CEBF]'
+                          }`
+                    }
                     title="Menú de Acciones y Herramientas"
                   >
                     {sandwichMenuOpen ? (
-                      <X className="w-5 h-5 transition-transform" />
+                      <X className={!currentUser.isAuthenticated && isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 transition-transform"} />
                     ) : (
-                      <Menu className="w-5 h-5 text-[#8B3A4A] transition-transform" />
+                      <Menu className={!currentUser.isAuthenticated && isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 text-[#8B3A4A] transition-transform"} />
                     )}
                   </button>
 
@@ -327,17 +332,21 @@ export const Navbar: React.FC = () => {
                       }
                     }}
                     aria-label="Abrir Menú de Opciones"
-                    className={`p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
-                      sandwichMenuOpen
-                        ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-md ring-2 ring-[#8B3A4A]/30'
-                        : 'bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#2D2A26] border-[#D9CEBF]'
-                    }`}
+                    className={
+                      (!currentUser.isAuthenticated && isPublicHomeLanding)
+                        ? "p-3 sm:p-4 rounded-full bg-[#F5F5F5] text-gray-500 shadow-[5px_5px_15px_rgba(0,0,0,0.1),-5px_-5px_15px_rgba(255,255,255,1),inset_3px_3px_6px_rgba(0,0,0,0.05),inset_-3px_-3px_6px_rgba(255,255,255,1)] hover:shadow-[inset_5px_5px_15px_rgba(0,0,0,0.1),inset_-5px_-5px_15px_rgba(255,255,255,1)] transition-all duration-200 cursor-pointer border-none"
+                        : `p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
+                            sandwichMenuOpen
+                              ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-md ring-2 ring-[#8B3A4A]/30'
+                              : 'bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#2D2A26] border-[#D9CEBF]'
+                          }`
+                    }
                     title="Menú de Acciones y Herramientas"
                   >
                     {sandwichMenuOpen ? (
-                      <X className="w-5 h-5 transition-transform" />
+                      <X className={!currentUser.isAuthenticated && isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 transition-transform"} />
                     ) : (
-                      <Menu className="w-5 h-5 text-[#8B3A4A] transition-transform" />
+                      <Menu className={!currentUser.isAuthenticated && isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 text-[#8B3A4A] transition-transform"} />
                     )}
                   </button>
 
