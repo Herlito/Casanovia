@@ -1,3 +1,4 @@
+import { FileText } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import { useWedding } from '../context/WeddingContext';
 import { 
@@ -32,7 +33,7 @@ import {
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { 
+  const { setViewMode,  
     activeView, 
     setActiveView, 
     settings, 
@@ -438,6 +439,31 @@ export const Navbar: React.FC = () => {
                                   </div>
                                   <p className="text-[10px] text-[#8C8276] truncate font-normal">
                                     {isLevel3Planner ? 'Asignar permisos a parejas y novios' : 'Roles, accesos y permisos de anfitriones'}
+                                  </p>
+                                </div>
+                              </button>
+                            )}
+
+                            {/* Manual de Usuario (Solo Admin Nivel 1) */}
+                            {isLevel1Admin && (
+                              <button
+                                type="button"
+                                id="sandwich-btn-manual"
+                                onClick={() => {
+                                  setSandwichMenuOpen(false);
+                                  setViewMode('manual');
+                                }}
+                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors group cursor-pointer border border-transparent hover:border-[#E8DCCF]"
+                              >
+                                <div className="w-8 h-8 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs border border-gray-300">
+                                  <FileText className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-bold flex items-center justify-between">
+                                    <span>Manual de Usuario</span>
+                                  </div>
+                                  <p className="text-[10px] text-[#8C8276] truncate font-normal">
+                                    Guía y funcionalidades de Casanovia
                                   </p>
                                 </div>
                               </button>

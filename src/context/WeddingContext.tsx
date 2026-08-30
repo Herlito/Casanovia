@@ -79,10 +79,10 @@ const DEFAULT_ANONYMOUS_USER: AuthUser = {
 
 interface WeddingContextType {
   // Navigation & View
-  viewMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens';
-  setViewMode: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens') => void;
-  activeView: 'public' | 'private' | 'new_wedding_tasks' | 'tokens';
-  setActiveView: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens') => void;
+  viewMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual';
+  setViewMode: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual') => void;
+  activeView: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual';
+  setActiveView: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual') => void;
   
   // Auth & RBAC
   currentUser: AuthUser;
@@ -260,7 +260,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return false;
   };
 
-  const [viewMode, setViewModeState] = useState<'public' | 'private' | 'new_wedding_tasks' | 'tokens'>(() => {
+  const [viewMode, setViewModeState] = useState<'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual'>(() => {
     if (isTokensUrlRequested()) {
       return 'tokens';
     }
@@ -676,7 +676,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   // View switch interceptor
-  const setViewMode = (newMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens') => {
+  const setViewMode = (newMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual') => {
     if (newMode === 'private' || newMode === 'new_wedding_tasks') {
       if (!currentUser.isAuthenticated) {
         setShowAuthModal(true);

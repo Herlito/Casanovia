@@ -21,6 +21,7 @@ import { PublicFooter } from './components/public/PublicFooter';
 import { WeddingCraftEditor } from './WeddingCraft/components/WeddingCraftEditor';
 import { WeddingThemeWrapper } from './components/public/WeddingThemeWrapper';
 import { CasanoviaLoadingScreen } from './components/CasanoviaLoadingScreen';
+import { CasanoviaManual } from './components/private/CasanoviaManual';
 import { CasanoviaHomeLanding } from './components/public/CasanoviaHomeLanding';
 import { Heart, Sparkles } from 'lucide-react';
 import { isRsvpDeadlinePassed } from './lib/dateUtils';
@@ -103,6 +104,10 @@ const MainLayout: React.FC = () => {
         <main className="flex-1 animate-fadeIn">
           {/* Tokens & Services Purchase Screen */}
           <TokensPurchaseScreen />
+        </main>
+      ) : viewMode === 'manual' ? (
+        <main className="flex-1 animate-fadeIn">
+          <CasanoviaManual />
         </main>
       ) : (
         <main className="flex-1 animate-fadeIn">
