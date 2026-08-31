@@ -74,7 +74,7 @@ const PHASES_METADATA: PhaseDef[] = [
     title: 'Fase 6: El Día de la Boda y Post-Boda',
     timeframe: 'Día del Evento & Post-Boda',
     badge: 'Día B & Post',
-    color: 'border-l-[#8B3A4A] bg-[#8B3A4A]/5',
+    color: 'border-l-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/5',
   },
 ];
 
@@ -194,19 +194,19 @@ export const ChecklistModule: React.FC = () => {
               }
             }}
             title="Restablecer a la lista maestra oficial"
-            className="px-3 py-2 rounded-xl border border-[#D9CEBF] bg-white text-xs font-semibold text-[#524B42] hover:bg-[#FAF8F5] hover:text-[#8B3A4A] transition-colors flex items-center space-x-1.5 shadow-2xs"
+            className="px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] text-xs font-semibold text-[#524B42] hover:bg-[#FAF8F5] hover:text-[#2D3748] transition-colors flex items-center space-x-1.5 shadow-2xs"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Restablecer Maestra</span>
             <span className="sm:hidden">Reset</span>
           </button>
 
-          <div className="bg-white px-3.5 py-2 rounded-2xl border border-[#E8DCCF] shadow-2xs flex items-center space-x-2.5">
+          <div className="bg-[#EBEBEB] px-3.5 py-2 rounded-2xl border border-transparent shadow-2xs flex items-center space-x-2.5">
             <div className="text-right">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#8C8276] block">Listas</span>
-              <span className="text-sm font-serif-display font-bold text-[#8B3A4A]">{completedCount}/{totalCount}</span>
+              <span className="text-sm font-serif-display font-bold text-[#2D3748]">{completedCount}/{totalCount}</span>
             </div>
-            <div className="w-8 h-8 rounded-full border-3 border-[#8B3A4A] flex items-center justify-center font-bold text-[10px] text-[#2D2A26]">
+            <div className="w-8 h-8 rounded-full border-3 border-transparent flex items-center justify-center font-bold text-[10px] text-[#2D2A26]">
               {progressPercent}%
             </div>
           </div>
@@ -214,9 +214,9 @@ export const ChecklistModule: React.FC = () => {
       </div>
 
       {/* Quick Add Task Form */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E8DCCF] shadow-2xs">
+      <div className="bg-[#EBEBEB] p-4 sm:p-5 rounded-2xl border border-transparent shadow-2xs">
         <h3 className="font-serif-display text-sm font-bold text-[#2D2A26] mb-3 flex items-center space-x-2">
-          <Plus className="w-4 h-4 text-[#8B3A4A]" />
+          <Plus className="w-4 h-4 text-[#2D3748]" />
           <span>Agregar Tarea Personalizada a una Fase</span>
         </h3>
 
@@ -228,7 +228,7 @@ export const ChecklistModule: React.FC = () => {
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
               placeholder="Descripción de la tarea (ej. Contratar carrito de helados gourmet)..."
-              className="w-full px-4 py-2.5 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+              className="w-full px-4 py-2.5 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
             />
           </div>
 
@@ -266,7 +266,7 @@ export const ChecklistModule: React.FC = () => {
 
             <button
               type="submit"
-              className="px-4 py-2.5 bg-[#8B3A4A] text-white text-xs font-semibold rounded-xl hover:bg-[#6E2937] transition-all shadow-xs flex items-center justify-center space-x-1 cursor-pointer shrink-0"
+              className="px-4 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold rounded-xl hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-1 cursor-pointer shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Añadir</span>
@@ -282,8 +282,8 @@ export const ChecklistModule: React.FC = () => {
           onClick={() => setSelectedPhaseFilter('all')}
           className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-colors ${
             selectedPhaseFilter === 'all'
-              ? 'bg-[#2D2A26] text-white'
-              : 'bg-white border border-[#D9CEBF] text-[#6B6358] hover:bg-[#EFEAE2]'
+              ? 'bg-[#2D2A26] text-[#2D3748]'
+              : 'bg-[#EBEBEB] border border-[#D9CEBF] text-[#6B6358] hover:bg-[#EFEAE2]'
           }`}
         >
           Todas las Fases ({totalCount})
@@ -299,13 +299,13 @@ export const ChecklistModule: React.FC = () => {
               onClick={() => setSelectedPhaseFilter(p.key)}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-colors flex items-center space-x-1.5 ${
                 selectedPhaseFilter === p.key
-                  ? 'bg-[#8B3A4A] text-white'
-                  : 'bg-white border border-[#D9CEBF] text-[#6B6358] hover:bg-[#EFEAE2]'
+                  ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]'
+                  : 'bg-[#EBEBEB] border border-[#D9CEBF] text-[#6B6358] hover:bg-[#EFEAE2]'
               }`}
             >
               <span>Fase {idx + 1}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                selectedPhaseFilter === p.key ? 'bg-white/20 text-white' : 'bg-[#EFEAE2] text-[#524B42]'
+                selectedPhaseFilter === p.key ? 'bg-[#EBEBEB]/20 text-[#2D3748]' : 'bg-[#EFEAE2] text-[#524B42]'
               }`}>
                 {phaseDone}/{phaseTasks.length}
               </span>
@@ -325,7 +325,7 @@ export const ChecklistModule: React.FC = () => {
           return (
             <div 
               key={phase.key} 
-              className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-[#E8DCCF] shadow-2xs overflow-hidden transition-all" : "bg-white rounded-2xl border border-[#E8DCCF] shadow-2xs overflow-hidden transition-all"}
+              className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-transparent shadow-2xs overflow-hidden transition-all" : "bg-[#EBEBEB] rounded-2xl border border-transparent shadow-2xs overflow-hidden transition-all"}
             >
               {/* Phase Header Bar */}
               <div 
@@ -333,7 +333,7 @@ export const ChecklistModule: React.FC = () => {
                 className={`p-4 sm:px-6 flex items-center justify-between cursor-pointer border-b border-[#F0EAE1] hover:bg-[#FAF8F5] transition-colors`}
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-xl bg-[#8B3A4A] text-white flex items-center justify-center font-serif-display font-bold text-sm">
+                  <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] flex items-center justify-center font-serif-display font-bold text-sm">
                     {idx + 1}
                   </div>
                   <div>
@@ -381,12 +381,12 @@ export const ChecklistModule: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => toggleTask(task.id)}
-                            className="mt-0.5 text-[#8B3A4A] hover:scale-110 transition-transform cursor-pointer shrink-0"
+                            className="mt-0.5 text-[#2D3748] hover:scale-110 transition-transform cursor-pointer shrink-0"
                           >
                             {task.isCompleted ? (
                               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                             ) : (
-                              <Circle className="w-5 h-5 text-[#C5A880] hover:text-[#8B3A4A]" />
+                              <Circle className="w-5 h-5 text-[#C5A880] hover:text-[#2D3748]" />
                             )}
                           </button>
 

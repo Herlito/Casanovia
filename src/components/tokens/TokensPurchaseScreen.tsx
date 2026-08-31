@@ -54,9 +54,9 @@ const PRICING_PLANS: PricingPlan[] = [
     ],
     price: 80.0,
     badge: 'Personalizado',
-    badgeColor: 'bg-rose-50 text-[#8B3A4A] border-rose-200',
-    iconBg: 'bg-[#FAF3ED] border-[#E8DCCF]',
-    iconColor: 'text-[#8B3A4A]'
+    badgeColor: 'bg-rose-50 text-[#2D3748] border-rose-200',
+    iconBg: 'bg-[#FAF3ED] border-transparent',
+    iconColor: 'text-[#2D3748]'
   },
   {
     id: 'pack-silver',
@@ -360,10 +360,10 @@ export const TokensPurchaseScreen: React.FC = () => {
       
       {/* Top Bar with Admin Controls */}
       {isLevel1Admin && (
-        <div className="bg-[#EBEBEB] border-b border-[#E8DCCF] px-4 py-2">
+        <div className="bg-[#EBEBEB] border-b border-transparent px-4 py-2">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#FAF3ED] text-[#8B3A4A] text-[11px] font-bold border border-[#E8DCCF]">
+              <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#FAF3ED] text-[#2D3748] text-[11px] font-bold border border-transparent">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Modo Administrador</span>
               </span>
@@ -373,7 +373,7 @@ export const TokensPurchaseScreen: React.FC = () => {
               type="button"
               id="btn-admin-config-precios-payment"
               onClick={() => setAdminSettingsOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-[#2A1810] hover:bg-[#1E110B] text-white text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-[#2A1810] hover:bg-[#1E110B] text-[#2D3748] text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
             >
               <Settings className="w-3.5 h-3.5 text-[#E5B869]" />
               <span>Editar Datos de Pago & QR</span>
@@ -489,7 +489,7 @@ export const TokensPurchaseScreen: React.FC = () => {
           <div className="lg:col-span-4 space-y-5">
             
             {/* Order Summary Card */}
-            <div className="bg-[#EBEBEB] rounded-2xl border border-[#E8DCCF] p-6 shadow-sm space-y-4">
+            <div className="bg-[#EBEBEB] rounded-2xl border border-transparent p-6 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] space-y-4">
               <h2 className="text-base sm:text-lg font-bold text-[#2A1810] tracking-wide border-b border-[#F0EAE1] pb-3">
                 Resumen del Pedido
               </h2>
@@ -512,7 +512,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-3 border-t border-[#E8DCCF] text-sm sm:text-base font-extrabold text-[#2A1810]">
+                <div className="flex items-center justify-between pt-3 border-t border-transparent text-sm sm:text-base font-extrabold text-[#2A1810]">
                   <span>Total</span>
                   <span className="font-mono text-xl text-[#2A1810]">{formatPrice(totalToPay)}</span>
                 </div>
@@ -523,7 +523,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                 type="button"
                 id="btn-proceder-pago"
                 onClick={handlePurchase}
-                className="w-full mt-2 py-3.5 px-4 rounded-xl bg-[#2A1810] hover:bg-[#1A0E0A] active:scale-98 text-white font-bold text-xs sm:text-sm tracking-wider uppercase transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center space-x-2"
+                className="w-full mt-2 py-3.5 px-4 rounded-xl bg-[#2A1810] hover:bg-[#1A0E0A] active:scale-98 text-[#2D3748] font-bold text-xs sm:text-sm tracking-wider uppercase transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] cursor-pointer flex items-center justify-center space-x-2"
               >
                 <ShoppingBag className="w-4 h-4 text-[#E5B869]" />
                 <span>Proceder al Pago</span>
@@ -531,7 +531,7 @@ export const TokensPurchaseScreen: React.FC = () => {
             </div>
 
             {/* Payment Details & Quick Copy (Yape & Transferencia) */}
-            <div className="bg-[#EBEBEB] rounded-2xl border border-[#E8DCCF] p-5 shadow-2xs space-y-4">
+            <div className="bg-[#EBEBEB] rounded-2xl border border-transparent p-5 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-[#F0EAE1] pb-2">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#2A1810]">
                   Datos de Pago
@@ -540,7 +540,7 @@ export const TokensPurchaseScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setAdminSettingsOpen(true)}
-                    className="text-[11px] text-[#8B3A4A] hover:underline font-semibold flex items-center space-x-1 cursor-pointer"
+                    className="text-[11px] text-[#2D3748] hover:underline font-semibold flex items-center space-x-1 cursor-pointer"
                   >
                     <Settings className="w-3 h-3" />
                     <span>Configurar</span>
@@ -549,7 +549,7 @@ export const TokensPurchaseScreen: React.FC = () => {
               </div>
 
               {/* QR Image 1:1 Display */}
-              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#FAF8F5] border border-[#E8DCCF]">
+              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#FAF8F5] border border-transparent">
                 <div className="w-32 h-32 aspect-square rounded-xl bg-[#EBEBEB] p-1.5 border border-[#D9CEBF] shadow-xs flex items-center justify-center overflow-hidden">
                   {tokensPaymentConfig.qrImageUrl ? (
                     <img 
@@ -605,7 +605,7 @@ export const TokensPurchaseScreen: React.FC = () => {
             </div>
 
             {/* Voucher Upload Card */}
-            <div className="bg-[#EBEBEB] rounded-2xl border border-[#E8DCCF] p-5 shadow-2xs space-y-3">
+            <div className="bg-[#EBEBEB] rounded-2xl border border-transparent p-5 shadow-2xs space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#2A1810]">
                 Subir Comprobante (JPG / PNG)
               </h3>
@@ -688,7 +688,7 @@ export const TokensPurchaseScreen: React.FC = () => {
       {/* Confirmation / Order Summary Modal */}
       {orderModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-[#EBEBEB] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-[#E8DCCF] space-y-6 relative">
+          <div className="bg-[#EBEBEB] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-transparent space-y-6 relative">
             <button
               onClick={() => setOrderModalOpen(false)}
               className="absolute top-4 right-4 text-[#8C8276] hover:text-[#2D2A26] p-1 rounded-full hover:bg-black/5"
@@ -708,7 +708,7 @@ export const TokensPurchaseScreen: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-[#EBEBEB] rounded-2xl p-4 border border-[#E8DCCF] space-y-3 text-xs">
+            <div className="bg-[#EBEBEB] rounded-2xl p-4 border border-transparent space-y-3 text-xs">
               <div className="flex justify-between font-bold text-sm border-b border-[#F0EAE1] pb-2 text-[#2D2A26]">
                 <span>Total a Transferir:</span>
                 <span className="font-mono text-[#2A1810] font-extrabold">{formatPrice(totalToPay)}</span>
@@ -733,7 +733,7 @@ export const TokensPurchaseScreen: React.FC = () => {
             </div>
 
             {/* Voucher Upload Section in Modal */}
-            <div className="bg-[#EBEBEB] rounded-2xl border border-[#E8DCCF] p-4 shadow-2xs space-y-2.5">
+            <div className="bg-[#EBEBEB] rounded-2xl border border-transparent p-4 shadow-2xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#2A1810]">
                   Subir Comprobante (JPG / PNG)
@@ -839,7 +839,7 @@ export const TokensPurchaseScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setOrderModalOpen(false)}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#2A1810] hover:bg-[#1A0E0A] text-white text-xs font-bold transition-colors cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#2A1810] hover:bg-[#1A0E0A] text-[#2D3748] text-xs font-bold transition-colors cursor-pointer"
               >
                 Aceptar y Finalizar
               </button>

@@ -54,7 +54,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Anfitrión',
     desc: 'Novios / Anfitriones del evento',
     icon: Sparkles,
-    activeColor: 'bg-purple-700 text-white border-purple-800 shadow-sm',
+    activeColor: 'bg-purple-700 text-[#2D3748] border-purple-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-purple-100 text-purple-800 border-purple-200',
   },
   {
@@ -63,7 +63,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Invitado',
     desc: 'Invitado general / Amigos',
     icon: User,
-    activeColor: 'bg-stone-800 text-white border-stone-900 shadow-sm',
+    activeColor: 'bg-stone-800 text-[#2D3748] border-stone-900 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-stone-100 text-stone-700 border-stone-200',
   },
   {
@@ -72,7 +72,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Familia',
     desc: 'Padres, hermanos, abuelos',
     icon: Heart,
-    activeColor: 'bg-amber-700 text-white border-amber-800 shadow-sm',
+    activeColor: 'bg-amber-700 text-[#2D3748] border-amber-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
   },
   {
@@ -81,7 +81,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Planner',
     desc: 'Coordinador, staff y logística',
     icon: ShieldCheck,
-    activeColor: 'bg-emerald-700 text-white border-emerald-800 shadow-sm',
+    activeColor: 'bg-emerald-700 text-[#2D3748] border-emerald-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
   },
   {
@@ -90,7 +90,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Cortejo',
     desc: 'Padrinos, madrinas, damas',
     icon: Crown,
-    activeColor: 'bg-[#8B3A4A] text-white border-[#6E2937] shadow-sm',
+    activeColor: 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-[#2D3748] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-rose-100 text-rose-800 border-rose-200',
   },
   {
@@ -99,7 +99,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Damita',
     desc: 'Acompañamiento en cortejo y ramo',
     icon: Sparkles,
-    activeColor: 'bg-pink-700 text-white border-pink-800 shadow-sm',
+    activeColor: 'bg-pink-700 text-[#2D3748] border-pink-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-pink-100 text-pink-800 border-pink-200',
   },
   {
@@ -108,7 +108,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Paje',
     desc: 'Portador de arras, anillos o letreros',
     icon: Crown,
-    activeColor: 'bg-sky-700 text-white border-sky-800 shadow-sm',
+    activeColor: 'bg-sky-700 text-[#2D3748] border-sky-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
   },
   {
@@ -117,7 +117,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Niño/a',
     desc: 'Menor de edad / comensal infantil',
     icon: Heart,
-    activeColor: 'bg-teal-700 text-white border-teal-800 shadow-sm',
+    activeColor: 'bg-teal-700 text-[#2D3748] border-teal-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-teal-100 text-teal-800 border-teal-200',
   },
   {
@@ -126,21 +126,21 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Proveedor',
     desc: 'Fotografía, DJ, banquete, flores',
     icon: Briefcase,
-    activeColor: 'bg-blue-700 text-white border-blue-800 shadow-sm',
+    activeColor: 'bg-blue-700 text-[#2D3748] border-blue-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-blue-100 text-blue-800 border-blue-200',
   },
 ];
 
 const COLOR_THEMES = [
-  { id: 'rose', name: 'Vino / Rosa', activeColor: 'bg-[#8B3A4A] text-white border-[#6E2937] shadow-sm', badgeClass: 'bg-rose-100 text-rose-800 border-rose-200' },
-  { id: 'purple', name: 'Púrpura', activeColor: 'bg-purple-700 text-white border-purple-800 shadow-sm', badgeClass: 'bg-purple-100 text-purple-800 border-purple-200' },
-  { id: 'pink', name: 'Rosa Pastel', activeColor: 'bg-pink-700 text-white border-pink-800 shadow-sm', badgeClass: 'bg-pink-100 text-pink-800 border-pink-200' },
-  { id: 'sky', name: 'Azul Cielo', activeColor: 'bg-sky-700 text-white border-sky-800 shadow-sm', badgeClass: 'bg-sky-100 text-sky-800 border-sky-200' },
-  { id: 'teal', name: 'Verde Azulado', activeColor: 'bg-teal-700 text-white border-teal-800 shadow-sm', badgeClass: 'bg-teal-100 text-teal-800 border-teal-200' },
-  { id: 'amber', name: 'Ámbar / Dorado', activeColor: 'bg-amber-700 text-white border-amber-800 shadow-sm', badgeClass: 'bg-amber-100 text-amber-900 border-amber-300' },
-  { id: 'emerald', name: 'Esmeralda', activeColor: 'bg-emerald-700 text-white border-emerald-800 shadow-sm', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-  { id: 'indigo', name: 'Índigo', activeColor: 'bg-indigo-700 text-white border-indigo-800 shadow-sm', badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-  { id: 'stone', name: 'Piedra / Gris', activeColor: 'bg-stone-800 text-white border-stone-900 shadow-sm', badgeClass: 'bg-stone-100 text-stone-700 border-stone-200' },
+  { id: 'rose', name: 'Vino / Rosa', activeColor: 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-[#2D3748] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-rose-100 text-rose-800 border-rose-200' },
+  { id: 'purple', name: 'Púrpura', activeColor: 'bg-purple-700 text-[#2D3748] border-purple-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-purple-100 text-purple-800 border-purple-200' },
+  { id: 'pink', name: 'Rosa Pastel', activeColor: 'bg-pink-700 text-[#2D3748] border-pink-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-pink-100 text-pink-800 border-pink-200' },
+  { id: 'sky', name: 'Azul Cielo', activeColor: 'bg-sky-700 text-[#2D3748] border-sky-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-sky-100 text-sky-800 border-sky-200' },
+  { id: 'teal', name: 'Verde Azulado', activeColor: 'bg-teal-700 text-[#2D3748] border-teal-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-teal-100 text-teal-800 border-teal-200' },
+  { id: 'amber', name: 'Ámbar / Dorado', activeColor: 'bg-amber-700 text-[#2D3748] border-amber-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-amber-100 text-amber-900 border-amber-300' },
+  { id: 'emerald', name: 'Esmeralda', activeColor: 'bg-emerald-700 text-[#2D3748] border-emerald-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+  { id: 'indigo', name: 'Índigo', activeColor: 'bg-indigo-700 text-[#2D3748] border-indigo-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+  { id: 'stone', name: 'Piedra / Gris', activeColor: 'bg-stone-800 text-[#2D3748] border-stone-900 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-stone-100 text-stone-700 border-stone-200' },
 ];
 
 export const GuestModal: React.FC<GuestModalProps> = ({
@@ -471,7 +471,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-[#FDFBF7] rounded-2xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border border-[#E8DCCF] my-6 relative max-h-[92vh] overflow-y-auto">
+      <div className="bg-[#EBEBEB] rounded-2xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border border-transparent my-6 relative max-h-[92vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
@@ -484,7 +484,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
 
         {/* Title */}
         <div className="flex items-center space-x-3 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-[#8B3A4A] text-white flex items-center justify-center shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] flex items-center justify-center shadow-xs">
             <Crown className="w-5 h-5" />
           </div>
           <div>
@@ -500,9 +500,9 @@ export const GuestModal: React.FC<GuestModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           
           {/* 1. General Information */}
-          <div className="bg-white p-4 rounded-xl border border-[#E8DCCF] space-y-3">
+          <div className="bg-[#EBEBEB] p-4 rounded-xl border border-transparent space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-[#8B3A4A] uppercase tracking-wider flex items-center space-x-1.5">
+              <h4 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-1.5">
                 <User className="w-3.5 h-3.5" />
                 <span>1. Datos Personales</span>
               </h4>
@@ -511,7 +511,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsCompanionModalOpen(true)}
-                className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-[#2D3748] rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
                 title="Vincular o registrar un acompañante en esta misma mesa"
               >
                 <UserPlus className="w-3.5 h-3.5" />
@@ -548,8 +548,8 @@ export const GuestModal: React.FC<GuestModalProps> = ({
 
             {/* Table Companions Interactive Management List */}
             {tableCompanions.length > 0 && (
-              <div className="p-3 bg-[#FAF8F5] border border-[#E8DCCF] rounded-xl text-xs space-y-2.5 shadow-2xs">
-                <div className="flex items-center justify-between border-b border-[#E8DCCF] pb-1.5">
+              <div className="p-3 bg-[#FAF8F5] border border-transparent rounded-xl text-xs space-y-2.5 shadow-2xs">
+                <div className="flex items-center justify-between border-b border-transparent pb-1.5">
                   <span className="font-bold text-[#7A7268] flex items-center space-x-1.5">
                     <Users className="w-3.5 h-3.5 text-emerald-700" />
                     <span>Acompañantes ({tableCompanions.length} de {maxAllowedCompanions} permitidos):</span>
@@ -563,7 +563,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                   {tableCompanions.map((comp) => (
                     <div
                       key={comp.id}
-                      className="p-2 bg-white border border-[#D9CEBF] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs hover:border-[#8B3A4A]/30 transition-all"
+                      className="p-2 bg-[#EBEBEB] border border-[#D9CEBF] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs hover:border-transparent transition-all"
                     >
                       <div className="flex items-center space-x-2 min-w-0">
                         <div className="w-6 h-6 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center text-[10px] font-bold shrink-0">
@@ -617,7 +617,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
                 <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Nombre Completo <span className="text-[#8B3A4A]">*</span>
+                  Nombre Completo <span className="text-[#2D3748]">*</span>
                 </label>
                 <input
                   type="text"
@@ -625,7 +625,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                   value={formData.fullName || ''}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   placeholder="Ej. Carlos Mendoza Garza"
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
                 />
               </div>
 
@@ -640,7 +640,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                     value={formData.phone || ''}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+52 81 8394 1122"
-                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                   />
                 </div>
               </div>
@@ -656,7 +656,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                     value={formData.email || ''}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="carlos@ejemplo.com"
-                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                   />
                 </div>
               </div>
@@ -664,9 +664,9 @@ export const GuestModal: React.FC<GuestModalProps> = ({
           </div>
 
           {/* 2. Role Selection & Management */}
-          <div className="bg-white p-4 rounded-xl border border-[#E8DCCF] space-y-3">
+          <div className="bg-[#EBEBEB] p-4 rounded-xl border border-transparent space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <h4 className="text-xs font-bold text-[#8B3A4A] uppercase tracking-wider flex items-center space-x-1.5">
+              <h4 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-1.5">
                 <Crown className="w-3.5 h-3.5" />
                 <span>2. Rol en la Boda (Selecciona uno)</span>
               </h4>
@@ -678,7 +678,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                   onClick={() => setIsRoleManagerOpen(!isRoleManagerOpen)}
                   className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${
                     isRoleManagerOpen
-                      ? 'bg-[#8B3A4A] text-white border-[#6E2937]'
+                      ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-[#2D3748]'
                       : 'bg-[#FAF8F5] text-[#524B42] border-[#D9CEBF] hover:bg-[#EFEAE2]'
                   }`}
                   title="Administrar roles: Añadir, editar o borrar roles de la boda (Admin, Planner, Anfitrión)"
@@ -698,7 +698,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
               <div className="p-3.5 bg-[#F9F6F0] rounded-xl border border-[#E4D7C8] space-y-3 animate-fadeIn">
                 <div className="flex items-center justify-between border-b border-[#E4D7C8] pb-2">
                   <div className="flex items-center space-x-1.5">
-                    <Palette className="w-4 h-4 text-[#8B3A4A]" />
+                    <Palette className="w-4 h-4 text-[#2D3748]" />
                     <span className="text-xs font-bold text-[#2D2A26]">
                       {editingRoleId ? 'Editar Rol' : 'Añadir / Personalizar Roles de la Boda'}
                     </span>
@@ -709,18 +709,18 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                 </div>
 
                 {/* Form to Add / Edit Role */}
-                <div className="bg-white p-3 rounded-lg border border-[#D9CEBF] space-y-2.5">
+                <div className="bg-[#EBEBEB] p-3 rounded-lg border border-[#D9CEBF] space-y-2.5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                       <label className="block text-[11px] font-semibold text-[#524B42] mb-0.5">
-                        Nombre del Rol <span className="text-[#8B3A4A]">*</span>
+                        Nombre del Rol <span className="text-[#2D3748]">*</span>
                       </label>
                       <input
                         type="text"
                         value={roleForm.label}
                         onChange={(e) => setRoleForm({ ...roleForm, label: e.target.value })}
                         placeholder="Ej. Damita de Honor, Músico, Testigo..."
-                        className="w-full px-2.5 py-1.5 text-xs rounded-md border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                        className="w-full px-2.5 py-1.5 text-xs rounded-md border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                       />
                     </div>
 
@@ -733,7 +733,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                         value={roleForm.shortLabel}
                         onChange={(e) => setRoleForm({ ...roleForm, shortLabel: e.target.value })}
                         placeholder="Ej. Damita, Músico, Testigo"
-                        className="w-full px-2.5 py-1.5 text-xs rounded-md border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                        className="w-full px-2.5 py-1.5 text-xs rounded-md border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                       />
                     </div>
                   </div>
@@ -747,7 +747,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                       value={roleForm.desc}
                       onChange={(e) => setRoleForm({ ...roleForm, desc: e.target.value })}
                       placeholder="Ej. Acompañamiento en cortejo y ramo infantil"
-                      className="w-full px-2.5 py-1.5 text-xs rounded-md border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                      className="w-full px-2.5 py-1.5 text-xs rounded-md border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                     />
                   </div>
 
@@ -763,8 +763,8 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                           onClick={() => setRoleForm({ ...roleForm, themeIndex: idx })}
                           className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-all cursor-pointer ${
                             roleForm.themeIndex === idx
-                              ? `${th.badgeClass} ring-2 ring-[#8B3A4A]`
-                              : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                              ? `${th.badgeClass} ring-2 ring-[#d1d1d1]`
+                              : 'bg-[#EBEBEB] text-stone-600 border-stone-200 hover:bg-stone-50'
                           }`}
                         >
                           {th.name}
@@ -790,7 +790,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                       type="button"
                       onClick={handleSaveCustomRole}
                       disabled={!roleForm.label.trim()}
-                      className="px-3 py-1.5 rounded-md bg-[#8B3A4A] text-white text-xs font-bold hover:bg-[#6E2937] transition-all disabled:opacity-50 flex items-center space-x-1 cursor-pointer"
+                      className="px-3 py-1.5 rounded-md bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold hover:bg-[#EBEBEB] transition-all disabled:opacity-50 flex items-center space-x-1 cursor-pointer"
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>{editingRoleId ? 'Guardar Rol' : '+ Añadir Rol'}</span>
@@ -806,7 +806,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                       {settings.customGuestRoles.map((cr) => (
                         <div
                           key={cr.id}
-                          className="p-2 bg-white rounded-lg border border-[#D9CEBF] flex items-center justify-between text-xs"
+                          className="p-2 bg-[#EBEBEB] rounded-lg border border-[#D9CEBF] flex items-center justify-between text-xs"
                         >
                           <div className="min-w-0 pr-1">
                             <span className="font-bold text-[#2D2A26] block truncate">{cr.label}</span>
@@ -889,7 +889,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                   value={formData.protocolRoleTitle || ''}
                   onChange={(e) => setFormData({ ...formData, protocolRoleTitle: e.target.value })}
                   placeholder="Ej. Damita de Honor, Paje de Anillos, Padrino de Velación, Niño de Boda, Fotógrafo..."
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                 />
               </div>
 
@@ -905,7 +905,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsTimelinePickerOpen(!isTimelinePickerOpen)}
-                      className="text-[11px] text-[#8B3A4A] hover:text-[#6E2937] font-semibold flex items-center space-x-1 cursor-pointer bg-[#8B3A4A]/10 hover:bg-[#8B3A4A]/20 px-2 py-0.5 rounded-md transition-colors"
+                      className="text-[11px] text-[#2D3748] hover:text-[#2D3748] font-semibold flex items-center space-x-1 cursor-pointer bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/20 px-2 py-0.5 rounded-md transition-colors"
                       title="Seleccionar horario desde un hito del Cronograma de la boda"
                     >
                       <Calendar className="w-3 h-3" />
@@ -921,7 +921,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                       value={formData.specialArrivalTime || ''}
                       onChange={(e) => setFormData({ ...formData, specialArrivalTime: e.target.value })}
                       placeholder={timeline && timeline.length > 0 ? "Ej. 16:30 hrs (Ceremonia) o escribe manual" : "Ej. 15:30 hrs (Recepción)"}
-                      className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                      className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                     />
                     {formData.specialArrivalTime && (
                       <button
@@ -937,9 +937,9 @@ export const GuestModal: React.FC<GuestModalProps> = ({
 
                   {/* Timeline Milestones Dropdown Popover */}
                   {isTimelinePickerOpen && (
-                    <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white rounded-xl shadow-xl border border-[#D9CEBF] p-3 space-y-2 max-h-64 overflow-y-auto animate-fadeIn">
+                    <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-[#EBEBEB] rounded-xl shadow-xl border border-[#D9CEBF] p-3 space-y-2 max-h-64 overflow-y-auto animate-fadeIn">
                       <div className="flex items-center justify-between border-b border-[#F0EAE1] pb-1.5">
-                        <span className="text-[11px] font-bold text-[#8B3A4A] flex items-center space-x-1">
+                        <span className="text-[11px] font-bold text-[#2D3748] flex items-center space-x-1">
                           <Calendar className="w-3.5 h-3.5" />
                           <span>Hitos del Cronograma ({timeline?.length || 0})</span>
                         </span>
@@ -951,11 +951,11 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                           {timeline.map((m) => (
                             <div
                               key={m.id}
-                              className="p-2 rounded-lg border border-[#E8DCCF] hover:border-[#8B3A4A] hover:bg-[#FAF8F5] transition-all text-xs flex flex-col gap-1"
+                              className="p-2 rounded-lg border border-transparent hover:border-transparent hover:bg-[#FAF8F5] transition-all text-xs flex flex-col gap-1"
                             >
                               <div className="flex items-center justify-between">
                                 <span className="font-bold text-[#2D2A26] flex items-center space-x-1.5">
-                                  <span className="px-1.5 py-0.5 rounded bg-[#8B3A4A]/10 text-[#8B3A4A] text-[11px] font-mono font-bold">
+                                  <span className="px-1.5 py-0.5 rounded bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] text-[11px] font-mono font-bold">
                                     {m.time}
                                   </span>
                                   <span className="truncate">{m.title}</span>
@@ -970,28 +970,28 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handleSelectMilestone(m, 0)}
-                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#8B3A4A] hover:text-white text-[10px] font-semibold text-stone-700 transition-colors"
+                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] text-[10px] font-semibold text-stone-700 transition-colors"
                                 >
                                   A la hora ({m.time})
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSelectMilestone(m, -15)}
-                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#8B3A4A] hover:text-white text-[10px] font-semibold text-stone-700 transition-colors"
+                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] text-[10px] font-semibold text-stone-700 transition-colors"
                                 >
                                   -15 min
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSelectMilestone(m, -30)}
-                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#8B3A4A] hover:text-white text-[10px] font-semibold text-stone-700 transition-colors"
+                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] text-[10px] font-semibold text-stone-700 transition-colors"
                                 >
                                   -30 min
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSelectMilestone(m, -60)}
-                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#8B3A4A] hover:text-white text-[10px] font-semibold text-stone-700 transition-colors"
+                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] text-[10px] font-semibold text-stone-700 transition-colors"
                                 >
                                   -1 hora
                                 </button>
@@ -1018,7 +1018,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                     value={formData.photoshootSchedule || ''}
                     onChange={(e) => setFormData({ ...formData, photoshootSchedule: e.target.value })}
                     placeholder="Ej. Sábado 16:00 hrs en Jardines"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                   />
                 </div>
 
@@ -1031,7 +1031,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                     value={formData.dressCodeNote || ''}
                     onChange={(e) => setFormData({ ...formData, dressCodeNote: e.target.value })}
                     placeholder="Ej. Corbata Champagne Dorado / Smoking"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                   />
                 </div>
 
@@ -1044,7 +1044,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                     value={formData.accessoryAssigned || ''}
                     onChange={(e) => setFormData({ ...formData, accessoryAssigned: e.target.value })}
                     placeholder="Ej. Boutonniere Rosa Blanca #1, Corona floral"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                   />
                 </div>
               </div>
@@ -1052,8 +1052,8 @@ export const GuestModal: React.FC<GuestModalProps> = ({
           </div>
 
           {/* 3. Table & RSVP Logistics */}
-          <div className="bg-white p-4 rounded-xl border border-[#E8DCCF] space-y-3">
-            <h4 className="text-xs font-bold text-[#8B3A4A] uppercase tracking-wider flex items-center space-x-1.5">
+          <div className="bg-[#EBEBEB] p-4 rounded-xl border border-transparent space-y-3">
+            <h4 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-1.5">
               <Users className="w-3.5 h-3.5" />
               <span>3. Mesa & Asistencia</span>
             </h4>
@@ -1069,7 +1069,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                   value={formData.assignedTable || ''}
                   onChange={(e) => setFormData({ ...formData, assignedTable: e.target.value })}
                   placeholder="Ej. Mesa 1 (Mesa de Honor)"
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                 />
                 <datalist id="tables-datalist">
                   {tables?.map((t) => (
@@ -1090,7 +1090,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                   max="20"
                   value={formData.totalPasses || 2}
                   onChange={(e) => setFormData({ ...formData, totalPasses: Number(e.target.value) })}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                 />
               </div>
 
@@ -1108,7 +1108,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                       confirmedPasses: status === 'confirmed' ? (formData.confirmedPasses || formData.totalPasses || 1) : 0
                     });
                   }}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white font-medium"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] font-medium"
                 >
                   <option value="pending">⏳ Pendiente</option>
                   <option value="confirmed">✅ Confirmado</option>
@@ -1128,7 +1128,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                   max={formData.totalPasses || 20}
                   value={formData.confirmedPasses || 0}
                   onChange={(e) => setFormData({ ...formData, confirmedPasses: Number(e.target.value) })}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                 />
               </div>
 
@@ -1141,14 +1141,14 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                   value={formData.dietaryRestrictions || ''}
                   onChange={(e) => setFormData({ ...formData, dietaryRestrictions: e.target.value })}
                   placeholder="Ej. Celíaco, Vegano, Menú infantil, Sin nueces..."
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                 />
               </div>
             </div>
           </div>
 
           {/* Modal Actions */}
-          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-[#E8DCCF]">
+          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-transparent">
             <button
               type="button"
               onClick={onClose}
@@ -1158,7 +1158,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#8B3A4A] hover:bg-[#6E2937] transition-colors shadow-xs cursor-pointer"
+              className="px-6 py-2.5 rounded-xl text-xs font-bold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] transition-colors shadow-xs cursor-pointer"
             >
               Guardar Cambios
             </button>

@@ -55,13 +55,13 @@ export const ThemeSelector: React.FC = () => {
             <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Nombre del Tema</label>
             <input 
               type="text" 
-              className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white transition-all"
+              className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] transition-all"
               value={editedTheme.name}
               onChange={e => setEditedTheme({...editedTheme, name: e.target.value})}
             />
           </div>
           
-          <h4 className="font-semibold text-xs mt-4 text-[#8B3A4A] border-b pb-1">Colores</h4>
+          <h4 className="font-semibold text-xs mt-4 text-[#2D3748] border-b pb-1">Colores</h4>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-[10px] text-[#8C8276] mb-1">Primario</label>
@@ -85,7 +85,7 @@ export const ThemeSelector: React.FC = () => {
             </div>
           </div>
           
-          <h4 className="font-semibold text-xs mt-4 text-[#8B3A4A] border-b pb-1">Tipografía</h4>
+          <h4 className="font-semibold text-xs mt-4 text-[#2D3748] border-b pb-1">Tipografía</h4>
           <div>
             <label className="block text-[10px] text-[#8C8276] mb-1">Fuente de Títulos</label>
             <FontPicker value={editedTheme.typography.displayFont} onChange={f => setEditedTheme({...editedTheme, typography: {...editedTheme.typography, displayFont: f}})} />
@@ -99,7 +99,7 @@ export const ThemeSelector: React.FC = () => {
             <FontPicker value={editedTheme.typography.scriptFont || ''} onChange={f => setEditedTheme({...editedTheme, typography: {...editedTheme.typography, scriptFont: f}})} />
           </div>
           
-          <button onClick={handleSaveEdit} className="w-full bg-[#8B3A4A] text-white py-2 rounded-lg mt-4 text-sm font-semibold hover:bg-[#7a3240]">
+          <button onClick={handleSaveEdit} className="w-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] py-2 rounded-lg mt-4 text-sm font-semibold hover:bg-[#7a3240]">
             Guardar Cambios
           </button>
         </div>
@@ -112,7 +112,7 @@ export const ThemeSelector: React.FC = () => {
       <div className="p-3 mb-2">
         <div className="flex items-center justify-between mb-4">
           <h3 className="wc-section-title mb-0">Biblioteca de Temas</h3>
-          <button onClick={handleCreateNew} className="flex items-center space-x-1 text-xs text-[#8B3A4A] font-semibold hover:underline">
+          <button onClick={handleCreateNew} className="flex items-center space-x-1 text-xs text-[#2D3748] font-semibold hover:underline">
             <Plus className="w-3 h-3" /> <span>Crear Nuevo</span>
           </button>
         </div>
@@ -131,14 +131,14 @@ export const ThemeSelector: React.FC = () => {
                   <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
                       onClick={(e) => { e.stopPropagation(); setEditingThemeId(theme.id); setEditedTheme(theme); }}
-                      className="p-1 bg-white rounded shadow text-[#8B3A4A] hover:bg-gray-50"
+                      className="p-1 bg-[#EBEBEB] rounded shadow text-[#2D3748] hover:bg-gray-50"
                       title="Editar"
                     >
                       <Pencil className="w-3 h-3" />
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); if(confirm('¿Borrar tema?')) deleteCustomTheme(theme.id); }}
-                      className="p-1 bg-white rounded shadow text-red-600 hover:bg-red-50"
+                      className="p-1 bg-[#EBEBEB] rounded shadow text-red-600 hover:bg-red-50"
                       title="Borrar"
                     >
                       <Trash2 className="w-3 h-3" />

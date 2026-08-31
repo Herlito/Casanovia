@@ -32,7 +32,7 @@ export const DressCodeSection: React.FC = () => {
   const canEdit = currentUser.isAuthenticated && (isLevel1Admin || isHostUser || canEditActiveWedding);
 
   return (
-    <section id="dress-code-section" className="py-12 sm:py-16 bg-[#FDFBF7] relative">
+    <section id="dress-code-section" className="py-12 sm:py-16 bg-[#EBEBEB] relative">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
@@ -44,7 +44,7 @@ export const DressCodeSection: React.FC = () => {
           <h2 className="font-serif-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#2D2A26]">
             Código de Vestimenta (Dress Code)
           </h2>
-          <p className="font-serif-display text-lg text-[#8B3A4A] theme-primary-text font-semibold mt-1">
+          <p className="font-serif-display text-lg text-[#2D3748] theme-primary-text font-semibold mt-1">
             {settings.dressCodeStyle || 'Formal Rigurosa'}
           </p>
           <p className="text-xs sm:text-sm text-[#7A7268] max-w-xl mx-auto mt-2 leading-relaxed">
@@ -58,12 +58,12 @@ export const DressCodeSection: React.FC = () => {
                 type="button"
                 id="btn-edit-dress-code"
                 onClick={() => setIsEditModalOpen(true)}
-                className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-linear-to-r from-[#8A9A86]/20 to-[#8B3A4A]/20 hover:from-[#8A9A86]/30 hover:to-[#8B3A4A]/30 text-[#4A3B32] hover:text-[#2D2A26] border border-[#8A9A86]/40 text-xs font-semibold shadow-2xs transition-all cursor-pointer transform hover:scale-105"
+                className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-linear-to-r from-[#8A9A86]/20 to-[#2D3748]/20 hover:from-[#8A9A86]/30 hover:to-[#2D3748]/30 text-[#4A3B32] hover:text-[#2D2A26] border border-[#8A9A86]/40 text-xs font-semibold shadow-2xs transition-all cursor-pointer transform hover:scale-105"
                 title="Modificar código de vestimenta, descripción y paleta visual de colores"
               >
                 <Edit3 className="w-3.5 h-3.5 text-[#8A9A86]" />
                 <span>Modificar Código de Vestimenta & Paleta de Colores</span>
-                <span className="text-[10px] px-1.5 py-0.2 bg-[#8A9A86] text-white rounded-full">
+                <span className="text-[10px] px-1.5 py-0.2 bg-[#8A9A86] text-[#2D3748] rounded-full">
                   {isLevel1Admin ? 'Admin' : 'Anfitrión'}
                 </span>
               </button>
@@ -72,7 +72,7 @@ export const DressCodeSection: React.FC = () => {
         </div>
 
         {/* Card with Interactive Suggested Palette (Reflects Mockup: Círculos con Colores sugeridos) */}
-        <div className="rounded-2xl sm:rounded-3xl bg-white p-6 sm:p-8 border border-[#E8DCCF] shadow-sm">
+        <div className="rounded-2xl sm:rounded-3xl bg-[#EBEBEB] p-6 sm:p-8 border border-transparent shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]">
           <div className="text-center mb-6">
             <h3 className="text-xs font-bold text-[#8C8276] uppercase tracking-widest flex items-center justify-center space-x-1.5 mb-1">
               <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -98,15 +98,15 @@ export const DressCodeSection: React.FC = () => {
                   >
                     <div 
                       style={{ backgroundColor: col.hex }}
-                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-md transition-all duration-300 transform group-hover:scale-110 flex items-center justify-center border-3 ${
-                        isSelected ? 'border-[#8B3A4A] scale-110 ring-4 ring-[#8B3A4A]/20' : 'border-white'
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all duration-300 transform group-hover:scale-110 flex items-center justify-center border-3 ${
+                        isSelected ? 'border-transparent scale-110 ring-4 ring-[#d1d1d1]/20' : 'border-transparent'
                       }`}
                     >
                       {isSelected && (
-                        <Check className="w-6 h-6 text-white drop-shadow-md" />
+                        <Check className="w-6 h-6 text-[#2D3748] drop-shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]" />
                       )}
                     </div>
-                    <span className="text-xs font-semibold text-[#524B42] mt-2 group-hover:text-[#8B3A4A] transition-colors">
+                    <span className="text-xs font-semibold text-[#524B42] mt-2 group-hover:text-[#2D3748] transition-colors">
                       {col.name}
                     </span>
                     <span className="text-[10px] font-mono text-[#9E9488]">
@@ -139,9 +139,9 @@ export const DressCodeSection: React.FC = () => {
 
           {/* Golden Rule / Forbidden colors disclaimer */}
           <div className="mt-6 pt-5 border-t border-[#F2ECE3] flex items-start space-x-3 text-xs text-[#7A7268] bg-[#FAF8F5]/80 p-3.5 rounded-xl">
-            <AlertCircle className="w-4 h-4 text-[#8B3A4A] shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 text-[#2D3748] shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-[#8B3A4A]">Regla de Oro: </span>
+              <span className="font-bold text-[#2D3748]">Regla de Oro: </span>
               <span>{settings.forbiddenColorsNote || 'Blanco, marfil y beige están reservados exclusivamente para la novia.'}</span>
             </div>
           </div>

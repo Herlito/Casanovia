@@ -29,7 +29,7 @@ const FontItem: React.FC<{ font: FontOption; isSelected: boolean; onSelect: () =
   return (
     <button
       ref={itemRef}
-      className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between hover:bg-[#FAF8F5] transition-colors ${isSelected ? 'bg-[#FAF8F5] text-[#8B3A4A] font-bold' : 'text-[#2D2A26]'}`}
+      className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between hover:bg-[#FAF8F5] transition-colors ${isSelected ? 'bg-[#FAF8F5] text-[#2D3748] font-bold' : 'text-[#2D2A26]'}`}
       onClick={onSelect}
       style={{ fontFamily: `"${font.family}", sans-serif` }}
     >
@@ -73,7 +73,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({ value, onChange }) => {
   return (
     <div className="relative w-full" ref={containerRef}>
       <button 
-        className="w-full bg-white border border-[#E8DCCF] rounded-lg px-3 py-2 text-sm text-left flex justify-between items-center"
+        className="w-full bg-[#EBEBEB] border border-transparent rounded-lg px-3 py-2 text-sm text-left flex justify-between items-center"
         onClick={() => setIsOpen(!isOpen)}
         style={{ fontFamily: `"${value}", sans-serif` }}
       >
@@ -82,8 +82,8 @@ export const FontPicker: React.FC<FontPickerProps> = ({ value, onChange }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 top-full left-0 w-full mt-1 bg-white border border-[#E8DCCF] rounded-lg shadow-lg overflow-hidden flex flex-col max-h-64">
-          <div className="p-2 border-b border-[#E8DCCF] flex items-center space-x-2">
+        <div className="absolute z-50 top-full left-0 w-full mt-1 bg-[#EBEBEB] border border-transparent rounded-lg shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] overflow-hidden flex flex-col max-h-64">
+          <div className="p-2 border-b border-transparent flex items-center space-x-2">
             <Search className="w-4 h-4 text-[#8C8276]" />
             <input 
               type="text" 
@@ -108,7 +108,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({ value, onChange }) => {
               ))
             ) : (
               <button 
-                className="w-full text-left px-3 py-3 text-sm text-[#8B3A4A] hover:bg-[#FAF8F5]"
+                className="w-full text-left px-3 py-3 text-sm text-[#2D3748] hover:bg-[#FAF8F5]"
                 onClick={handleCustomSearch}
               >
                 Buscar "{search}" en Google Fonts

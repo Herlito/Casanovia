@@ -108,7 +108,7 @@ export const BudgetItemModal: React.FC<BudgetItemModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="bg-[#FDFBF7] rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-[#E8DCCF] relative max-h-[92vh] overflow-y-auto">
+      <div className="bg-[#EBEBEB] rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-transparent relative max-h-[92vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-[#8C827A] hover:text-[#2D2A26] p-1 cursor-pointer"
@@ -117,7 +117,7 @@ export const BudgetItemModal: React.FC<BudgetItemModalProps> = ({
         </button>
 
         <div className="flex items-center space-x-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-[#8A9A86] text-white flex items-center justify-center shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-[#8A9A86] text-[#2D3748] flex items-center justify-center shadow-xs">
             <DollarSign className="w-5 h-5" />
           </div>
           <div>
@@ -140,7 +140,7 @@ export const BudgetItemModal: React.FC<BudgetItemModalProps> = ({
             <select
               value={selectedVendorId}
               onChange={(e) => handleVendorSelect(e.target.value)}
-              className="w-full px-3 py-1.5 text-xs rounded-lg border border-amber-300 bg-white font-medium text-stone-800"
+              className="w-full px-3 py-1.5 text-xs rounded-lg border border-amber-300 bg-[#EBEBEB] font-medium text-stone-800"
             >
               <option value="">-- Ingreso manual independiente --</option>
               {vendors.map((v) => (
@@ -155,7 +155,7 @@ export const BudgetItemModal: React.FC<BudgetItemModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-[#524B42] mb-1">
-              Concepto / Servicio <span className="text-[#8B3A4A]">*</span>
+              Concepto / Servicio <span className="text-[#2D3748]">*</span>
             </label>
             <input
               type="text"
@@ -259,7 +259,7 @@ export const BudgetItemModal: React.FC<BudgetItemModalProps> = ({
             />
           </div>
 
-          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-[#E8DCCF]">
+          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-transparent">
             <button
               type="button"
               onClick={onClose}
@@ -269,7 +269,7 @@ export const BudgetItemModal: React.FC<BudgetItemModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#8B3A4A] hover:bg-[#6E2937] transition-colors"
+              className="px-5 py-2 rounded-xl text-xs font-bold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] transition-colors"
             >
               Guardar Gasto
             </button>

@@ -45,7 +45,7 @@ export async function exportFloorPlanToPdf({
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
   // Header band
-  doc.setFillColor(139, 58, 74); // #8B3A4A (Burgundy Brand)
+  doc.setFillColor(139, 58, 74); // #2D3748 (Burgundy Brand)
   doc.rect(0, 0, pageWidth, 18, 'F');
 
   // Header Text

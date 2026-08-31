@@ -92,12 +92,12 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-fadeIn">
-        <div className="bg-[#FDFBF7] rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-[#E8DCCF] overflow-hidden">
+        <div className="bg-[#EBEBEB] rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-transparent overflow-hidden">
           
           {/* Header */}
-          <div className="p-4 sm:p-6 bg-white border-b border-[#E8DCCF] flex items-center justify-between shrink-0">
+          <div className="p-4 sm:p-6 bg-[#EBEBEB] border-b border-transparent flex items-center justify-between shrink-0">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#8B3A4A] text-white flex items-center justify-center shadow-xs shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] flex items-center justify-center shadow-xs shrink-0">
                 <ImageIcon className="w-5 h-5" />
               </div>
               <div>
@@ -105,7 +105,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                   <h2 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26]">
                     Imágenes & Comprobantes Subidos
                   </h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FAF3ED] text-[#8B3A4A] border border-[#E8DCCF]">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FAF3ED] text-[#2D3748] border border-transparent">
                     {uploadedImages.length}
                   </span>
                 </div>
@@ -126,7 +126,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
           </div>
 
           {/* Controls Bar: Search & Filter */}
-          <div className="p-4 bg-[#FAF8F5] border-b border-[#E8DCCF] flex flex-col sm:flex-row gap-3 items-center justify-between shrink-0">
+          <div className="p-4 bg-[#FAF8F5] border-b border-transparent flex flex-col sm:flex-row gap-3 items-center justify-between shrink-0">
             {/* Search input */}
             <div className="relative w-full sm:w-72">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C8276]" />
@@ -135,7 +135,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                 placeholder="Buscar por código, nombre..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-white rounded-xl border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-hidden focus:border-[#8B3A4A] focus:ring-1 focus:ring-[#8B3A4A]/20"
+                className="w-full pl-9 pr-3 py-2 bg-[#EBEBEB] rounded-xl border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-hidden focus:border-transparent focus:ring-1 focus:ring-[#d1d1d1]/20"
               />
               {searchTerm && (
                 <button
@@ -155,8 +155,8 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                 onClick={() => setCategoryFilter('all')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0 ${
                   categoryFilter === 'all'
-                    ? 'bg-[#2D2A26] text-white shadow-xs'
-                    : 'bg-white text-[#6B6358] border border-[#D9CEBF] hover:bg-[#F0EAE1]'
+                    ? 'bg-[#2D2A26] text-[#2D3748] shadow-xs'
+                    : 'bg-[#EBEBEB] text-[#6B6358] border border-[#D9CEBF] hover:bg-[#F0EAE1]'
                 }`}
               >
                 Todos ({uploadedImages.length})
@@ -166,8 +166,8 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                 onClick={() => setCategoryFilter('voucher')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center space-x-1 ${
                   categoryFilter === 'voucher'
-                    ? 'bg-[#8B3A4A] text-white shadow-xs'
-                    : 'bg-white text-[#6B6358] border border-[#D9CEBF] hover:bg-[#F0EAE1]'
+                    ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs'
+                    : 'bg-[#EBEBEB] text-[#6B6358] border border-[#D9CEBF] hover:bg-[#F0EAE1]'
                 }`}
               >
                 <FileCheck className="w-3.5 h-3.5" />
@@ -178,8 +178,8 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                 onClick={() => setCategoryFilter('gallery')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center space-x-1 ${
                   categoryFilter === 'gallery'
-                    ? 'bg-[#8B3A4A] text-white shadow-xs'
-                    : 'bg-white text-[#6B6358] border border-[#D9CEBF] hover:bg-[#F0EAE1]'
+                    ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs'
+                    : 'bg-[#EBEBEB] text-[#6B6358] border border-[#D9CEBF] hover:bg-[#F0EAE1]'
                 }`}
               >
                 <ImageIcon className="w-3.5 h-3.5" />
@@ -191,8 +191,8 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
           {/* Images Grid Content */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             {filteredImages.length === 0 ? (
-              <div className="text-center py-16 px-4 space-y-3 bg-white rounded-2xl border border-dashed border-[#D9CEBF]">
-                <div className="w-14 h-14 rounded-full bg-[#FAF3ED] text-[#8B3A4A] flex items-center justify-center mx-auto">
+              <div className="text-center py-16 px-4 space-y-3 bg-[#EBEBEB] rounded-2xl border border-dashed border-[#D9CEBF]">
+                <div className="w-14 h-14 rounded-full bg-[#FAF3ED] text-[#2D3748] flex items-center justify-center mx-auto">
                   <ImageIcon className="w-7 h-7 opacity-70" />
                 </div>
                 <h3 className="text-base font-bold text-[#2D2A26]">
@@ -209,7 +209,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                 {filteredImages.map((image) => (
                   <div
                     key={image.id}
-                    className="bg-white rounded-2xl border border-[#E8DCCF] overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col group"
+                    className="bg-[#EBEBEB] rounded-2xl border border-transparent overflow-hidden shadow-2xs hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all duration-200 flex flex-col group"
                   >
                     {/* Image Preview Container */}
                     <div 
@@ -223,8 +223,8 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                         loading="lazy"
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/90 text-[#2D2A26] text-xs font-bold shadow-md">
-                          <Eye className="w-4 h-4 text-[#8B3A4A]" />
+                        <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#EBEBEB]/90 text-[#2D2A26] text-xs font-bold shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]">
+                          <Eye className="w-4 h-4 text-[#2D3748]" />
                           <span>Ver Detalle</span>
                         </span>
                       </div>
@@ -261,7 +261,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                               Visitante Público
                             </span>
                           ) : (
-                            <span className="inline-flex items-center text-[#8B3A4A] font-semibold">
+                            <span className="inline-flex items-center text-[#2D3748] font-semibold">
                               <User className="w-3.5 h-3.5 mr-1" />
                               {image.uploadedBy?.username || 'Usuario'}
                             </span>
@@ -297,7 +297,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                             type="button"
                             onClick={() => handleCopyUrl(image)}
                             title="Copiar enlace de imagen"
-                            className="p-1.5 rounded-lg hover:bg-[#FAF3ED] text-[#6B6358] hover:text-[#8B3A4A] transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg hover:bg-[#FAF3ED] text-[#6B6358] hover:text-[#2D3748] transition-colors cursor-pointer"
                           >
                             {copiedId === image.id ? (
                               <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -312,7 +312,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                             target="_blank"
                             rel="noopener noreferrer"
                             title="Abrir / Descargar"
-                            className="p-1.5 rounded-lg hover:bg-[#FAF3ED] text-[#6B6358] hover:text-[#8B3A4A] transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg hover:bg-[#FAF3ED] text-[#6B6358] hover:text-[#2D3748] transition-colors cursor-pointer"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
@@ -338,7 +338,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
           </div>
 
           {/* Modal Footer */}
-          <div className="p-4 bg-white border-t border-[#E8DCCF] flex items-center justify-between shrink-0">
+          <div className="p-4 bg-[#EBEBEB] border-t border-transparent flex items-center justify-between shrink-0">
             <div className="text-xs text-[#7A7268]">
               Mostrando <strong>{filteredImages.length}</strong> de <strong>{uploadedImages.length}</strong> archivos en total
             </div>
@@ -346,7 +346,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 rounded-xl bg-[#2D2A26] hover:bg-[#1A0E0A] text-white text-xs font-semibold transition-colors cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-[#2D2A26] hover:bg-[#1A0E0A] text-[#2D3748] text-xs font-semibold transition-colors cursor-pointer"
             >
               Cerrar
             </button>
@@ -362,15 +362,15 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
           onClick={() => setPreviewImage(null)}
         >
           <div 
-            className="bg-white rounded-3xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl border border-white/20"
+            className="bg-[#EBEBEB] rounded-3xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl border border-transparent"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 bg-[#2A1810] text-white flex items-center justify-between">
+            <div className="p-4 bg-[#2A1810] text-[#2D3748] flex items-center justify-between">
               <div className="flex items-center space-x-2 truncate">
                 <FileCheck className="w-4 h-4 text-[#E5B869]" />
                 <span className="font-bold text-sm truncate">{previewImage.name}</span>
                 {previewImage.orderCode && (
-                  <span className="font-mono text-xs px-2 py-0.5 bg-white/10 rounded-md text-[#E5B869]">
+                  <span className="font-mono text-xs px-2 py-0.5 bg-[#EBEBEB]/10 rounded-md text-[#E5B869]">
                     {previewImage.orderCode}
                   </span>
                 )}
@@ -378,7 +378,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
               <button
                 type="button"
                 onClick={() => setPreviewImage(null)}
-                className="text-white/70 hover:text-white p-1.5 rounded-full hover:bg-white/10"
+                className="text-[#2D3748]/70 hover:text-[#2D3748] p-1.5 rounded-full hover:bg-[#EBEBEB]/10"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -388,11 +388,11 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
               <img
                 src={previewImage.url}
                 alt={previewImage.name}
-                className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-lg"
+                className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff]"
               />
             </div>
 
-            <div className="p-4 bg-[#FAF8F5] border-t border-[#E8DCCF] flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="p-4 bg-[#FAF8F5] border-t border-transparent flex flex-wrap items-center justify-between gap-3 text-xs">
               <div className="space-y-1">
                 <p className="text-[#524B42]">
                   <strong>Subido por:</strong> {previewImage.uploadedBy?.username || (previewImage.uploadedBy?.isVisitor ? 'Visitante Público' : 'Usuario')}
@@ -407,7 +407,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                 <button
                   type="button"
                   onClick={() => handleCopyUrl(previewImage)}
-                  className="px-3 py-1.5 rounded-xl border border-[#D9CEBF] bg-white hover:bg-[#F3EFEA] text-[#2D2A26] text-xs font-semibold flex items-center space-x-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] hover:bg-[#F3EFEA] text-[#2D2A26] text-xs font-semibold flex items-center space-x-1 cursor-pointer"
                 >
                   {copiedId === previewImage.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedId === previewImage.id ? 'Copiado' : 'Copiar URL'}</span>
@@ -418,7 +418,7 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
                   download={previewImage.name}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-xs font-semibold flex items-center space-x-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-semibold flex items-center space-x-1 cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Descargar</span>

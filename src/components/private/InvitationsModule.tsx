@@ -165,12 +165,12 @@ export const InvitationsModule: React.FC = () => {
   };
 
   return (
-    <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-[#E8DCCF] shadow-xs overflow-hidden flex flex-col h-[80vh] min-h-[600px]" : "bg-white rounded-3xl border border-[#E8DCCF] shadow-xs overflow-hidden flex flex-col h-[80vh] min-h-[600px]"}>
+    <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-transparent shadow-xs overflow-hidden flex flex-col h-[80vh] min-h-[600px]" : "bg-[#EBEBEB] rounded-3xl border border-transparent shadow-xs overflow-hidden flex flex-col h-[80vh] min-h-[600px]"}>
       
       {/* Top Toolbar */}
-      <div className="h-16 bg-[#FAF8F5] border-b border-[#E8DCCF] flex items-center justify-between px-6 shrink-0">
+      <div className="h-16 bg-[#FAF8F5] border-b border-transparent flex items-center justify-between px-6 shrink-0">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-[#8B3A4A] text-white flex items-center justify-center shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] flex items-center justify-center shadow-xs">
             <Palette className="w-5 h-5" />
           </div>
           <div>
@@ -193,15 +193,15 @@ export const InvitationsModule: React.FC = () => {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-4 py-2 bg-white border border-[#D9CEBF] text-[#2D2A26] rounded-xl text-xs font-semibold hover:bg-[#F3EFEA] transition-colors flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+            className="px-4 py-2 bg-[#EBEBEB] border border-[#D9CEBF] text-[#2D2A26] rounded-xl text-xs font-semibold hover:bg-[#F3EFEA] transition-colors flex items-center space-x-1.5 cursor-pointer shadow-2xs"
           >
-            <Save className="w-4 h-4 text-[#8B3A4A]" />
+            <Save className="w-4 h-4 text-[#2D3748]" />
             <span className="hidden sm:inline">{isSaving ? 'Guardando...' : 'Guardar Borrador'}</span>
           </button>
           
           <button
             onClick={() => handleExport('png')}
-            className="px-4 py-2 bg-[#8B3A4A] text-white rounded-xl text-xs font-bold hover:bg-[#6E2937] transition-colors flex items-center space-x-1.5 cursor-pointer shadow-sm"
+            className="px-4 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] rounded-xl text-xs font-bold hover:bg-[#EBEBEB] transition-colors flex items-center space-x-1.5 cursor-pointer shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]"
           >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Exportar PNG</span>
@@ -211,32 +211,32 @@ export const InvitationsModule: React.FC = () => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar */}
-        <div className="w-72 bg-white border-r border-[#E8DCCF] flex flex-col shrink-0">
-          <div className="flex bg-[#FAF8F5] p-1 border-b border-[#E8DCCF]">
+        <div className="w-72 bg-[#EBEBEB] border-r border-transparent flex flex-col shrink-0">
+          <div className="flex bg-[#FAF8F5] p-1 border-b border-transparent">
             <button
               onClick={() => setActiveTab('templates')}
-              className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg flex flex-col items-center gap-1 transition-colors ${activeTab === 'templates' ? 'bg-white text-[#8B3A4A] shadow-2xs' : 'text-[#8C8276] hover:bg-[#F3EFEA]'}`}
+              className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg flex flex-col items-center gap-1 transition-colors ${activeTab === 'templates' ? 'bg-[#EBEBEB] text-[#2D3748] shadow-2xs' : 'text-[#8C8276] hover:bg-[#F3EFEA]'}`}
             >
               <LayoutTemplate className="w-4 h-4" />
               Plantillas
             </button>
             <button
               onClick={() => setActiveTab('text')}
-              className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg flex flex-col items-center gap-1 transition-colors ${activeTab === 'text' ? 'bg-white text-[#8B3A4A] shadow-2xs' : 'text-[#8C8276] hover:bg-[#F3EFEA]'}`}
+              className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg flex flex-col items-center gap-1 transition-colors ${activeTab === 'text' ? 'bg-[#EBEBEB] text-[#2D3748] shadow-2xs' : 'text-[#8C8276] hover:bg-[#F3EFEA]'}`}
             >
               <TypeIcon className="w-4 h-4" />
               Texto
             </button>
             <button
               onClick={() => setActiveTab('image')}
-              className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg flex flex-col items-center gap-1 transition-colors ${activeTab === 'image' ? 'bg-white text-[#8B3A4A] shadow-2xs' : 'text-[#8C8276] hover:bg-[#F3EFEA]'}`}
+              className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg flex flex-col items-center gap-1 transition-colors ${activeTab === 'image' ? 'bg-[#EBEBEB] text-[#2D3748] shadow-2xs' : 'text-[#8C8276] hover:bg-[#F3EFEA]'}`}
             >
               <ImageIcon className="w-4 h-4" />
               Imágenes
             </button>
             <button
               onClick={() => setActiveTab('tables')}
-              className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg flex flex-col items-center gap-1 transition-colors ${activeTab === 'tables' ? 'bg-white text-[#8B3A4A] shadow-2xs' : 'text-[#8C8276] hover:bg-[#F3EFEA]'}`}
+              className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg flex flex-col items-center gap-1 transition-colors ${activeTab === 'tables' ? 'bg-[#EBEBEB] text-[#2D3748] shadow-2xs' : 'text-[#8C8276] hover:bg-[#F3EFEA]'}`}
             >
               <UtensilsCrossed className="w-4 h-4" />
               Mesas
@@ -248,13 +248,13 @@ export const InvitationsModule: React.FC = () => {
               <div className="space-y-4">
                 <p className="text-xs text-[#7A7268]">Selecciona una plantilla base para comenzar.</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="aspect-[3/4] bg-rose-50 border border-rose-200 rounded-xl cursor-pointer hover:ring-2 ring-[#8B3A4A] flex items-center justify-center p-2 text-center">
+                  <div className="aspect-[3/4] bg-rose-50 border border-rose-200 rounded-xl cursor-pointer hover:ring-2 ring-[#d1d1d1] flex items-center justify-center p-2 text-center">
                     <span className="text-[10px] font-bold text-rose-800">Elegante Floral</span>
                   </div>
-                  <div className="aspect-[3/4] bg-stone-50 border border-stone-200 rounded-xl cursor-pointer hover:ring-2 ring-[#8B3A4A] flex items-center justify-center p-2 text-center">
+                  <div className="aspect-[3/4] bg-stone-50 border border-stone-200 rounded-xl cursor-pointer hover:ring-2 ring-[#d1d1d1] flex items-center justify-center p-2 text-center">
                     <span className="text-[10px] font-bold text-stone-800">Minimalista Clásico</span>
                   </div>
-                  <div className="aspect-[3/4] bg-emerald-50 border border-emerald-200 rounded-xl cursor-pointer hover:ring-2 ring-[#8B3A4A] flex items-center justify-center p-2 text-center">
+                  <div className="aspect-[3/4] bg-emerald-50 border border-emerald-200 rounded-xl cursor-pointer hover:ring-2 ring-[#d1d1d1] flex items-center justify-center p-2 text-center">
                     <span className="text-[10px] font-bold text-emerald-800">Botánica</span>
                   </div>
                 </div>
@@ -267,7 +267,7 @@ export const InvitationsModule: React.FC = () => {
                 
                 <button
                   onClick={() => addText('heading')}
-                  className="w-full py-3 px-4 bg-[#FAF8F5] border border-[#E8DCCF] rounded-xl hover:border-[#8B3A4A] text-left cursor-pointer transition-colors"
+                  className="w-full py-3 px-4 bg-[#FAF8F5] border border-transparent rounded-xl hover:border-transparent text-left cursor-pointer transition-colors"
                 >
                   <span className="block font-serif text-lg text-[#2D2A26] mb-1">Añadir Título</span>
                   <span className="block text-[10px] text-[#7A7268]">{settings.coupleNames || 'Nombres principales'}</span>
@@ -275,7 +275,7 @@ export const InvitationsModule: React.FC = () => {
                 
                 <button
                   onClick={() => addText('subheading')}
-                  className="w-full py-3 px-4 bg-[#FAF8F5] border border-[#E8DCCF] rounded-xl hover:border-[#8B3A4A] text-left cursor-pointer transition-colors"
+                  className="w-full py-3 px-4 bg-[#FAF8F5] border border-transparent rounded-xl hover:border-transparent text-left cursor-pointer transition-colors"
                 >
                   <span className="block font-sans font-semibold text-sm text-[#2D2A26] mb-1">Añadir Subtítulo</span>
                   <span className="block text-[10px] text-[#7A7268]">{settings.weddingDate || 'Fecha, Ceremonia...'}</span>
@@ -283,7 +283,7 @@ export const InvitationsModule: React.FC = () => {
                 
                 <button
                   onClick={() => addText('body')}
-                  className="w-full py-3 px-4 bg-[#FAF8F5] border border-[#E8DCCF] rounded-xl hover:border-[#8B3A4A] text-left cursor-pointer transition-colors"
+                  className="w-full py-3 px-4 bg-[#FAF8F5] border border-transparent rounded-xl hover:border-transparent text-left cursor-pointer transition-colors"
                 >
                   <span className="block font-sans text-xs text-[#2D2A26] mb-1">Añadir Texto Base</span>
                   <span className="block text-[10px] text-[#7A7268]">{settings.locationSummary || 'Ubicación, detalles...'}</span>
@@ -295,9 +295,9 @@ export const InvitationsModule: React.FC = () => {
               <div className="space-y-4">
                 <p className="text-xs text-[#7A7268]">Sube imágenes o fotos para agregar a tu diseño.</p>
                 
-                <label className="w-full py-4 px-4 bg-[#FAF8F5] border-2 border-dashed border-[#D9CEBF] hover:border-[#8B3A4A] rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors group">
-                  <ImageIcon className="w-6 h-6 text-[#8C8276] group-hover:text-[#8B3A4A] mb-2 transition-colors" />
-                  <span className="text-xs font-bold text-[#2D2A26] group-hover:text-[#8B3A4A]">Subir Imagen</span>
+                <label className="w-full py-4 px-4 bg-[#FAF8F5] border-2 border-dashed border-[#D9CEBF] hover:border-transparent rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors group">
+                  <ImageIcon className="w-6 h-6 text-[#8C8276] group-hover:text-[#2D3748] mb-2 transition-colors" />
+                  <span className="text-xs font-bold text-[#2D2A26] group-hover:text-[#2D3748]">Subir Imagen</span>
                   <span className="text-[9px] text-[#7A7268] mt-1 text-center">JPG, PNG hasta 5MB</span>
                   <input 
                     type="file" 
@@ -367,7 +367,7 @@ export const InvitationsModule: React.FC = () => {
                               originY: 'center',
                               fontFamily: 'serif',
                               fontSize: 28,
-                              fill: '#8B3A4A',
+                              fill: '#2D3748',
                               textAlign: 'center',
                               width: 300,
                             });
@@ -392,10 +392,10 @@ export const InvitationsModule: React.FC = () => {
                             canvas.setActiveObject(tableTitle);
                             canvas.renderAll();
                           }}
-                          className="w-full p-3 bg-white border border-[#E8DCCF] rounded-xl hover:border-[#8B3A4A] text-left cursor-pointer transition-colors shadow-2xs group"
+                          className="w-full p-3 bg-[#EBEBEB] border border-transparent rounded-xl hover:border-transparent text-left cursor-pointer transition-colors shadow-2xs group"
                         >
                           <div className="flex justify-between items-center mb-1">
-                            <span className="font-semibold text-sm text-[#2D2A26] group-hover:text-[#8B3A4A]">{table.name}</span>
+                            <span className="font-semibold text-sm text-[#2D2A26] group-hover:text-[#2D3748]">{table.name}</span>
                             <span className="text-[10px] bg-[#F0EAE1] text-[#7A7268] px-2 py-0.5 rounded-full">
                               {tableGuests.length} invitados
                             </span>
@@ -417,7 +417,7 @@ export const InvitationsModule: React.FC = () => {
         <div className="flex-1 bg-stone-200/50 flex flex-col relative">
           {/* Main workspace */}
           <div className="flex-1 overflow-auto flex items-center justify-center p-8">
-            <div className="bg-white shadow-xl">
+            <div className="bg-[#EBEBEB] shadow-xl">
               <canvas ref={canvasRef} />
             </div>
           </div>

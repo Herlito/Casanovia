@@ -26,8 +26,8 @@ const PHASE_LABELS: Record<string, { name: string; time: string; color: string; 
   fase_1: {
     name: 'Fase 1: Fundamentos y Reservas Principales',
     time: '12 a 9 meses antes',
-    color: 'border-[#8B3A4A] text-[#8B3A4A]',
-    badgeBg: 'bg-[#8B3A4A]/10 text-[#8B3A4A]',
+    color: 'border-transparent text-[#2D3748]',
+    badgeBg: 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748]',
   },
   fase_2: {
     name: 'Fase 2: Estilo, Proveedores Clave y Diseño',
@@ -126,20 +126,20 @@ export const NewWeddingTasksScreen: React.FC = () => {
     <div className="min-h-screen bg-[#FAF8F5] pb-16">
       
       {/* Top Banner Bar */}
-      <div className="bg-linear-to-r from-[#8B3A4A] via-[#6A2534] to-[#4A1521] text-white shadow-md">
+      <div className="bg-linear-to-r from-[#2D3748] via-[#6A2534] to-[#4A1521] text-[#2D3748] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             
             <div>
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/15 text-white text-xs font-semibold backdrop-blur-xs mb-2">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EBEBEB]/15 text-[#2D3748] text-xs font-semibold backdrop-blur-xs mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                 <span>¡Nueva Boda Creada en la Nube!</span>
               </div>
               <h1 className="font-serif-display text-2xl sm:text-4xl font-bold tracking-wide">
                 Lista de Tareas & Checklist
               </h1>
-              <p className="text-sm text-stone-200 mt-1 max-w-2xl font-light">
-                Revisa y personaliza la lista cronológica de actividades para <strong className="text-white font-semibold">{settings.coupleNames}</strong>. 
+              <p className="text-sm text-[#4A5568] mt-1 max-w-2xl font-light">
+                Revisa y personaliza la lista cronológica de actividades para <strong className="text-[#2D3748] font-semibold">{settings.coupleNames}</strong>. 
                 Marca las tareas listas, agrega pendientes o sal al dashboard cuando desees.
               </p>
             </div>
@@ -150,9 +150,9 @@ export const NewWeddingTasksScreen: React.FC = () => {
                 type="button"
                 id="btn-exit-to-dashboard-top"
                 onClick={handleExitToDashboard}
-                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-white text-[#8B3A4A] font-bold text-sm hover:bg-[#FDFBF7] transition-all shadow-md hover:shadow-lg cursor-pointer transform hover:-translate-y-0.5"
+                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-[#EBEBEB] text-[#2D3748] font-bold text-sm hover:bg-[#EBEBEB] transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] cursor-pointer transform hover:-translate-y-0.5"
               >
-                <LayoutDashboard className="w-4 h-4 text-[#8B3A4A]" />
+                <LayoutDashboard className="w-4 h-4 text-[#2D3748]" />
                 <span>Regresar al Dashboard Novios</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -161,14 +161,14 @@ export const NewWeddingTasksScreen: React.FC = () => {
           </div>
 
           {/* Progress Bar Card */}
-          <div className="mt-6 bg-white/10 rounded-2xl p-4 border border-white/20 backdrop-blur-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="mt-6 bg-[#EBEBEB]/10 rounded-2xl p-4 border border-transparent backdrop-blur-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold text-base">
+              <div className="w-10 h-10 rounded-xl bg-[#EBEBEB]/20 flex items-center justify-center font-bold text-base">
                 {progressPercent}%
               </div>
               <div>
-                <div className="text-xs font-semibold text-stone-200">Progreso de Tareas</div>
-                <div className="text-sm font-bold text-white">
+                <div className="text-xs font-semibold text-[#4A5568]">Progreso de Tareas</div>
+                <div className="text-sm font-bold text-[#2D3748]">
                   {completedCount} de {totalCount} tareas completadas
                 </div>
               </div>
@@ -185,7 +185,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
 
             <div className="flex items-center space-x-2 text-xs">
               <span className="text-stone-300">Boda:</span>
-              <span className="font-semibold text-white bg-white/20 px-2.5 py-1 rounded-lg">
+              <span className="font-semibold text-[#2D3748] bg-[#EBEBEB]/20 px-2.5 py-1 rounded-lg">
                 {settings.coupleNames}
               </span>
             </div>
@@ -197,7 +197,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         
         {/* Bulk Actions Toolbar */}
-        <div className="bg-white p-4 rounded-2xl shadow-xs border border-[#E8DCCF] flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="bg-[#EBEBEB] p-4 rounded-2xl shadow-xs border border-transparent flex flex-wrap items-center justify-between gap-3 mb-6">
           
           {/* Left: Bulk toggle and delete actions */}
           <div className="flex flex-wrap items-center gap-2">
@@ -260,7 +260,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAddForm(!showAddForm)}
-              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#8B3A4A] text-white hover:bg-[#6E2937] text-xs font-bold transition-all shadow-xs cursor-pointer"
+              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>{showAddForm ? 'Cerrar Formulario' : '+ Agregar Tarea'}</span>
@@ -271,8 +271,8 @@ export const NewWeddingTasksScreen: React.FC = () => {
 
         {/* Add Task Form (Collapsible) */}
         {showAddForm && (
-          <form onSubmit={handleCreateTask} className="bg-white p-5 rounded-2xl shadow-md border border-[#E8DCCF] mb-6 animate-fadeIn">
-            <h3 className="text-xs font-bold text-[#8B3A4A] uppercase tracking-wider mb-3 flex items-center space-x-2">
+          <form onSubmit={handleCreateTask} className="bg-[#EBEBEB] p-5 rounded-2xl shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-transparent mb-6 animate-fadeIn">
+            <h3 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider mb-3 flex items-center space-x-2">
               <Plus className="w-4 h-4" />
               <span>Nueva Tarea Personalizada</span>
             </h3>
@@ -288,7 +288,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="Ej. Realizar prueba de peinado y maquillaje..."
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                 />
               </div>
 
@@ -336,7 +336,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
               </button>
               <button
                 type="submit"
-                className="px-5 py-1.5 rounded-lg bg-[#8B3A4A] text-white text-xs font-bold hover:bg-[#6E2937]"
+                className="px-5 py-1.5 rounded-lg bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold hover:bg-[#EBEBEB]"
               >
                 Guardar Tarea
               </button>
@@ -347,7 +347,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
         {/* Delete All Confirmation Modal */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-rose-200 relative">
+            <div className="bg-[#EBEBEB] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-rose-200 relative">
               <div className="flex items-center space-x-3 text-rose-600 mb-3">
                 <ShieldAlert className="w-6 h-6" />
                 <h3 className="font-bold text-base text-[#2D2A26]">¿Borrar todas las tareas?</h3>
@@ -369,7 +369,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
                     deleteAllTasks();
                     setShowDeleteConfirm(false);
                   }}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-xs"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#2D3748] bg-rose-600 hover:bg-rose-700 shadow-xs"
                 >
                   Sí, Borrar Todas
                 </button>
@@ -388,8 +388,8 @@ export const NewWeddingTasksScreen: React.FC = () => {
               onClick={() => setSelectedPhase('all')}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
                 selectedPhase === 'all'
-                  ? 'bg-[#8B3A4A] text-white shadow-xs'
-                  : 'bg-white text-[#524B42] hover:bg-[#EFEAE2] border border-[#E8DCCF]'
+                  ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs'
+                  : 'bg-[#EBEBEB] text-[#524B42] hover:bg-[#EFEAE2] border border-transparent'
               }`}
             >
               Todas las Fases ({tasks.length})
@@ -404,12 +404,12 @@ export const NewWeddingTasksScreen: React.FC = () => {
                   onClick={() => setSelectedPhase(p)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center space-x-1 ${
                     selectedPhase === p
-                      ? 'bg-[#8B3A4A] text-white shadow-xs'
-                      : 'bg-white text-[#524B42] hover:bg-[#EFEAE2] border border-[#E8DCCF]'
+                      ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs'
+                      : 'bg-[#EBEBEB] text-[#524B42] hover:bg-[#EFEAE2] border border-transparent'
                   }`}
                 >
                   <span>{p.replace('_', ' ').toUpperCase()}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedPhase === p ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-600'}`}>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedPhase === p ? 'bg-[#EBEBEB]/20 text-[#2D3748]' : 'bg-stone-100 text-stone-600'}`}>
                     {pCompleted}/{pCount}
                   </span>
                 </button>
@@ -425,7 +425,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar tarea o responsable..."
-              className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20"
+              className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
             />
           </div>
 
@@ -433,7 +433,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
 
         {/* Tasks List Organized by Phase */}
         {tasks.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center border border-[#E8DCCF] shadow-xs">
+          <div className="bg-[#EBEBEB] rounded-2xl p-12 text-center border border-transparent shadow-xs">
             <div className="w-12 h-12 rounded-full bg-stone-100 text-stone-400 mx-auto flex items-center justify-center mb-3">
               <CheckSquare className="w-6 h-6" />
             </div>
@@ -446,7 +446,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
             <button
               type="button"
               onClick={resetTasksToMaster}
-              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#8B3A4A] text-white text-xs font-bold hover:bg-[#6E2937] shadow-xs"
+              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold hover:bg-[#EBEBEB] shadow-xs"
             >
               <RotateCcw className="w-4 h-4" />
               <span>Restaurar Lista Maestra de 6 Fases</span>
@@ -465,10 +465,10 @@ export const NewWeddingTasksScreen: React.FC = () => {
                 const pCompleted = phaseTasks.filter((t) => t.isCompleted).length;
 
                 return (
-                  <div key={phaseKey} className="bg-white rounded-2xl border border-[#E8DCCF] shadow-xs overflow-hidden">
+                  <div key={phaseKey} className="bg-[#EBEBEB] rounded-2xl border border-transparent shadow-xs overflow-hidden">
                     
                     {/* Phase Header */}
-                    <div className="bg-[#FAF8F5] px-4 py-3.5 border-b border-[#E8DCCF] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="bg-[#FAF8F5] px-4 py-3.5 border-b border-transparent flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
                         <h3 className="font-serif-display font-bold text-sm text-[#2D2A26]">
                           {phaseInfo.name}
@@ -505,12 +505,12 @@ export const NewWeddingTasksScreen: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => toggleTask(task.id)}
-                                className="mt-0.5 shrink-0 text-[#8B3A4A] focus:outline-hidden hover:scale-110 transition-transform cursor-pointer"
+                                className="mt-0.5 shrink-0 text-[#2D3748] focus:outline-hidden hover:scale-110 transition-transform cursor-pointer"
                               >
                                 {task.isCompleted ? (
                                   <CheckCircle2 className="w-5 h-5 text-emerald-600 fill-emerald-100" />
                                 ) : (
-                                  <Circle className="w-5 h-5 text-[#8C8276] hover:text-[#8B3A4A]" />
+                                  <Circle className="w-5 h-5 text-[#8C8276] hover:text-[#2D3748]" />
                                 )}
                               </button>
 
@@ -528,7 +528,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
 
                                 <div className="flex flex-wrap items-center gap-2 mt-1.5 text-[11px] text-[#7A7268]">
                                   {task.assignee && (
-                                    <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-[#FAF8F5] border border-[#E8DCCF] text-[#524B42]">
+                                    <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-[#FAF8F5] border border-transparent text-[#524B42]">
                                       <Users className="w-3 h-3 text-[#8C8276]" />
                                       <span>{task.assignee}</span>
                                     </span>
@@ -574,7 +574,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
         )}
 
         {/* Bottom Exit Bar */}
-        <div className="mt-8 bg-white p-5 rounded-2xl border border-[#E8DCCF] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-8 bg-[#EBEBEB] p-5 rounded-2xl border border-transparent shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-3 text-xs text-[#7A7268]">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
             <span>
@@ -586,7 +586,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
             type="button"
             id="btn-exit-to-dashboard-bottom"
             onClick={handleExitToDashboard}
-            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-[#8B3A4A] text-white font-bold text-xs hover:bg-[#6E2937] transition-all shadow-md cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] font-bold text-xs hover:bg-[#EBEBEB] transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] cursor-pointer"
           >
             <LayoutDashboard className="w-4 h-4" />
             <span>Listo, Regresar al Dashboard Novios</span>

@@ -34,7 +34,7 @@ export const TemplatesPanel: React.FC = () => {
         {templates.length === 0 ? (
            <p className="text-xs text-gray-400 text-center py-4">No hay plantillas guardadas aún.</p>
         ) : templates.map(t => (
-          <div key={t.id} className="p-3 bg-white border border-gray-200 rounded-xl flex items-center justify-between shadow-sm">
+          <div key={t.id} className="p-3 bg-[#EBEBEB] border border-gray-200 rounded-xl flex items-center justify-between shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]">
             <div className="flex-1 truncate pr-2">
               <p className="text-sm font-semibold text-gray-800 truncate">{t.name}</p>
               <p className="text-[10px] text-gray-400">{new Date(parseInt(t.id)).toLocaleDateString()}</p>

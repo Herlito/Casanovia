@@ -25,7 +25,7 @@ export const GiftRegistrySection: React.FC = () => {
   };
 
   return (
-    <section id="gift-registry-section" className="py-12 sm:py-16 bg-[#FDFBF7]">
+    <section id="gift-registry-section" className="py-12 sm:py-16 bg-[#EBEBEB]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
@@ -51,10 +51,10 @@ export const GiftRegistrySection: React.FC = () => {
             {settings.giftRegistries.map((store, idx) => (
               <div 
                 key={idx}
-                className="bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-xs hover:shadow-md transition-all flex items-center justify-between group"
+                className="bg-[#EBEBEB] rounded-2xl p-5 border border-transparent shadow-xs hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all flex items-center justify-between group"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-xl bg-[#FAF7F2] border border-[#EBE3D7] flex items-center justify-center text-[#8B3A4A] group-hover:bg-[#8B3A4A] group-hover:text-white transition-colors shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-[#EBEBEB] border border-[#EBE3D7] flex items-center justify-center text-[#2D3748] group-hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] group-hover:text-[#2D3748] transition-colors shrink-0">
                     <ShoppingBag className="w-6 h-6" />
                   </div>
                   <div>
@@ -65,7 +65,7 @@ export const GiftRegistrySection: React.FC = () => {
                       {store.storeName}
                     </h3>
                     <p className="text-xs text-[#7A7268]">
-                      Evento / No. de Mesa: <span className="font-mono font-semibold text-[#8B3A4A]">{store.eventNumber}</span>
+                      Evento / No. de Mesa: <span className="font-mono font-semibold text-[#2D3748]">{store.eventNumber}</span>
                     </p>
                   </div>
                 </div>
@@ -74,7 +74,7 @@ export const GiftRegistrySection: React.FC = () => {
                   href={store.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2.5 rounded-xl bg-[#FAF7F2] text-[#524B42] hover:bg-[#8B3A4A] hover:text-white transition-colors border border-[#D9CEBF] flex items-center space-x-1 text-xs font-semibold shrink-0"
+                  className="p-2.5 rounded-xl bg-[#EBEBEB] text-[#524B42] hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] transition-colors border border-[#D9CEBF] flex items-center space-x-1 text-xs font-semibold shrink-0"
                 >
                   <span className="hidden sm:inline">Ver Mesa</span>
                   <ExternalLink className="w-4 h-4" />
@@ -91,7 +91,7 @@ export const GiftRegistrySection: React.FC = () => {
           {/* Elegant Bank Transfer Card (Right Column) - Shown ONLY if settings.showBankDetails is not false */}
           {settings.showBankDetails !== false && (
             <div className="lg:col-span-6">
-              <div className="h-full rounded-2xl sm:rounded-3xl bg-linear-to-br from-[#FFFDF9] via-[#FAF6EE] to-[#F3ECE0] border-2 border-[#D4AF37]/50 p-6 sm:p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
+              <div className="h-full rounded-2xl sm:rounded-3xl bg-linear-to-br from-[#FFFDF9] via-[#FAF6EE] to-[#F3ECE0] border-2 border-[#D4AF37]/50 p-6 sm:p-8 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex flex-col justify-between relative overflow-hidden">
                 
                 {/* Card Header */}
                 <div>
@@ -101,7 +101,7 @@ export const GiftRegistrySection: React.FC = () => {
                         <CreditCard className="w-5 h-5" />
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B3A4A] block">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#2D3748] block">
                           Lluvia de Sobres / Transferencia
                         </span>
                         <h3 className="font-serif-display text-xl font-bold text-[#2D2A26]">
@@ -109,7 +109,7 @@ export const GiftRegistrySection: React.FC = () => {
                         </h3>
                       </div>
                     </div>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white text-[#8B6B23] border border-[#D4AF37]/30 shadow-2xs">
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#EBEBEB] text-[#8B6B23] border border-[#D4AF37]/30 shadow-2xs">
                       {settings.bankDetails.bankName}
                     </span>
                   </div>
@@ -117,7 +117,7 @@ export const GiftRegistrySection: React.FC = () => {
                   {/* Bank Details Table with 1-click copy */}
                   <div className="space-y-3.5 my-5">
                     {/* Beneficiary */}
-                    <div className="bg-white/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
+                    <div className="bg-[#EBEBEB]/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-bold text-[#8C8276] uppercase block">Titulares de la Cuenta</span>
                         <span className="text-xs font-bold text-[#2D2A26]">{settings.bankDetails.accountHolder}</span>
@@ -125,7 +125,7 @@ export const GiftRegistrySection: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => copyText(settings.bankDetails.accountHolder, 'holder')}
-                        className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#8B3A4A] hover:bg-[#FAF7F2] transition-colors"
+                        className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#2D3748] hover:bg-[#EBEBEB] transition-colors"
                         title="Copiar Titular"
                       >
                         {copiedField === 'holder' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -133,15 +133,15 @@ export const GiftRegistrySection: React.FC = () => {
                     </div>
 
                     {/* CLABE */}
-                    <div className="bg-white/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
+                    <div className="bg-[#EBEBEB]/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-bold text-[#8C8276] uppercase block">CLABE Interbancaria</span>
-                        <span className="text-xs font-mono font-bold text-[#8B3A4A]">{settings.bankDetails.clabe}</span>
+                        <span className="text-xs font-mono font-bold text-[#2D3748]">{settings.bankDetails.clabe}</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => copyText(settings.bankDetails.clabe.replace(/\s+/g, ''), 'clabe')}
-                        className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#8B3A4A] hover:bg-[#FAF7F2] transition-colors"
+                        className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#2D3748] hover:bg-[#EBEBEB] transition-colors"
                         title="Copiar CLABE"
                       >
                         {copiedField === 'clabe' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -149,7 +149,7 @@ export const GiftRegistrySection: React.FC = () => {
                     </div>
 
                     {/* Account Number */}
-                    <div className="bg-white/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
+                    <div className="bg-[#EBEBEB]/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-bold text-[#8C8276] uppercase block">Número de Cuenta</span>
                         <span className="text-xs font-mono font-bold text-[#2D2A26]">{settings.bankDetails.accountNumber}</span>
@@ -157,7 +157,7 @@ export const GiftRegistrySection: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => copyText(settings.bankDetails.accountNumber.replace(/\s+/g, ''), 'account')}
-                        className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#8B3A4A] hover:bg-[#FAF7F2] transition-colors"
+                        className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#2D3748] hover:bg-[#EBEBEB] transition-colors"
                         title="Copiar Cuenta"
                       >
                         {copiedField === 'account' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -165,7 +165,7 @@ export const GiftRegistrySection: React.FC = () => {
                     </div>
 
                     {/* Concept */}
-                    <div className="bg-white/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
+                    <div className="bg-[#EBEBEB]/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-bold text-[#8C8276] uppercase block">Concepto Sugerido</span>
                         <span className="text-xs font-medium text-[#524B42]">{settings.bankDetails.concept}</span>
@@ -173,7 +173,7 @@ export const GiftRegistrySection: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => copyText(settings.bankDetails.concept, 'concept')}
-                        className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#8B3A4A] hover:bg-[#FAF7F2] transition-colors"
+                        className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#2D3748] hover:bg-[#EBEBEB] transition-colors"
                         title="Copiar Concepto"
                       >
                         {copiedField === 'concept' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -185,7 +185,7 @@ export const GiftRegistrySection: React.FC = () => {
                 {/* Card Footer */}
                 <div className="pt-3 border-t border-[#E8DEC8] flex items-center justify-between text-[11px] text-[#7A7268]">
                   <span className="flex items-center space-x-1">
-                    <HeartHandshake className="w-3.5 h-3.5 text-[#8B3A4A]" />
+                    <HeartHandshake className="w-3.5 h-3.5 text-[#2D3748]" />
                     <span>¡Infinitas gracias por su cariño!</span>
                   </span>
                   {copiedField && (

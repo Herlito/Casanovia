@@ -67,26 +67,26 @@ export const NewWeddingModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] max-w-lg w-full overflow-hidden border border-[#E8DCCF]" : "bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-[#E8DCCF]"}>
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] max-w-lg w-full overflow-hidden border border-transparent" : "bg-[#EBEBEB] rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-transparent"}>
         
         {/* Modal Header */}
-        <div className={isNeumorphic ? "p-6 relative text-gray-800" : "bg-[#8B3A4A] text-white p-6 relative"}>
+        <div className={isNeumorphic ? "p-6 relative text-gray-800" : "bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] p-6 relative"}>
           <button
             onClick={() => setShowNewWeddingModal(false)}
-            className="absolute top-5 right-5 p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            className="absolute top-5 right-5 p-1.5 rounded-full text-[#2D3748]/80 hover:text-[#2D3748] hover:bg-[#EBEBEB]/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
 
           <div className="flex items-center space-x-3 mb-2">
-            <div className={isNeumorphic ? "w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center" : "w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center"}>
-              <PlusCircle className="w-6 h-6 text-white" />
+            <div className={isNeumorphic ? "w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center" : "w-10 h-10 rounded-xl bg-[#EBEBEB]/15 flex items-center justify-center"}>
+              <PlusCircle className="w-6 h-6 text-[#2D3748]" />
             </div>
             <div>
               <span className={isNeumorphic ? "text-[10px] font-bold tracking-widest text-gray-500 uppercase block" : "text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block"}>
                 {isLevel1Admin ? 'Nivel 1 • Super Administrador' : isLevel3Planner ? `Nivel 3 • Wedding Planner (${currentUser.username})` : currentUser.username}
               </span>
-              <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-white"}`}>
+              <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-[#2D3748]"}`}>
                 Crear Nuevo Evento
               </h3>
             </div>
@@ -107,7 +107,7 @@ export const NewWeddingModal: React.FC = () => {
             <select
               value={eventType}
               onChange={(e) => setEventType(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
             >
               <option value="Boda">Boda</option>
               <option value="Quinceañero">Quinceañero</option>
@@ -132,7 +132,7 @@ export const NewWeddingModal: React.FC = () => {
                 value={coupleNames}
                 onChange={(e) => setCoupleNames(e.target.value)}
                 placeholder="Ej. Isabella & Sebastián"
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
               />
             </div>
           </div>
@@ -231,8 +231,8 @@ export const NewWeddingModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-[#FAF8F5] border border-[#E8DCCF] rounded-xl p-3.5 space-y-1.5 text-xs text-[#6B6358]">
-            <div className="flex items-center space-x-1.5 text-[#8B3A4A] font-semibold text-[11px]">
+          <div className="bg-[#FAF8F5] border border-transparent rounded-xl p-3.5 space-y-1.5 text-xs text-[#6B6358]">
+            <div className="flex items-center space-x-1.5 text-[#2D3748] font-semibold text-[11px]">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Auto-configuración Inteligente Incluida:</span>
             </div>
@@ -244,7 +244,7 @@ export const NewWeddingModal: React.FC = () => {
             </ul>
           </div>
 
-          <div className="pt-3 flex items-center justify-end space-x-3 border-t border-[#E8DCCF]">
+          <div className="pt-3 flex items-center justify-end space-x-3 border-t border-transparent">
             <button
               type="button"
               onClick={() => setShowNewWeddingModal(false)}
@@ -255,7 +255,7 @@ export const NewWeddingModal: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2.5 rounded-xl bg-[#8B3A4A] text-white text-xs font-bold hover:bg-[#6E2937] transition-all shadow-md flex items-center space-x-2 cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold hover:bg-[#EBEBEB] transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] flex items-center space-x-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

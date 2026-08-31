@@ -161,7 +161,7 @@ export const BudgetModule: React.FC = () => {
             type="button"
             onClick={handleOpenAdd}
             id="btn-add-budget"
-            className="px-5 py-2.5 rounded-xl bg-[#8B3A4A] text-white text-xs font-semibold hover:bg-[#6E2937] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Nuevo Concepto</span>
@@ -181,9 +181,9 @@ export const BudgetModule: React.FC = () => {
       )}
 
       {/* Vendor Synchronized Summary Strip */}
-      <div className="bg-linear-to-r from-[#FAF7F2] to-amber-50/50 rounded-2xl p-4 border border-[#E8DCCF] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+      <div className="bg-linear-to-r from-[#FAF7F2] to-amber-50/50 rounded-2xl p-4 border border-transparent flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-[#8B3A4A]/10 text-[#8B3A4A] flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] flex items-center justify-center shrink-0">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
@@ -199,7 +199,7 @@ export const BudgetModule: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-4 bg-white px-3.5 py-2 rounded-xl border border-[#E8DCCF] shrink-0 self-start md:self-auto">
+        <div className="flex items-center space-x-4 bg-[#EBEBEB] px-3.5 py-2 rounded-xl border border-transparent shrink-0 self-start md:self-auto">
           <div>
             <span className="text-[10px] text-stone-500 block uppercase tracking-wider font-semibold">Total Contratos</span>
             <span className="font-bold font-mono text-[#2D2A26]">{formatCurrency(totalVendorsContracted)}</span>
@@ -216,7 +216,7 @@ export const BudgetModule: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1: Presupuesto Real */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-[#E8DCCF] shadow-2xs" : "bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-transparent shadow-2xs" : "bg-[#EBEBEB] rounded-2xl p-5 border border-transparent shadow-2xs"}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-[#7A7268]">Presupuesto Total Real</span>
             <div className="flex items-center space-x-1">
@@ -227,7 +227,7 @@ export const BudgetModule: React.FC = () => {
                     setTargetBudgetInput(String(effectiveTotalRealBudget));
                     setIsEditingTargetBudget(!isEditingTargetBudget);
                   }}
-                  className="p-1 text-stone-400 hover:text-[#8B3A4A] rounded-lg transition-colors cursor-pointer"
+                  className="p-1 text-stone-400 hover:text-[#2D3748] rounded-lg transition-colors cursor-pointer"
                   title="Modificar Presupuesto Total"
                 >
                   <Edit className="w-3.5 h-3.5" />
@@ -249,7 +249,7 @@ export const BudgetModule: React.FC = () => {
                   min="0"
                   value={targetBudgetInput}
                   onChange={(e) => setTargetBudgetInput(e.target.value)}
-                  className="w-full pl-8 pr-2 py-1 text-sm font-bold rounded-lg border border-[#8B3A4A] bg-[#FAF8F5] focus:bg-white focus:outline-none"
+                  className="w-full pl-8 pr-2 py-1 text-sm font-bold rounded-lg border border-transparent bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-none"
                   placeholder="0"
                   autoFocus
                 />
@@ -258,7 +258,7 @@ export const BudgetModule: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleSaveTargetBudget}
-                  className="px-2.5 py-1 bg-[#8B3A4A] text-white text-[11px] font-bold rounded-lg hover:bg-[#6E2937] transition-colors cursor-pointer"
+                  className="px-2.5 py-1 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-[11px] font-bold rounded-lg hover:bg-[#EBEBEB] transition-colors cursor-pointer"
                 >
                   Guardar
                 </button>
@@ -283,7 +283,7 @@ export const BudgetModule: React.FC = () => {
         </div>
 
         {/* Card 2: Anticipos Pagados */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-[#E8DCCF] shadow-2xs" : "bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-transparent shadow-2xs" : "bg-[#EBEBEB] rounded-2xl p-5 border border-transparent shadow-2xs"}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-[#7A7268]">Anticipos Pagados</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
@@ -299,7 +299,7 @@ export const BudgetModule: React.FC = () => {
         </div>
 
         {/* Card 3: Saldo Pendiente */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-[#E8DCCF] shadow-2xs" : "bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-transparent shadow-2xs" : "bg-[#EBEBEB] rounded-2xl p-5 border border-transparent shadow-2xs"}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-[#7A7268]">Saldo por Liquidar</span>
             <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
@@ -315,15 +315,15 @@ export const BudgetModule: React.FC = () => {
         </div>
 
         {/* Card 4: Progress Bar Card */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-[#E8DCCF] shadow-2xs flex flex-col justify-between" : "bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-2xs flex flex-col justify-between"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-transparent shadow-2xs flex flex-col justify-between" : "bg-[#EBEBEB] rounded-2xl p-5 border border-transparent shadow-2xs flex flex-col justify-between"}>
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-[#7A7268]">Progreso de Pago</span>
-              <span className="text-xs font-bold text-[#8B3A4A]">{paidPercentage}%</span>
+              <span className="text-xs font-bold text-[#2D3748]">{paidPercentage}%</span>
             </div>
             <div className="w-full bg-[#EFEBE4] rounded-full h-3 overflow-hidden">
               <div 
-                className="bg-linear-to-r from-[#8B3A4A] via-[#C5A880] to-emerald-600 h-full rounded-full transition-all duration-500"
+                className="bg-linear-to-r from-[#2D3748] via-[#C5A880] to-emerald-600 h-full rounded-full transition-all duration-500"
                 style={{ width: `${paidPercentage}%` }}
               />
             </div>
@@ -336,12 +336,12 @@ export const BudgetModule: React.FC = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex overflow-x-auto pb-2 gap-2 text-xs border-b border-[#E8DCCF]">
+      <div className="flex overflow-x-auto pb-2 gap-2 text-xs border-b border-transparent">
         <button
           onClick={() => setCategoryFilter('all')}
           className={`px-3 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap cursor-pointer ${
             categoryFilter === 'all'
-              ? 'bg-[#8B3A4A] text-white shadow-xs'
+              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs'
               : 'bg-[#F2ECE3] text-[#524B42] hover:bg-[#E8DCCF]'
           }`}
         >
@@ -353,7 +353,7 @@ export const BudgetModule: React.FC = () => {
             onClick={() => setCategoryFilter(cat)}
             className={`px-3 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap cursor-pointer ${
               categoryFilter === cat
-                ? 'bg-[#8B3A4A] text-white shadow-xs'
+                ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs'
                 : 'bg-[#F2ECE3] text-[#524B42] hover:bg-[#E8DCCF]'
             }`}
           >
@@ -363,10 +363,10 @@ export const BudgetModule: React.FC = () => {
       </div>
 
       {/* Budget Table */}
-      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-[#E8DCCF] shadow-xs overflow-hidden" : "bg-white rounded-2xl border border-[#E8DCCF] shadow-xs overflow-hidden"}>
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-transparent shadow-xs overflow-hidden" : "bg-[#EBEBEB] rounded-2xl border border-transparent shadow-xs overflow-hidden"}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#FAF7F2] text-[#7A7268] border-b border-[#E8DCCF] uppercase tracking-wider font-semibold">
+            <thead className="bg-[#EBEBEB] text-[#7A7268] border-b border-transparent uppercase tracking-wider font-semibold">
               <tr>
                 <th className="px-4 py-3">Concepto & Proveedor</th>
                 <th className="px-4 py-3">Categoría</th>
@@ -405,7 +405,7 @@ export const BudgetModule: React.FC = () => {
                     </td>
 
                     <td className="px-4 py-3.5">
-                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#FAF7F2] text-[#524B42] border border-[#E8DCCF]">
+                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#EBEBEB] text-[#524B42] border border-transparent">
                         {getCategoryLabel(item.category)}
                       </span>
                     </td>
@@ -442,7 +442,7 @@ export const BudgetModule: React.FC = () => {
                       <div className="flex items-center justify-end space-x-1">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-[#7A7268] hover:text-[#8B3A4A] hover:bg-[#F2ECE3] rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-[#7A7268] hover:text-[#2D3748] hover:bg-[#F2ECE3] rounded-lg transition-colors cursor-pointer"
                           title="Editar Gasto"
                         >
                           <Edit className="w-4 h-4" />

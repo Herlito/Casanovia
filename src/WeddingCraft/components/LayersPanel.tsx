@@ -20,10 +20,10 @@ export const LayersPanel: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => {
   };
 
   return (
-    <div className={`flex flex-col h-full wc-layers shadow-sm overflow-hidden ${isMobile ? "w-full bg-transparent border-none rounded-none" : "w-64 bg-white/80 backdrop-blur-xl border border-gray-200/50 rounded-2xl"}`}>
-      <div className="p-3 border-b border-gray-200/50 flex items-center justify-between bg-white/50 sticky top-0 z-10">
+    <div className={`flex flex-col h-full wc-layers shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] overflow-hidden ${isMobile ? "w-full bg-transparent border-none rounded-none" : "w-64 bg-[#EBEBEB]/80 backdrop-blur-xl border border-gray-200/50 rounded-2xl"}`}>
+      <div className="p-3 border-b border-gray-200/50 flex items-center justify-between bg-[#EBEBEB]/50 sticky top-0 z-10">
         <h3 className="text-xs font-bold text-[#2D2A26] flex items-center space-x-1.5">
-          <Layers className="w-4 h-4 text-[#8B3A4A]" />
+          <Layers className="w-4 h-4 text-[#2D3748]" />
           <span>Capas (Layers)</span>
         </h3>
       </div>
@@ -39,8 +39,8 @@ export const LayersPanel: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => {
             onClick={() => selectElements([el.id])}
             className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
               selectedElementIds.includes(el.id) 
-                ? 'bg-rose-50 border border-rose-200 text-[#8B3A4A] font-semibold' 
-                : 'hover:bg-white/50 sticky top-0 z-10 border border-transparent text-[#524B42]'
+                ? 'bg-rose-50 border border-rose-200 text-[#2D3748] font-semibold' 
+                : 'hover:bg-[#EBEBEB]/50 sticky top-0 z-10 border border-transparent text-[#524B42]'
             }`}
           >
             <div className="flex items-center space-x-2 truncate flex-1">

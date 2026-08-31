@@ -169,19 +169,19 @@ export const UserManagementModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-[#E8DCCF] flex flex-col">
+      <div className="bg-[#EBEBEB] rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-transparent flex flex-col">
         
         {/* Header */}
-        <div className={isNeumorphic ? "p-6 relative text-gray-800 shrink-0" : "bg-linear-to-r from-[#2D2A26] via-[#4A3B32] to-[#8B3A4A] text-white p-6 relative shrink-0"}>
+        <div className={isNeumorphic ? "p-6 relative text-gray-800 shrink-0" : "bg-linear-to-r from-[#2D2A26] via-[#4A3B32] to-[#2D3748] text-[#2D3748] p-6 relative shrink-0"}>
           <button
             onClick={() => setShowUserManagementModal(false)}
-            className="absolute top-5 right-5 p-1.5 rounded-full text-stone-300 hover:text-white hover:bg-white/10 transition-colors"
+            className="absolute top-5 right-5 p-1.5 rounded-full text-stone-300 hover:text-[#2D3748] hover:bg-[#EBEBEB]/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
           
           <div className="flex items-center space-x-3 mb-1">
-            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-xs flex items-center justify-center border border-white/20">
+            <div className="w-10 h-10 rounded-xl bg-[#EBEBEB]/10 backdrop-blur-xs flex items-center justify-center border border-transparent">
               <Users className="w-5 h-5 text-[#E8DCCF]" />
             </div>
             <div>
@@ -189,11 +189,11 @@ export const UserManagementModal: React.FC = () => {
                 <span className={isNeumorphic ? "text-[10px] font-bold tracking-widest text-gray-500 uppercase block" : "text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block"}>
                   Panel de Control de Accesos & Roles
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/20 text-white">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#EBEBEB]/20 text-[#2D3748]">
                   {isLevel1Admin ? 'Nivel 1: Super Admin' : 'Nivel 3: Wedding Planner'}
                 </span>
               </div>
-              <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-white"}`}>
+              <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-[#2D3748]"}`}>
                 Gestión de Usuarios
               </h3>
             </div>
@@ -220,10 +220,10 @@ export const UserManagementModal: React.FC = () => {
 
           {/* Add / Edit Form Block */}
           {isEditing ? (
-            <div className="bg-white rounded-2xl p-5 border border-[#E8DCCF] shadow-sm space-y-4 animate-fadeIn">
+            <div className="bg-[#EBEBEB] rounded-2xl p-5 border border-transparent shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] space-y-4 animate-fadeIn">
               <div className="flex items-center justify-between pb-3 border-b border-[#F0EAE1]">
                 <h4 className="font-serif-display font-bold text-sm text-[#2D2A26] flex items-center space-x-2">
-                  <UserCheck className="w-4 h-4 text-[#8B3A4A]" />
+                  <UserCheck className="w-4 h-4 text-[#2D3748]" />
                   <span>{editingUserId ? 'Editar Usuario' : 'Crear Nuevo Usuario / Asignar Anfitrión'}</span>
                 </h4>
                 <button
@@ -247,7 +247,7 @@ export const UserManagementModal: React.FC = () => {
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="Ej. Zenaida Anahua o Guest Planner"
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent"
                     />
                   </div>
 
@@ -262,7 +262,7 @@ export const UserManagementModal: React.FC = () => {
                         value={clave}
                         onChange={(e) => setClave(e.target.value)}
                         placeholder="Ej. 70242438"
-                        className="w-full pl-3 pr-10 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
+                        className="w-full pl-3 pr-10 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent"
                       />
                       <button
                         type="button"
@@ -293,7 +293,7 @@ export const UserManagementModal: React.FC = () => {
                           setRoleTitle('Anfitriona de Boda (Nivel 2 - Anfitrión)');
                         }
                       }}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent"
                     >
                       {isLevel1Admin && (
                         <option value={1}>Nivel 1: Super Administrador (Acceso total & Creación de Bodas)</option>
@@ -314,7 +314,7 @@ export const UserManagementModal: React.FC = () => {
                       value={roleTitle}
                       onChange={(e) => setRoleTitle(e.target.value)}
                       placeholder="Ej. Anfitriona de Boda"
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -323,14 +323,14 @@ export const UserManagementModal: React.FC = () => {
                 {(level === 2 || level === 3) && (
                   <div className="pt-2 border-t border-[#F0EAE1]">
                     <label className="block text-xs font-semibold text-[#524B42] mb-2 flex items-center space-x-1.5">
-                      <HeartHandshake className="w-3.5 h-3.5 text-[#8B3A4A]" />
+                      <HeartHandshake className="w-3.5 h-3.5 text-[#2D3748]" />
                       <span>
                         {level === 2 
                           ? 'Asignar Permisos como "Anfitrión" a las siguientes Bodas:' 
                           : 'Asignar Bodas Gestionadas para este Wedding Planner:'}
                       </span>
                     </label>
-                    <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E8DCCF]">
+                    <div className="bg-[#FAF8F5] p-3 rounded-xl border border-transparent">
                       {availableWeddingsForAssignment.length === 0 ? (
                         <div className="text-center py-3 space-y-2">
                           <p className="text-xs text-[#7A7268]">
@@ -345,7 +345,7 @@ export const UserManagementModal: React.FC = () => {
                                 setShowUserManagementModal(false);
                                 setShowNewWeddingModal(true);
                               }}
-                              className="px-3 py-1.5 rounded-lg bg-[#8B3A4A] text-white text-xs font-semibold hover:bg-[#6E2937] transition-all inline-flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                              className="px-3 py-1.5 rounded-lg bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all inline-flex items-center space-x-1.5 cursor-pointer shadow-xs"
                             >
                               <Plus className="w-3.5 h-3.5" />
                               <span>+ Crear Boda Ahora</span>
@@ -360,14 +360,14 @@ export const UserManagementModal: React.FC = () => {
                               <label
                                 key={w.id}
                                 className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer text-xs transition-colors ${
-                                  isSelected ? 'bg-white border border-[#8B3A4A] text-[#8B3A4A] font-semibold shadow-xs' : 'hover:bg-white/60 text-[#524B42]'
+                                  isSelected ? 'bg-[#EBEBEB] border border-transparent text-[#2D3748] font-semibold shadow-xs' : 'hover:bg-[#EBEBEB]/60 text-[#524B42]'
                                 }`}
                               >
                                 <input
                                   type="checkbox"
                                   checked={isSelected}
                                   onChange={() => toggleWeddingAssignment(w.id)}
-                                  className="rounded text-[#8B3A4A] focus:ring-[#8B3A4A] h-3.5 w-3.5"
+                                  className="rounded text-[#2D3748] focus:ring-[#d1d1d1] h-3.5 w-3.5"
                                 />
                                 <div className="truncate">
                                   <span className="block truncate">{w.coupleNames}</span>
@@ -392,7 +392,7 @@ export const UserManagementModal: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-[#8B3A4A] text-white rounded-xl text-xs font-bold hover:bg-[#6E2937] transition-all shadow-md"
+                    className="px-5 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] rounded-xl text-xs font-bold hover:bg-[#EBEBEB] transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]"
                   >
                     {editingUserId ? 'Guardar Cambios' : (level === 2 ? 'Asignar Permisos de Anfitrión' : 'Crear Usuario')}
                   </button>
@@ -414,7 +414,7 @@ export const UserManagementModal: React.FC = () => {
               <button
                 type="button"
                 onClick={handleOpenAddForm}
-                className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-[#8B3A4A] text-white text-xs font-bold hover:bg-[#6E2937] transition-all shadow-sm cursor-pointer"
+                className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold hover:bg-[#EBEBEB] transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>{isLevel3Planner ? '+ Asignar Nuevo Anfitrión' : '+ Nuevo Usuario'}</span>
@@ -447,12 +447,12 @@ export const UserManagementModal: React.FC = () => {
               return (
                 <div
                   key={user.id}
-                  className={`bg-white rounded-2xl p-4 sm:p-5 border transition-all shadow-xs ${
+                  className={`bg-[#EBEBEB] rounded-2xl p-4 sm:p-5 border transition-all shadow-xs ${
                     user.level === 1 
                       ? 'border-emerald-200 bg-linear-to-r from-white to-emerald-50/30' 
                       : user.level === 3
                       ? 'border-teal-200 bg-linear-to-r from-white to-teal-50/30'
-                      : 'border-[#E8DCCF]'
+                      : 'border-transparent'
                   }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -494,7 +494,7 @@ export const UserManagementModal: React.FC = () => {
                         {/* Assigned Weddings for Anfitrion or Planner */}
                         {user.level === 2 && (
                           <div className="mt-2 text-[11px] text-[#524B42]">
-                            <span className="font-semibold text-[#8B3A4A]">Bodas con permiso de Anfitrión: </span>
+                            <span className="font-semibold text-[#2D3748]">Bodas con permiso de Anfitrión: </span>
                             {user.assignedWeddingIds && user.assignedWeddingIds.length > 0 ? (
                               <span className="text-stone-600 font-medium">
                                 {user.assignedWeddingIds.map(wId => {
@@ -531,7 +531,7 @@ export const UserManagementModal: React.FC = () => {
                     {/* Right: Passkey & Action Buttons */}
                     <div className="flex items-center space-x-3 self-end sm:self-center border-t sm:border-t-0 pt-2 sm:pt-0 w-full sm:w-auto justify-between sm:justify-end">
                       {/* Password pill */}
-                      <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#E8DCCF] text-xs">
+                      <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-transparent text-xs">
                         <KeyRound className="w-3.5 h-3.5 text-[#8C8276]" />
                         <span className="font-mono font-medium text-[#2D2A26]">
                           {isPasswordVisible ? user.clave : '••••••••'}
@@ -552,7 +552,7 @@ export const UserManagementModal: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleEditClick(user)}
-                            className="p-2 text-stone-600 hover:text-[#8B3A4A] hover:bg-stone-100 rounded-xl transition-colors cursor-pointer"
+                            className="p-2 text-stone-600 hover:text-[#2D3748] hover:bg-stone-100 rounded-xl transition-colors cursor-pointer"
                             title="Editar permisos / usuario"
                           >
                             <Edit3 className="w-4 h-4" />
@@ -581,7 +581,7 @@ export const UserManagementModal: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-white border-t border-[#E8DCCF] flex items-center justify-end text-xs text-[#7A7268] shrink-0">
+        <div className="p-4 bg-[#EBEBEB] border-t border-transparent flex items-center justify-end text-xs text-[#7A7268] shrink-0">
           <button
             type="button"
             onClick={() => setShowUserManagementModal(false)}

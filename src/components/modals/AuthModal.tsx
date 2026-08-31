@@ -49,21 +49,21 @@ export const AuthModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
-      <div className={`max-w-sm w-full transition-all relative overflow-hidden ${isNeumorphic ? 'bg-[#EBEBEB] rounded-[2.5rem] shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] p-8' : 'bg-white rounded-3xl shadow-2xl'}`}>
+      <div className={`max-w-sm w-full transition-all relative overflow-hidden ${isNeumorphic ? 'bg-[#EBEBEB] rounded-[2.5rem] shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] p-8' : 'bg-[#EBEBEB] rounded-3xl shadow-2xl'}`}>
         
         {/* Classic Theme Top Header */}
         {!isNeumorphic && (
           <div className="bg-[#5D4037] pt-8 pb-6 px-8 text-center relative">
             <button
               onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer bg-white/10 hover:bg-white/20 text-white/80 hover:text-white"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer bg-[#EBEBEB]/10 hover:bg-[#EBEBEB]/20 text-[#2D3748]/80 hover:text-[#2D3748]"
             >
               <X className="w-4 h-4" />
             </button>
-            <div className="w-16 h-16 rounded-full bg-white/10 mx-auto flex items-center justify-center mb-3 text-white">
+            <div className="w-16 h-16 rounded-full bg-[#EBEBEB]/10 mx-auto flex items-center justify-center mb-3 text-[#2D3748]">
               <User className="w-8 h-8" />
             </div>
-            <h3 className="font-serif-display text-2xl font-bold text-white">
+            <h3 className="font-serif-display text-2xl font-bold text-[#2D3748]">
               Acceso
             </h3>
           </div>
@@ -128,7 +128,7 @@ export const AuthModal: React.FC = () => {
                   placeholder=""
                   className={isNeumorphic
                     ? "w-full pl-11 pr-4 py-4 text-sm rounded-2xl bg-[#EBEBEB] text-gray-800 shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] focus:outline-none focus:shadow-[inset_6px_6px_12px_#c8c8c8,inset_-6px_-6px_12px_#ffffff] transition-all"
-                    : "w-full pl-11 pr-4 py-3 text-sm rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-[#2D2A26] focus:outline-none focus:border-[#8B3A4A] focus:ring-1 focus:ring-[#8B3A4A] transition-all"
+                    : "w-full pl-11 pr-4 py-3 text-sm rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-[#2D2A26] focus:outline-none focus:border-transparent focus:ring-1 focus:ring-[#d1d1d1] transition-all"
                   }
                 />
               </div>
@@ -149,7 +149,7 @@ export const AuthModal: React.FC = () => {
                   placeholder=""
                   className={isNeumorphic
                     ? "w-full pl-11 pr-4 py-4 text-sm rounded-2xl bg-[#EBEBEB] text-gray-800 shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] focus:outline-none focus:shadow-[inset_6px_6px_12px_#c8c8c8,inset_-6px_-6px_12px_#ffffff] transition-all"
-                    : "w-full pl-11 pr-4 py-3 text-sm rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-[#2D2A26] focus:outline-none focus:border-[#8B3A4A] focus:ring-1 focus:ring-[#8B3A4A] transition-all"
+                    : "w-full pl-11 pr-4 py-3 text-sm rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-[#2D2A26] focus:outline-none focus:border-transparent focus:ring-1 focus:ring-[#d1d1d1] transition-all"
                   }
                 />
               </div>
@@ -159,7 +159,7 @@ export const AuthModal: React.FC = () => {
               type="submit"
               className={isNeumorphic
                 ? "w-full mt-8 py-4 px-4 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] text-gray-800 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer"
-                : "w-full mt-6 py-3.5 px-4 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+                : "w-full mt-6 py-3.5 px-4 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]"
               }
             >
               <Lock className="w-4 h-4" />

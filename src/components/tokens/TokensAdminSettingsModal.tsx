@@ -119,7 +119,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-[#FDFBF7] rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-[#E8DCCF] space-y-6 relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#EBEBEB] rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-transparent space-y-6 relative max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
@@ -132,7 +132,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
 
         {/* Modal Header */}
         <div className="space-y-1 pr-8">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#FAF3ED] text-[#8B3A4A] text-xs font-bold border border-[#E8DCCF]">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#FAF3ED] text-[#2D3748] text-xs font-bold border border-transparent">
             <QrCode className="w-3.5 h-3.5" />
             <span>Configuración Administrador (Nivel 1)</span>
           </div>
@@ -147,10 +147,10 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Section 1: Subir Archivo 1:1 de un QR a la Nube */}
-          <div className="bg-white p-5 rounded-2xl border border-[#E8DCCF] space-y-4 shadow-2xs">
+          <div className="bg-[#EBEBEB] p-5 rounded-2xl border border-transparent space-y-4 shadow-2xs">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <label className="text-xs font-bold uppercase tracking-wider text-[#2D2A26] flex items-center space-x-2">
-                <QrCode className="w-4 h-4 text-[#8B3A4A]" />
+                <QrCode className="w-4 h-4 text-[#2D3748]" />
                 <span>Código QR Oficial de Pago (Almacenado en la Nube)</span>
               </label>
               
@@ -167,8 +167,8 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
               <div className="w-32 h-32 sm:w-36 sm:h-36 aspect-square rounded-2xl border-2 border-dashed border-[#D9CEBF] bg-[#FAF8F5] flex items-center justify-center overflow-hidden shrink-0 relative group shadow-inner">
                 {isUploading ? (
                   <div className="text-center p-3 space-y-2">
-                    <Loader2 className="w-8 h-8 text-[#8B3A4A] animate-spin mx-auto" />
-                    <span className="text-[10px] text-[#8B3A4A] font-bold block">{uploadStatus || 'Subiendo...'}</span>
+                    <Loader2 className="w-8 h-8 text-[#2D3748] animate-spin mx-auto" />
+                    <span className="text-[10px] text-[#2D3748] font-bold block">{uploadStatus || 'Subiendo...'}</span>
                   </div>
                 ) : qrPreview ? (
                   <>
@@ -181,7 +181,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                       <button
                         type="button"
                         onClick={handleRemoveQr}
-                        className="p-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors shadow-xs cursor-pointer"
+                        className="p-2 bg-rose-600 text-[#2D3748] rounded-lg hover:bg-rose-700 transition-colors shadow-xs cursor-pointer"
                         title="Eliminar QR"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -192,7 +192,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                   <div className="text-center p-3 space-y-1">
                     <QrCode className="w-8 h-8 text-[#8C8276] mx-auto opacity-50" />
                     <span className="text-[10px] text-[#8C8276] block font-medium">Sin imagen QR</span>
-                    <span className="text-[9px] text-[#8B3A4A] font-bold">1:1 Cuadrado</span>
+                    <span className="text-[9px] text-[#2D3748] font-bold">1:1 Cuadrado</span>
                   </div>
                 )}
               </div>
@@ -214,7 +214,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                     type="button"
                     disabled={isUploading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#1E2B3E] hover:bg-[#15202E] text-white text-xs font-semibold transition-all cursor-pointer shadow-xs disabled:opacity-60"
+                    className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#1E2B3E] hover:bg-[#15202E] text-[#2D3748] text-xs font-semibold transition-all cursor-pointer shadow-xs disabled:opacity-60"
                   >
                     {isUploading ? (
                       <>
@@ -256,7 +256,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
           </div>
 
           {/* Section 2: Datos de Yape */}
-          <div className="bg-white p-5 rounded-2xl border border-[#E8DCCF] space-y-4 shadow-2xs">
+          <div className="bg-[#EBEBEB] p-5 rounded-2xl border border-transparent space-y-4 shadow-2xs">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#2D2A26] flex items-center space-x-2 border-b border-[#F0EAE1] pb-2">
               <Smartphone className="w-4 h-4 text-[#7A1FA2]" />
               <span>Datos de Yape</span>
@@ -273,7 +273,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                   value={formData.yapePhone}
                   onChange={(e) => setFormData(prev => ({ ...prev, yapePhone: e.target.value }))}
                   placeholder="Ej. 952 341 165"
-                  className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
+                  className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent"
                 />
               </div>
 
@@ -287,16 +287,16 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                   value={formData.yapeHolder}
                   onChange={(e) => setFormData(prev => ({ ...prev, yapeHolder: e.target.value }))}
                   placeholder="Ej. Herly Lizarazo (Casanovia)"
-                  className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
+                  className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent"
                 />
               </div>
             </div>
           </div>
 
           {/* Section 3: Datos de Transferencia Bancaria */}
-          <div className="bg-white p-5 rounded-2xl border border-[#E8DCCF] space-y-4 shadow-2xs">
+          <div className="bg-[#EBEBEB] p-5 rounded-2xl border border-transparent space-y-4 shadow-2xs">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#2D2A26] flex items-center space-x-2 border-b border-[#F0EAE1] pb-2">
-              <Building2 className="w-4 h-4 text-[#8B3A4A]" />
+              <Building2 className="w-4 h-4 text-[#2D3748]" />
               <span>Datos de Transferencia Bancaria</span>
             </h3>
 
@@ -311,7 +311,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                   value={formData.bankName}
                   onChange={(e) => setFormData(prev => ({ ...prev, bankName: e.target.value }))}
                   placeholder="Ej. BCP - Banco de Crédito del Perú"
-                  className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
+                  className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent"
                 />
               </div>
 
@@ -325,7 +325,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                   value={formData.accountHolder}
                   onChange={(e) => setFormData(prev => ({ ...prev, accountHolder: e.target.value }))}
                   placeholder="Ej. Casanovia Bodas & Eventos S.A.C."
-                  className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
+                  className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent"
                 />
               </div>
 
@@ -339,7 +339,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                   value={formData.accountNumber}
                   onChange={(e) => setFormData(prev => ({ ...prev, accountNumber: e.target.value }))}
                   placeholder="Ej. 191-98765432-0-45"
-                  className="w-full px-3.5 py-2 text-xs font-mono font-bold rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
+                  className="w-full px-3.5 py-2 text-xs font-mono font-bold rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent"
                 />
               </div>
 
@@ -353,7 +353,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                   value={formData.cci}
                   onChange={(e) => setFormData(prev => ({ ...prev, cci: e.target.value }))}
                   placeholder="Ej. 002-191-009876543204-58"
-                  className="w-full px-3.5 py-2 text-xs font-mono font-bold rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A]"
+                  className="w-full px-3.5 py-2 text-xs font-mono font-bold rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent"
                 />
               </div>
             </div>
@@ -367,7 +367,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
                 value={formData.extraNotes || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, extraNotes: e.target.value }))}
                 placeholder="Ej. Por favor incluye tu código de pedido o apellido en la descripción..."
-                className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A] resize-none"
+                className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent resize-none"
               />
             </div>
           </div>
@@ -378,7 +378,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
               type="button"
               onClick={onClose}
               disabled={isSaving || isUploading}
-              className="px-5 py-2.5 rounded-xl border border-[#D9CEBF] bg-white hover:bg-[#FAF3ED] text-[#2D2A26] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] hover:bg-[#FAF3ED] text-[#2D2A26] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancelar
             </button>
@@ -386,7 +386,7 @@ export const TokensAdminSettingsModal: React.FC<TokensAdminSettingsModalProps> =
             <button
               type="submit"
               disabled={isSaving || isUploading}
-              className="px-6 py-2.5 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-xs font-bold flex items-center space-x-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold flex items-center space-x-2 transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] cursor-pointer disabled:opacity-50"
             >
               {saveSuccess ? (
                 <>

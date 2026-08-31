@@ -74,7 +74,7 @@ export const ProtocolPassLookup: React.FC = () => {
   const demoGuests = guests.slice(0, 5);
 
   return (
-    <section id="protocol-lookup-section" className="py-12 sm:py-16 bg-[#FDFBF7] scroll-mt-20">
+    <section id="protocol-lookup-section" className="py-12 sm:py-16 bg-[#EBEBEB] scroll-mt-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         
         {/* Section Title */}
@@ -92,7 +92,7 @@ export const ProtocolPassLookup: React.FC = () => {
         </div>
 
         {/* Search Input Box */}
-        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E8DCCF] mb-6">
+        <div className="bg-[#EBEBEB] rounded-2xl p-4 sm:p-6 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] border border-transparent mb-6">
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9E9488]" />
@@ -105,13 +105,13 @@ export const ProtocolPassLookup: React.FC = () => {
                   setHasSearched(false);
                 }}
                 placeholder="Ej. Carlos Mendoza, Mariana Valenzuela, o código de pase..."
-                className="w-full pl-11 pr-4 py-3 text-sm rounded-xl border border-[#D9CEBF] focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/30 focus:border-[#8B3A4A] bg-[#FAF8F5] transition-all"
+                className="w-full pl-11 pr-4 py-3 text-sm rounded-xl border border-[#D9CEBF] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/30 focus:border-transparent bg-[#FAF8F5] transition-all"
               />
             </div>
             <button
               type="submit"
               id="btn-search-guest"
-              className="px-6 py-3 bg-[#8B3A4A] text-white font-semibold text-sm rounded-xl hover:bg-[#6E2937] transition-colors shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
+              className="px-6 py-3 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] font-semibold text-sm rounded-xl hover:bg-[#EBEBEB] transition-colors shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
             >
               <span>Consultar Mi Pase</span>
               <ArrowRight className="w-4 h-4" />
@@ -131,7 +131,7 @@ export const ProtocolPassLookup: React.FC = () => {
                   onClick={() => handleSelectQuickGuest(g)}
                   className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
                     selectedGuestForGuide?.id === g.id
-                      ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-xs'
+                      ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent shadow-xs'
                       : 'bg-[#F7F3ED] text-[#524B42] border-[#E5DACD] hover:bg-[#EFE7DC]'
                   }`}
                 >
@@ -147,7 +147,7 @@ export const ProtocolPassLookup: React.FC = () => {
 
         {/* Search Results Display */}
         {hasSearched && !selectedGuestForGuide && (
-          <div className="p-6 rounded-2xl bg-white border border-[#E8DCCF] text-center shadow-xs">
+          <div className="p-6 rounded-2xl bg-[#EBEBEB] border border-transparent text-center shadow-xs">
             <AlertCircle className="w-8 h-8 text-[#C5A880] mx-auto mb-2" />
             <h3 className="font-serif-display text-lg font-bold text-[#2D2A26]">No encontramos una invitación con ese nombre</h3>
             <p className="text-xs text-[#7A7268] max-w-md mx-auto mt-1 mb-4">
@@ -155,7 +155,7 @@ export const ProtocolPassLookup: React.FC = () => {
             </p>
             <button
               onClick={scrollToRsvp}
-              className="px-5 py-2 text-xs font-semibold text-[#8B3A4A] bg-[#8B3A4A]/10 rounded-lg hover:bg-[#8B3A4A]/20 transition-colors"
+              className="px-5 py-2 text-xs font-semibold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 rounded-lg hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/20 transition-colors"
             >
               Ir a Confirmar Asistencia Directamente
             </button>
@@ -176,7 +176,7 @@ export const ProtocolPassLookup: React.FC = () => {
 
             {/* A. PROTOCOL PARTICIPANT SPECIAL CARD ("Tu Guía Protocolar") */}
             {selectedGuestForGuide.isProtocolParticipant ? (
-              <div className="rounded-2xl sm:rounded-3xl bg-linear-to-br from-[#FFFDF9] via-[#FAF6EE] to-[#F5EFE4] border-2 border-[#D4AF37]/50 p-6 sm:p-8 shadow-md relative overflow-hidden">
+              <div className="rounded-2xl sm:rounded-3xl bg-linear-to-br from-[#FFFDF9] via-[#FAF6EE] to-[#F5EFE4] border-2 border-[#D4AF37]/50 p-6 sm:p-8 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] relative overflow-hidden">
                 {/* Gold Ribbon Badge */}
                 <div className="absolute top-0 right-0">
                   <div className="bg-linear-to-r from-[#D4AF37] to-[#C5A880] text-[#2D2A26] font-bold text-[10px] sm:text-xs px-4 py-1 rounded-bl-xl shadow-xs flex items-center space-x-1 uppercase tracking-wider">
@@ -196,7 +196,7 @@ export const ProtocolPassLookup: React.FC = () => {
                       {selectedGuestForGuide.fullName}
                     </h3>
                     <p className="text-xs text-[#7A7268] mt-0.5">
-                      Código de Pase: <span className="font-mono font-bold text-[#8B3A4A]">{selectedGuestForGuide.code}</span> • Mesa: <span className="font-medium text-[#2D2A26]">{selectedGuestForGuide.assignedTable || 'Por asignar'}</span> • Pases: <span className="font-bold text-[#2D2A26]">{selectedGuestForGuide.totalPasses}</span>
+                      Código de Pase: <span className="font-mono font-bold text-[#2D3748]">{selectedGuestForGuide.code}</span> • Mesa: <span className="font-medium text-[#2D2A26]">{selectedGuestForGuide.assignedTable || 'Por asignar'}</span> • Pases: <span className="font-bold text-[#2D2A26]">{selectedGuestForGuide.totalPasses}</span>
                     </p>
                   </div>
 
@@ -216,21 +216,21 @@ export const ProtocolPassLookup: React.FC = () => {
 
                 {/* PROTOCOL GUIDELINES GRID */}
                 <div className="mt-6">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#8B3A4A] mb-4 flex items-center space-x-1.5">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D3748] mb-4 flex items-center space-x-1.5">
                     <ShieldCheck className="w-4 h-4 text-[#D4AF37]" />
                     <span>Tu Guía Protocolar Exclusiva para el Gran Día</span>
                   </h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Item 1: Arrival & Schedule */}
-                    <div className="bg-white rounded-xl p-4 border border-[#EBDDC9] shadow-xs">
+                    <div className="bg-[#EBEBEB] rounded-xl p-4 border border-[#EBDDC9] shadow-xs">
                       <div className="flex items-center space-x-2 text-xs font-bold text-[#2D2A26] mb-1.5">
-                        <div className="w-7 h-7 rounded-lg bg-[#8B3A4A]/10 text-[#8B3A4A] flex items-center justify-center">
+                        <div className="w-7 h-7 rounded-lg bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] flex items-center justify-center">
                           <Clock className="w-4 h-4" />
                         </div>
                         <span>Horario Especial de Llegada</span>
                       </div>
-                      <p className="text-xs text-[#8B3A4A] font-bold">
+                      <p className="text-xs text-[#2D3748] font-bold">
                         {selectedGuestForGuide.specialArrivalTime || '15:30 hrs'}
                       </p>
                       <p className="text-[11px] text-[#7A7268] mt-1">
@@ -239,7 +239,7 @@ export const ProtocolPassLookup: React.FC = () => {
                     </div>
 
                     {/* Item 2: Rehearsal & Photos */}
-                    <div className="bg-white rounded-xl p-4 border border-[#EBDDC9] shadow-xs">
+                    <div className="bg-[#EBEBEB] rounded-xl p-4 border border-[#EBDDC9] shadow-xs">
                       <div className="flex items-center space-x-2 text-xs font-bold text-[#2D2A26] mb-1.5">
                         <div className="w-7 h-7 rounded-lg bg-[#8A9A86]/20 text-[#3C5038] flex items-center justify-center">
                           <Camera className="w-4 h-4" />
@@ -255,7 +255,7 @@ export const ProtocolPassLookup: React.FC = () => {
                     </div>
 
                     {/* Item 3: Dress Code & Accessories */}
-                    <div className="bg-white rounded-xl p-4 border border-[#EBDDC9] shadow-xs">
+                    <div className="bg-[#EBEBEB] rounded-xl p-4 border border-[#EBDDC9] shadow-xs">
                       <div className="flex items-center space-x-2 text-xs font-bold text-[#2D2A26] mb-1.5">
                         <div className="w-7 h-7 rounded-lg bg-[#D4AF37]/20 text-[#8B6B23] flex items-center justify-center">
                           <Shirt className="w-4 h-4" />
@@ -266,7 +266,7 @@ export const ProtocolPassLookup: React.FC = () => {
                         {selectedGuestForGuide.dressCodeNote || 'Etiqueta formal de acuerdo a la paleta protocolar.'}
                       </p>
                       {selectedGuestForGuide.accessoryAssigned && (
-                        <div className="mt-2 pt-2 border-t border-[#F2ECE3] flex items-start space-x-1.5 text-[11px] text-[#8B3A4A] font-medium">
+                        <div className="mt-2 pt-2 border-t border-[#F2ECE3] flex items-start space-x-1.5 text-[11px] text-[#2D3748] font-medium">
                           <Flower2 className="w-3.5 h-3.5 text-[#D4AF37] shrink-0 mt-0.5" />
                           <span>{selectedGuestForGuide.accessoryAssigned}</span>
                         </div>
@@ -274,7 +274,7 @@ export const ProtocolPassLookup: React.FC = () => {
                     </div>
 
                     {/* Item 4: Assigned Milestone */}
-                    <div className="bg-white rounded-xl p-4 border border-[#EBDDC9] shadow-xs">
+                    <div className="bg-[#EBEBEB] rounded-xl p-4 border border-[#EBDDC9] shadow-xs">
                       <div className="flex items-center space-x-2 text-xs font-bold text-[#2D2A26] mb-1.5">
                         <div className="w-7 h-7 rounded-lg bg-[#2C3E50]/10 text-[#2C3E50] flex items-center justify-center">
                           <Milestone className="w-4 h-4" />
@@ -291,15 +291,15 @@ export const ProtocolPassLookup: React.FC = () => {
                   </div>
 
                   {/* Interactive Rehearsal / Photo Attendance Confirmation */}
-                  <div className="mt-5 p-4 rounded-xl bg-white/80 border border-[#D4AF37]/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="mt-5 p-4 rounded-xl bg-[#EBEBEB]/80 border border-[#D4AF37]/40 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <div className="flex items-center space-x-3 text-left">
-                      <CalendarCheck className="w-5 h-5 text-[#8B3A4A] shrink-0" />
+                      <CalendarCheck className="w-5 h-5 text-[#2D3748] shrink-0" />
                       <div>
                         <p className="text-xs font-bold text-[#2D2A26]">
                           ¿Confirmas tu asistencia al ensayo y sesión de fotos previas?
                         </p>
                         <p className="text-[11px] text-[#7A7268]">
-                          Estado actual: <span className="font-semibold text-[#8B3A4A]">{selectedGuestForGuide.confirmedRehearsalPhotoAttendance ? 'Sí asistiré al ensayo/fotos' : 'Pendiente de confirmar ensayo'}</span>
+                          Estado actual: <span className="font-semibold text-[#2D3748]">{selectedGuestForGuide.confirmedRehearsalPhotoAttendance ? 'Sí asistiré al ensayo/fotos' : 'Pendiente de confirmar ensayo'}</span>
                         </p>
                       </div>
                     </div>
@@ -310,7 +310,7 @@ export const ProtocolPassLookup: React.FC = () => {
                         onClick={() => handleConfirmProtocolAttendance(selectedGuestForGuide.id, true)}
                         className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           selectedGuestForGuide.confirmedRehearsalPhotoAttendance
-                            ? 'bg-[#8A9A86] text-white shadow-xs'
+                            ? 'bg-[#8A9A86] text-[#2D3748] shadow-xs'
                             : 'bg-[#EFEAE2] text-[#524B42] hover:bg-[#8A9A86]/20'
                         }`}
                       >
@@ -321,7 +321,7 @@ export const ProtocolPassLookup: React.FC = () => {
                         onClick={() => handleConfirmProtocolAttendance(selectedGuestForGuide.id, false)}
                         className={`flex-1 sm:flex-none px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           selectedGuestForGuide.confirmedRehearsalPhotoAttendance === false
-                            ? 'bg-rose-600 text-white'
+                            ? 'bg-rose-600 text-[#2D3748]'
                             : 'bg-[#EFEAE2] text-[#7A7268] hover:bg-rose-50'
                         }`}
                       >
@@ -338,7 +338,7 @@ export const ProtocolPassLookup: React.FC = () => {
                   </p>
                   <button
                     onClick={scrollToRsvp}
-                    className="px-5 py-2.5 bg-[#8B3A4A] text-white text-xs font-semibold rounded-xl hover:bg-[#6E2937] transition-colors shadow-xs flex items-center space-x-2 cursor-pointer"
+                    className="px-5 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold rounded-xl hover:bg-[#EBEBEB] transition-colors shadow-xs flex items-center space-x-2 cursor-pointer"
                   >
                     <span>Completar Formulario de RSVP</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -347,7 +347,7 @@ export const ProtocolPassLookup: React.FC = () => {
               </div>
             ) : (
               /* B. GENERAL GUEST CARD */
-              <div className="rounded-2xl sm:rounded-3xl bg-white border border-[#E8DCCF] p-6 sm:p-8 shadow-sm">
+              <div className="rounded-2xl sm:rounded-3xl bg-[#EBEBEB] border border-transparent p-6 sm:p-8 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#F2ECE3]">
                   <div>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#8A9A86]/15 text-[#4A5D46] mb-2">
@@ -357,7 +357,7 @@ export const ProtocolPassLookup: React.FC = () => {
                       {selectedGuestForGuide.fullName}
                     </h3>
                     <p className="text-xs text-[#7A7268] mt-1">
-                      Código de Pase: <span className="font-mono font-bold text-[#8B3A4A]">{selectedGuestForGuide.code}</span>
+                      Código de Pase: <span className="font-mono font-bold text-[#2D3748]">{selectedGuestForGuide.code}</span>
                     </p>
                   </div>
 
@@ -390,7 +390,7 @@ export const ProtocolPassLookup: React.FC = () => {
                 <div className="pt-2 flex items-center justify-end">
                   <button
                     onClick={scrollToRsvp}
-                    className="px-6 py-2.5 bg-[#8B3A4A] text-white text-xs font-semibold rounded-xl hover:bg-[#6E2937] transition-colors flex items-center space-x-2"
+                    className="px-6 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold rounded-xl hover:bg-[#EBEBEB] transition-colors flex items-center space-x-2"
                   >
                     <span>Actualizar Mi Asistencia (RSVP)</span>
                     <ArrowRight className="w-3.5 h-3.5" />

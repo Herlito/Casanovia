@@ -58,7 +58,7 @@ export const MobileNavigation: React.FC = () => {
       style: { 
          variant: 'cards',
          titleColor: '#2D2A26',
-         numberColor: '#8B3A4A',
+         numberColor: '#2D3748',
          labelColor: '#8C8276',
          backgroundColor: '#ffffff',
          borderColor: '#E8DCCF',
@@ -116,7 +116,7 @@ export const MobileNavigation: React.FC = () => {
         if (isSvg) {
           svgText = result;
           if (isSvgIcon) {
-             const color = '#8B3A4A';
+             const color = '#2D3748';
              const styleTag = `<style>* { fill: ${color} !important; stroke: ${color} !important; }</style>`;
              if (svgText.includes('<svg')) {
                svgText = svgText.replace(/(<svg[^>]*>)/i, `$1${styleTag}`);
@@ -132,7 +132,7 @@ export const MobileNavigation: React.FC = () => {
             content: { src, originalSrc: src, isSvg, svgText, naturalWidth: img.width, naturalHeight: img.height },
             style: { 
               maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, 
-              fill: isSvgIcon ? '#8B3A4A' : (isSvg ? '#000000' : undefined), 
+              fill: isSvgIcon ? '#2D3748' : (isSvg ? '#000000' : undefined), 
               filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } 
             },
             transform: { x: 50, y: 50, width: Math.min(img.width, 200), height: Math.min(img.height, 200 * (img.height / img.width)), rotation: 0, scaleX: 1, scaleY: 1 },
@@ -157,7 +157,7 @@ export const MobileNavigation: React.FC = () => {
   return (
     <>
       {/* Floating Bottom Navigation Bar */}
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center bg-white/80 backdrop-blur-2xl border border-white/40 shadow-xl rounded-full px-5 py-2.5 space-x-8 z-[60]">
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center bg-[#EBEBEB]/80 backdrop-blur-2xl border border-transparent shadow-xl rounded-full px-5 py-2.5 space-x-8 z-[60]">
         <button 
           onClick={() => setActivePanel(activePanel === 'layers' ? 'none' : 'layers')} 
           className={`flex flex-col items-center transition-colors ${activePanel === 'layers' ? 'text-blue-500' : 'text-gray-500'}`}
@@ -168,7 +168,7 @@ export const MobileNavigation: React.FC = () => {
         
         <button 
           onClick={() => setActivePanel('add')} 
-          className="bg-gray-800 text-white p-3.5 rounded-full shadow-lg -translate-y-4 hover:scale-105 transition-transform"
+          className="bg-gray-800 text-[#2D3748] p-3.5 rounded-full shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] -translate-y-4 hover:scale-105 transition-transform"
         >
           <Plus className={`w-6 h-6 transition-transform ${activePanel === 'add' ? 'rotate-45' : ''}`} />
         </button>
@@ -201,34 +201,34 @@ export const MobileNavigation: React.FC = () => {
           {/* Add Panel */}
           {activePanel === 'add' && (
             <div className="p-4 grid grid-cols-3 gap-4">
-              <button onClick={handleAddText} className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm active:scale-95 transition-transform">
+              <button onClick={handleAddText} className="flex flex-col items-center justify-center p-4 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:scale-95 transition-transform">
                 <Type className="w-8 h-8 text-gray-800 mb-2" />
                 <span className="text-xs font-semibold text-gray-700">Texto</span>
               </button>
               
-              <div className="relative flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm active:scale-95 transition-transform">
+              <div className="relative flex flex-col items-center justify-center p-4 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:scale-95 transition-transform">
                  <input type="file" accept="image/png, image/jpeg, image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleImageUpload(e)} />
                  <ImageIcon className="w-8 h-8 text-gray-800 mb-2" />
                  <span className="text-xs font-semibold text-gray-700">Imagen</span>
               </div>
 
-              <div className="relative flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm active:scale-95 transition-transform">
+              <div className="relative flex flex-col items-center justify-center p-4 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:scale-95 transition-transform">
                  <input type="file" accept="image/svg+xml,.svg" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleImageUpload(e, true)} />
                  <Shapes className="w-8 h-8 text-gray-800 mb-2" />
                  <span className="text-xs font-semibold text-gray-700">Objeto</span>
               </div>
 
-              <button onClick={handleAddRectangle} className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm active:scale-95 transition-transform">
+              <button onClick={handleAddRectangle} className="flex flex-col items-center justify-center p-4 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:scale-95 transition-transform">
                 <Square className="w-8 h-8 text-gray-800 mb-2" />
                 <span className="text-xs font-semibold text-gray-700">Forma</span>
               </button>
 
-              <button onClick={handleAddCountdown} className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm active:scale-95 transition-transform">
+              <button onClick={handleAddCountdown} className="flex flex-col items-center justify-center p-4 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:scale-95 transition-transform">
                 <Clock className="w-8 h-8 text-gray-800 mb-2" />
                 <span className="text-xs font-semibold text-gray-700">Reloj</span>
               </button>
 
-              <button onClick={handleAddButton} className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm active:scale-95 transition-transform">
+              <button onClick={handleAddButton} className="flex flex-col items-center justify-center p-4 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:scale-95 transition-transform">
                 <Link2 className="w-8 h-8 text-gray-800 mb-2" />
                 <span className="text-xs font-semibold text-gray-700">Botón</span>
               </button>

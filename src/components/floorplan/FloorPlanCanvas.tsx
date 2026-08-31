@@ -309,7 +309,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.shadowColor = 'transparent';
 
           // Table Border
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : isHovered ? '#D4A373' : '#D9CEBF';
+          ctx.strokeStyle = isSelected ? '#2D3748' : isHovered ? '#D4A373' : '#D9CEBF';
           ctx.lineWidth = isSelected ? 3 : 1.5;
           ctx.beginPath();
           ctx.arc(0, 0, r, 0, 2 * Math.PI);
@@ -345,7 +345,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
           ctx.shadowColor = 'transparent';
 
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : isHovered ? '#D4A373' : '#D9CEBF';
+          ctx.strokeStyle = isSelected ? '#2D3748' : isHovered ? '#D4A373' : '#D9CEBF';
           ctx.lineWidth = isSelected ? 3 : 1.5;
           ctx.beginPath();
           ctx.roundRect(-w / 2, -h / 2, w, h, 8);
@@ -396,7 +396,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.roundRect(-w / 2, -h / 2, w, h, 6);
           ctx.fill();
 
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : '#D4A373';
+          ctx.strokeStyle = isSelected ? '#2D3748' : '#D4A373';
           ctx.lineWidth = isSelected ? 3 : 1.5;
           ctx.stroke();
 
@@ -436,7 +436,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.roundRect(-w / 2, -h / 2, w, h, 6);
           ctx.fill();
 
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : '#2D3748';
+          ctx.strokeStyle = isSelected ? '#2D3748' : '#2D3748';
           ctx.lineWidth = isSelected ? 3 : 1.5;
           ctx.stroke();
 
@@ -456,7 +456,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.roundRect(-w / 2, -h / 2, w, h, 6);
           ctx.fill();
 
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : '#CBD5E1';
+          ctx.strokeStyle = isSelected ? '#2D3748' : '#CBD5E1';
           ctx.lineWidth = isSelected ? 3 : 1.5;
           ctx.stroke();
 
@@ -476,7 +476,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.roundRect(-w / 2, -h / 2, w, h, 6);
           ctx.fill();
 
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : '#F59E0B';
+          ctx.strokeStyle = isSelected ? '#2D3748' : '#F59E0B';
           ctx.lineWidth = isSelected ? 3 : 1.5;
           ctx.stroke();
 
@@ -495,7 +495,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.arc(0, 0, r, 0, 2 * Math.PI);
           ctx.fill();
 
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : '#FDA4AF';
+          ctx.strokeStyle = isSelected ? '#2D3748' : '#FDA4AF';
           ctx.lineWidth = isSelected ? 3 : 1.5;
           ctx.stroke();
 
@@ -515,7 +515,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.roundRect(-w / 2, -h / 2, w, h, 8);
           ctx.fill();
 
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : '#C4B5FD';
+          ctx.strokeStyle = isSelected ? '#2D3748' : '#C4B5FD';
           ctx.lineWidth = isSelected ? 3 : 1.5;
           ctx.stroke();
 
@@ -535,7 +535,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.roundRect(-w / 2, -h / 2, w, h, 6);
           ctx.fill();
 
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : '#7DD3FC';
+          ctx.strokeStyle = isSelected ? '#2D3748' : '#7DD3FC';
           ctx.lineWidth = isSelected ? 3 : 1.5;
           ctx.stroke();
 
@@ -575,7 +575,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             const p = new Path2D(svgData.path);
             ctx.fillStyle = elem.color || '#FFFFFF';
             ctx.fill(p, 'evenodd');
-            ctx.strokeStyle = isSelected ? '#8B3A4A' : '#D9CEBF';
+            ctx.strokeStyle = isSelected ? '#2D3748' : '#D9CEBF';
             // Need to divide line width by scale so it doesn't get huge or tiny
             ctx.lineWidth = 1.5 / Math.min(scaleX, scaleY); 
             ctx.stroke(p);
@@ -603,7 +603,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.shadowBlur = 6;
           
           ctx.fillStyle = elem.color || '#F0E6D2';
-          ctx.strokeStyle = isSelected ? '#8B3A4A' : '#D4A373';
+          ctx.strokeStyle = isSelected ? '#2D3748' : '#D4A373';
           ctx.lineWidth = 2;
           
           for (let i = 0; i < count; i++) {
@@ -711,7 +711,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
           // Chair Circle Fill
           if (isAssigned) {
-            ctx.fillStyle = isSeatHovered ? '#722F3D' : '#8B3A4A'; // Brand Burgundy for assigned
+            ctx.fillStyle = isSeatHovered ? '#722F3D' : '#2D3748'; // Brand Burgundy for assigned
           } else {
             ctx.fillStyle = isSeatHovered ? '#F3EFEA' : '#FFFFFF';
           }
@@ -756,7 +756,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         const boundH = elem.type === 'round_table' ? (elem.radius || 60) * 2 + 50 : elem.height + 45;
 
         // Bounding dash box
-        ctx.strokeStyle = '#8B3A4A';
+        ctx.strokeStyle = '#2D3748';
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
         ctx.strokeRect(-boundW / 2, -boundH / 2, boundW, boundH);
@@ -767,11 +767,11 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         ctx.beginPath();
         ctx.moveTo(0, -boundH / 2);
         ctx.lineTo(0, rotHandleY);
-        ctx.strokeStyle = '#8B3A4A';
+        ctx.strokeStyle = '#2D3748';
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        ctx.fillStyle = '#8B3A4A';
+        ctx.fillStyle = '#2D3748';
         ctx.beginPath();
         ctx.arc(0, rotHandleY, 6, 0, 2 * Math.PI);
         ctx.fill();
@@ -789,7 +789,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
         handles.forEach((h) => {
           ctx.fillStyle = '#FFFFFF';
-          ctx.strokeStyle = '#8B3A4A';
+          ctx.strokeStyle = '#2D3748';
           ctx.lineWidth = 1.5;
           ctx.fillRect(h.x - 4, h.y - 4, 8, 8);
           ctx.strokeRect(h.x - 4, h.y - 4, 8, 8);
@@ -1222,7 +1222,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             top: `${hoveredSeatScreenPos.y - 18}px`,
             transform: 'translate(-50%, -100%)',
           }}
-          className="absolute z-30 pointer-events-none bg-[#2D2A26] text-white p-2.5 rounded-xl shadow-xl border border-stone-700 text-xs min-w-[170px] max-w-[240px] animate-in fade-in zoom-in-95 duration-150"
+          className="absolute z-30 pointer-events-none bg-[#2D2A26] text-[#2D3748] p-2.5 rounded-xl shadow-xl border border-stone-700 text-xs min-w-[170px] max-w-[240px] animate-in fade-in zoom-in-95 duration-150"
         >
           <div className="flex items-center justify-between font-bold border-b border-stone-700/80 pb-1 mb-1">
             <span className="text-amber-400">Asiento #{hoveredSeat.seat.seatNumber}</span>
@@ -1233,7 +1233,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
           {hoveredSeat.seat.guestId ? (
             <div className="space-y-0.5">
-              <p className="font-semibold text-white truncate text-[11px]">{hoveredSeat.seat.guestName}</p>
+              <p className="font-semibold text-[#2D3748] truncate text-[11px]">{hoveredSeat.seat.guestName}</p>
             </div>
           ) : (
             <p className="text-[10px] text-stone-300">
@@ -1245,7 +1245,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
       {/* Scale Calibration Guide Banner */}
       {isCalibratingScale && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-[#8B3A4A] text-white px-4 py-2 rounded-full shadow-lg border border-amber-300 flex items-center space-x-2 text-xs font-semibold animate-pulse">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] px-4 py-2 rounded-full shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] border border-amber-300 flex items-center space-x-2 text-xs font-semibold animate-pulse">
           <span>📏 Haz clic en el punto inicial y luego en el punto final de una pared o medida conocida</span>
         </div>
       )}

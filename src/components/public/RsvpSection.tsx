@@ -117,7 +117,7 @@ export const RsvpSection: React.FC = () => {
               particleCount: 80,
               spread: 70,
               origin: { y: 0.6 },
-              colors: ['#8B3A4A', '#D4AF37', '#8A9A86', '#C5A880'],
+              colors: ['#2D3748', '#D4AF37', '#8A9A86', '#C5A880'],
             });
           } catch (e) {
             // ignore
@@ -135,25 +135,25 @@ export const RsvpSection: React.FC = () => {
   };
 
   return (
-    <section id="rsvp-section" className="py-12 sm:py-16 bg-[#FAF7F2] scroll-mt-16">
+    <section id="rsvp-section" className="py-12 sm:py-16 bg-[#EBEBEB] scroll-mt-16">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#8B3A4A]/10 text-[#8B3A4A] text-xs font-semibold uppercase tracking-wider mb-2">
-            <Heart className="w-3.5 h-3.5 fill-[#8B3A4A]" />
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] text-xs font-semibold uppercase tracking-wider mb-2">
+            <Heart className="w-3.5 h-3.5 fill-[#2D3748]" />
             <span>Confirmación de Asistencia</span>
           </div>
           <h2 className="font-serif-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#2D2A26]">
             Confirmar Asistencia (RSVP)
           </h2>
           <p className="text-xs sm:text-sm text-[#7A7268] max-w-md mx-auto mt-2">
-            Por favor confirma tu presencia antes del <span className="font-semibold text-[#8B3A4A]">{formatRsvpCutoffDate(settings.weddingDate, 7)}</span> para coordinar banquetes y logística protocolar.
+            Por favor confirma tu presencia antes del <span className="font-semibold text-[#2D3748]">{formatRsvpCutoffDate(settings.weddingDate, 7)}</span> para coordinar banquetes y logística protocolar.
           </p>
         </div>
 
         {/* RSVP Card Form (Reflects Mockup: Confirmar Asistencia con campos y rosas) */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-[#E8DCCF] shadow-sm relative">
+        <div className="bg-[#EBEBEB] rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-transparent shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] relative">
           
           {/* Active Guest Notice if protocol */}
           {selectedGuestForGuide?.isProtocolParticipant && (
@@ -164,7 +164,7 @@ export const RsvpSection: React.FC = () => {
                   Invitado con Rol Protocolar: {selectedGuestForGuide.protocolRoleTitle}
                 </span>
               </div>
-              <span className="text-[11px] font-semibold text-[#8B3A4A]">
+              <span className="text-[11px] font-semibold text-[#2D3748]">
                 Pases: {selectedGuestForGuide.totalPasses}
               </span>
             </div>
@@ -175,7 +175,7 @@ export const RsvpSection: React.FC = () => {
             {/* 1. Nombre Completo */}
             <div>
               <label className="block text-xs font-bold text-[#524B42] mb-1.5 uppercase tracking-wider">
-                Nombre Completo del Invitado(s) <span className="text-[#8B3A4A]">*</span>
+                Nombre Completo del Invitado(s) <span className="text-[#2D3748]">*</span>
               </label>
               <div className="relative">
                 <input
@@ -185,7 +185,7 @@ export const RsvpSection: React.FC = () => {
                   value={fullName}
                   onChange={handleNameChange}
                   placeholder="Ej. Carlos Mendoza Garza"
-                  className="w-full px-4 py-3 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/30 focus:border-[#8B3A4A] transition-all"
+                  className="w-full px-4 py-3 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/30 focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -193,7 +193,7 @@ export const RsvpSection: React.FC = () => {
             {/* 2. ¿Asistirás? (Radio / Pills) */}
             <div>
               <label className="block text-xs font-bold text-[#524B42] mb-1.5 uppercase tracking-wider">
-                ¿Asistirás a nuestra boda? <span className="text-[#8B3A4A]">*</span>
+                ¿Asistirás a nuestra boda? <span className="text-[#2D3748]">*</span>
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -202,7 +202,7 @@ export const RsvpSection: React.FC = () => {
                   onClick={() => setRsvpStatus('confirmed')}
                   className={`py-3 px-4 rounded-xl border text-xs sm:text-sm font-semibold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
                     rsvpStatus === 'confirmed'
-                      ? 'bg-[#8B3A4A] text-white border-[#8B3A4A] shadow-xs ring-2 ring-[#8B3A4A]/20'
+                      ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent shadow-xs ring-2 ring-[#d1d1d1]/20'
                       : 'bg-[#FAF8F5] text-[#524B42] border-[#D9CEBF] hover:bg-[#EFEAE2]'
                   }`}
                 >
@@ -216,7 +216,7 @@ export const RsvpSection: React.FC = () => {
                   onClick={() => setRsvpStatus('declined')}
                   className={`py-3 px-4 rounded-xl border text-xs sm:text-sm font-semibold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
                     rsvpStatus === 'declined'
-                      ? 'bg-[#4A5568] text-white border-[#4A5568] shadow-xs'
+                      ? 'bg-[#4A5568] text-[#2D3748] border-[#4A5568] shadow-xs'
                       : 'bg-[#FAF8F5] text-[#7A7268] border-[#D9CEBF] hover:bg-[#EFEAE2]'
                   }`}
                 >
@@ -239,7 +239,7 @@ export const RsvpSection: React.FC = () => {
                       id="rsvp-select-passes"
                       value={confirmedPasses}
                       onChange={(e) => setConfirmedPasses(Number(e.target.value))}
-                      className="w-full px-4 py-3 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/30 appearance-none font-medium"
+                      className="w-full px-4 py-3 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/30 appearance-none font-medium"
                     >
                       {Array.from({ length: Math.max(maxPassesAvailable, 4) }, (_, i) => i + 1).map((num) => (
                         <option key={num} value={num}>
@@ -261,7 +261,7 @@ export const RsvpSection: React.FC = () => {
                       id="rsvp-select-dietary"
                       value={dietaryRestrictions}
                       onChange={(e) => setDietaryRestrictions(e.target.value)}
-                      className="w-full px-4 py-3 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/30 appearance-none"
+                      className="w-full px-4 py-3 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/30 appearance-none"
                     >
                       <option value="Ninguna">Ninguna / Todo</option>
                       <option value="Vegetariana">Menú Vegetariano</option>
@@ -298,7 +298,7 @@ export const RsvpSection: React.FC = () => {
                   id="rsvp-check-rehearsal"
                   checked={confirmedRehearsalPhotos}
                   onChange={(e) => setConfirmedRehearsalPhotos(e.target.checked)}
-                  className="w-4 h-4 rounded-sm text-[#8B3A4A] mt-0.5 cursor-pointer accent-[#8B3A4A]"
+                  className="w-4 h-4 rounded-sm text-[#2D3748] mt-0.5 cursor-pointer accent-[#2D3748]"
                 />
                 <label htmlFor="rsvp-check-rehearsal" className="text-xs text-[#2D2A26] cursor-pointer">
                   <span className="font-bold">Confirmo mi asistencia al ensayo general y fotos previas</span> del cortejo protocolar según el horario indicado en mi guía ({selectedGuestForGuide.specialArrivalTime || '15:15 hrs'}).
@@ -309,7 +309,7 @@ export const RsvpSection: React.FC = () => {
             {/* 6. Mensaje de felicitación para los novios */}
             <div>
               <label className="block text-xs font-bold text-[#524B42] mb-1.5 uppercase tracking-wider flex items-center space-x-1">
-                <MessageSquareHeart className="w-3.5 h-3.5 text-[#8B3A4A]" />
+                <MessageSquareHeart className="w-3.5 h-3.5 text-[#2D3748]" />
                 <span>Mensaje de Felicitación o Deseos para los Novios</span>
               </label>
               <textarea
@@ -318,7 +318,7 @@ export const RsvpSection: React.FC = () => {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Escribe aquí unas palabras para Sofía & Alejandro..."
-                className="w-full p-3.5 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/30 focus:border-[#8B3A4A] transition-all resize-none"
+                className="w-full p-3.5 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/30 focus:border-transparent transition-all resize-none"
               />
             </div>
 
@@ -342,7 +342,7 @@ export const RsvpSection: React.FC = () => {
             <button
               type="submit"
               id="btn-submit-rsvp"
-              className="w-full py-4 rounded-xl bg-linear-to-r from-[#8B3A4A] to-[#732837] text-white font-bold text-sm hover:from-[#7A2F3D] hover:to-[#621E2C] transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2 cursor-pointer transform active:scale-99"
+              className="w-full py-4 rounded-xl bg-linear-to-r from-[#2D3748] to-[#732837] text-[#2D3748] font-bold text-sm hover:from-[#7A2F3D] hover:to-[#621E2C] transition-all duration-200 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] flex items-center justify-center space-x-2 cursor-pointer transform active:scale-99"
             >
               <Send className="w-4 h-4" />
               <span>Enviar Mi Confirmación</span>

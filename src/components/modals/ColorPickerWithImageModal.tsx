@@ -73,8 +73,8 @@ export const ColorPickerWithImageModal: React.FC<ColorPickerWithImageModalProps>
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-full">
-        <div className="p-4 sm:p-6 border-b border-[#E8DCCF] flex items-center justify-between bg-[#FAF8F5]">
+      <div className="bg-[#EBEBEB] rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-full">
+        <div className="p-4 sm:p-6 border-b border-transparent flex items-center justify-between bg-[#FAF8F5]">
           <div>
             <h2 className="text-lg font-bold text-[#2D2A26]">Seleccionar Color</h2>
             {colorName && <p className="text-xs text-[#7A7268]">{colorName}</p>}
@@ -82,7 +82,7 @@ export const ColorPickerWithImageModal: React.FC<ColorPickerWithImageModalProps>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white border border-[#E8DCCF] flex items-center justify-center text-[#7A7268] hover:text-[#2D2A26] hover:border-[#D4AF37] transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-[#EBEBEB] border border-transparent flex items-center justify-center text-[#7A7268] hover:text-[#2D2A26] hover:border-[#D4AF37] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -92,7 +92,7 @@ export const ColorPickerWithImageModal: React.FC<ColorPickerWithImageModalProps>
           <div className="space-y-6">
             {/* Native Color Picker & Hex Input */}
             <div className="flex items-center space-x-4">
-              <div className="relative w-16 h-16 rounded-2xl border-4 border-white shadow-md shrink-0 overflow-hidden" style={{ backgroundColor: currentHex }}>
+              <div className="relative w-16 h-16 rounded-2xl border-4 border-transparent shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] shrink-0 overflow-hidden" style={{ backgroundColor: currentHex }}>
                 <input
                   type="color"
                   value={currentHex}
@@ -108,12 +108,12 @@ export const ColorPickerWithImageModal: React.FC<ColorPickerWithImageModalProps>
                   type="text"
                   value={currentHex}
                   onChange={(e) => setCurrentHex(e.target.value)}
-                  className="w-32 px-3 py-2 text-sm font-mono rounded-xl border border-[#D9CEBF] bg-white text-[#2D2A26] font-bold uppercase"
+                  className="w-32 px-3 py-2 text-sm font-mono rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] text-[#2D2A26] font-bold uppercase"
                 />
               </div>
             </div>
 
-            <div className="border-t border-[#E8DCCF] pt-4">
+            <div className="border-t border-transparent pt-4">
               <h3 className="text-xs font-bold text-[#2D2A26] mb-3 flex items-center">
                 <Pipette className="w-4 h-4 mr-1.5 text-blue-600" />
                 Extraer color desde una imagen
@@ -146,7 +146,7 @@ export const ColorPickerWithImageModal: React.FC<ColorPickerWithImageModalProps>
                       onClick={handleCanvasClick}
                       className="max-w-full max-h-64 object-contain"
                     />
-                    <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] px-2 py-1 rounded-lg backdrop-blur-md pointer-events-none">
+                    <div className="absolute top-2 right-2 bg-black/50 text-[#2D3748] text-[10px] px-2 py-1 rounded-lg backdrop-blur-md pointer-events-none">
                       Haz clic en la imagen para extraer el color
                     </div>
                   </div>
@@ -165,7 +165,7 @@ export const ColorPickerWithImageModal: React.FC<ColorPickerWithImageModalProps>
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 border-t border-[#E8DCCF] bg-[#FAF8F5] flex justify-end space-x-3">
+        <div className="p-4 sm:p-6 border-t border-transparent bg-[#FAF8F5] flex justify-end space-x-3">
           <button
             type="button"
             onClick={onClose}
@@ -176,7 +176,7 @@ export const ColorPickerWithImageModal: React.FC<ColorPickerWithImageModalProps>
           <button
             type="button"
             onClick={handleSave}
-            className="px-6 py-2 rounded-xl bg-[#2D2A26] text-white text-sm font-bold hover:bg-[#1A1816] transition-colors shadow-md"
+            className="px-6 py-2 rounded-xl bg-[#2D2A26] text-[#2D3748] text-sm font-bold hover:bg-[#1A1816] transition-colors shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]"
           >
             Aplicar Color
           </button>

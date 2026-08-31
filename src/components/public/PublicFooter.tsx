@@ -45,7 +45,7 @@ export const PublicFooter: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6 relative z-10">
           
           {/* Main Footer Container (Highlighted in Green in User Request) */}
-          <div className="relative group max-w-2xl mx-auto p-6 sm:p-8 rounded-3xl transition-all duration-300 border border-transparent hover:border-[#D4AF37]/30 bg-white/2 hover:bg-white/5">
+          <div className="relative group max-w-2xl mx-auto p-6 sm:p-8 rounded-3xl transition-all duration-300 border border-transparent hover:border-[#D4AF37]/30 bg-[#EBEBEB]/2 hover:bg-[#EBEBEB]/5">
             
             {/* Quick Edit Action Badge for Hosts and Admins */}
             {canEdit ? (
@@ -54,7 +54,7 @@ export const PublicFooter: React.FC = () => {
                   type="button"
                   id="btn-edit-footer"
                   onClick={() => setIsFooterEditOpen(true)}
-                  className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-linear-to-r from-[#D4AF37]/20 to-[#8B3A4A]/20 hover:from-[#D4AF37]/30 hover:to-[#8B3A4A]/30 text-[#E8DCCF] hover:text-white border border-[#D4AF37]/50 text-xs font-semibold shadow-xs transition-all cursor-pointer transform hover:scale-105"
+                  className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-linear-to-r from-[#D4AF37]/20 to-[#2D3748]/20 hover:from-[#D4AF37]/30 hover:to-[#2D3748]/30 text-[#E8DCCF] hover:text-[#2D3748] border border-[#D4AF37]/50 text-xs font-semibold shadow-xs transition-all cursor-pointer transform hover:scale-105"
                   title="Modificar Nombres, Frase Romántica y Contacto de este Pie de Página"
                 >
                   <Edit3 className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -69,7 +69,7 @@ export const PublicFooter: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowAuthModal(true)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[#D9CEBF] text-[11px] font-medium border border-white/20"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#EBEBEB]/10 hover:bg-[#EBEBEB]/20 text-[#D9CEBF] text-[11px] font-medium border border-transparent"
                 >
                   <Lock className="w-3 h-3 text-[#D4AF37]" />
                   <span>¿Eres Anfitrión o Admin? Accede para editar</span>
@@ -90,10 +90,10 @@ export const PublicFooter: React.FC = () => {
             </div>
 
             {/* Contact Information (Phone & Email) */}
-            <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-[#B8ADA0] pt-6 mt-4 border-t border-white/10">
+            <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-[#B8ADA0] pt-6 mt-4 border-t border-transparent">
               <a
                 href={`tel:${phone.replace(/\s+/g, '')}`}
-                className="flex items-center space-x-2 hover:text-[#D4AF37] transition-colors py-1 px-2 rounded-lg hover:bg-white/5"
+                className="flex items-center space-x-2 hover:text-[#D4AF37] transition-colors py-1 px-2 rounded-lg hover:bg-[#EBEBEB]/5"
               >
                 <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
                 <span className="font-medium">Coordinación: {phone}</span>
@@ -101,7 +101,7 @@ export const PublicFooter: React.FC = () => {
 
               <a
                 href={`mailto:${email}`}
-                className="flex items-center space-x-2 hover:text-[#D4AF37] transition-colors py-1 px-2 rounded-lg hover:bg-white/5"
+                className="flex items-center space-x-2 hover:text-[#D4AF37] transition-colors py-1 px-2 rounded-lg hover:bg-[#EBEBEB]/5"
               >
                 <Mail className="w-3.5 h-3.5 text-[#D4AF37]" />
                 <span className="font-medium">{email}</span>
@@ -122,7 +122,7 @@ export const PublicFooter: React.FC = () => {
         {/* Back to top button */}
         <button
           onClick={scrollToTop}
-          className="absolute right-6 bottom-6 p-2.5 rounded-full bg-white/10 hover:bg-[#8B3A4A] text-white transition-all shadow-md cursor-pointer hover:scale-110"
+          className="absolute right-6 bottom-6 p-2.5 rounded-full bg-[#EBEBEB]/10 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] cursor-pointer hover:scale-110"
           title="Volver arriba"
         >
           <ArrowUp className="w-4 h-4" />

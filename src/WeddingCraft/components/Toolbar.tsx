@@ -103,10 +103,10 @@ export const Toolbar: React.FC = () => {
   };
 
   return (
-    <div className="m-3 mb-0 h-14 bg-white/80 backdrop-blur-2xl border border-white/40 rounded-2xl flex items-center justify-between px-4 wc-toolbar z-10 relative shadow-sm">
+    <div className="m-3 mb-0 h-14 bg-[#EBEBEB]/80 backdrop-blur-2xl border border-transparent rounded-2xl flex items-center justify-between px-4 wc-toolbar z-10 relative shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]">
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
-          <LayoutTemplate className="w-5 h-5 text-[#8B3A4A]" />
+          <LayoutTemplate className="w-5 h-5 text-[#2D3748]" />
           <span className="font-serif-display font-bold text-[#2D2A26]">WeddingCraft</span>
         </div>
         
@@ -128,11 +128,11 @@ export const Toolbar: React.FC = () => {
 
         <div className="hidden md:flex items-center space-x-2">
           <button onClick={handleAddText} className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold hover:bg-[#F3EFEA] rounded border border-transparent">
-            <Type className="w-3.5 h-3.5 text-[#8B3A4A]" />
+            <Type className="w-3.5 h-3.5 text-[#2D3748]" />
             <span>Texto</span>
           </button>
           <button onClick={handleAddRectangle} className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold hover:bg-[#F3EFEA] rounded border border-transparent">
-            <Square className="w-3.5 h-3.5 text-[#8B3A4A]" />
+            <Square className="w-3.5 h-3.5 text-[#2D3748]" />
             <span>Forma</span>
           </button>
           
@@ -186,7 +186,7 @@ export const Toolbar: React.FC = () => {
                }}
              />
              <button className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold hover:bg-[#F3EFEA] rounded border border-transparent">
-               <ImageIcon className="w-3.5 h-3.5 text-[#8B3A4A]" />
+               <ImageIcon className="w-3.5 h-3.5 text-[#2D3748]" />
                <span>Imagen</span>
              </button>
           </div>
@@ -205,7 +205,7 @@ export const Toolbar: React.FC = () => {
                    const reader = new FileReader();
                    reader.onload = (ev) => {
                      let svgText = ev.target?.result as string;
-                     const color = '#8B3A4A';
+                     const color = '#2D3748';
                      const styleTag = `<style>* { fill: ${color} !important; stroke: ${color} !important; }</style>`;
                      if (svgText.includes('<svg')) {
                        svgText = svgText.replace(/(<svg[^>]*>)/i, `$1${styleTag}`);
@@ -217,7 +217,7 @@ export const Toolbar: React.FC = () => {
                        addElement({
                          type: 'image',
                          content: { src, originalSrc: src, isSvg: true, svgText, naturalWidth: img.width, naturalHeight: img.height },
-                         style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, fill: '#8B3A4A', filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
+                         style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, fill: '#2D3748', filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
                          transform: { x: 50, y: 50, width: Math.min(img.width, 150), height: Math.min(img.height, 150 * (img.height / img.width)), rotation: 0, scaleX: 1, scaleY: 1 },
                          zIndex: 15,
                          locked: false,
@@ -232,17 +232,17 @@ export const Toolbar: React.FC = () => {
                }}
              />
              <button className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold hover:bg-[#F3EFEA] rounded border border-transparent">
-               <Shapes className="w-3.5 h-3.5 text-[#8B3A4A]" />
+               <Shapes className="w-3.5 h-3.5 text-[#2D3748]" />
                <span>Objeto</span>
              </button>
           </div>
 
           <button onClick={handleAddCountdown} className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold hover:bg-[#F3EFEA] rounded border border-transparent">
-            <Clock className="w-3.5 h-3.5 text-[#8B3A4A]" />
+            <Clock className="w-3.5 h-3.5 text-[#2D3748]" />
             <span>Cuenta Regresiva</span>
           </button>
           <button onClick={handleAddButton} className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold hover:bg-[#F3EFEA] rounded border border-transparent">
-            <Link2 className="w-3.5 h-3.5 text-[#8B3A4A]" />
+            <Link2 className="w-3.5 h-3.5 text-[#2D3748]" />
             <span>Botón Ubicación</span>
           </button>
 
@@ -278,7 +278,7 @@ export const Toolbar: React.FC = () => {
           </div>
         )}
         
-        <button className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-[#D9CEBF] rounded hover:bg-[#F3EFEA] transition-colors">
+        <button className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-[#EBEBEB] border border-[#D9CEBF] rounded hover:bg-[#F3EFEA] transition-colors">
           <Save className="w-3.5 h-3.5 text-[#524B42]" />
           <span>Guardar Borrador</span>
         </button>
@@ -290,12 +290,12 @@ export const Toolbar: React.FC = () => {
               alert("Plantilla guardada.");
             }
           }}
-          className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-[#D9CEBF] rounded hover:bg-[#F3EFEA] transition-colors"
+          className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-[#EBEBEB] border border-[#D9CEBF] rounded hover:bg-[#F3EFEA] transition-colors"
         >
           <Save className="w-3.5 h-3.5 text-[#524B42]" />
           <span>Guardar Plantilla</span>
         </button>
-        <button onClick={() => downloadHTML(useEditorStore.getState().document)} className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-[#8B3A4A] text-white rounded hover:bg-[#7a3240] transition-colors">
+        <button onClick={() => downloadHTML(useEditorStore.getState().document)} className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] rounded hover:bg-[#7a3240] transition-colors">
           <Download className="w-3.5 h-3.5" />
           <span>Exportar Diseño</span>
         </button>

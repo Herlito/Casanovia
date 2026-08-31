@@ -28,7 +28,7 @@ export const FloralBouquet: React.FC<FloralBouquetProps> = ({
             <stop offset="0%" stopColor="#F9D7D7" />
             <stop offset="40%" stopColor="#E5989B" />
             <stop offset="80%" stopColor="#B55D6A" />
-            <stop offset="100%" stopColor="#8B3A4A" />
+            <stop offset="100%" stopColor="#2D3748" />
           </linearGradient>
           <linearGradient id="roseGradientPeach" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FDE2D2" />
@@ -133,7 +133,7 @@ export const FloralBouquet: React.FC<FloralBouquetProps> = ({
           {/* Inner Swirl Petals */}
           <path
             d="M -4 4 C -12 0 -6 -14 6 -12 C 16 -10 18 2 10 8 C 2 12 -2 8 -4 4 Z"
-            fill="#8B3A4A"
+            fill="#2D3748"
             opacity="0.95"
           />
           <path
@@ -174,7 +174,7 @@ export const FloralBouquet: React.FC<FloralBouquetProps> = ({
           {/* Center Swirl */}
           <path
             d="M 0 -2 C -4 -8 4 -12 8 -8 C 12 -4 10 4 6 6 C 2 8 -2 2 0 -2 Z"
-            fill="#8B3A4A"
+            fill="#2D3748"
           />
           <path
             d="M 4 -2 C 3 -5 6 -7 8 -5 C 10 -3 9 1 7 2 C 5 3 4 0 4 -2 Z"
@@ -200,7 +200,7 @@ export const FloralBouquet: React.FC<FloralBouquetProps> = ({
           />
           <path
             d="M 2 -2 C 0 -6 6 -8 8 -4 C 10 0 8 4 4 4 Z"
-            fill="#8B3A4A"
+            fill="#2D3748"
             opacity="0.9"
           />
           <path

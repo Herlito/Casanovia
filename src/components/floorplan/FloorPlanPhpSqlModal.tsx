@@ -87,12 +87,12 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-[#FAF8F5] w-full max-w-4xl rounded-2xl shadow-2xl border border-[#E8DCCF] flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="bg-[#FAF8F5] w-full max-w-4xl rounded-2xl shadow-2xl border border-transparent flex flex-col max-h-[90vh] overflow-hidden">
         
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-[#E8DCCF] flex items-center justify-between bg-white">
+        <div className="p-4 sm:p-5 border-b border-transparent flex items-center justify-between bg-[#EBEBEB]">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-[#8B3A4A] shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-[#2D3748] shadow-2xs">
               <Server className="w-5 h-5" />
             </div>
             <div>
@@ -113,13 +113,13 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center justify-between px-4 sm:px-6 pt-3 border-b border-[#E8DCCF] bg-[#FAF8F5] overflow-x-auto gap-2">
+        <div className="flex items-center justify-between px-4 sm:px-6 pt-3 border-b border-transparent bg-[#FAF8F5] overflow-x-auto gap-2">
           <div className="flex space-x-2">
             <button
               onClick={() => setActiveTab('sql')}
               className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer border-t border-x ${
                 activeTab === 'sql'
-                  ? 'bg-white text-[#8B3A4A] border-[#E8DCCF] -mb-px shadow-2xs'
+                  ? 'bg-[#EBEBEB] text-[#2D3748] border-transparent -mb-px shadow-2xs'
                   : 'bg-transparent text-[#8C8276] border-transparent hover:text-[#2D2A26]'
               }`}
             >
@@ -130,7 +130,7 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
               onClick={() => setActiveTab('get_invitados')}
               className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer border-t border-x ${
                 activeTab === 'get_invitados'
-                  ? 'bg-white text-[#8B3A4A] border-[#E8DCCF] -mb-px shadow-2xs'
+                  ? 'bg-[#EBEBEB] text-[#2D3748] border-transparent -mb-px shadow-2xs'
                   : 'bg-transparent text-[#8C8276] border-transparent hover:text-[#2D2A26]'
               }`}
             >
@@ -141,7 +141,7 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
               onClick={() => setActiveTab('guardar_plano')}
               className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer border-t border-x ${
                 activeTab === 'guardar_plano'
-                  ? 'bg-white text-[#8B3A4A] border-[#E8DCCF] -mb-px shadow-2xs'
+                  ? 'bg-[#EBEBEB] text-[#2D3748] border-transparent -mb-px shadow-2xs'
                   : 'bg-transparent text-[#8C8276] border-transparent hover:text-[#2D2A26]'
               }`}
             >
@@ -152,7 +152,7 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
               onClick={() => setActiveTab('get_plano')}
               className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer border-t border-x ${
                 activeTab === 'get_plano'
-                  ? 'bg-white text-[#8B3A4A] border-[#E8DCCF] -mb-px shadow-2xs'
+                  ? 'bg-[#EBEBEB] text-[#2D3748] border-transparent -mb-px shadow-2xs'
                   : 'bg-transparent text-[#8C8276] border-transparent hover:text-[#2D2A26]'
               }`}
             >
@@ -163,9 +163,9 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
 
           <button
             onClick={downloadAll}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-white hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] rounded-lg shadow-2xs transition-colors shrink-0 mb-1 cursor-pointer"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] rounded-lg shadow-2xs transition-colors shrink-0 mb-1 cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5 text-[#8B3A4A]" />
+            <Download className="w-3.5 h-3.5 text-[#2D3748]" />
             <span>Descargar Todos (.zip / archivos)</span>
           </button>
         </div>
@@ -176,7 +176,7 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
           <div className="flex items-center space-x-2 shrink-0 ml-4">
             <button
               onClick={() => handleCopy(current.code, activeTab)}
-              className="flex items-center space-x-1 px-2.5 py-1 bg-white hover:bg-amber-100/60 border border-amber-200 rounded-md font-semibold text-amber-900 transition-colors cursor-pointer"
+              className="flex items-center space-x-1 px-2.5 py-1 bg-[#EBEBEB] hover:bg-amber-100/60 border border-amber-200 rounded-md font-semibold text-amber-900 transition-colors cursor-pointer"
             >
               {copiedTab === activeTab ? (
                 <>
@@ -192,7 +192,7 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
             </button>
             <button
               onClick={() => handleDownload(current.filename, current.code)}
-              className="flex items-center space-x-1 px-2.5 py-1 bg-[#8B3A4A] hover:bg-[#722F3D] text-white rounded-md font-semibold transition-colors cursor-pointer"
+              className="flex items-center space-x-1 px-2.5 py-1 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#722F3D] text-[#2D3748] rounded-md font-semibold transition-colors cursor-pointer"
             >
               <Download className="w-3 h-3" />
               <span>Descargar</span>
@@ -201,14 +201,14 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
         </div>
 
         {/* Code View Area */}
-        <div className="flex-1 p-4 bg-[#1E1E1E] overflow-auto text-stone-200 font-mono text-xs leading-relaxed select-text">
+        <div className="flex-1 p-4 bg-[#1E1E1E] overflow-auto text-[#4A5568] font-mono text-xs leading-relaxed select-text">
           <pre className="p-2">
             <code>{current.code}</code>
           </pre>
         </div>
 
         {/* Footer */}
-        <div className="p-3.5 bg-white border-t border-[#E8DCCF] flex items-center justify-between text-xs text-[#8C8276]">
+        <div className="p-3.5 bg-[#EBEBEB] border-t border-transparent flex items-center justify-between text-xs text-[#8C8276]">
           <span>
             Archivo: <strong className="text-[#2D2A26]">{current.filename}</strong> (Listo para producción en Apache / Nginx + PHP 7.4/8.x)
           </span>

@@ -82,19 +82,19 @@ export const TableModal: React.FC<TableModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-[#E8DCCF] overflow-hidden animate-fadeIn">
+      <div className="bg-[#EBEBEB] rounded-3xl max-w-lg w-full shadow-2xl border border-transparent overflow-hidden animate-fadeIn">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4.5 bg-[#6B2D38] text-white">
+        <div className="flex items-center justify-between px-6 py-4.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
-              <UtensilsCrossed className="w-4 h-4 text-[#F7E7CE]" />
+            <div className="w-8 h-8 rounded-xl bg-[#EBEBEB]/10 flex items-center justify-center">
+              <UtensilsCrossed className="w-4 h-4 text-[#4A5568]" />
             </div>
             <div>
               <h3 className="font-serif-display font-bold text-base sm:text-lg">
                 {tableToEdit ? 'Editar Mesa del Banquete' : 'Nueva Mesa de Banquete'}
               </h3>
-              <p className="text-[11px] text-stone-200">
+              <p className="text-[11px] text-[#4A5568]">
                 Configuración de capacidad, forma y zona del salón
               </p>
             </div>
@@ -103,7 +103,7 @@ export const TableModal: React.FC<TableModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl text-stone-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl text-stone-300 hover:text-[#2D3748] hover:bg-[#EBEBEB]/10 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -115,7 +115,7 @@ export const TableModal: React.FC<TableModalProps> = ({
           {/* Table Name */}
           <div>
             <label className="block text-xs font-semibold text-[#524B42] mb-1">
-              Nombre o Número de Mesa <span className="text-[#8B3A4A]">*</span>
+              Nombre o Número de Mesa <span className="text-[#2D3748]">*</span>
             </label>
             <input
               type="text"
@@ -123,7 +123,7 @@ export const TableModal: React.FC<TableModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ej. Mesa 1 (Familia Novia) o Mesa de Honor"
-              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20"
+              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
             />
           </div>
 
@@ -132,7 +132,7 @@ export const TableModal: React.FC<TableModalProps> = ({
             <div>
               <label className="block text-xs font-semibold text-[#524B42] mb-1 flex items-center space-x-1">
                 <Users className="w-3.5 h-3.5 text-[#8C8276]" />
-                <span>Capacidad de Asientos <span className="text-[#8B3A4A]">*</span></span>
+                <span>Capacidad de Asientos <span className="text-[#2D3748]">*</span></span>
               </label>
               <input
                 type="number"
@@ -141,7 +141,7 @@ export const TableModal: React.FC<TableModalProps> = ({
                 max="40"
                 value={capacity}
                 onChange={(e) => setCapacity(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20"
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
               />
               <span className="text-[10px] text-[#8C8276] mt-0.5 block">
                 Recomendado: 8 a 12 personas
@@ -157,7 +157,7 @@ export const TableModal: React.FC<TableModalProps> = ({
               <select
                 value={shape}
                 onChange={(e) => setShape(e.target.value as any)}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20"
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
               >
                 <option value="round">Redonda (Clásica)</option>
                 <option value="imperial">Imperial (Larga / Honor)</option>
@@ -179,7 +179,7 @@ export const TableModal: React.FC<TableModalProps> = ({
                 value={zone}
                 onChange={(e) => setZone(e.target.value)}
                 placeholder="Ej. Pista Central / Escenario, Jardín, etc."
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20"
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
               />
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {COMMON_ZONES.map((z) => (
@@ -189,8 +189,8 @@ export const TableModal: React.FC<TableModalProps> = ({
                     onClick={() => setZone(z)}
                     className={`text-[10px] px-2 py-0.5 rounded-md transition-colors cursor-pointer border ${
                       zone === z 
-                        ? 'bg-[#8B3A4A] text-white border-[#8B3A4A]' 
-                        : 'bg-[#F7F3EE] text-[#524B42] border-[#E8DCCF] hover:bg-[#EAE4DC]'
+                        ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent' 
+                        : 'bg-[#EBEBEB] text-[#524B42] border-transparent hover:bg-[#EAE4DC]'
                     }`}
                   >
                     {z}
@@ -211,7 +211,7 @@ export const TableModal: React.FC<TableModalProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ej. Familia de la novia, espacio para carriola, cerca a la pista de baile..."
-              className="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20"
+              className="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
             />
           </div>
 
@@ -241,7 +241,7 @@ export const TableModal: React.FC<TableModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting || !name.trim()}
-                className="px-5 py-2.5 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-xs font-bold transition-all shadow-md flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>{tableToEdit ? 'Guardar Cambios' : 'Crear Mesa'}</span>

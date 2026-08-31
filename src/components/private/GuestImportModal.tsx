@@ -104,7 +104,7 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-[#FDFBF7] rounded-2xl max-w-3xl w-full p-5 sm:p-7 shadow-2xl border border-[#E8DCCF] my-6 relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#EBEBEB] rounded-2xl max-w-3xl w-full p-5 sm:p-7 shadow-2xl border border-transparent my-6 relative max-h-[90vh] overflow-y-auto">
         
         {/* Close button */}
         <button
@@ -145,7 +145,7 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
             <button
               type="button"
               onClick={downloadGuestExcelTemplate}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold shrink-0 transition-colors shadow-xs"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-[#2D3748] text-xs font-semibold shrink-0 transition-colors shadow-xs"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Descargar Plantilla .xlsx</span>
@@ -161,8 +161,8 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
             onClick={() => fileInputRef.current?.click()}
             className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
               dragActive 
-                ? 'border-[#8B3A4A] bg-[#8B3A4A]/5' 
-                : 'border-[#D9CEBF] bg-white hover:border-[#8B3A4A]/50 hover:bg-[#FAF8F5]'
+                ? 'border-transparent bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/5' 
+                : 'border-[#D9CEBF] bg-[#EBEBEB] hover:border-transparent hover:bg-[#FAF8F5]'
             }`}
           >
             <input
@@ -175,7 +175,7 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
               className="hidden"
             />
             
-            <div className="w-12 h-12 rounded-full bg-[#EFEAE2] text-[#8B3A4A] mx-auto flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-full bg-[#EFEAE2] text-[#2D3748] mx-auto flex items-center justify-center mb-3">
               <Upload className="w-6 h-6" />
             </div>
 
@@ -187,7 +187,7 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
             </p>
 
             {isLoading && (
-              <p className="text-xs text-[#8B3A4A] font-medium mt-2 animate-pulse">
+              <p className="text-xs text-[#2D3748] font-medium mt-2 animate-pulse">
                 Procesando filas de la hoja de cálculo...
               </p>
             )}
@@ -217,9 +217,9 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
               </div>
 
               {/* Mini preview table */}
-              <div className="border border-[#E8DCCF] rounded-xl overflow-hidden bg-white max-h-48 overflow-y-auto">
+              <div className="border border-transparent rounded-xl overflow-hidden bg-[#EBEBEB] max-h-48 overflow-y-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#FAF8F5] border-b border-[#E8DCCF] text-[#7A7268]">
+                  <thead className="bg-[#FAF8F5] border-b border-transparent text-[#7A7268]">
                     <tr>
                       <th className="p-2 font-semibold">Nombre</th>
                       <th className="p-2 font-semibold">Rol</th>
@@ -238,7 +238,7 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
                           )}
                         </td>
                         <td className="p-2">
-                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#8B3A4A]/10 text-[#8B3A4A]">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748]">
                             {ROLE_LABEL_MAP[g.category] || g.category}
                           </span>
                         </td>
@@ -271,7 +271,7 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
               </div>
 
               {/* Import Mode Selector */}
-              <div className="bg-white p-3.5 rounded-xl border border-[#E8DCCF] space-y-2">
+              <div className="bg-[#EBEBEB] p-3.5 rounded-xl border border-transparent space-y-2">
                 <label className="block text-xs font-bold text-[#524B42]">
                   ¿Cómo deseas incorporar estos {parsedGuests.length} invitados?
                 </label>
@@ -282,7 +282,7 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
                     onClick={() => setImportMode('append')}
                     className={`p-2.5 rounded-xl border text-left transition-all flex items-start space-x-2.5 ${
                       importMode === 'append'
-                        ? 'bg-[#8B3A4A]/10 border-[#8B3A4A] text-[#8B3A4A]'
+                        ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 border-transparent text-[#2D3748]'
                         : 'bg-[#FAF8F5] border-[#D9CEBF] text-[#524B42] hover:bg-[#EFEAE2]'
                     }`}
                   >
@@ -291,7 +291,7 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
                       name="importMode" 
                       checked={importMode === 'append'} 
                       onChange={() => setImportMode('append')}
-                      className="mt-0.5 text-[#8B3A4A]" 
+                      className="mt-0.5 text-[#2D3748]" 
                     />
                     <div>
                       <span className="font-bold block">Agregar a la lista existente</span>
@@ -330,9 +330,9 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
           )}
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-between pt-3 border-t border-[#E8DCCF]">
+          <div className="flex items-center justify-between pt-3 border-t border-transparent">
             <div className="flex items-center space-x-2 text-xs text-[#7A7268]">
-              <CloudUpload className="w-4 h-4 text-[#8B3A4A]" />
+              <CloudUpload className="w-4 h-4 text-[#2D3748]" />
               <span>Guardado en la nube en tiempo real</span>
             </div>
 
@@ -352,11 +352,11 @@ export const GuestImportModal: React.FC<GuestImportModalProps> = ({
                 onClick={handleConfirmImport}
                 className={`inline-flex items-center space-x-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
                   saveSuccess
-                    ? 'bg-emerald-600 text-white cursor-default'
+                    ? 'bg-emerald-600 text-[#2D3748] cursor-default'
                     : isSavingCloud
-                    ? 'bg-[#8B3A4A] text-white opacity-80 cursor-wait'
+                    ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] opacity-80 cursor-wait'
                     : parsedGuests.length > 0 && !isLoading
-                    ? 'bg-[#8B3A4A] hover:bg-[#6E2937] text-white cursor-pointer'
+                    ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] cursor-pointer'
                     : 'bg-stone-200 text-stone-400 cursor-not-allowed'
                 }`}
               >

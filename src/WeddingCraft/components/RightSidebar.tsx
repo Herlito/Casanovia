@@ -11,13 +11,13 @@ export const RightSidebar: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => 
   const [activeTab, setActiveTab] = useState<'properties' | 'themes' | 'animations' | 'templates'>('properties');
 
   return (
-    <div className={`flex flex-col h-full wc-right-sidebar overflow-hidden ${isMobile ? "w-full bg-transparent border-none rounded-none m-0" : "w-80 bg-white/80 backdrop-blur-2xl border border-white/40 rounded-2xl shadow-sm m-3 ml-0"}`}>
+    <div className={`flex flex-col h-full wc-right-sidebar overflow-hidden ${isMobile ? "w-full bg-transparent border-none rounded-none m-0" : "w-80 bg-[#EBEBEB]/80 backdrop-blur-2xl border border-transparent rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] m-3 ml-0"}`}>
       {/* Tabs Header */}
-      <div className="flex border-b border-gray-200/50 bg-white/50 backdrop-blur-xl shrink-0 p-1.5 gap-1">
+      <div className="flex border-b border-gray-200/50 bg-[#EBEBEB]/50 backdrop-blur-xl shrink-0 p-1.5 gap-1">
         <button 
           className={`flex-1 py-2 rounded-md text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition-all ${
             activeTab === 'properties' 
-              ? 'bg-white shadow-sm text-gray-800 border border-gray-200/50' 
+              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-800 border border-gray-200/50' 
               : 'text-gray-500 hover:bg-gray-100/50 border border-transparent'
           }`}
           onClick={() => setActiveTab('properties')}
@@ -28,7 +28,7 @@ export const RightSidebar: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => 
         <button 
           className={`flex-1 py-2 rounded-md text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition-all ${
             activeTab === 'animations' 
-              ? 'bg-white shadow-sm text-gray-800 border border-gray-200/50' 
+              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-800 border border-gray-200/50' 
               : 'text-gray-500 hover:bg-gray-100/50 border border-transparent'
           }`}
           onClick={() => setActiveTab('animations')}
@@ -39,7 +39,7 @@ export const RightSidebar: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => 
         <button 
           className={`flex-1 py-2 rounded-md text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition-all ${
             activeTab === 'themes' 
-              ? 'bg-white shadow-sm text-gray-800 border border-gray-200/50' 
+              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-800 border border-gray-200/50' 
               : 'text-gray-500 hover:bg-gray-100/50 border border-transparent'
           }`}
           onClick={() => setActiveTab('themes')}
@@ -51,7 +51,7 @@ export const RightSidebar: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => 
         <button 
           className={`flex-1 py-2 rounded-md text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition-all ${
             activeTab === 'templates' 
-              ? 'bg-white shadow-sm text-gray-800 border border-gray-200/50' 
+              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-800 border border-gray-200/50' 
               : 'text-gray-500 hover:bg-gray-100/50 border border-transparent'
           }`}
           onClick={() => setActiveTab('templates')}

@@ -98,11 +98,11 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
   };
 
   return (
-    <div className="w-[50vw] sm:max-w-none sm:w-80 bg-[#FAF8F5] border-l border-[#E8DCCF] flex flex-col h-full overflow-hidden text-[#2D2A26] select-none text-xs">
+    <div className="w-[50vw] sm:max-w-none sm:w-80 bg-[#FAF8F5] border-l border-transparent flex flex-col h-full overflow-hidden text-[#2D2A26] select-none text-xs">
       
 
       {/* Search & Filters */}
-      <div className="p-3 border-b border-[#E8DCCF] bg-[#FAF8F5] space-y-2">
+      <div className="p-3 border-b border-transparent bg-[#FAF8F5] space-y-2">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8C8276]" />
           <input
@@ -110,7 +110,7 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
             placeholder="Buscar por nombre, mesa o rol..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-2.5 py-1.5 bg-white border border-[#D9CEBF] rounded-lg text-xs focus:outline-hidden focus:border-[#8B3A4A]"
+            className="w-full pl-8 pr-2.5 py-1.5 bg-[#EBEBEB] border border-[#D9CEBF] rounded-lg text-xs focus:outline-hidden focus:border-transparent"
           />
           {searchTerm && (
             <button
@@ -127,7 +127,7 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
           <button
             onClick={() => setFilter('all')}
             className={`py-1 rounded-md transition-colors cursor-pointer ${
-              filter === 'all' ? 'bg-white text-[#8B3A4A] shadow-2xs' : 'text-[#8C8276] hover:text-[#2D2A26]'
+              filter === 'all' ? 'bg-[#EBEBEB] text-[#2D3748] shadow-2xs' : 'text-[#8C8276] hover:text-[#2D2A26]'
             }`}
           >
             Todos ({totalGuests})
@@ -135,7 +135,7 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
           <button
             onClick={() => setFilter('unassigned')}
             className={`py-1 rounded-md transition-colors cursor-pointer ${
-              filter === 'unassigned' ? 'bg-white text-amber-800 shadow-2xs' : 'text-[#8C8276] hover:text-[#2D2A26]'
+              filter === 'unassigned' ? 'bg-[#EBEBEB] text-amber-800 shadow-2xs' : 'text-[#8C8276] hover:text-[#2D2A26]'
             }`}
           >
             Libres ({unassignedCount})
@@ -143,7 +143,7 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
           <button
             onClick={() => setFilter('assigned')}
             className={`py-1 rounded-md transition-colors cursor-pointer ${
-              filter === 'assigned' ? 'bg-white text-[#8B3A4A] shadow-2xs' : 'text-[#8C8276] hover:text-[#2D2A26]'
+              filter === 'assigned' ? 'bg-[#EBEBEB] text-[#2D3748] shadow-2xs' : 'text-[#8C8276] hover:text-[#2D2A26]'
             }`}
           >
             Asignados ({assignedCount})
@@ -165,15 +165,15 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
                 draggable
                 onDragStart={(e) => handleDragStart(e, guest)}
                 onDragEnd={onDragEndGuest}
-                className={`px-2 py-[2px] rounded-xl border transition-all cursor-grab active:cursor-grabbing bg-white shadow-2xs hover:shadow-xs group ${
+                className={`px-2 py-[2px] rounded-xl border transition-all cursor-grab active:cursor-grabbing bg-[#EBEBEB] shadow-2xs hover:shadow-xs group ${
                   isAssigned
                     ? 'border-emerald-200 hover:border-emerald-400'
-                    : 'border-[#E8DCCF] hover:border-[#8B3A4A]'
+                    : 'border-transparent hover:border-transparent'
                 }`}
               >
                 <div className="flex items-start justify-between gap-1.5">
                   <div className="flex items-start space-x-2 min-w-0 flex-1">
-                    <GripVertical className="w-3.5 h-3.5 text-[#D9CEBF] group-hover:text-[#8B3A4A] shrink-0 mt-0.5" />
+                    <GripVertical className="w-3.5 h-3.5 text-[#D9CEBF] group-hover:text-[#2D3748] shrink-0 mt-0.5" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center space-x-1.5">
                         <span className="font-bold text-xs truncate text-[#2D2A26]">
@@ -184,7 +184,7 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
                       {/* Wedding assigned table and group */}
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px] text-[#8C8276]">
                         {guest.assignedTable && (
-                          <span className="font-semibold text-[#8B3A4A] bg-rose-50 px-1 rounded truncate max-w-[150px]">
+                          <span className="font-semibold text-[#2D3748] bg-rose-50 px-1 rounded truncate max-w-[150px]">
                             {guest.assignedTable}
                           </span>
                         )}
@@ -233,8 +233,8 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
       </div>
 
       {/* Quick Help Footer */}
-      <div className="p-2.5 bg-white border-t border-[#E8DCCF] text-[10px] text-[#8C8276] flex items-center space-x-1.5">
-        <Sparkles className="w-3.5 h-3.5 text-[#8B3A4A] shrink-0" />
+      <div className="p-2.5 bg-[#EBEBEB] border-t border-transparent text-[10px] text-[#8C8276] flex items-center space-x-1.5">
+        <Sparkles className="w-3.5 h-3.5 text-[#2D3748] shrink-0" />
         <span>Arrastra cualquier invitado directamente sobre una silla en el plano para asignarlo.</span>
       </div>
     </div>

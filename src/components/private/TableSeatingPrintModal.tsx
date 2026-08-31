@@ -77,21 +77,21 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 print:static print:inset-auto print:p-0 print:m-0 print:bg-white print:overflow-visible print:block print:w-full print:h-auto print:max-h-none print:shadow-none print:border-none">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 print:static print:inset-auto print:p-0 print:m-0 print:bg-[#EBEBEB] print:overflow-visible print:block print:w-full print:h-auto print:max-h-none print:shadow-none print:border-none">
       {/* Container */}
-      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-[#E8DCCF] overflow-hidden print:static print:max-w-none print:w-full print:max-h-none print:overflow-visible print:p-0 print:m-0 print:border-none print:shadow-none print:rounded-none">
+      <div className="bg-[#EBEBEB] rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-transparent overflow-hidden print:static print:max-w-none print:w-full print:max-h-none print:overflow-visible print:p-0 print:m-0 print:border-none print:shadow-none print:rounded-none">
         
         {/* Header (Hidden in Print) */}
-        <div className="no-print flex items-center justify-between px-6 py-4 bg-[#6B2D38] text-white shrink-0">
+        <div className="no-print flex items-center justify-between px-6 py-4 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shrink-0">
           <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-              <UtensilsCrossed className="w-5 h-5 text-[#F7E7CE]" />
+            <div className="w-9 h-9 rounded-xl bg-[#EBEBEB]/10 flex items-center justify-center">
+              <UtensilsCrossed className="w-5 h-5 text-[#4A5568]" />
             </div>
             <div>
               <h2 className="font-serif-display font-bold text-base sm:text-lg">
                 Reporte Protocolar de Mesas & Seating Chart
               </h2>
-              <p className="text-[11px] text-stone-200">
+              <p className="text-[11px] text-[#4A5568]">
                 {coupleNamesDisplay} • Documento oficial para Maître, Hostess y Capitán de Banquete
               </p>
             </div>
@@ -102,16 +102,16 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
               type="button"
               id="btn-download-seating-pdf"
               onClick={handlePrint}
-              className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#F7E7CE] text-[#54212C] font-bold text-xs hover:bg-white transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
+              className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#F7E7CE] text-[#2D3748] font-bold text-xs hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
             >
-              <Download className="w-4 h-4 text-[#8B3A4A]" />
+              <Download className="w-4 h-4 text-[#2D3748]" />
               <span>Descargar PDF</span>
             </button>
             <button
               type="button"
               id="btn-print-seating"
               onClick={handlePrint}
-              className="px-3.5 sm:px-4 py-2 rounded-xl bg-white/10 text-white font-semibold text-xs hover:bg-white/20 transition-all flex items-center space-x-1.5 cursor-pointer"
+              className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#EBEBEB]/10 text-[#2D3748] font-semibold text-xs hover:bg-[#EBEBEB]/20 transition-all flex items-center space-x-1.5 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span className="hidden sm:inline">Imprimir</span>
@@ -119,7 +119,7 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-stone-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-stone-300 hover:text-[#2D3748] hover:bg-[#EBEBEB]/10 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -130,13 +130,13 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
         <div 
           id="print-area" 
           ref={printRef} 
-          className="print-container flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 bg-white font-sans text-[#2D2A26]"
+          className="print-container flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 bg-[#EBEBEB] font-sans text-[#2D2A26]"
         >
           
           {/* Document Header */}
-          <div className="item-listado print-avoid-break border-b-2 border-[#8B3A4A] pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div className="item-listado print-avoid-break border-b-2 border-transparent pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#8B3A4A] block mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#2D3748] block mb-1">
                 Wedding Protocol & Banquet Logistics
               </span>
               <h1 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
@@ -147,7 +147,7 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
               </p>
             </div>
 
-            <div className="text-xs text-[#524B42] space-y-1 sm:text-right bg-[#FAF8F5] p-3 rounded-xl border border-[#E8DCCF] sm:bg-transparent sm:p-0 sm:border-none">
+            <div className="text-xs text-[#524B42] space-y-1 sm:text-right bg-[#FAF8F5] p-3 rounded-xl border border-transparent sm:bg-transparent sm:p-0 sm:border-none">
               <div className="font-semibold text-[#2D2A26]">
                 Fecha: {activeWedding?.weddingDate?.split('T')[0] || settings.weddingDate?.split('T')[0] || '2026-10-24'}
               </div>
@@ -162,9 +162,9 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
 
           {/* Section 1: Seating Tables Breakdown */}
           <div className="space-y-4">
-            <div className="item-listado print-avoid-break flex items-center justify-between pb-1 border-b border-[#E8DCCF]">
-              <h3 className="font-serif-display text-lg font-bold text-[#8B3A4A] uppercase tracking-wider flex items-center space-x-2">
-                <UtensilsCrossed className="w-4 h-4 text-[#8B3A4A]" />
+            <div className="item-listado print-avoid-break flex items-center justify-between pb-1 border-b border-transparent">
+              <h3 className="font-serif-display text-lg font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-2">
+                <UtensilsCrossed className="w-4 h-4 text-[#2D3748]" />
                 <span>1. Distribución Detallada por Mesa</span>
               </h3>
               <span className="text-xs text-[#7A7268]">
@@ -176,10 +176,10 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
               {guestsByTable.map(({ table, guests: seatedGuests, totalPasses }) => (
                 <div
                   key={table.id}
-                  className="item-listado print-avoid-break bg-[#FAF8F5] rounded-2xl p-4 border border-[#E8DCCF] space-y-3 print:bg-white print:border-stone-300"
+                  className="item-listado print-avoid-break bg-[#FAF8F5] rounded-2xl p-4 border border-transparent space-y-3 print:bg-[#EBEBEB] print:border-stone-300"
                   style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
                 >
-                  <div className="flex items-start justify-between border-b border-[#E8DCCF] pb-2">
+                  <div className="flex items-start justify-between border-b border-transparent pb-2">
                     <div>
                       <h4 className="font-bold text-sm text-[#2D2A26] flex items-center space-x-1.5">
                         <span>{table.name}</span>
@@ -228,7 +228,7 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
                                     Acompañante{mainGuest ? ` de ${mainGuest.fullName.split(' ')[0]}` : ''}
                                   </span>
                                 ) : (
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-white border border-[#D9CEBF] text-[#7A7268] shrink-0 font-normal">
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#EBEBEB] border border-[#D9CEBF] text-[#7A7268] shrink-0 font-normal">
                                     {getRoleLabel(guest.category)}
                                   </span>
                                 )}
@@ -274,7 +274,7 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
               </h3>
               <div className="flex flex-wrap gap-2">
                 {unassignedGuests.map((g) => (
-                  <span key={g.id} className="text-xs px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-amber-950 font-medium">
+                  <span key={g.id} className="text-xs px-2.5 py-1 rounded-lg bg-[#EBEBEB] border border-amber-300 text-amber-950 font-medium">
                     {g.fullName} ({g.totalPasses} p)
                   </span>
                 ))}
@@ -283,10 +283,10 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
           )}
 
           {/* Section 3: Alphabetical Seating Directory (A-Z) */}
-          <div className="space-y-4 pt-4 border-t-2 border-[#8B3A4A] break-before-page">
-            <div className="item-listado print-avoid-break flex items-center justify-between pb-1 border-b border-[#E8DCCF]">
-              <h3 className="font-serif-display text-lg font-bold text-[#8B3A4A] uppercase tracking-wider flex items-center space-x-2">
-                <Users className="w-4 h-4 text-[#8B3A4A]" />
+          <div className="space-y-4 pt-4 border-t-2 border-transparent break-before-page">
+            <div className="item-listado print-avoid-break flex items-center justify-between pb-1 border-b border-transparent">
+              <h3 className="font-serif-display text-lg font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-2">
+                <Users className="w-4 h-4 text-[#2D3748]" />
                 <span>2. Directorio Alfabético de Invitados (A-Z)</span>
               </h3>
               <span className="text-xs text-[#7A7268]">
@@ -297,7 +297,7 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="table-header-group">
-                  <tr className="bg-[#6B2D38] text-white">
+                  <tr className="bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]">
                     <th className="py-2.5 px-3 font-semibold rounded-l-lg">Invitado (Nombre Completo)</th>
                     <th className="py-2.5 px-3 font-semibold">Rol Protocolar</th>
                     <th className="py-2.5 px-3 font-semibold">Mesa Asignada</th>
@@ -310,7 +310,7 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
                   {sortedAlphabeticalGuests.map((guest, idx) => (
                     <tr 
                       key={guest.id}
-                      className={`item-listado print-avoid-break ${idx % 2 === 0 ? 'bg-white' : 'bg-[#FAF8F5]'}`}
+                      className={`item-listado print-avoid-break ${idx % 2 === 0 ? 'bg-[#EBEBEB]' : 'bg-[#FAF8F5]'}`}
                       style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
                     >
                       <td className="py-2 px-3 font-medium text-[#2D2A26]">
@@ -319,7 +319,7 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
                       <td className="py-2 px-3 text-[#7A7268]">
                         {getRoleLabel(guest.category)}
                       </td>
-                      <td className="py-2 px-3 font-bold text-[#8B3A4A]">
+                      <td className="py-2 px-3 font-bold text-[#2D3748]">
                         {guest.assignedTable && guest.assignedTable.trim() !== '' && !guest.assignedTable.toLowerCase().includes('por asignar')
                           ? guest.assignedTable
                           : '⚠️ Sin asignar'}
@@ -351,7 +351,7 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
           </div>
 
           {/* Footer Note */}
-          <div className="item-listado print-avoid-break pt-6 border-t border-[#E8DCCF] text-center text-[11px] text-[#8C8276] space-y-1">
+          <div className="item-listado print-avoid-break pt-6 border-t border-transparent text-center text-[11px] text-[#8C8276] space-y-1">
             <p>Generado automáticamente desde el Sistema de Gestión de Protocolo Nupcial.</p>
             <p className="font-serif-display italic font-medium text-[#524B42]">
               {coupleNamesDisplay} • ¡Gracias por celebrar este día inolvidable con nosotros!

@@ -280,7 +280,7 @@ body[data-theme="neumorphic"],
 }
 
 /* Specific elements to protect from override */
-[data-theme="neumorphic"] button.bg-\[\#8B3A4A\],
+[data-theme="neumorphic"] button.bg-\[\#2D3748\],
 [data-theme="neumorphic"] button.bg-\[\#2A1810\],
 [data-theme="neumorphic"] button.bg-black {
   background-color: inherit; /* Will let tailwind apply original colors by not touching them, because we targeted .bg-white above */

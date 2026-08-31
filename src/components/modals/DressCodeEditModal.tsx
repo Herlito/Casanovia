@@ -101,7 +101,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
       ...suggestedColors,
       {
         name: 'Nuevo Tono',
-        hex: '#8B3A4A',
+        hex: '#2D3748',
         description: 'Descripción y sugerencia de uso para este color.'
       }
     ]);
@@ -141,27 +141,27 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-2xl w-full my-8 overflow-hidden shadow-2xl border border-[#E8DCCF] transition-all">
+      <div className="bg-[#EBEBEB] rounded-3xl max-w-2xl w-full my-8 overflow-hidden shadow-2xl border border-transparent transition-all">
         
         {/* Header */}
-        <div className={isNeumorphic ? "p-6 relative text-gray-800" : "bg-linear-to-r from-[#2D2A26] to-[#4A3B32] text-white p-6 relative"}>
+        <div className={isNeumorphic ? "p-6 relative text-gray-800" : "bg-linear-to-r from-[#2D2A26] to-[#4A3B32] text-[#2D3748] p-6 relative"}>
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-5 right-5 p-1.5 rounded-full text-stone-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="absolute top-5 right-5 p-1.5 rounded-full text-stone-300 hover:text-[#2D3748] hover:bg-[#EBEBEB]/10 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
           
           <div className="flex items-center space-x-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-[#8A9A86] flex items-center justify-center shadow-md text-white">
+            <div className="w-10 h-10 rounded-xl bg-[#8A9A86] flex items-center justify-center shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] text-[#2D3748]">
               <Shirt className="w-5 h-5" />
             </div>
             <div>
               <span className={isNeumorphic ? "text-[10px] font-bold tracking-widest text-gray-500 uppercase block" : "text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block"}>
                 Edición de Protocolo & Estilo
               </span>
-              <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-white"}`}>
+              <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-[#2D3748]"}`}>
                 Código de Vestimenta y Paleta Visual
               </h3>
             </div>
@@ -199,7 +199,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                 value={dressCodeStyle}
                 onChange={(e) => setDressCodeStyle(e.target.value)}
                 placeholder="ej. Formal Rigurosa / Traje Oscuro y Vestido Largo"
-                className="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:ring-2 focus:ring-[#8B3A4A]/20 font-serif font-bold text-[#2D2A26]"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:ring-2 focus:ring-[#d1d1d1]/20 font-serif font-bold text-[#2D2A26]"
               />
             </div>
 
@@ -217,7 +217,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                   key={style}
                   type="button"
                   onClick={() => setDressCodeStyle(style)}
-                  className="px-2.5 py-1 rounded-lg text-[10px] bg-[#EFEAE2] hover:bg-[#8B3A4A] hover:text-white text-[#524B42] transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-[10px] bg-[#EFEAE2] hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] text-[#524B42] transition-colors cursor-pointer"
                 >
                   {style}
                 </button>
@@ -236,13 +236,13 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
               value={dressCodeDescription}
               onChange={(e) => setDressCodeDescription(e.target.value)}
               placeholder="Para las damas sugerimos vestido largo en tonos de la paleta. Para los caballeros traje oscuro con corbata..."
-              className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:ring-2 focus:ring-[#8B3A4A]/20 text-[#2D2A26] leading-relaxed"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:ring-2 focus:ring-[#d1d1d1]/20 text-[#2D2A26] leading-relaxed"
             />
           </div>
 
           {/* 3. Golden Rule / Forbidden colors note */}
           <div>
-            <label className="block text-xs font-semibold text-[#8B3A4A] mb-1 flex items-center space-x-1.5">
+            <label className="block text-xs font-semibold text-[#2D3748] mb-1 flex items-center space-x-1.5">
               <AlertCircle className="w-3.5 h-3.5" />
               <span>Regla de Oro (Colores Reservados / Prohibidos)</span>
             </label>
@@ -252,12 +252,12 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
               value={forbiddenColorsNote}
               onChange={(e) => setForbiddenColorsNote(e.target.value)}
               placeholder="Blanco, marfil y beige están reservados exclusivamente para la novia."
-              className="w-full px-3.5 py-2 text-xs rounded-xl border border-rose-200 bg-rose-50/50 focus:bg-white focus:ring-2 focus:ring-rose-300 text-rose-950 font-medium"
+              className="w-full px-3.5 py-2 text-xs rounded-xl border border-rose-200 bg-rose-50/50 focus:bg-[#EBEBEB] focus:ring-2 focus:ring-rose-300 text-rose-950 font-medium"
             />
           </div>
 
           {/* 4. Suggested Colors Palette Editor */}
-          <div className="pt-2 border-t border-[#E8DCCF] space-y-4">
+          <div className="pt-2 border-t border-transparent space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h4 className="text-xs font-bold text-[#2D2A26] uppercase tracking-wider flex items-center space-x-1.5">
@@ -272,7 +272,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
               <button
                 type="button"
                 onClick={handleAddColor}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#8A9A86] text-white text-xs font-semibold hover:bg-[#6E7E6A] transition-colors cursor-pointer shadow-xs self-start sm:self-auto"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#8A9A86] text-[#2D3748] text-xs font-semibold hover:bg-[#6E7E6A] transition-colors cursor-pointer shadow-xs self-start sm:self-auto"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Agregar Color</span>
@@ -287,13 +287,13 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                   key={idx}
                   type="button"
                   onClick={() => handleApplyPreset(preset)}
-                  className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#D9CEBF] hover:border-[#8B3A4A] text-[11px] font-medium text-[#4A3B32] transition-colors cursor-pointer"
+                  className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-[#EBEBEB] border border-[#D9CEBF] hover:border-transparent text-[11px] font-medium text-[#4A3B32] transition-colors cursor-pointer"
                 >
                   <span className="flex -space-x-1">
                     {preset.colors.slice(0, 3).map((c, i) => (
                       <span
                         key={i}
-                        className="w-2.5 h-2.5 rounded-full border border-white inline-block shadow-2xs"
+                        className="w-2.5 h-2.5 rounded-full border border-transparent inline-block shadow-2xs"
                         style={{ backgroundColor: c.hex }}
                       />
                     ))}
@@ -319,7 +319,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                     >
                       <div 
                         style={{ backgroundColor: color.hex }}
-                        className="w-10 h-10 rounded-full border-2 border-white shadow-md flex items-center justify-center hover:scale-105 transition-transform"
+                        className="w-10 h-10 rounded-full border-2 border-transparent shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] flex items-center justify-center hover:scale-105 transition-transform"
                       />
                     </div>
                     <div>
@@ -328,7 +328,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                         value={color.hex}
                         onChange={(e) => handleColorChange(idx, 'hex', e.target.value)}
                         placeholder="#HEX"
-                        className="w-20 px-2 py-1 text-[11px] font-mono rounded-lg border border-[#D9CEBF] bg-white text-center font-bold"
+                        className="w-20 px-2 py-1 text-[11px] font-mono rounded-lg border border-[#D9CEBF] bg-[#EBEBEB] text-center font-bold"
                       />
                     </div>
                   </div>
@@ -345,7 +345,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                         value={color.name}
                         onChange={(e) => handleColorChange(idx, 'name', e.target.value)}
                         placeholder="ej. Verde Salvia"
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-white text-[#2D2A26] font-semibold"
+                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-[#EBEBEB] text-[#2D2A26] font-semibold"
                       />
                     </div>
 
@@ -358,7 +358,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                         value={color.description}
                         onChange={(e) => handleColorChange(idx, 'description', e.target.value)}
                         placeholder="ej. Ideal para vestidos largos..."
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-white text-[#524B42]"
+                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-[#EBEBEB] text-[#524B42]"
                       />
                     </div>
                   </div>
@@ -384,7 +384,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
           </div>
 
           {/* Live Preview Box */}
-          <div className="p-4 rounded-2xl bg-[#FDFBF7] border border-[#E8DCCF] text-center space-y-3">
+          <div className="p-4 rounded-2xl bg-[#EBEBEB] border border-transparent text-center space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-widest text-[#8C8276]">
                 Vista Previa de la Paleta en la Web
@@ -405,7 +405,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                 <div key={i} className="flex flex-col items-center">
                   <div 
                     style={{ backgroundColor: c.hex }}
-                    className="w-9 h-9 rounded-full border-2 border-white shadow-sm"
+                    className="w-9 h-9 rounded-full border-2 border-transparent shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]"
                   />
                   <span className="text-[10px] font-semibold text-[#4A3B32] mt-1">{c.name}</span>
                 </div>
@@ -429,7 +429,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                     setIsApplyingTheme(false);
                   }
                 }}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-[11px] font-bold shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-[11px] font-bold shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
               >
                 <Paintbrush className="w-3.5 h-3.5" />
                 <span>Aplicar colores a la página ahora</span>
@@ -450,7 +450,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
                     setIsApplyingTheme(false);
                   }
                 }}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-stone-50 text-[#524B42] border border-[#D9CEBF] text-[11px] font-semibold transition-colors cursor-pointer"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] hover:bg-stone-50 text-[#524B42] border border-[#D9CEBF] text-[11px] font-semibold transition-colors cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-[#7A7268]" />
                 <span>Restablecer</span>
@@ -466,7 +466,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
           </div>
 
           {/* Bottom Actions */}
-          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-[#E8DCCF]">
+          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-transparent">
             <button
               type="button"
               onClick={onClose}
@@ -477,7 +477,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
             <button
               type="submit"
               disabled={isSaving}
-              className="px-6 py-2.5 rounded-xl bg-[#8B3A4A] text-white text-xs font-bold hover:bg-[#6E2937] transition-all shadow-md flex items-center space-x-2 cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold hover:bg-[#EBEBEB] transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] flex items-center space-x-2 cursor-pointer disabled:opacity-50"
             >
               {savedSuccess ? (
                 <>

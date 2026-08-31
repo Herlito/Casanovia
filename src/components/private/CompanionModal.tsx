@@ -235,9 +235,9 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
       <div className="bg-[#FAF8F5] rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl border border-[#D9CEBF] relative max-h-[92vh] flex flex-col">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#E8DCCF]">
+        <div className="flex items-center justify-between pb-4 border-b border-transparent">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-emerald-700 text-[#2D3748] flex items-center justify-center shadow-xs">
               <UserPlus className="w-5 h-5" />
             </div>
             <div>
@@ -260,16 +260,16 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
         </div>
 
         {/* Info Banner: Current Guest, Pases & Mesa Target */}
-        <div className="mt-4 p-3.5 bg-white rounded-xl border border-[#E8DCCF] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-2xs">
+        <div className="mt-4 p-3.5 bg-[#EBEBEB] rounded-xl border border-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-2xs">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#8B3A4A]/10 text-[#8B3A4A] flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] flex items-center justify-center shrink-0">
               <User className="w-4 h-4" />
             </div>
             <div>
               <span className="text-[10px] uppercase font-bold tracking-wider text-[#7A7268]">Invitado Titular:</span>
               <p className="text-xs font-bold text-[#2D2A26]">{primaryGuestName || 'Invitado en edición'}</p>
               <div className="flex items-center space-x-2 text-[11px] text-[#7A7268] mt-0.5">
-                <span className="inline-flex items-center space-x-1 font-semibold text-[#8B3A4A]">
+                <span className="inline-flex items-center space-x-1 font-semibold text-[#2D3748]">
                   <Ticket className="w-3 h-3" />
                   <span>{totalPasses} {totalPasses === 1 ? 'pase total' : 'pases totales'}</span>
                 </span>
@@ -279,7 +279,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 bg-[#FAF8F5] px-3 py-1.5 rounded-lg border border-[#E8DCCF] shrink-0">
+          <div className="flex items-center space-x-2 bg-[#FAF8F5] px-3 py-1.5 rounded-lg border border-transparent shrink-0">
             <Users className="w-4 h-4 text-emerald-700 shrink-0" />
             <div>
               <span className="text-[10px] uppercase font-bold tracking-wider text-[#7A7268]">Mesa Asignada:</span>
@@ -312,7 +312,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleIncreasePasses}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-[#2D3748] rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Aumentar a {totalPasses + 1} pases</span>
@@ -336,7 +336,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
             onClick={() => setActiveTab('select')}
             className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
               activeTab === 'select'
-                ? 'bg-white text-[#2D2A26] shadow-xs'
+                ? 'bg-[#EBEBEB] text-[#2D2A26] shadow-xs'
                 : 'text-[#7A7268] hover:text-[#2D2A26]'
             }`}
           >
@@ -354,7 +354,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
             }}
             className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
               activeTab === 'new'
-                ? 'bg-white text-[#2D2A26] shadow-xs'
+                ? 'bg-[#EBEBEB] text-[#2D2A26] shadow-xs'
                 : 'text-[#7A7268] hover:text-[#2D2A26]'
             }`}
           >
@@ -375,7 +375,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar por nombre, código o mesa..."
-                className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-white focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                 autoFocus
               />
             </div>
@@ -383,7 +383,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
             {/* Results List */}
             <div className="flex-1 overflow-y-auto max-h-[260px] space-y-2 pr-1">
               {filteredGuests.length === 0 ? (
-                <div className="p-6 text-center bg-white rounded-xl border border-[#E8DCCF] space-y-3">
+                <div className="p-6 text-center bg-[#EBEBEB] rounded-xl border border-transparent space-y-3">
                   <p className="text-xs text-stone-500 font-medium">
                     No se encontró a <strong>"{searchQuery}"</strong> en la lista de invitados.
                   </p>
@@ -393,7 +393,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                       setNewFullName(searchQuery.trim());
                       setActiveTab('new');
                     }}
-                    className="inline-flex items-center space-x-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                    className="inline-flex items-center space-x-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-[#2D3748] rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>Registrar "{searchQuery.trim() || 'Nuevo'}" como Acompañante</span>
@@ -408,7 +408,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                       className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
                         isCurrentTable
                           ? 'bg-emerald-50/70 border-emerald-200'
-                          : 'bg-white border-[#E8DCCF] hover:border-emerald-300'
+                          : 'bg-[#EBEBEB] border-transparent hover:border-emerald-300'
                       }`}
                     >
                       <div className="min-w-0">
@@ -438,7 +438,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                         className={`shrink-0 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                           isPassLimitReached
                             ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
-                            : 'bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs cursor-pointer active:scale-95'
+                            : 'bg-emerald-700 hover:bg-emerald-800 text-[#2D3748] shadow-xs cursor-pointer active:scale-95'
                         }`}
                         title={isPassLimitReached ? 'Aumenta los pases del titular para asignar más acompañantes' : 'Asignar como acompañante'}
                       >
@@ -453,7 +453,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
 
             {/* Quick footer to register new if desired */}
             {filteredGuests.length > 0 && searchQuery.trim() && (
-              <div className="pt-2 border-t border-[#E8DCCF] flex items-center justify-between">
+              <div className="pt-2 border-t border-transparent flex items-center justify-between">
                 <span className="text-[11px] text-[#7A7268]">¿No está en la lista?</span>
                 <button
                   type="button"
@@ -476,11 +476,11 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
         {activeTab === 'new' && (
           <form onSubmit={handleCreateNewCompanion} className="mt-3 flex-1 flex flex-col min-h-0 space-y-3">
             
-            <div className="bg-white p-3.5 rounded-xl border border-[#E8DCCF] space-y-3 flex-1 overflow-y-auto">
+            <div className="bg-[#EBEBEB] p-3.5 rounded-xl border border-transparent space-y-3 flex-1 overflow-y-auto">
               
               <div>
                 <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Nombre Completo del Acompañante <span className="text-[#8B3A4A]">*</span>
+                  Nombre Completo del Acompañante <span className="text-[#2D3748]">*</span>
                 </label>
                 <input
                   type="text"
@@ -488,7 +488,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                   value={newFullName}
                   onChange={(e) => setNewFullName(e.target.value)}
                   placeholder="Ej. María Elena Rojas"
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:border-emerald-600"
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:border-emerald-600"
                   autoFocus
                 />
               </div>
@@ -527,7 +527,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                       value={newPhone}
                       onChange={(e) => setNewPhone(e.target.value)}
                       placeholder="+52 81 1234 5678"
-                      className="w-full pl-8 pr-2 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                      className="w-full pl-8 pr-2 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                     />
                   </div>
                 </div>
@@ -543,7 +543,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
                       placeholder="maria@ejemplo.com"
-                      className="w-full pl-8 pr-2 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                      className="w-full pl-8 pr-2 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                     />
                   </div>
                 </div>
@@ -560,7 +560,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                     value={newDietary}
                     onChange={(e) => setNewDietary(e.target.value)}
                     placeholder="Ej. Vegano, Sin gluten..."
-                    className="w-full pl-8 pr-2 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white"
+                    className="w-full pl-8 pr-2 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                   />
                 </div>
               </div>
@@ -568,7 +568,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
             </div>
 
             {/* Form Footer */}
-            <div className="flex items-center justify-end space-x-2 pt-2 border-t border-[#E8DCCF]">
+            <div className="flex items-center justify-end space-x-2 pt-2 border-t border-transparent">
               <button
                 type="button"
                 onClick={() => setActiveTab('select')}
@@ -580,7 +580,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
               <button
                 type="submit"
                 disabled={!newFullName.trim() || isSubmitting || isPassLimitReached}
-                className={`inline-flex items-center space-x-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white transition-all shadow-xs ${
+                className={`inline-flex items-center space-x-1.5 px-5 py-2 rounded-xl text-xs font-bold text-[#2D3748] transition-all shadow-xs ${
                   newFullName.trim() && !isSubmitting && !isPassLimitReached
                     ? 'bg-emerald-700 hover:bg-emerald-800 cursor-pointer active:scale-95'
                     : 'bg-stone-300 cursor-not-allowed'
@@ -596,7 +596,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
 
         {/* Companions linked to this primary guest */}
         {primaryCompanions.length > 0 && (
-          <div className="mt-3 pt-2.5 border-t border-[#E8DCCF]">
+          <div className="mt-3 pt-2.5 border-t border-transparent">
             <div className="flex items-center justify-between text-[11px] text-[#7A7268] mb-1.5">
               <span className="font-semibold flex items-center space-x-1">
                 <Users className="w-3.5 h-3.5 text-emerald-700" />
@@ -608,7 +608,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
               {primaryCompanions.map((comp) => (
                 <span
                   key={comp.id}
-                  className="px-2 py-0.5 bg-white border border-[#E8DCCF] rounded-md text-[11px] text-stone-700 font-medium flex items-center space-x-1.5 hover:border-amber-400 transition-colors"
+                  className="px-2 py-0.5 bg-[#EBEBEB] border border-transparent rounded-md text-[11px] text-stone-700 font-medium flex items-center space-x-1.5 hover:border-amber-400 transition-colors"
                 >
                   <span>{comp.fullName}</span>
                   <button

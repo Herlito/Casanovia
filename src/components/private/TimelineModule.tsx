@@ -21,7 +21,7 @@ import {
 // Delicate line-art vector icons inspired directly by timming.jfif
 const TimingIcons = {
   Sparkles: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B3A4A]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#2D3748]">
       <path d="m12 3 1.8 5.4a1 1 0 0 0 .6.6L19.8 11l-5.4 1.8a1 1 0 0 0-.6.6L12 19l-1.8-5.4a1 1 0 0 0-.6-.6L4.2 11l5.4-1.8a1 1 0 0 0 .6-.6L12 3Z" />
       <path d="M19 3v4" />
       <path d="M21 5h-4" />
@@ -30,20 +30,20 @@ const TimingIcons = {
     </svg>
   ),
   HeartsCouple: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B3A4A]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#2D3748]">
       <path d="M16.5 4.5a4.5 4.5 0 0 0-6.36 0L9.5 5.14 8.86 4.5a4.5 4.5 0 0 0-6.36 6.36L9.5 17.86l7-7a4.5 4.5 0 0 0 0-6.36Z" />
       <path d="m15 11 3.5 3.5a3 3 0 1 1-4.24 4.24L13.5 18" />
     </svg>
   ),
   EnvelopeHeart: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B3A4A]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#2D3748]">
       <rect width="20" height="14" x="2" y="5" rx="2" />
       <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
       <path d="M12 11.2a1.8 1.8 0 0 0-1.27-.5 1.8 1.8 0 0 0-1.27 3.07L12 16.3l2.54-2.53a1.8 1.8 0 0 0-1.27-3.07 1.8 1.8 0 0 0-1.27.5Z" fill="currentColor" fillOpacity="0.15" />
     </svg>
   ),
   Bouquet: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B3A4A]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#2D3748]">
       <path d="M12 7.5a3.5 3.5 0 1 0-3.5-3.5c0 1.93 1.57 3.5 3.5 3.5Z" />
       <path d="M7.5 11a3 3 0 1 0-3-3c0 1.66 1.34 3 3 3Z" />
       <path d="M16.5 11a3 3 0 1 0-3-3c0 1.66 1.34 3 3 3Z" />
@@ -54,7 +54,7 @@ const TimingIcons = {
     </svg>
   ),
   MusicNotes: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B3A4A]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#2D3748]">
       <path d="M9 18V5l12-2v13" />
       <circle cx="6" cy="18" r="3" />
       <circle cx="18" cy="16" r="3" />
@@ -64,7 +64,7 @@ const TimingIcons = {
     </svg>
   ),
   WeddingRings: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B3A4A]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#2D3748]">
       <circle cx="8" cy="14" r="5" />
       <circle cx="15" cy="12" r="5" />
       <path d="m7.5 9 1-2.5 2 1" />
@@ -73,7 +73,7 @@ const TimingIcons = {
     </svg>
   ),
   ToastGlasses: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B3A4A]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#2D3748]">
       <path d="M7 3v6a4 4 0 0 0 4 4v7" />
       <path d="M5 20h6" />
       <path d="M17 3v6a4 4 0 0 1-4 4" />
@@ -85,14 +85,14 @@ const TimingIcons = {
     </svg>
   ),
   CameraPhotos: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B3A4A]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#2D3748]">
       <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
       <circle cx="12" cy="13" r="3" />
       <path d="M18 10h.01" />
     </svg>
   ),
   ChurchArch: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B3A4A]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#2D3748]">
       <path d="M12 2v4" />
       <path d="M10 4h4" />
       <path d="m12 6 6 4v10H6V10z" />
@@ -100,26 +100,26 @@ const TimingIcons = {
     </svg>
   ),
   FeastUtensils: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B3A4A]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 text-[#2D3748]">
       <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
       <path d="M7 2v20" />
       <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
     </svg>
   ),
   RibbonBow: () => (
-    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16 sm:w-24 sm:h-24 text-[#8B3A4A]/70 pointer-events-none">
+    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16 sm:w-24 sm:h-24 text-[#2D3748]/70 pointer-events-none">
       {/* Center knot */}
-      <circle cx="50" cy="40" r="5.5" className="fill-[#8B3A4A]/10 stroke-[#8B3A4A]" />
+      <circle cx="50" cy="40" r="5.5" className="fill-[#2D3748]/10 stroke-[#2D3748]" />
       {/* Left Loop */}
-      <path d="M46 38 C32 20 16 30 22 46 C26 56 42 45 46 42 Z" className="stroke-[#8B3A4A]" />
-      <path d="M28 35 C32 38 38 40 44 40" className="stroke-[#8B3A4A]/60" />
+      <path d="M46 38 C32 20 16 30 22 46 C26 56 42 45 46 42 Z" className="stroke-[#2D3748]" />
+      <path d="M28 35 C32 38 38 40 44 40" className="stroke-[#2D3748]/60" />
       {/* Right Loop */}
-      <path d="M54 38 C68 20 84 30 78 46 C74 56 58 45 54 42 Z" className="stroke-[#8B3A4A]" />
-      <path d="M72 35 C68 38 62 40 56 40" className="stroke-[#8B3A4A]/60" />
+      <path d="M54 38 C68 20 84 30 78 46 C74 56 58 45 54 42 Z" className="stroke-[#2D3748]" />
+      <path d="M72 35 C68 38 62 40 56 40" className="stroke-[#2D3748]/60" />
       {/* Left trailing ribbon */}
-      <path d="M47 45 C38 60 42 75 32 90 C30 93 26 92 28 88 C32 75 32 62 45 47" className="stroke-[#8B3A4A]" />
+      <path d="M47 45 C38 60 42 75 32 90 C30 93 26 92 28 88 C32 75 32 62 45 47" className="stroke-[#2D3748]" />
       {/* Right trailing ribbon */}
-      <path d="M53 45 C62 60 58 75 68 90 C70 93 74 92 72 88 C68 75 68 62 55 47" className="stroke-[#8B3A4A]" />
+      <path d="M53 45 C62 60 58 75 68 90 C70 93 74 92 72 88 C68 75 68 62 55 47" className="stroke-[#2D3748]" />
     </svg>
   ),
 };
@@ -269,15 +269,15 @@ export const TimelineModule: React.FC = () => {
 
         <div className="flex items-center space-x-2.5 self-start sm:self-auto">
           {/* View Mode Toggle */}
-          <div className="bg-[#FAF7F2] p-1 rounded-xl border border-[#D9CEBF] flex items-center space-x-1">
+          <div className="bg-[#EBEBEB] p-1 rounded-xl border border-[#D9CEBF] flex items-center space-x-1">
             <button
               type="button"
               onClick={() => setViewMode('editorial')}
               title="Vista Editorial Timing"
               className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
                 viewMode === 'editorial'
-                  ? 'bg-[#8B3A4A] text-white shadow-2xs'
-                  : 'text-[#524B42] hover:text-[#8B3A4A]'
+                  ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-2xs'
+                  : 'text-[#524B42] hover:text-[#2D3748]'
               }`}
             >
               <LayoutList className="w-3.5 h-3.5" />
@@ -287,15 +287,15 @@ export const TimelineModule: React.FC = () => {
             <button
               type="button"
               onClick={() => setViewMode('cards')}
-              title="Vista Tarjetas Detalladas"
+              title="Vista Texto"
               className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
                 viewMode === 'cards'
-                  ? 'bg-[#8B3A4A] text-white shadow-2xs'
-                  : 'text-[#524B42] hover:text-[#8B3A4A]'
+                  ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-2xs'
+                  : 'text-[#524B42] hover:text-[#2D3748]'
               }`}
             >
               <Columns className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Tarjetas</span>
+              <span className="hidden md:inline">Texto</span>
             </button>
           </div>
 
@@ -303,9 +303,9 @@ export const TimelineModule: React.FC = () => {
             type="button"
             onClick={() => setIsPrintModalOpen(true)}
             id="btn-export-protocol-sheet"
-            className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white text-[#524B42] border border-[#D9CEBF] text-xs font-semibold hover:bg-[#FAF7F2] hover:text-[#8B3A4A] transition-all shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+            className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#EBEBEB] text-[#524B42] border border-[#D9CEBF] text-xs font-semibold hover:bg-[#EBEBEB] hover:text-[#2D3748] transition-all shadow-2xs flex items-center space-x-1.5 cursor-pointer"
           >
-            <Printer className="w-4 h-4 text-[#8B3A4A]" />
+            <Printer className="w-4 h-4 text-[#2D3748]" />
             <span className="hidden sm:inline">Exportar Cronograma (PDF)</span>
             <span className="sm:hidden">PDF</span>
           </button>
@@ -314,7 +314,7 @@ export const TimelineModule: React.FC = () => {
             type="button"
             onClick={handleOpenAdd}
             id="btn-add-milestone"
-            className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#8B3A4A] text-white text-xs font-semibold hover:bg-[#6E2937] transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
+            className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Añadir Hito</span>
@@ -323,14 +323,14 @@ export const TimelineModule: React.FC = () => {
       </div>
 
       {/* Category Filter Badges */}
-      <div className="flex overflow-x-auto pb-2 gap-2 text-xs border-b border-[#E8DCCF]">
+      <div className="flex overflow-x-auto pb-2 gap-2 text-xs border-b border-transparent">
         {categoriesFilterList.map((item) => (
           <button
             key={item.id}
             onClick={() => setCategoryFilter(item.id)}
             className={`px-3 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap cursor-pointer ${
               categoryFilter === item.id
-                ? 'bg-[#8B3A4A] text-white shadow-xs'
+                ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs'
                 : 'bg-[#F2ECE3] text-[#524B42] hover:bg-[#E8DCCF]'
             }`}
           >
@@ -341,8 +341,8 @@ export const TimelineModule: React.FC = () => {
 
       {/* Empty State */}
       {filteredTimeline.length === 0 && (
-        <div className={isNeumorphic ? "text-center py-16 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-dashed border-[#D9CEBF] p-6" : "text-center py-16 bg-white rounded-3xl border border-dashed border-[#D9CEBF] p-6"}>
-          <Sparkles className="w-10 h-10 text-[#8B3A4A]/40 mx-auto mb-3" />
+        <div className={isNeumorphic ? "text-center py-16 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-dashed border-[#D9CEBF] p-6" : "text-center py-16 bg-[#EBEBEB] rounded-3xl border border-dashed border-[#D9CEBF] p-6"}>
+          <Sparkles className="w-10 h-10 text-[#2D3748]/40 mx-auto mb-3" />
           <h3 className="font-serif-display text-lg font-bold text-[#2D2A26]">
             No hay hitos en esta categoría
           </h3>
@@ -352,7 +352,7 @@ export const TimelineModule: React.FC = () => {
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="px-4 py-2 rounded-xl bg-[#8B3A4A] text-white text-xs font-semibold hover:bg-[#6E2937] transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-colors cursor-pointer"
           >
             + Añadir Primer Hito
           </button>
@@ -361,7 +361,7 @@ export const TimelineModule: React.FC = () => {
 
       {/* 1. EDITORIAL TIMMING VIEW (Inspired by timming.jfif aesthetic with site colors) */}
       {viewMode === 'editorial' && filteredTimeline.length > 0 && (
-        <div className="relative bg-gradient-to-b from-[#FDFBF7] via-[#FAF7F2] to-[#F5EFE6] rounded-3xl p-6 sm:p-10 lg:p-14 border border-[#E8DCCF] shadow-sm overflow-hidden">
+        <div className="relative bg-gradient-to-b from-[#FDFBF7] via-[#FAF7F2] to-[#F5EFE6] rounded-3xl p-6 sm:p-10 lg:p-14 border border-transparent shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] overflow-hidden">
           
           {/* Top Decorative Ribbon / Bow Illustration */}
           <div className="absolute top-2 right-2 sm:top-5 sm:right-6 pointer-events-none opacity-85">
@@ -370,7 +370,7 @@ export const TimelineModule: React.FC = () => {
 
           {/* Editorial Script Header */}
           <div className="relative z-10 mb-8 sm:mb-12 text-left pr-16 sm:pr-24">
-            <h3 className="font-script text-3xl sm:text-4xl md:text-5xl text-[#8B3A4A] tracking-wide drop-shadow-2xs">
+            <h3 className="font-script text-3xl sm:text-4xl md:text-5xl text-[#2D3748] tracking-wide drop-shadow-2xs">
               {timingHeaderTitle}
             </h3>
             <p className="text-[11px] sm:text-xs text-[#7A7268] mt-1 font-serif italic">
@@ -382,7 +382,7 @@ export const TimelineModule: React.FC = () => {
           <div className="relative z-10 max-w-4xl mx-auto">
             
             {/* The Continuous Vertical Connecting Axis */}
-            <div className="absolute left-[88px] sm:left-[145px] md:left-[165px] top-3 bottom-6 w-[2px] bg-gradient-to-b from-[#D4AF37]/80 via-[#8B3A4A]/50 to-[#D4AF37]/80" />
+            <div className="absolute left-[88px] sm:left-[145px] md:left-[165px] top-3 bottom-6 w-[2px] bg-gradient-to-b from-[#D4AF37]/80 via-[#2D3748]/50 to-[#D4AF37]/80" />
 
             <div className="space-y-6 sm:space-y-8">
               {filteredTimeline.map((item, idx) => {
@@ -409,7 +409,7 @@ export const TimelineModule: React.FC = () => {
                       
                       <div className="flex items-center justify-end space-x-2 sm:space-x-3.5">
                         {/* Delicate Line-Art Icon */}
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/80 border border-[#E8DCCF] shadow-2xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:border-[#8B3A4A]/40 transition-transform">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#EBEBEB]/80 border border-transparent shadow-2xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:border-transparent transition-transform">
                           {resolveMilestoneIcon(item)}
                         </div>
 
@@ -433,7 +433,7 @@ export const TimelineModule: React.FC = () => {
                             e.stopPropagation();
                             handleOpenEdit(item);
                           }}
-                          className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-white border border-[#E8DCCF] text-[#6B6358] hover:text-[#8B3A4A] hover:bg-[#FAF8F5] text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
+                          className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#EBEBEB] border border-transparent text-[#6B6358] hover:text-[#2D3748] hover:bg-[#FAF8F5] text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
                           title="Editar Hito"
                         >
                           <Edit className="w-2.5 h-2.5" />
@@ -445,7 +445,7 @@ export const TimelineModule: React.FC = () => {
                             e.stopPropagation();
                             handleDelete(item.id, item.title);
                           }}
-                          className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-white border border-rose-200 text-rose-600 hover:text-white hover:bg-rose-600 text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
+                          className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#EBEBEB] border border-rose-200 text-rose-600 hover:text-[#2D3748] hover:bg-rose-600 text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
                           title="Borrar Hito"
                         >
                           <Trash2 className="w-2.5 h-2.5" />
@@ -457,7 +457,7 @@ export const TimelineModule: React.FC = () => {
 
                     {/* Center Horizontal Cross-Tick Marker */}
                     <div className="relative flex items-center justify-center shrink-0 w-0 z-10 pt-2 sm:pt-2.5">
-                      <div className="w-5 sm:w-7 h-[2px] bg-[#8B3A4A] group-hover:bg-[#D4AF37] transition-colors -ml-[10px] sm:-ml-[14px] shadow-2xs" />
+                      <div className="w-5 sm:w-7 h-[2px] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] group-hover:bg-[#D4AF37] transition-colors -ml-[10px] sm:-ml-[14px] shadow-2xs" />
                     </div>
 
                     {/* Right Column: Title, Description, Responsible Person & Meta */}
@@ -466,12 +466,12 @@ export const TimelineModule: React.FC = () => {
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-3">
                         <div>
                           <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-                            <h4 className="font-serif-display text-sm sm:text-base md:text-lg font-bold text-[#2D2A26] leading-snug group-hover:text-[#8B3A4A] transition-colors">
+                            <h4 className="font-serif-display text-sm sm:text-base md:text-lg font-bold text-[#2D2A26] leading-snug group-hover:text-[#2D3748] transition-colors">
                               {item.title}
                             </h4>
 
                             {durationText && (
-                              <span className="text-[11px] sm:text-xs font-semibold text-[#8B3A4A] bg-[#8B3A4A]/10 px-2 py-0.5 rounded-md font-mono">
+                              <span className="text-[11px] sm:text-xs font-semibold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 px-2 py-0.5 rounded-md font-mono">
                                 {durationText}
                               </span>
                             )}
@@ -488,7 +488,7 @@ export const TimelineModule: React.FC = () => {
                           {item.responsiblePerson && (
                             <p className="text-xs sm:text-sm text-[#524B42] mt-0.5 font-sans">
                               <span className="text-[#7A7268]">A cargo de </span>
-                              <strong className="font-semibold text-[#2D2A26] group-hover:text-[#8B3A4A] transition-colors">
+                              <strong className="font-semibold text-[#2D2A26] group-hover:text-[#2D3748] transition-colors">
                                 {formatAltibajas(item.responsiblePerson)}
                               </strong>
                             </p>
@@ -509,9 +509,9 @@ export const TimelineModule: React.FC = () => {
                     )}
 
                     {/* Location & Dress/Items Badges */}
-                    <div className="flex flex-wrap items-center gap-2 mt-2 pt-1.5 border-t border-[#E8DCCF]/40 text-[11px] sm:text-xs">
+                    <div className="flex flex-wrap items-center gap-2 mt-2 pt-1.5 border-t border-transparent/40 text-[11px] sm:text-xs">
                       {item.location && (
-                        <span className="inline-flex items-center space-x-1 text-[#6B6358] bg-white/60 px-2 py-0.5 rounded-md border border-[#E8DCCF]/60">
+                        <span className="inline-flex items-center space-x-1 text-[#6B6358] bg-[#EBEBEB]/60 px-2 py-0.5 rounded-md border border-transparent/60">
                           <MapPin className="w-3 h-3 text-[#8A9A86] shrink-0" />
                           <span className="font-medium truncate max-w-[240px] sm:max-w-none">{item.location}</span>
                         </span>
@@ -532,8 +532,8 @@ export const TimelineModule: React.FC = () => {
           </div>
 
             {/* Bottom Cursive Signature */}
-            <div className="pt-10 sm:pt-14 mt-8 border-t border-[#E8DCCF]/60 flex items-center justify-between">
-              <span className="font-script text-2xl sm:text-3xl md:text-4xl text-[#8B3A4A]/85">
+            <div className="pt-10 sm:pt-14 mt-8 border-t border-transparent/60 flex items-center justify-between">
+              <span className="font-script text-2xl sm:text-3xl md:text-4xl text-[#2D3748]/85">
                 Wedding Timing
               </span>
               <span className="text-[10px] sm:text-xs text-[#8C8276] font-serif italic">
@@ -547,115 +547,73 @@ export const TimelineModule: React.FC = () => {
 
       {/* 2. DETAILED CARD VIEW (Alternative Toggle) */}
       {viewMode === 'cards' && filteredTimeline.length > 0 && (
-        <div className="space-y-3.5">
-          {filteredTimeline.map((item, idx) => {
-            const nextItem = filteredTimeline[idx + 1];
-            let durationText: string | null = null;
-            if (nextItem && item.time && nextItem.time) {
-              const min1 = parseMilestoneTimeToMinutes(item.time);
-              const min2 = parseMilestoneTimeToMinutes(nextItem.time);
-              const diff = min2 - min1;
-              if (diff > 0) {
-                durationText = `${diff} mins`;
-              }
-            }
+        <div className="bg-[#EBEBEB] font-['Nunito',sans-serif] text-black w-full overflow-hidden">
+          {/* Header with gray bg */}
+          <div className="bg-[#f0f0f0] px-3 py-1.5 border-b border-black">
+            <span className="text-[19px] text-black">
+              {categoriesFilterList.find(c => c.id === categoryFilter)?.label || 'Preparación'}
+            </span>
+          </div>
 
-            return (
-              <div
-                key={item.id}
-                className={`bg-white rounded-2xl p-4 sm:p-5 transition-all border shadow-2xs relative ${
-                  item.isProtocolCrucial
-                    ? 'border-[#D4AF37]/70 ring-1 ring-[#D4AF37]/30 bg-[#FFFDF9]'
-                    : 'border-[#EDE5DA]'
-                }`}
-              >
-                {/* Row 1: Time badge, Title, Duration, Crucial badge | Category & Action Buttons */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center space-x-3 flex-wrap gap-y-1.5">
-                    <span className="font-mono font-bold text-xs sm:text-sm px-3.5 py-1 rounded-full bg-[#1E1B18] text-white shadow-2xs shrink-0 tracking-wide">
-                      {item.time} hrs
-                    </span>
-                    <h3 className="font-serif-display text-base sm:text-lg font-bold text-[#1E1B18] leading-snug">
-                      {item.title}
-                    </h3>
-                    {durationText && (
-                      <span className="text-xs font-semibold text-[#8B3A4A] bg-[#F9ECEE] px-2.5 py-0.5 rounded-full font-mono">
-                        {durationText}
-                      </span>
-                    )}
-                    {item.isProtocolCrucial && (
-                      <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#8B6B23] text-[10px] font-bold uppercase tracking-wider border border-[#D4AF37]/40">
-                        <Star className="w-3 h-3 fill-[#D4AF37] text-[#D4AF37]" />
-                        <span>Crucial</span>
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center space-x-2.5 shrink-0 self-start sm:self-center">
-                    {getCategoryBadge(item.category)}
-                    
-                    <div className="h-4 w-[1px] bg-[#E2D9CE] mx-0.5" />
-
-                    <div className="flex items-center space-x-1">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(item)}
-                        className="p-1 text-[#8C8276] hover:text-[#8B3A4A] hover:bg-[#FAF7F2] rounded-md transition-colors cursor-pointer"
-                        title="Editar Hito"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(item.id, item.title)}
-                        className="p-1 text-[#8C8276] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                        title="Eliminar Hito"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+          {/* Timeline Items */}
+          {filteredTimeline.map((item, idx) => (
+            <div key={item.id} className="relative group hover:bg-gray-50 transition-colors">
+              
+              {/* Event Block Main */}
+              <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] border-b border-black">
+                <div className="pt-3 pb-1 pr-3 border-r border-black flex flex-col justify-start items-end">
+                  <span className="text-[17px] font-bold text-black text-right whitespace-nowrap">{item.time} hrs</span>
                 </div>
-
-                {/* Row 2: Description & Utilería (Sparkles en dorado) */}
-                {(item.description || item.dressOrItemsRequired) && (
-                  <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-x-4 gap-y-1 my-1.5 text-xs text-[#524B42] leading-snug font-sans">
-                    {item.description ? (
-                      <p className="flex-1 text-xs sm:text-[13px] text-[#4A433B] leading-snug">
-                        {item.description}
-                      </p>
-                    ) : (
-                      <div />
-                    )}
-
-                    {item.dressOrItemsRequired && (
-                      <div className="flex items-center space-x-1.5 text-[#8B6B23] shrink-0 self-start sm:self-auto max-w-sm sm:max-w-md">
-                        <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
-                        <span className="text-xs truncate font-medium">{item.dressOrItemsRequired}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Row 3: Location & Responsible Person (Persona de Contacto / Asesor sin proveedor) */}
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5 pt-1 text-xs text-[#524B42] leading-none">
-                  {item.location && (
-                    <div className="flex items-center space-x-1.5 text-[#6B6358]">
-                      <MapPin className="w-3.5 h-3.5 text-[#8A9A86] shrink-0" />
-                      <span className="truncate">{item.location}</span>
+                <div className="pt-3 pb-1 pl-3 pr-12 flex flex-col justify-start items-start relative">
+                  <h3 className="text-[19px] font-bold text-black leading-snug w-full break-words">{item.title}</h3>
+                  
+                  {item.description && (
+                    <div className="text-[15px] text-black leading-snug mt-1 w-full break-words whitespace-pre-wrap">
+                      {item.description}
                     </div>
                   )}
-
-                  <div className="flex items-center space-x-1.5">
-                    <User className="w-3.5 h-3.5 text-[#8B3A4A] shrink-0" />
-                    <span className="font-semibold text-[#2D2A26] truncate">
-                      {extractContactPersonOnly(item.responsiblePerson) || 'Novios & Coordinación'}
-                    </span>
+                  
+                  {item.dressOrItemsRequired && (
+                    <div className="text-[15px] font-bold italic text-black leading-snug mt-1 w-full break-words whitespace-pre-wrap">
+                      {item.dressOrItemsRequired}
+                    </div>
+                  )}
+                  
+                  {/* Action Buttons (Show on hover) */}
+                  <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 no-print">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEdit(item)}
+                      className="p-1.5 bg-[#EBEBEB] border border-gray-200 hover:bg-gray-100 rounded text-gray-600 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] cursor-pointer"
+                      title="Editar Hito"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item.id, item.title)}
+                      className="p-1.5 bg-[#EBEBEB] border border-red-200 hover:bg-red-50 rounded text-red-600 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] cursor-pointer"
+                      title="Eliminar Hito"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>
-            );
-          })}
+              
+              {/* Event Block Sub */}
+              <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] border-b border-black">
+                <div className="pt-0.5 pb-2 pr-3 flex flex-col justify-start items-end">
+                  <span className="text-[14px] text-black text-right">{item.location || ''}</span>
+                </div>
+                <div className="pt-0.5 pb-2 pl-3 pr-2 flex flex-col justify-start items-start">
+                  <span className="text-[15px] font-bold text-black">
+                    {item.responsiblePerson ? extractContactPersonOnly(item.responsiblePerson) : 'Novios + Coordinación'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -679,7 +637,7 @@ export const TimelineModule: React.FC = () => {
           type="button"
           onClick={handleOpenAdd}
           id="fab-add-milestone"
-          className="group flex items-center space-x-2.5 px-5 py-3.5 rounded-full bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-sm font-semibold shadow-lg hover:shadow-xl shadow-[#8B3A4A]/30 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer border border-white/20 backdrop-blur-xs"
+          className="group flex items-center space-x-2.5 px-5 py-3.5 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-sm font-semibold shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] hover:shadow-xl shadow-[#d1d1d1]/30 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer border border-transparent backdrop-blur-xs"
         >
           <Plus className="w-5 h-5 transition-transform group-hover:rotate-90 duration-200" />
           <span className="tracking-wide">Añadir Hito</span>

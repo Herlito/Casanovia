@@ -52,7 +52,7 @@ El icono de la esquina superior derecha (Menú o Hamburguesa) permite acceder a 
   };
 
   return (
-    <div className="min-h-screen bg-white text-black p-4 sm:p-8 font-sans">
+    <div className="min-h-screen bg-[#EBEBEB] text-black p-4 sm:p-8 font-sans">
       <div className="max-w-4xl mx-auto print:max-w-full">
         {/* Header - Hidden during printing */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 pb-4 border-b border-gray-200 print:hidden space-y-4 sm:space-y-0">
@@ -70,7 +70,7 @@ El icono de la esquina superior derecha (Menú o Hamburguesa) permite acceder a 
             {isEditing ? (
               <button
                 onClick={() => setIsEditing(false)}
-                className="flex items-center space-x-2 px-4 py-2 bg-black text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-black text-[#2D3748] rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors"
               >
                 <Save className="w-4 h-4" />
                 <span>Guardar Cambios</span>
@@ -78,7 +78,7 @@ El icono de la esquina superior derecha (Menú o Hamburguesa) permite acceder a 
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-white text-black border border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-[#EBEBEB] text-black border border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
               >
                 <Edit3 className="w-4 h-4" />
                 <span>Editar Manual</span>
@@ -87,7 +87,7 @@ El icono de la esquina superior derecha (Menú o Hamburguesa) permite acceder a 
             
             <button
               onClick={handlePrint}
-              className="flex items-center space-x-2 px-4 py-2 bg-white text-black border border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 bg-[#EBEBEB] text-black border border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
             >
               <Printer className="w-4 h-4" />
               <span>Imprimir / PDF</span>
@@ -113,7 +113,7 @@ El icono de la esquina superior derecha (Menú o Hamburguesa) permite acceder a 
             <textarea
               value={manualContent}
               onChange={handleChange}
-              className="w-full h-[60vh] p-6 text-sm border border-gray-300 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black font-mono leading-relaxed resize-y"
+              className="w-full h-[60vh] p-6 text-sm border border-gray-300 rounded-xl bg-gray-50 focus:bg-[#EBEBEB] focus:outline-none focus:ring-2 focus:ring-black font-mono leading-relaxed resize-y"
             />
           </div>
         ) : (

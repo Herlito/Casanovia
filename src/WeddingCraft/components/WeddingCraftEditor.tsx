@@ -86,8 +86,8 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8B3A4A] mb-4"></div>
+      <div className="fixed inset-0 z-[9999] bg-[#EBEBEB] flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-transparent mb-4"></div>
         <p className="text-[#8C8276] font-semibold text-sm">Inicializando WeddingCraft Studio...</p>
       </div>
     );
@@ -95,7 +95,7 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
 
   if (error) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center p-8 text-center">
+      <div className="fixed inset-0 z-[9999] bg-[#EBEBEB] flex flex-col items-center justify-center p-8 text-center">
         <p className="text-red-500 font-bold mb-4">Error de Integración</p>
         <p className="text-[#524B42] text-sm max-w-md">{error}</p>
         <button onClick={onClose} className="mt-6 px-4 py-2 bg-gray-100 rounded-lg text-sm font-semibold hover:bg-gray-200">
@@ -118,7 +118,7 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
       {/* Preview Modal */}
       {isPreviewModalOpen && (
         <div className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-8">
-          <div className="bg-white rounded-2xl shadow-2xl w-full h-full max-w-md md:max-w-4xl flex flex-col overflow-hidden relative">
+          <div className="bg-[#EBEBEB] rounded-2xl shadow-2xl w-full h-full max-w-md md:max-w-4xl flex flex-col overflow-hidden relative">
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <h3 className="font-bold text-gray-800">Previsualización (Animaciones)</h3>
               <button 
@@ -142,7 +142,7 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
       {/* Close button float */}
       <button 
         onClick={onClose}
-        className="absolute top-16 right-4 p-2 bg-white rounded-full shadow-lg border border-[#E8DCCF] hover:bg-red-50 text-red-500 transition-colors z-50"
+        className="absolute top-16 right-4 p-2 bg-[#EBEBEB] rounded-full shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] border border-transparent hover:bg-red-50 text-red-500 transition-colors z-50"
         title="Cerrar Editor (Limpiar memoria)"
       >
         <X className="w-5 h-5" />

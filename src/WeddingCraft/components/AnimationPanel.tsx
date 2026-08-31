@@ -47,7 +47,7 @@ export const AnimationPanel: React.FC = () => {
         <div className="flex items-center justify-between mb-3">
           <label className="text-[11px] font-bold text-gray-800 uppercase tracking-wider">{title}</label>
           <select 
-            className="text-xs p-1 border border-gray-200 rounded-md bg-white text-gray-700 outline-none focus:border-blue-400"
+            className="text-xs p-1 border border-gray-200 rounded-md bg-[#EBEBEB] text-gray-700 outline-none focus:border-blue-400"
             value={type}
             onChange={(e) => handleUpdate(layer, { type: e.target.value })}
           >
@@ -85,7 +85,7 @@ export const AnimationPanel: React.FC = () => {
               <div>
                 <label className="block text-[10px] text-gray-500 mb-1">Curva (Easing)</label>
                 <select 
-                  className="w-full text-xs p-1.5 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-400 outline-none bg-white"
+                  className="w-full text-xs p-1.5 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-400 outline-none bg-[#EBEBEB]"
                   value={config.easing || 'ease'}
                   onChange={(e) => handleUpdate(layer, { easing: e.target.value })}
                 >
@@ -100,7 +100,7 @@ export const AnimationPanel: React.FC = () => {
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-1">Gatillo</label>
                   <select 
-                    className="w-full text-xs p-1.5 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-400 outline-none bg-white"
+                    className="w-full text-xs p-1.5 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-400 outline-none bg-[#EBEBEB]"
                     value={config.trigger || 'onLoad'}
                     onChange={(e) => handleUpdate(layer, { trigger: e.target.value as any })}
                   >
@@ -113,7 +113,7 @@ export const AnimationPanel: React.FC = () => {
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-1">Dirección</label>
                   <select 
-                    className="w-full text-xs p-1.5 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-400 outline-none bg-white"
+                    className="w-full text-xs p-1.5 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-400 outline-none bg-[#EBEBEB]"
                     value={config.direction || 'normal'}
                     onChange={(e) => handleUpdate(layer, { direction: e.target.value as any })}
                   >
@@ -132,7 +132,7 @@ export const AnimationPanel: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto wc-properties">
-      <div className="p-3 border-b border-gray-200/50 bg-white/50 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
+      <div className="p-3 border-b border-gray-200/50 bg-[#EBEBEB]/50 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
         <h3 className="text-[11px] font-semibold text-gray-800 flex items-center space-x-1.5 uppercase tracking-wide">
           <Wand2 className="w-4 h-4 text-gray-800" />
           <span>Animar Objeto</span>
@@ -143,7 +143,7 @@ export const AnimationPanel: React.FC = () => {
 
         <button 
           onClick={() => useEditorStore.getState().setPreviewModalOpen(true)}
-          className="w-full flex items-center justify-center space-x-2 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors shadow-sm font-semibold text-xs mt-2"
+          className="w-full flex items-center justify-center space-x-2 py-2.5 bg-gray-900 text-[#2D3748] rounded-xl hover:bg-gray-800 transition-colors shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] font-semibold text-xs mt-2"
         >
           <Play className="w-3.5 h-3.5" />
           <span>Aplicar y Previsualizar</span>

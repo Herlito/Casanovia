@@ -266,7 +266,7 @@ export const CanvasStage: React.FC = () => {
   return (
     <div className="flex-1 bg-[#F5F1E8] relative overflow-hidden flex items-center justify-center wc-canvas-container" ref={containerRef} onDragOver={handleDragOver} onDrop={handleDrop}>
       {stageSize.width > 0 && (
-        <div className="shadow-2xl bg-white relative" style={{ width: canvasConfig.width, height: canvasConfig.height }}>
+        <div className="shadow-2xl bg-[#EBEBEB] relative" style={{ width: canvasConfig.width, height: canvasConfig.height }}>
           <Stage
             width={canvasConfig.width}
             onDragOver={handleDragOver}
@@ -430,9 +430,9 @@ export const CanvasStage: React.FC = () => {
                 }}
                 anchorSize={8}
                 anchorCornerRadius={4}
-                anchorStroke="#8B3A4A"
+                anchorStroke="#2D3748"
                 anchorFill="#ffffff"
-                borderStroke="#8B3A4A"
+                borderStroke="#2D3748"
                 padding={2}
               />
             </Layer>
@@ -454,7 +454,7 @@ export const CanvasStage: React.FC = () => {
                 height: Math.max(50, editingTextPos.height + 20) + 'px',
                 fontSize: editingTextPos.fontSize + 'px',
                 fontFamily: `"${editingTextPos.fontFamily}", sans-serif`,
-                border: '1px solid #8B3A4A',
+                border: '1px solid #2D3748',
                 padding: '0px',
                 margin: '0px',
                 overflow: 'hidden',

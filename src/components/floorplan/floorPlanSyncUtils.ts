@@ -439,7 +439,7 @@ export function buildFloorPlanFromWedding(
       seatsHead: 1,
       seats,
       color: '#FFFFFF',
-      textColor: '#8B3A4A',
+      textColor: '#2D3748',
       zIndex: 2,
     });
   }

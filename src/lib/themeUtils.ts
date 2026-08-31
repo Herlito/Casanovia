@@ -1,7 +1,7 @@
 import { DressCodeColor, WeddingCustomTheme } from '../types';
 
 /**
- * Parses any hex color string (e.g. "#8B3A4A", "#FFF", "8B3A4A") into RGB values.
+ * Parses any hex color string (e.g. "#2D3748", "#FFF", "8B3A4A") into RGB values.
  */
 export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   let cleanHex = hex.replace('#', '').trim();
@@ -9,7 +9,7 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
     cleanHex = cleanHex.split('').map(c => c + c).join('');
   }
   if (cleanHex.length !== 6) {
-    return { r: 139, g: 58, b: 74 }; // Fallback to classic burgundy #8B3A4A
+    return { r: 139, g: 58, b: 74 }; // Fallback to classic burgundy #2D3748
   }
   const num = parseInt(cleanHex, 16);
   return {
@@ -82,9 +82,9 @@ export function adjustBrightness(hex: string, percent: number): string {
 export function getDefaultWeddingTheme(): WeddingCustomTheme {
   return {
     enabled: false,
-    primary: '#8B3A4A',
+    primary: '#2D3748',
     primaryForeground: '#FFFFFF',
-    primaryHover: '#6E2937',
+    primaryHover: '#2D3748',
     secondary: '#8A9A86',
     secondaryForeground: '#FFFFFF',
     secondaryHover: '#6E7E6A',
@@ -112,7 +112,7 @@ export function generateWeddingTheme(colors: DressCodeColor[]): WeddingCustomThe
   }
 
   // 1. Primary Color
-  const primary = colors[0]?.hex || '#8B3A4A';
+  const primary = colors[0]?.hex || '#2D3748';
   const primaryForeground = getAccessibleTextColor(primary);
   const primaryHover = adjustBrightness(primary, -12);
 

@@ -55,7 +55,7 @@ const ROLE_BADGES: Record<string, string> = {
   invitado: 'bg-stone-100 text-stone-700 border-stone-300',
   familia_directa: 'bg-amber-100 text-amber-900 border-amber-300',
   wedding_planner: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-  cortejo_honor: 'bg-[#8B3A4A]/10 text-[#8B3A4A] border-[#8B3A4A]/30',
+  cortejo_honor: 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] border-transparent',
   damita_honor: 'bg-pink-100 text-pink-800 border-pink-300',
   paje_honor: 'bg-sky-100 text-sky-800 border-sky-300',
   nino_boda: 'bg-teal-100 text-teal-800 border-teal-300',
@@ -370,7 +370,7 @@ export const GuestManagement: React.FC = () => {
       {/* Top Header & Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#8B3A4A]/10 text-[#8B3A4A] text-xs font-bold mb-1">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] text-xs font-bold mb-1">
             <Users className="w-3.5 h-3.5" />
             <span>Base de Datos & Clasificación de Invitados</span>
           </div>
@@ -387,7 +387,7 @@ export const GuestManagement: React.FC = () => {
           <button
             type="button"
             onClick={handleExportExcel}
-            className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-white border border-[#D9CEBF] hover:bg-[#FAF8F5] text-[#524B42] text-xs font-bold shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#FAF8F5] text-[#524B42] text-xs font-bold shadow-2xs transition-all cursor-pointer"
             title="Exportar base de datos a Excel (.xlsx)"
           >
             <Download className="w-3.5 h-3.5 text-emerald-700" />
@@ -397,10 +397,10 @@ export const GuestManagement: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-white border border-[#D9CEBF] hover:bg-[#FAF8F5] text-[#524B42] text-xs font-bold shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#FAF8F5] text-[#524B42] text-xs font-bold shadow-2xs transition-all cursor-pointer"
             title="Importar invitados desde Excel o CSV"
           >
-            <Upload className="w-3.5 h-3.5 text-[#8B3A4A]" />
+            <Upload className="w-3.5 h-3.5 text-[#2D3748]" />
             <span className="hidden sm:inline">Importar</span>
           </button>
 
@@ -408,7 +408,7 @@ export const GuestManagement: React.FC = () => {
             type="button"
             id="btn-add-guest"
             onClick={handleOpenAddModal}
-            className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer"
+            className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold shadow-xs hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span className="hidden sm:inline">Nuevo Invitado</span>
@@ -425,8 +425,8 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'anfitrion' ? 'all' : 'anfitrion')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'anfitrion'
-              ? 'bg-purple-700 text-white border-purple-800 shadow-sm'
-              : 'bg-white text-[#2D2A26] border-[#E8DCCF] hover:bg-purple-50/50'
+              ? 'bg-purple-700 text-[#2D3748] border-purple-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-purple-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
@@ -443,8 +443,8 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'invitado' ? 'all' : 'invitado')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'invitado'
-              ? 'bg-stone-800 text-white border-stone-900 shadow-sm'
-              : 'bg-white text-[#2D2A26] border-[#E8DCCF] hover:bg-stone-50'
+              ? 'bg-stone-800 text-[#2D3748] border-stone-900 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-stone-50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
@@ -461,8 +461,8 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'familia_directa' ? 'all' : 'familia_directa')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'familia_directa'
-              ? 'bg-amber-700 text-white border-amber-800 shadow-sm'
-              : 'bg-white text-[#2D2A26] border-[#E8DCCF] hover:bg-amber-50/50'
+              ? 'bg-amber-700 text-[#2D3748] border-amber-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-amber-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
@@ -479,8 +479,8 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'wedding_planner' ? 'all' : 'wedding_planner')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'wedding_planner'
-              ? 'bg-emerald-700 text-white border-emerald-800 shadow-sm'
-              : 'bg-white text-[#2D2A26] border-[#E8DCCF] hover:bg-emerald-50/50'
+              ? 'bg-emerald-700 text-[#2D3748] border-emerald-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-emerald-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
@@ -497,8 +497,8 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'cortejo_honor' ? 'all' : 'cortejo_honor')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'cortejo_honor'
-              ? 'bg-[#8B3A4A] text-white border-[#6E2937] shadow-sm'
-              : 'bg-white text-[#2D2A26] border-[#E8DCCF] hover:bg-rose-50/50'
+              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-[#2D3748] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-rose-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
@@ -515,8 +515,8 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'damita_honor' ? 'all' : 'damita_honor')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'damita_honor'
-              ? 'bg-pink-700 text-white border-pink-800 shadow-sm'
-              : 'bg-white text-[#2D2A26] border-[#E8DCCF] hover:bg-pink-50/50'
+              ? 'bg-pink-700 text-[#2D3748] border-pink-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-pink-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
@@ -533,8 +533,8 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'paje_honor' ? 'all' : 'paje_honor')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'paje_honor'
-              ? 'bg-sky-700 text-white border-sky-800 shadow-sm'
-              : 'bg-white text-[#2D2A26] border-[#E8DCCF] hover:bg-sky-50/50'
+              ? 'bg-sky-700 text-[#2D3748] border-sky-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-sky-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
@@ -551,8 +551,8 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'nino_boda' ? 'all' : 'nino_boda')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'nino_boda'
-              ? 'bg-teal-700 text-white border-teal-800 shadow-sm'
-              : 'bg-white text-[#2D2A26] border-[#E8DCCF] hover:bg-teal-50/50'
+              ? 'bg-teal-700 text-[#2D3748] border-teal-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-teal-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
@@ -569,8 +569,8 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'proveedor' ? 'all' : 'proveedor')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'proveedor'
-              ? 'bg-blue-700 text-white border-blue-800 shadow-sm'
-              : 'bg-white text-[#2D2A26] border-[#E8DCCF] hover:bg-blue-50/50'
+              ? 'bg-blue-700 text-[#2D3748] border-blue-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-blue-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
@@ -584,7 +584,7 @@ export const GuestManagement: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E8DCCF] shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-[#EBEBEB] p-3.5 sm:p-4 rounded-2xl border border-transparent shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         
         {/* Search input */}
         <div className="relative flex-1">
@@ -594,7 +594,7 @@ export const GuestManagement: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por nombre, rol, mesa, código de pase o teléfono..."
-            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#8B3A4A]/20"
+            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
           />
         </div>
 
@@ -657,7 +657,7 @@ export const GuestManagement: React.FC = () => {
                 setSortField('none');
                 setSortDirection('asc');
               }}
-              className="text-xs text-[#8B3A4A] font-semibold underline px-1 hover:text-[#6E2937] cursor-pointer"
+              className="text-xs text-[#2D3748] font-semibold underline px-1 hover:text-[#2D3748] cursor-pointer"
             >
               Limpiar filtros
             </button>
@@ -669,13 +669,13 @@ export const GuestManagement: React.FC = () => {
 
       {/* Floating Toast Notification for Drag & Drop actions */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#2D2A26] text-white px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-2 border border-[#8B3A4A]/40 animate-fadeIn">
-          <Sparkles className="w-4 h-4 text-[#F7E7CE] shrink-0" />
+        <div className="fixed bottom-6 right-6 z-50 bg-[#2D2A26] text-[#2D3748] px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-2 border border-transparent animate-fadeIn">
+          <Sparkles className="w-4 h-4 text-[#4A5568] shrink-0" />
           <span className="text-xs font-medium">{toastMessage}</span>
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            className="ml-2 text-stone-400 hover:text-white text-xs cursor-pointer"
+            className="ml-2 text-stone-400 hover:text-[#2D3748] text-xs cursor-pointer"
           >
             ✕
           </button>
@@ -683,10 +683,10 @@ export const GuestManagement: React.FC = () => {
       )}
 
       {/* Main Table: Lista de Invitados */}
-      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-[#E8DCCF] shadow-xs overflow-hidden" : "bg-white rounded-2xl border border-[#E8DCCF] shadow-xs overflow-hidden"}>
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-transparent shadow-xs overflow-hidden" : "bg-[#EBEBEB] rounded-2xl border border-transparent shadow-xs overflow-hidden"}>
         
         {/* Table Title Bar */}
-        <div className="bg-[#FAF8F5] px-4 py-3 border-b border-[#E8DCCF] flex flex-wrap items-center justify-between gap-2">
+        <div className="bg-[#FAF8F5] px-4 py-3 border-b border-transparent flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center space-x-2">
             <span className="font-serif-display font-bold text-sm text-[#2D2A26]">
               Registros en Lista ({filteredGuests.length} de {guests.length})
@@ -714,14 +714,14 @@ export const GuestManagement: React.FC = () => {
               <button
                 type="button"
                 onClick={handleOpenAddModal}
-                className="px-4 py-2 rounded-xl bg-[#8B3A4A] text-white text-xs font-bold hover:bg-[#6E2937] cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold hover:bg-[#EBEBEB] cursor-pointer"
               >
                 + Agregar Invitado
               </button>
               <button
                 type="button"
                 onClick={() => setIsImportModalOpen(true)}
-                className="px-4 py-2 rounded-xl bg-white border border-[#D9CEBF] text-[#524B42] text-xs font-semibold hover:bg-[#FAF8F5] cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#EBEBEB] border border-[#D9CEBF] text-[#524B42] text-xs font-semibold hover:bg-[#FAF8F5] cursor-pointer"
               >
                 Importar Excel
               </button>
@@ -730,7 +730,7 @@ export const GuestManagement: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#FAF8F5] border-b border-[#E8DCCF] text-[#7A7268]">
+              <thead className="bg-[#FAF8F5] border-b border-transparent text-[#7A7268]">
                 <tr>
                   {/* Drag Handle Header */}
                   <th className="w-8 py-3 px-2 text-center" title="Arrastra para reordenar o mover de mesa">
@@ -742,11 +742,11 @@ export const GuestManagement: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleSort('name')}
-                      className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#8B3A4A] transition-colors cursor-pointer group select-none text-left"
+                      className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#2D3748] transition-colors cursor-pointer group select-none text-left"
                       title="Ordenar por nombre de invitado (A-Z / Z-A)"
                     >
                       <span>Invitado & Código</span>
-                      <span className={`p-0.5 rounded transition-colors ${sortField === 'name' ? 'bg-[#8B3A4A]/10 text-[#8B3A4A]' : 'text-stone-400 group-hover:text-stone-600'}`}>
+                      <span className={`p-0.5 rounded transition-colors ${sortField === 'name' ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748]' : 'text-stone-400 group-hover:text-stone-600'}`}>
                         {sortField === 'name' ? (
                           sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
                         ) : (
@@ -761,11 +761,11 @@ export const GuestManagement: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleSort('role')}
-                      className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#8B3A4A] transition-colors cursor-pointer group select-none text-left"
+                      className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#2D3748] transition-colors cursor-pointer group select-none text-left"
                       title="Ordenar por rol o cargo en la boda"
                     >
                       <span>Rol en la Boda</span>
-                      <span className={`p-0.5 rounded transition-colors ${sortField === 'role' ? 'bg-[#8B3A4A]/10 text-[#8B3A4A]' : 'text-stone-400 group-hover:text-stone-600'}`}>
+                      <span className={`p-0.5 rounded transition-colors ${sortField === 'role' ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748]' : 'text-stone-400 group-hover:text-stone-600'}`}>
                         {sortField === 'role' ? (
                           sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
                         ) : (
@@ -780,11 +780,11 @@ export const GuestManagement: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleSort('table')}
-                      className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#8B3A4A] transition-colors cursor-pointer group select-none text-left"
+                      className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#2D3748] transition-colors cursor-pointer group select-none text-left"
                       title="Ordenar por mesa asignada (mesas ordenadas alfabéticamente)"
                     >
                       <span>Mesa & Pases</span>
-                      <span className={`p-0.5 rounded transition-colors ${sortField === 'table' ? 'bg-[#8B3A4A]/10 text-[#8B3A4A]' : 'text-stone-400 group-hover:text-stone-600'}`}>
+                      <span className={`p-0.5 rounded transition-colors ${sortField === 'table' ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748]' : 'text-stone-400 group-hover:text-stone-600'}`}>
                         {sortField === 'table' ? (
                           sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
                         ) : (
@@ -837,12 +837,12 @@ export const GuestManagement: React.FC = () => {
                         isBeingDragged
                           ? 'opacity-40 bg-[#F5EBE6]'
                           : isDragTarget
-                          ? 'bg-[#FAF3F5] ring-2 ring-[#8B3A4A] ring-inset'
+                          ? 'bg-[#FAF3F5] ring-2 ring-[#d1d1d1] ring-inset'
                           : 'hover:bg-[#FAF8F5]/80'
                       }`}
                     >
                       {/* Drag Handle */}
-                      <td className="py-3 px-2 text-center align-middle text-stone-300 hover:text-[#8B3A4A] cursor-grab active:cursor-grabbing">
+                      <td className="py-3 px-2 text-center align-middle text-stone-300 hover:text-[#2D3748] cursor-grab active:cursor-grabbing">
                         <GripVertical className="w-4 h-4 mx-auto" />
                       </td>
                       
@@ -856,7 +856,7 @@ export const GuestManagement: React.FC = () => {
                             type="button"
                             onClick={() => copyGuestCode(guest.code)}
                             title="Copiar código de pase"
-                            className="inline-flex items-center space-x-1 text-[11px] font-mono text-[#8B3A4A] bg-[#8B3A4A]/5 hover:bg-[#8B3A4A]/15 px-1.5 py-0.5 rounded-md border border-[#8B3A4A]/20 transition-colors cursor-pointer"
+                            className="inline-flex items-center space-x-1 text-[11px] font-mono text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/5 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/15 px-1.5 py-0.5 rounded-md border border-transparent transition-colors cursor-pointer"
                           >
                             <span>{guest.code}</span>
                             {copiedCodeForGuest === guest.code && (
@@ -960,10 +960,10 @@ export const GuestManagement: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setCompanionModalGuest(guest)}
-                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-700 text-emerald-800 hover:text-white border border-emerald-300 hover:border-emerald-700 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer group active:scale-95"
+                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-700 text-emerald-800 hover:text-[#2D3748] border border-emerald-300 hover:border-emerald-700 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer group active:scale-95"
                             title={`Asignar acompañante para ${guest.fullName}`}
                           >
-                            <UserPlus className="w-3.5 h-3.5 text-emerald-700 group-hover:text-white transition-colors" />
+                            <UserPlus className="w-3.5 h-3.5 text-emerald-700 group-hover:text-[#2D3748] transition-colors" />
                             <span>Asignar Acompañante</span>
                           </button>
                         )}
@@ -984,7 +984,7 @@ export const GuestManagement: React.FC = () => {
                             title="Confirmado (Asiste)"
                             className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                               guest.rsvpStatus === 'confirmed'
-                                ? 'bg-emerald-600 text-white shadow-xs scale-105'
+                                ? 'bg-emerald-600 text-[#2D3748] shadow-xs scale-105'
                                 : 'text-stone-400 hover:text-emerald-700 hover:bg-emerald-50'
                             }`}
                           >
@@ -1003,7 +1003,7 @@ export const GuestManagement: React.FC = () => {
                             title="Pendiente"
                             className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                               guest.rsvpStatus === 'pending'
-                                ? 'bg-amber-500 text-white shadow-xs scale-105'
+                                ? 'bg-amber-500 text-[#2D3748] shadow-xs scale-105'
                                 : 'text-stone-400 hover:text-amber-700 hover:bg-amber-50'
                             }`}
                           >
@@ -1022,7 +1022,7 @@ export const GuestManagement: React.FC = () => {
                             title="Declinado (No asiste)"
                             className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                               guest.rsvpStatus === 'declined'
-                                ? 'bg-rose-600 text-white shadow-xs scale-105'
+                                ? 'bg-rose-600 text-[#2D3748] shadow-xs scale-105'
                                 : 'text-stone-400 hover:text-rose-700 hover:bg-rose-50'
                             }`}
                           >
@@ -1039,7 +1039,7 @@ export const GuestManagement: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(guest)}
-                            className="p-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#8B3A4A] text-[#524B42] hover:text-white border border-[#D9CEBF] hover:border-[#8B3A4A] transition-all cursor-pointer shadow-2xs"
+                            className="p-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-[#524B42] hover:text-[#2D3748] border border-[#D9CEBF] hover:border-transparent transition-all cursor-pointer shadow-2xs"
                             title="Editar invitado / Asignar acompañante"
                           >
                             <Edit className="w-4 h-4" />
@@ -1079,10 +1079,10 @@ export const GuestManagement: React.FC = () => {
       </div>
 
       {/* Bottom Actions: Exportar Excel & Importar Datos */}
-      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-[#E8DCCF] p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4" : "bg-white rounded-2xl border border-[#E8DCCF] p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4"}>
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-transparent p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4" : "bg-[#EBEBEB] rounded-2xl border border-transparent p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4"}>
         <div className="space-y-1">
           <h3 className="text-sm font-bold text-[#2D2A26] flex items-center space-x-2">
-            <FileSpreadsheet className="w-4 h-4 text-[#8B3A4A]" />
+            <FileSpreadsheet className="w-4 h-4 text-[#2D3748]" />
             <span>Herramientas de Exportación e Importación de Datos</span>
           </h3>
           <p className="text-xs text-[#7A7268]">

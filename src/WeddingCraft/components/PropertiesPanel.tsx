@@ -44,7 +44,7 @@ export const PropertiesPanel: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full wc-properties overflow-y-auto">
-      <div className="p-3 border-b border-gray-200/50 bg-white/50 backdrop-blur-md sticky top-0 z-10">
+      <div className="p-3 border-b border-gray-200/50 bg-[#EBEBEB]/50 backdrop-blur-md sticky top-0 z-10">
         <h3 className="text-[11px] font-semibold text-gray-800 flex items-center space-x-1.5 uppercase tracking-wide">
           <Settings2 className="w-4 h-4 text-gray-800" />
           <span>Propiedades del Objeto</span>
@@ -151,7 +151,7 @@ export const PropertiesPanel: React.FC = () => {
                 {['none', 'circle', 'ellipse', 'rounded', 'arch', 'heart', 'scallop', 'diamond'].map(mask => (
                   <button 
                     key={mask}
-                    className={`p-1.5 border rounded-lg flex items-center justify-center bg-gray-50 ${selectedElement.style.maskId === mask ? 'border-[#8B3A4A] bg-[#FAF8F5]' : 'border-gray-200'}`}
+                    className={`p-1.5 border rounded-lg flex items-center justify-center bg-gray-50 ${selectedElement.style.maskId === mask ? 'border-transparent bg-[#FAF8F5]' : 'border-gray-200'}`}
                     onClick={() => handleUpdateStyle('maskId', mask)}
                     title={mask}
                   >
@@ -167,13 +167,13 @@ export const PropertiesPanel: React.FC = () => {
               <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Marco Decorativo</label>
               <div className="grid grid-cols-3 gap-2">
                  <button 
-                    className={`p-2 border rounded-lg text-xs ${!selectedElement.style.frameId ? 'border-[#8B3A4A] bg-[#FAF8F5]' : 'border-gray-200'}`}
+                    className={`p-2 border rounded-lg text-xs ${!selectedElement.style.frameId ? 'border-transparent bg-[#FAF8F5]' : 'border-gray-200'}`}
                     onClick={() => handleUpdateStyle('frameId', null)}
                   >
                     Ninguno
                   </button>
                   <button 
-                    className={`p-2 border rounded-lg text-xs ${selectedElement.style.frameId === 'gold-line' ? 'border-[#8B3A4A] bg-[#FAF8F5]' : 'border-gray-200'}`}
+                    className={`p-2 border rounded-lg text-xs ${selectedElement.style.frameId === 'gold-line' ? 'border-transparent bg-[#FAF8F5]' : 'border-gray-200'}`}
                     onClick={() => handleUpdateStyle('frameId', 'gold-line')}
                   >
                     Línea Fina
@@ -223,7 +223,7 @@ export const PropertiesPanel: React.FC = () => {
               <div>
                 <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Peso</label>
                 <select 
-                  className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
+                  className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
                   value={selectedElement.style.fontWeight || 400}
                   onChange={(e) => {
                     handleUpdateStyle('fontWeight', parseInt(e.target.value));
@@ -242,25 +242,25 @@ export const PropertiesPanel: React.FC = () => {
             <div className="flex items-center justify-between bg-gray-50 p-1 rounded-lg">
               <div className="flex space-x-1">
                 <button 
-                  className={`p-1.5 rounded ${selectedElement.style.align === 'left' ? 'bg-white shadow' : 'hover:bg-gray-200'}`}
+                  className={`p-1.5 rounded ${selectedElement.style.align === 'left' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
                   onClick={() => handleUpdateStyle('align', 'left')}
                 >
                   <AlignLeft className="w-4 h-4" />
                 </button>
                 <button 
-                  className={`p-1.5 rounded ${(selectedElement.style.align || 'center') === 'center' ? 'bg-white shadow' : 'hover:bg-gray-200'}`}
+                  className={`p-1.5 rounded ${(selectedElement.style.align || 'center') === 'center' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
                   onClick={() => handleUpdateStyle('align', 'center')}
                 >
                   <AlignCenter className="w-4 h-4" />
                 </button>
                 <button 
-                  className={`p-1.5 rounded ${selectedElement.style.align === 'right' ? 'bg-white shadow' : 'hover:bg-gray-200'}`}
+                  className={`p-1.5 rounded ${selectedElement.style.align === 'right' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
                   onClick={() => handleUpdateStyle('align', 'right')}
                 >
                   <AlignRight className="w-4 h-4" />
                 </button>
                 <button 
-                  className={`p-1.5 rounded ${selectedElement.style.align === 'justify' ? 'bg-white shadow' : 'hover:bg-gray-200'}`}
+                  className={`p-1.5 rounded ${selectedElement.style.align === 'justify' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
                   onClick={() => handleUpdateStyle('align', 'justify')}
                 >
                   <AlignJustify className="w-4 h-4" />
@@ -269,7 +269,7 @@ export const PropertiesPanel: React.FC = () => {
 
               <div className="flex space-x-1 border-l pl-2 border-gray-200">
                 <button 
-                  className={`p-1.5 rounded ${selectedElement.style.fontStyle === 'italic' ? 'bg-white shadow' : 'hover:bg-gray-200'}`}
+                  className={`p-1.5 rounded ${selectedElement.style.fontStyle === 'italic' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
                   onClick={() => handleUpdateStyle('fontStyle', selectedElement.style.fontStyle === 'italic' ? 'normal' : 'italic')}
                 >
                   <Italic className="w-4 h-4" />
@@ -285,7 +285,7 @@ export const PropertiesPanel: React.FC = () => {
                 </div>
                 <input 
                   type="range" min="-2" max="20" step="0.5"
-                  className="w-full accent-[#8B3A4A]"
+                  className="w-full accent-[#2D3748]"
                   value={selectedElement.style.letterSpacing || 0}
                   onChange={(e) => handleUpdateStyle('letterSpacing', parseFloat(e.target.value))}
                 />
@@ -298,7 +298,7 @@ export const PropertiesPanel: React.FC = () => {
                 </div>
                 <input 
                   type="range" min="0.8" max="3" step="0.1"
-                  className="w-full accent-[#8B3A4A]"
+                  className="w-full accent-[#2D3748]"
                   value={selectedElement.style.lineHeight || 1.2}
                   onChange={(e) => handleUpdateStyle('lineHeight', parseFloat(e.target.value))}
                 />
@@ -308,10 +308,10 @@ export const PropertiesPanel: React.FC = () => {
             <div>
                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Transformación</label>
                <div className="flex border border-gray-200 rounded-lg overflow-hidden">
-                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'none' || !selectedElement.style.textTransform ? 'bg-gray-200 font-bold' : 'bg-white'}`} onClick={() => handleUpdateStyle('textTransform', 'none')}>Aa</button>
-                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'uppercase' ? 'bg-gray-200 font-bold' : 'bg-white'}`} onClick={() => handleUpdateStyle('textTransform', 'uppercase')}>AA</button>
-                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'lowercase' ? 'bg-gray-200 font-bold' : 'bg-white'}`} onClick={() => handleUpdateStyle('textTransform', 'lowercase')}>aa</button>
-                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'capitalize' ? 'bg-gray-200 font-bold' : 'bg-white'}`} onClick={() => handleUpdateStyle('textTransform', 'capitalize')}>Aa</button>
+                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'none' || !selectedElement.style.textTransform ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'none')}>Aa</button>
+                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'uppercase' ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'uppercase')}>AA</button>
+                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'lowercase' ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'lowercase')}>aa</button>
+                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'capitalize' ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'capitalize')}>Aa</button>
                </div>
             </div>
             
@@ -337,7 +337,7 @@ export const PropertiesPanel: React.FC = () => {
               <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Texto del Botón</label>
               <input 
                 type="text" 
-                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
+                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
                 value={selectedElement.content.text || ''}
                 onChange={(e) => handleUpdateContent({ ...selectedElement.content, text: e.target.value })}
               />
@@ -346,7 +346,7 @@ export const PropertiesPanel: React.FC = () => {
               <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Enlace (URL)</label>
               <input 
                 type="text" 
-                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
+                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
                 value={selectedElement.content.linkUrl || ''}
                 onChange={(e) => handleUpdateContent({ ...selectedElement.content, linkUrl: e.target.value })}
                 placeholder="https://goo.gl/maps/..."
@@ -355,7 +355,7 @@ export const PropertiesPanel: React.FC = () => {
             <div>
               <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Variante</label>
               <select
-                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
+                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
                 value={selectedElement.style.variant || 'solid'}
                 onChange={(e) => handleUpdateStyle('variant', e.target.value)}
               >
@@ -390,7 +390,7 @@ export const PropertiesPanel: React.FC = () => {
               <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Título</label>
               <input 
                 type="text" 
-                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
+                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
                 value={selectedElement.content.title || ''}
                 onChange={(e) => handleUpdateContent({ ...selectedElement.content, title: e.target.value })}
               />
@@ -399,7 +399,7 @@ export const PropertiesPanel: React.FC = () => {
               <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Mensaje Final (Expirado)</label>
               <input 
                 type="text" 
-                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
+                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
                 value={selectedElement.content.expiredMessage || ''}
                 onChange={(e) => handleUpdateContent({ ...selectedElement.content, expiredMessage: e.target.value })}
               />
@@ -409,7 +409,7 @@ export const PropertiesPanel: React.FC = () => {
               <input 
                 type="datetime-local" 
                 disabled={selectedElement.content.useEventDate}
-                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all disabled:opacity-50"
+                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all disabled:opacity-50"
                 value={selectedElement.content.targetDate ? selectedElement.content.targetDate.substring(0, 16) : ''}
                 onChange={(e) => handleUpdateContent({ ...selectedElement.content, targetDate: new Date(e.target.value).toISOString() })}
               />
@@ -418,7 +418,7 @@ export const PropertiesPanel: React.FC = () => {
             <div>
               <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Estilo Visual</label>
               <select
-                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
+                className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
                 value={selectedElement.style.variant || 'cards'}
                 onChange={(e) => handleUpdateStyle('variant', e.target.value)}
               >
@@ -488,7 +488,7 @@ export const PropertiesPanel: React.FC = () => {
                   min="0"
                   max="1"
                   step="0.1"
-                  className="w-full accent-[#8B3A4A]"
+                  className="w-full accent-[#2D3748]"
                   value={selectedElement.style.containerOpacity ?? 0}
                   onChange={(e) => handleUpdateStyle('containerOpacity', parseFloat(e.target.value))}
                 />

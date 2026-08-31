@@ -211,9 +211,9 @@ export const SettingsModule: React.FC = () => {
           <button
             type="button"
             onClick={handleSubmit}
-            className="px-5 py-2.5 rounded-xl bg-[#8B3A4A] text-white text-xs font-semibold hover:bg-[#6E2937] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer self-start sm:self-auto"
+            className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer self-start sm:self-auto"
           >
-            {savedSuccess ? <Check className="w-4 h-4 text-white" /> : <Save className="w-4 h-4" />}
+            {savedSuccess ? <Check className="w-4 h-4 text-[#2D3748]" /> : <Save className="w-4 h-4" />}
             <span>{savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}</span>
           </button>
         )}
@@ -233,7 +233,7 @@ export const SettingsModule: React.FC = () => {
             <button
               type="button"
               onClick={() => selectWedding(currentUser.assignedWeddingIds![0])}
-              className="px-3 py-1.5 bg-[#8B3A4A] text-white rounded-xl text-xs font-bold hover:bg-[#6E2937] transition-colors whitespace-nowrap flex items-center space-x-1 shrink-0"
+              className="px-3 py-1.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] rounded-xl text-xs font-bold hover:bg-[#EBEBEB] transition-colors whitespace-nowrap flex items-center space-x-1 shrink-0"
             >
               <span>Ir a Mi Boda</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -244,10 +244,10 @@ export const SettingsModule: React.FC = () => {
 
       {/* Multi-Weddings Manager Section - ONLY visible to Administrator and Wedding Planners */}
       {isPlannerOrAdmin && (
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3" : "bg-white rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3"}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F0EAE1]">
             <div className="flex items-center space-x-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#8B3A4A]/10 text-[#8B3A4A] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] flex items-center justify-center">
                 <Layers className="w-5 h-5" />
               </div>
               <div>
@@ -269,7 +269,7 @@ export const SettingsModule: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowNewWeddingModal(true)}
-                className="px-4 py-2 bg-[#8B3A4A] text-white rounded-xl text-xs font-bold hover:bg-[#6E2937] transition-all flex items-center space-x-1.5 shadow-2xs self-start sm:self-auto cursor-pointer"
+                className="px-4 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] rounded-xl text-xs font-bold hover:bg-[#EBEBEB] transition-all flex items-center space-x-1.5 shadow-2xs self-start sm:self-auto cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>+ Crear Evento</span>
@@ -288,8 +288,8 @@ export const SettingsModule: React.FC = () => {
                   key={w.id}
                   className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 relative ${
                     isActive
-                      ? 'border-[#8B3A4A] bg-[#8B3A4A]/5 shadow-xs ring-2 ring-[#8B3A4A]/20'
-                      : 'border-[#E8DCCF] bg-[#FAF8F5] hover:border-[#D4AF37]'
+                      ? 'border-transparent bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/5 shadow-xs ring-2 ring-[#d1d1d1]/20'
+                      : 'border-transparent bg-[#FAF8F5] hover:border-[#D4AF37]'
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -299,7 +299,7 @@ export const SettingsModule: React.FC = () => {
                           {w.coupleNames}
                         </h4>
                         {isActive && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#8B3A4A] text-white">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]">
                             Boda Activa
                           </span>
                         )}
@@ -317,7 +317,7 @@ export const SettingsModule: React.FC = () => {
                       </p>
 
                       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8B3A4A] bg-[#8B3A4A]/10 px-2 py-0.5 rounded-md border border-[#8B3A4A]/20">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 px-2 py-0.5 rounded-md border border-transparent">
                           <Calendar className="w-3 h-3" />
                           <span>{w.weddingDate ? formatWeddingDateCustom(w.weddingDate) : 'Fecha pendiente'}</span>
                         </span>
@@ -338,7 +338,7 @@ export const SettingsModule: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => selectWedding(w.id)}
-                          className="px-3 py-1 bg-white border border-[#D9CEBF] text-[#2D2A26] rounded-lg font-semibold hover:bg-[#EFEAE2] transition-colors text-xs cursor-pointer"
+                          className="px-3 py-1 bg-[#EBEBEB] border border-[#D9CEBF] text-[#2D2A26] rounded-lg font-semibold hover:bg-[#EFEAE2] transition-colors text-xs cursor-pointer"
                         >
                           Abrir Boda
                         </button>
@@ -370,9 +370,9 @@ export const SettingsModule: React.FC = () => {
       {/* 1. Couple & Date Info */}
       <form onSubmit={handleSubmit} className="space-y-3">
         
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3" : "bg-white rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3"}>
           <h3 className="font-serif-display text-lg font-bold text-[#2D2A26] flex items-center space-x-2">
-            <Heart className="w-4 h-4 text-[#8B3A4A]" />
+            <Heart className="w-4 h-4 text-[#2D3748]" />
             <span>Datos Principales del Evento ({settings.coupleNames})</span>
           </h3>
 
@@ -485,7 +485,7 @@ export const SettingsModule: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-semibold text-[#8B3A4A] mb-1 flex items-center justify-between">
+              <label className="block font-semibold text-[#2D3748] mb-1 flex items-center justify-between">
                 <span>Fecha Límite para confirmar Asistencia</span>
                 <span className="text-[10px] text-[#7A7268] font-normal">(Cierre RSVP)</span>
               </label>
@@ -494,7 +494,7 @@ export const SettingsModule: React.FC = () => {
                   type="date"
                   value={formData.rsvpDeadline ? formData.rsvpDeadline.split('T')[0] : ''}
                   onChange={(e) => setFormData({ ...formData, rsvpDeadline: e.target.value })}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#8B3A4A]/40 bg-white font-medium text-[#2D2A26] focus:ring-2 focus:ring-[#8B3A4A]/20"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-transparent bg-[#EBEBEB] font-medium text-[#2D2A26] focus:ring-2 focus:ring-[#d1d1d1]/20"
                 />
               </div>
               <p className="text-[10px] text-[#7A7268] mt-1">
@@ -505,13 +505,13 @@ export const SettingsModule: React.FC = () => {
         </div>
 
         {/* 2. Presupuesto & Finanzas Globales de la Boda (Moneda Oficial: S/.) */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3" : "bg-white rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3"}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#F0EAE1]">
             <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
-              <DollarSign className="w-4 h-4 text-[#8B3A4A]" />
+              <DollarSign className="w-4 h-4 text-[#2D3748]" />
               <span>Presupuesto & Finanzas de la Boda (Moneda: S/.)</span>
             </h3>
-            <span className="text-[11px] font-semibold text-[#8B3A4A] bg-[#8B3A4A]/10 px-2.5 py-0.5 rounded-full self-start sm:self-auto">
+            <span className="text-[11px] font-semibold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 px-2.5 py-0.5 rounded-full self-start sm:self-auto">
               Habilitado para Anfitrión, Wedding Planner & Administrador
             </span>
           </div>
@@ -521,7 +521,7 @@ export const SettingsModule: React.FC = () => {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-            <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E8DCCF] space-y-2">
+            <div className="p-4 rounded-xl bg-[#FAF8F5] border border-transparent space-y-2">
               <label className="block font-bold text-[#2D2A26] text-xs">
                 Presupuesto Total Real (S/.) *
               </label>
@@ -540,17 +540,17 @@ export const SettingsModule: React.FC = () => {
                   })}
                   disabled={!canEditActiveWedding && !isLevel1Admin}
                   placeholder="20000"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#D9CEBF] bg-white font-bold text-sm text-[#2D2A26] focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A] disabled:bg-stone-100 disabled:cursor-not-allowed"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] font-bold text-sm text-[#2D2A26] focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent disabled:bg-stone-100 disabled:cursor-not-allowed"
                 />
               </div>
               <p className="text-[11px] text-[#7A7268]">
-                Vista previa: <span className="font-bold text-[#8B3A4A]">{formatCurrency(formData.totalRealBudget ?? 20000)}</span>
+                Vista previa: <span className="font-bold text-[#2D3748]">{formatCurrency(formData.totalRealBudget ?? 20000)}</span>
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#F6F1EA]/60 border border-[#E8DCCF] flex flex-col justify-center space-y-1.5 text-xs text-[#524B42]">
+            <div className="p-4 rounded-xl bg-[#F6F1EA]/60 border border-transparent flex flex-col justify-center space-y-1.5 text-xs text-[#524B42]">
               <div className="flex items-center space-x-1.5 font-bold text-[#2D2A26]">
-                <TrendingUp className="w-4 h-4 text-[#8B3A4A]" />
+                <TrendingUp className="w-4 h-4 text-[#2D3748]" />
                 <span>Impacto en la Planificación Financiera</span>
               </div>
               <p className="text-[11px] leading-relaxed text-[#7A7268]">
@@ -567,11 +567,11 @@ export const SettingsModule: React.FC = () => {
           <div className={`rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border transition-all shadow-2xs space-y-4 ${
             formData.hasReligiousCeremony === false 
               ? 'bg-stone-50/80 border-stone-300 opacity-90' 
-              : 'bg-white border-[#E8DCCF]'
+              : 'bg-[#EBEBEB] border-transparent'
           }`}>
             <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-[#F0EAE1]">
               <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-[#8B3A4A]" />
+                <MapPin className="w-4 h-4 text-[#2D3748]" />
                 <span>Sede de la Ceremonia Religiosa</span>
               </h3>
 
@@ -670,7 +670,7 @@ export const SettingsModule: React.FC = () => {
           </div>
 
           {/* Reception Venue */}
-          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3" : "bg-white rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3"}>
+          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3"}>
             <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
               <MapPin className="w-4 h-4 text-[#D4AF37]" />
               <span>Sede de la Recepción & Fiesta</span>
@@ -734,7 +734,7 @@ export const SettingsModule: React.FC = () => {
         </div>
 
         {/* 3.1 Additional Venues Management */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-5" : "bg-white rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-5"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-5" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-5"}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F2ECE3]">
             <div className="flex items-center space-x-2.5">
               <div className="w-9 h-9 rounded-xl bg-[#8A9A86]/15 text-[#8A9A86] flex items-center justify-center">
@@ -745,7 +745,7 @@ export const SettingsModule: React.FC = () => {
                   Sedes y Espacios Adicionales de la Boda
                 </h3>
                 <p className="text-xs text-[#7A7268]">
-                  Añade hoteles de preparación, locaciones para fotos, ceremonia civil o after party. Aparecen disponibles en la selección de <span className="font-semibold text-[#8B3A4A]">Ubicación / Espacio</span> del Cronograma.
+                  Añade hoteles de preparación, locaciones para fotos, ceremonia civil o after party. Aparecen disponibles en la selección de <span className="font-semibold text-[#2D3748]">Ubicación / Espacio</span> del Cronograma.
                 </p>
               </div>
             </div>
@@ -754,7 +754,7 @@ export const SettingsModule: React.FC = () => {
               <button
                 type="button"
                 onClick={handleOpenAddVenue}
-                className="px-4 py-2 rounded-xl bg-[#8B3A4A] text-white text-xs font-semibold hover:bg-[#6E2937] transition-all shadow-xs flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>+ Agregar Sede / Espacio</span>
@@ -764,10 +764,10 @@ export const SettingsModule: React.FC = () => {
 
           {/* Inline Form to Add / Edit Venue */}
           {showVenueForm && (
-            <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E8DCCF] space-y-4 animate-in fade-in duration-150">
-              <div className="flex items-center justify-between border-b border-[#E8DCCF] pb-2">
+            <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-transparent space-y-4 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between border-b border-transparent pb-2">
                 <h4 className="font-serif-display text-sm font-bold text-[#2D2A26] flex items-center space-x-2">
-                  <Building2 className="w-4 h-4 text-[#8B3A4A]" />
+                  <Building2 className="w-4 h-4 text-[#2D3748]" />
                   <span>{editingVenueId ? 'Editar Sede / Espacio' : 'Nueva Sede / Espacio Adicional'}</span>
                 </h4>
                 <button
@@ -791,7 +791,7 @@ export const SettingsModule: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block font-semibold text-[#524B42] mb-1">
-                      Nombre del Recinto / Lugar <span className="text-[#8B3A4A]">*</span>
+                      Nombre del Recinto / Lugar <span className="text-[#2D3748]">*</span>
                     </label>
                     <input
                       type="text"
@@ -799,7 +799,7 @@ export const SettingsModule: React.FC = () => {
                       value={venueDraft.name}
                       onChange={(e) => setVenueDraft({ ...venueDraft, name: e.target.value })}
                       placeholder="Ej. Hotel Casa Grande - Vallecito, Jardines de Sabandía..."
-                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-white focus:border-[#8B3A4A] focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] focus:border-transparent focus:outline-none"
                     />
                   </div>
 
@@ -810,7 +810,7 @@ export const SettingsModule: React.FC = () => {
                     <select
                       value={venueDraft.type}
                       onChange={(e) => setVenueDraft({ ...venueDraft, type: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-white focus:border-[#8B3A4A] focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] focus:border-transparent focus:outline-none"
                     >
                       <option value="Hospedaje / Preparación">Hospedaje / Preparación (Getting Ready)</option>
                       <option value="Ceremonia Religiosa">Ceremonia Religiosa</option>
@@ -832,7 +832,7 @@ export const SettingsModule: React.FC = () => {
                       value={venueDraft.address || ''}
                       onChange={(e) => setVenueDraft({ ...venueDraft, address: e.target.value })}
                       placeholder="Ej. Calle Los Sauces 120, Vallecito, Arequipa"
-                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-white focus:border-[#8B3A4A] focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] focus:border-transparent focus:outline-none"
                     />
                   </div>
 
@@ -843,7 +843,7 @@ export const SettingsModule: React.FC = () => {
                       value={venueDraft.time || ''}
                       onChange={(e) => setVenueDraft({ ...venueDraft, time: e.target.value })}
                       placeholder="Ej. 14:00 - 18:00 hrs"
-                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-white focus:border-[#8B3A4A] focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] focus:border-transparent focus:outline-none"
                     />
                   </div>
                 </div>
@@ -856,7 +856,7 @@ export const SettingsModule: React.FC = () => {
                       value={venueDraft.googleMapsUrl || ''}
                       onChange={(e) => setVenueDraft({ ...venueDraft, googleMapsUrl: e.target.value })}
                       placeholder="https://maps.google.com/..."
-                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-white focus:border-[#8B3A4A] focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] focus:border-transparent focus:outline-none"
                     />
                   </div>
 
@@ -867,12 +867,12 @@ export const SettingsModule: React.FC = () => {
                       value={venueDraft.notes || ''}
                       onChange={(e) => setVenueDraft({ ...venueDraft, notes: e.target.value })}
                       placeholder="Ej. Suite Nupcial Piso 2, ingreso por puerta lateral"
-                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-white focus:border-[#8B3A4A] focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] focus:border-transparent focus:outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end space-x-2 pt-2 border-t border-[#E8DCCF]">
+                <div className="flex items-center justify-end space-x-2 pt-2 border-t border-transparent">
                   <button
                     type="button"
                     onClick={() => setShowVenueForm(false)}
@@ -883,7 +883,7 @@ export const SettingsModule: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleSaveVenueDraft()}
-                    className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-[#8B3A4A] hover:bg-[#6E2937] transition-colors cursor-pointer shadow-xs flex items-center space-x-1"
+                    className="px-4 py-1.5 rounded-lg text-xs font-bold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] transition-colors cursor-pointer shadow-xs flex items-center space-x-1"
                   >
                     <Check className="w-3.5 h-3.5" />
                     <span>{editingVenueId ? 'Actualizar Sede' : 'Guardar Sede'}</span>
@@ -909,14 +909,14 @@ export const SettingsModule: React.FC = () => {
               {formData.additionalVenues.map((venue) => (
                 <div
                   key={venue.id}
-                  className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E8DCCF] hover:border-[#D4AF37]/50 transition-all flex flex-col justify-between space-y-3 shadow-2xs"
+                  className="p-4 rounded-xl bg-[#FAF8F5] border border-transparent hover:border-[#D4AF37]/50 transition-all flex flex-col justify-between space-y-3 shadow-2xs"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-serif-display text-sm font-bold text-[#2D2A26] leading-snug">
                         {venue.name}
                       </h4>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#8B3A4A]/10 text-[#8B3A4A] shrink-0">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] shrink-0">
                         {venue.type || 'Sede Adicional'}
                       </span>
                     </div>
@@ -942,13 +942,13 @@ export const SettingsModule: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-[#E8DCCF]/60 text-xs">
+                  <div className="flex items-center justify-between pt-2 border-t border-transparent/60 text-xs">
                     {venue.googleMapsUrl ? (
                       <a
                         href={venue.googleMapsUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[11px] text-[#8B3A4A] hover:underline flex items-center space-x-0.5 font-medium"
+                        className="text-[11px] text-[#2D3748] hover:underline flex items-center space-x-0.5 font-medium"
                       >
                         <span>Ver Mapa</span>
                         <ExternalLink className="w-3 h-3" />
@@ -961,7 +961,7 @@ export const SettingsModule: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleOpenEditVenue(venue)}
-                        className="p-1 text-[#7A7268] hover:text-[#8B3A4A] hover:bg-white rounded-md transition-colors cursor-pointer"
+                        className="p-1 text-[#7A7268] hover:text-[#2D3748] hover:bg-[#EBEBEB] rounded-md transition-colors cursor-pointer"
                         title="Editar Sede"
                       >
                         <Edit className="w-3.5 h-3.5" />
@@ -969,7 +969,7 @@ export const SettingsModule: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleDeleteVenueItem(venue.id, venue.name)}
-                        className="p-1 text-[#7A7268] hover:text-red-600 hover:bg-white rounded-md transition-colors cursor-pointer"
+                        className="p-1 text-[#7A7268] hover:text-red-600 hover:bg-[#EBEBEB] rounded-md transition-colors cursor-pointer"
                         title="Eliminar Sede"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -983,7 +983,7 @@ export const SettingsModule: React.FC = () => {
         </div>
 
                 {/* 3. Gift Registry & Bank Details */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3" : "bg-white rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3"}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#F0EAE1]">
             <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
               <CreditCard className="w-4 h-4 text-[#D4AF37]" />
@@ -991,7 +991,7 @@ export const SettingsModule: React.FC = () => {
             </h3>
 
             {/* Checkbox Toggle para mostrar u ocultar la sección completa en la Web de Invitados */}
-            <label className="inline-flex items-center space-x-2.5 px-3 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#E8DCCF] hover:bg-[#F3EFEA] cursor-pointer transition-colors select-none">
+            <label className="inline-flex items-center space-x-2.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] border border-transparent hover:bg-[#F3EFEA] cursor-pointer transition-colors select-none">
               <input
                 type="checkbox"
                 id="checkbox-show-gift-registry"
@@ -1000,7 +1000,7 @@ export const SettingsModule: React.FC = () => {
                   ...formData,
                   showGiftRegistry: e.target.checked
                 })}
-                className="w-4 h-4 rounded text-[#8B3A4A] focus:ring-[#8B3A4A]/30 border-[#D9CEBF] cursor-pointer"
+                className="w-4 h-4 rounded text-[#2D3748] focus:ring-[#d1d1d1]/30 border-[#D9CEBF] cursor-pointer"
               />
               <span className="text-xs font-semibold text-[#2D2A26]">
                 Mostrar sección en la Web de Invitados
@@ -1046,7 +1046,7 @@ export const SettingsModule: React.FC = () => {
                     ...formData,
                     showBankDetails: e.target.checked
                   })}
-                  className="w-4 h-4 rounded text-[#8B3A4A] border-[#D9CEBF]"
+                  className="w-4 h-4 rounded text-[#2D3748] border-[#D9CEBF]"
                 />
                 <span className="text-xs text-[#524B42]">Mostrar Datos Bancarios</span>
               </label>
@@ -1124,15 +1124,15 @@ export const SettingsModule: React.FC = () => {
 
         
         {/* Mensajes & Bendiciones de los Invitados */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3" : "bg-white rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3"}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#F0EAE1]">
             <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
-              <MessageCircle className="w-4 h-4 text-[#8B3A4A]" />
+              <MessageCircle className="w-4 h-4 text-[#2D3748]" />
               <span>Mensajes & Bendiciones de los Invitados</span>
             </h3>
 
             {/* Checkbox Toggle para mostrar u ocultar la sección en la Web de Invitados */}
-            <label className="inline-flex items-center space-x-2.5 px-3 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#E8DCCF] hover:bg-[#F3EFEA] cursor-pointer transition-colors select-none">
+            <label className="inline-flex items-center space-x-2.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] border border-transparent hover:bg-[#F3EFEA] cursor-pointer transition-colors select-none">
               <input
                 type="checkbox"
                 id="checkbox-show-wishes-wall"
@@ -1141,7 +1141,7 @@ export const SettingsModule: React.FC = () => {
                   ...formData,
                   showWishesWall: e.target.checked
                 })}
-                className="w-4 h-4 rounded text-[#8B3A4A] focus:ring-[#8B3A4A]/30 border-[#D9CEBF] cursor-pointer"
+                className="w-4 h-4 rounded text-[#2D3748] focus:ring-[#d1d1d1]/30 border-[#D9CEBF] cursor-pointer"
               />
               <span className="text-xs font-semibold text-[#2D2A26]">
                 Mostrar sección en la Web de Invitados
@@ -1154,7 +1154,7 @@ export const SettingsModule: React.FC = () => {
         </div>
 
         {/* 4. Dress Code & Suggested Color Palette */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3" : "bg-white rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-[#E8DCCF] shadow-2xs space-y-3"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3"}>
           <div className="flex items-center justify-between">
             <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
               <Shirt className="w-4 h-4 text-[#8A9A86]" />
@@ -1179,12 +1179,12 @@ export const SettingsModule: React.FC = () => {
                 value={formData.dressCodeStyle || ''}
                 onChange={(e) => setFormData({ ...formData, dressCodeStyle: e.target.value })}
                 placeholder="ej. Formal Rigurosa / Traje Oscuro y Vestido Largo"
-                className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:ring-2 focus:ring-[#8B3A4A]/20 font-serif font-bold text-[#2D2A26]"
+                className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:ring-2 focus:ring-[#d1d1d1]/20 font-serif font-bold text-[#2D2A26]"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-[#8B3A4A] mb-1 flex items-center space-x-1.5">
+              <label className="block font-semibold text-[#2D3748] mb-1 flex items-center space-x-1.5">
                 <AlertCircle className="w-3.5 h-3.5" />
                 <span>Regla de Oro (Colores Reservados)</span>
               </label>
@@ -1193,7 +1193,7 @@ export const SettingsModule: React.FC = () => {
                 value={formData.forbiddenColorsNote || ''}
                 onChange={(e) => setFormData({ ...formData, forbiddenColorsNote: e.target.value })}
                 placeholder="Blanco, marfil y beige reservados para la novia."
-                className="w-full px-3 py-2 rounded-xl border border-rose-200 bg-rose-50/40 focus:bg-white focus:ring-2 focus:ring-rose-300 text-rose-950 font-medium"
+                className="w-full px-3 py-2 rounded-xl border border-rose-200 bg-rose-50/40 focus:bg-[#EBEBEB] focus:ring-2 focus:ring-rose-300 text-rose-950 font-medium"
               />
             </div>
 
@@ -1206,7 +1206,7 @@ export const SettingsModule: React.FC = () => {
                 value={formData.dressCodeDescription || ''}
                 onChange={(e) => setFormData({ ...formData, dressCodeDescription: e.target.value })}
                 placeholder="Para las damas sugerimos vestido largo en tonos de la paleta. Para los caballeros traje formal..."
-                className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:ring-2 focus:ring-[#8B3A4A]/20"
+                className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:ring-2 focus:ring-[#d1d1d1]/20"
               />
             </div>
           </div>
@@ -1226,11 +1226,11 @@ export const SettingsModule: React.FC = () => {
                     ...formData,
                     suggestedColors: [
                       ...currentColors,
-                      { name: 'Nuevo Color', hex: '#8B3A4A', description: 'Recomendación de vestimenta' }
+                      { name: 'Nuevo Color', hex: '#2D3748', description: 'Recomendación de vestimenta' }
                     ]
                   });
                 }}
-                className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-[#8A9A86] hover:bg-[#6E7E6A] text-white text-[11px] font-semibold transition-colors cursor-pointer"
+                className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-[#8A9A86] hover:bg-[#6E7E6A] text-[#2D3748] text-[11px] font-semibold transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Agregar Tono</span>
@@ -1248,7 +1248,7 @@ export const SettingsModule: React.FC = () => {
                   >
                     <div 
                       style={{ backgroundColor: col.hex }}
-                      className="w-8 h-8 rounded-full border-2 border-white shadow-xs hover:scale-105 transition-transform"
+                      className="w-8 h-8 rounded-full border-2 border-transparent shadow-xs hover:scale-105 transition-transform"
                     />
                   </div>
 
@@ -1262,7 +1262,7 @@ export const SettingsModule: React.FC = () => {
                         setFormData({ ...formData, suggestedColors: updated });
                       }}
                       placeholder="Nombre del Color"
-                      className="w-full px-2 py-0.5 text-xs font-semibold rounded-md border border-[#D9CEBF] bg-white"
+                      className="w-full px-2 py-0.5 text-xs font-semibold rounded-md border border-[#D9CEBF] bg-[#EBEBEB]"
                     />
                     <input
                       type="text"
@@ -1273,7 +1273,7 @@ export const SettingsModule: React.FC = () => {
                         setFormData({ ...formData, suggestedColors: updated });
                       }}
                       placeholder="Recomendación"
-                      className="w-full px-2 py-0.5 text-[11px] text-[#524B42] rounded-md border border-[#D9CEBF] bg-white"
+                      className="w-full px-2 py-0.5 text-[11px] text-[#524B42] rounded-md border border-[#D9CEBF] bg-[#EBEBEB]"
                     />
                   </div>
 
@@ -1296,7 +1296,7 @@ export const SettingsModule: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h4 className="text-xs font-bold text-[#2D2A26] flex items-center space-x-1.5">
-                    <Paintbrush className="w-4 h-4 text-[#8B3A4A]" />
+                    <Paintbrush className="w-4 h-4 text-[#2D3748]" />
                     <span>Aplicar Paleta a la Página de esta Boda</span>
                   </h4>
                   <p className="text-[11px] text-[#685F54] mt-0.5">
@@ -1325,8 +1325,8 @@ export const SettingsModule: React.FC = () => {
                   <span className="text-[#685F54] font-medium">Previsualización de contraste:</span>
                   <div 
                     style={{ 
-                      backgroundColor: formData.suggestedColors[0]?.hex || '#8B3A4A', 
-                      color: getAccessibleTextColor(formData.suggestedColors[0]?.hex || '#8B3A4A') 
+                      backgroundColor: formData.suggestedColors[0]?.hex || '#2D3748', 
+                      color: getAccessibleTextColor(formData.suggestedColors[0]?.hex || '#2D3748') 
                     }}
                     className="px-2.5 py-0.5 rounded-md font-semibold text-[11px] shadow-2xs"
                   >
@@ -1344,13 +1344,13 @@ export const SettingsModule: React.FC = () => {
                     </div>
                   )}
                   <span className="text-[#3C5038] font-medium text-[10px] bg-[#8A9A86]/20 px-2 py-0.5 rounded-md">
-                    ✓ Contraste {getContrastRatio(formData.suggestedColors[0]?.hex || '#8B3A4A', getAccessibleTextColor(formData.suggestedColors[0]?.hex || '#8B3A4A')).toFixed(1)}:1 (Legible WCAG)
+                    ✓ Contraste {getContrastRatio(formData.suggestedColors[0]?.hex || '#2D3748', getAccessibleTextColor(formData.suggestedColors[0]?.hex || '#2D3748')).toFixed(1)}:1 (Legible WCAG)
                   </span>
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#E8DCCF]">
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-transparent">
                 <button
                   type="button"
                   id="btn-apply-wedding-theme"
@@ -1377,7 +1377,7 @@ export const SettingsModule: React.FC = () => {
                       setIsApplyingTheme(false);
                     }
                   }}
-                  className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-[#8B3A4A] hover:bg-[#6E2937] text-white text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer"
+                  className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold shadow-xs hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all cursor-pointer"
                 >
                   <Paintbrush className="w-3.5 h-3.5" />
                   <span>Aplicar colores ahora</span>
@@ -1403,7 +1403,7 @@ export const SettingsModule: React.FC = () => {
                       setIsApplyingTheme(false);
                     }
                   }}
-                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#524B42] hover:text-[#2D2A26] border border-[#D9CEBF] text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-[#EBEBEB] hover:bg-[#EBEBEB] text-[#524B42] hover:text-[#2D2A26] border border-[#D9CEBF] text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-[#7A7268]" />
                   <span>Restablecer</span>
@@ -1422,13 +1422,13 @@ export const SettingsModule: React.FC = () => {
         </div>
 
         {/* 5. Pie de Página, Frase Romántica y Contacto */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border-2 border-[#8B3A4A]/20 bg-linear-to-b from-white to-[#FDFBF7] shadow-xs space-y-3" : "bg-white rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border-2 border-[#8B3A4A]/20 bg-linear-to-b from-white to-[#FDFBF7] shadow-xs space-y-3"}>
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border-2 border-transparent bg-linear-to-b from-white to-[#FDFBF7] shadow-xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border-2 border-transparent bg-linear-to-b from-white to-[#FDFBF7] shadow-xs space-y-3"}>
           <div className="flex items-center justify-between">
             <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
-              <Quote className="w-4 h-4 text-[#8B3A4A]" />
+              <Quote className="w-4 h-4 text-[#2D3748]" />
               <span>Pie de Página, Frase Romántica y Contactos</span>
             </h3>
-            <span className="text-[11px] font-semibold text-[#8B3A4A] bg-[#8B3A4A]/10 px-2.5 py-0.5 rounded-full">
+            <span className="text-[11px] font-semibold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 px-2.5 py-0.5 rounded-full">
               Visible en Web Invitados
             </span>
           </div>
@@ -1450,7 +1450,7 @@ export const SettingsModule: React.FC = () => {
                   value={formData.coupleNames}
                   onChange={(e) => setFormData({ ...formData, coupleNames: e.target.value })}
                   placeholder="ej. Zenaida & Ronald"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:ring-2 focus:ring-[#8B3A4A]/20 font-medium"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:ring-2 focus:ring-[#d1d1d1]/20 font-medium"
                 />
               </div>
             </div>
@@ -1461,13 +1461,13 @@ export const SettingsModule: React.FC = () => {
                 Frase Romántica / Lema de la Boda
               </label>
               <div className="relative">
-                <Quote className="w-4 h-4 text-[#8B3A4A] absolute left-3 top-1/2 -translate-y-1/2" />
+                <Quote className="w-4 h-4 text-[#2D3748] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={formData.romanticQuote || ''}
                   onChange={(e) => setFormData({ ...formData, romanticQuote: e.target.value })}
                   placeholder='"El amor no se mira con los ojos, sino con el corazón."'
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:ring-2 focus:ring-[#8B3A4A]/20 italic"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:ring-2 focus:ring-[#d1d1d1]/20 italic"
                 />
               </div>
             </div>
@@ -1475,7 +1475,7 @@ export const SettingsModule: React.FC = () => {
             {/* Teléfono Coordinación */}
             <div>
               <label className="block font-semibold text-[#524B42] mb-1 flex items-center space-x-1.5">
-                <Phone className="w-3.5 h-3.5 text-[#8B3A4A]" />
+                <Phone className="w-3.5 h-3.5 text-[#2D3748]" />
                 <span>Teléfono de Coordinación</span>
               </label>
               <input
@@ -1483,14 +1483,14 @@ export const SettingsModule: React.FC = () => {
                 value={formData.generalContactPhone || ''}
                 onChange={(e) => setFormData({ ...formData, generalContactPhone: e.target.value })}
                 placeholder="ej. +52 81 0000 0000 o +51 987 654 321"
-                className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:ring-2 focus:ring-[#8B3A4A]/20"
+                className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:ring-2 focus:ring-[#d1d1d1]/20"
               />
             </div>
 
             {/* Correo de Contacto */}
             <div>
               <label className="block font-semibold text-[#524B42] mb-1 flex items-center space-x-1.5">
-                <Mail className="w-3.5 h-3.5 text-[#8B3A4A]" />
+                <Mail className="w-3.5 h-3.5 text-[#2D3748]" />
                 <span>Correo Electrónico de Contacto</span>
               </label>
               <input
@@ -1498,13 +1498,13 @@ export const SettingsModule: React.FC = () => {
                 value={formData.generalContactEmail || ''}
                 onChange={(e) => setFormData({ ...formData, generalContactEmail: e.target.value })}
                 placeholder="ej. boda.zenaida-ronald@gmail.com"
-                className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-white focus:ring-2 focus:ring-[#8B3A4A]/20"
+                className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:ring-2 focus:ring-[#d1d1d1]/20"
               />
             </div>
           </div>
 
           {/* Vista previa en tiempo real del pie de página */}
-          <div className="mt-4 p-4 rounded-xl bg-[#2D2A26] text-white border border-[#443E38] text-center space-y-2">
+          <div className="mt-4 p-4 rounded-xl bg-[#2D2A26] text-[#2D3748] border border-[#443E38] text-center space-y-2">
             <span className="text-[10px] uppercase tracking-widest text-[#D4AF37] block font-semibold">
               Vista Previa del Pie de Página
             </span>
@@ -1514,7 +1514,7 @@ export const SettingsModule: React.FC = () => {
             <p className="text-xs text-[#D9CEBF] italic font-editorial max-w-md mx-auto">
               {formData.romanticQuote || '"El amor no se mira con los ojos, sino con el corazón."'}
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-[#B8ADA0] pt-2 border-t border-white/10">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-[#B8ADA0] pt-2 border-t border-transparent">
               <span className="flex items-center gap-1">
                 <Phone className="w-3 h-3 text-[#D4AF37]" />
                 <span>Coordinación: {formData.generalContactPhone || '+52 81 0000 0000'}</span>
@@ -1531,9 +1531,9 @@ export const SettingsModule: React.FC = () => {
         <div className="flex items-center justify-end pt-4">
           <button
             type="submit"
-            className="px-6 py-3 rounded-xl bg-[#8B3A4A] text-white text-xs font-bold hover:bg-[#6E2937] transition-all shadow-md flex items-center space-x-2 cursor-pointer"
+            className="px-6 py-3 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold hover:bg-[#EBEBEB] transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] flex items-center space-x-2 cursor-pointer"
           >
-            {savedSuccess ? <Check className="w-4 h-4 text-white" /> : <Save className="w-4 h-4" />}
+            {savedSuccess ? <Check className="w-4 h-4 text-[#2D3748]" /> : <Save className="w-4 h-4" />}
             <span>{savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Todos los Cambios'}</span>
           </button>
         </div>

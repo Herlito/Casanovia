@@ -53,9 +53,9 @@ interface FloorPlanToolbarProps {
 const PRESET_COLORS = [
   { name: 'Blanco Puro', bg: '#FFFFFF', text: '#2D2A26' },
   { name: 'Marfil Suave', bg: '#FAF8F5', text: '#2D2A26' },
-  { name: 'Rosa Nude', bg: '#FDF2F4', text: '#8B3A4A' },
+  { name: 'Rosa Nude', bg: '#FDF2F4', text: '#2D3748' },
   { name: 'Dorado Champán', bg: '#FEF9EE', text: '#B45309' },
-  { name: 'Borgoña Marca', bg: '#8B3A4A', text: '#FFFFFF' },
+  { name: 'Borgoña Marca', bg: '#2D3748', text: '#FFFFFF' },
   { name: 'Madera Cálida', bg: '#F0E6D2', text: '#5A3E2B' },
   { name: 'Azul Noche', bg: '#1E293B', text: '#FFFFFF' },
   { name: 'Verde Eucalipto', bg: '#ECFDF5', text: '#065F46' },
@@ -195,23 +195,23 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
   }, [selectedElement]);
 
   return (
-    <div className="w-[50vw] sm:max-w-none sm:w-80 bg-[#FAF8F5] border-r border-[#E8DCCF] flex flex-col h-full overflow-y-auto text-[#2D2A26] select-none text-xs">
+    <div className="w-[50vw] sm:max-w-none sm:w-80 bg-[#FAF8F5] border-r border-transparent flex flex-col h-full overflow-y-auto text-[#2D2A26] select-none text-xs">
       {/* 1. Element Palette Header & Mode Tabs */}
-      <div className="p-3 border-b border-[#E8DCCF] bg-white sticky top-0 z-10 space-y-2">
+      <div className="p-3 border-b border-transparent bg-[#EBEBEB] sticky top-0 z-10 space-y-2">
 
 
         {/* Tab Selector */}
-        <div className="grid grid-cols-2 p-0.5 bg-[#FAF8F5] rounded-xl border border-[#E8DCCF]">
+        <div className="grid grid-cols-2 p-0.5 bg-[#FAF8F5] rounded-xl border border-transparent">
           <button
             type="button"
             onClick={() => setToolbarTab('wedding_tables')}
             className={`py-1.5 px-0.5 sm:px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
               toolbarTab === 'wedding_tables'
-                ? 'bg-white text-[#8B3A4A] shadow-2xs font-bold'
+                ? 'bg-[#EBEBEB] text-[#2D3748] shadow-2xs font-bold'
                 : 'text-[#8C8276] hover:text-[#2D2A26]'
             }`}
           >
-            <Sparkles className="w-3 h-3 text-[#8B3A4A]" />
+            <Sparkles className="w-3 h-3 text-[#2D3748]" />
             <span className="hidden sm:inline">Mesas Principales</span>
           </button>
           <button
@@ -219,11 +219,11 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             onClick={() => setToolbarTab('furniture')}
             className={`py-1.5 px-0.5 sm:px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
               toolbarTab === 'furniture'
-                ? 'bg-white text-[#8B3A4A] shadow-2xs font-bold'
+                ? 'bg-[#EBEBEB] text-[#2D3748] shadow-2xs font-bold'
                 : 'text-[#8C8276] hover:text-[#2D2A26]'
             }`}
           >
-            <Layers className="w-3 h-3 text-[#8B3A4A]" />
+            <Layers className="w-3 h-3 text-[#2D3748]" />
             <span className="hidden sm:inline">Mobiliario Libre</span>
           </button>
         </div>
@@ -263,13 +263,13 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   placeholder="Buscar mesa o zona..."
                   value={tableSearchQuery}
                   onChange={(e) => setTableSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-2.5 py-1.5 bg-white border border-[#E8DCCF] rounded-xl text-xs placeholder-[#8C8276] focus:outline-hidden focus:border-[#8B3A4A]"
+                  className="w-full pl-8 pr-2.5 py-1.5 bg-[#EBEBEB] border border-transparent rounded-xl text-xs placeholder-[#8C8276] focus:outline-hidden focus:border-transparent"
                 />
               </div>
             )}
 
             {filteredWeddingTables.length === 0 ? (
-              <div className="p-4 text-center rounded-2xl bg-white border border-[#E8DCCF] text-[#8C8276] space-y-1">
+              <div className="p-4 text-center rounded-2xl bg-[#EBEBEB] border border-transparent text-[#8C8276] space-y-1">
                 <UtensilsCrossed className="w-6 h-6 mx-auto text-[#8C8276]/60" />
                 <p className="text-xs font-semibold">No hay mesas registradas</p>
                 <p className="text-[10px]">Crea mesas en la sección MESAS o usa Mobiliario Libre.</p>
@@ -296,7 +296,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                           ? 'bg-emerald-50/40 border-emerald-200 hover:bg-emerald-50'
                           : isHonor
                           ? 'bg-rose-50/50 border-rose-200 hover:bg-rose-50'
-                          : 'bg-white border-[#E8DCCF] hover:border-[#8B3A4A] hover:bg-[#FAF8F5]'
+                          : 'bg-[#EBEBEB] border-transparent hover:border-transparent hover:bg-[#FAF8F5]'
                       }`}
                     >
                       {/* Row 1: Name */}
@@ -305,7 +305,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                           {tbl.name}
                         </span>
                         {isHonor && (
-                          <span className="text-[8px] bg-[#8B3A4A] text-white px-1 rounded-sm font-bold">
+                          <span className="text-[8px] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] px-1 rounded-sm font-bold">
                             HONOR
                           </span>
                         )}
@@ -318,7 +318,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                             className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border ${
                               isRect
                                 ? 'bg-amber-50 border-amber-200 text-amber-800'
-                                : 'bg-rose-50 border-rose-200 text-[#8B3A4A]'
+                                : 'bg-rose-50 border-rose-200 text-[#2D3748]'
                             }`}
                           >
                             {isRect ? <Square className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
@@ -327,7 +327,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                           <div className="flex flex-wrap items-center space-x-1 text-[9px] text-[#7A7268] min-w-0">
                             <span className="truncate max-w-[80px]">{tbl.zone || 'Salón Principal'}</span>
                             <span>•</span>
-                            <span className="font-semibold text-[#8B3A4A]">
+                            <span className="font-semibold text-[#2D3748]">
                               {seatedCount}/{tbl.capacity} pax
                             </span>
                           </div>
@@ -341,7 +341,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                           ) : (
                             <button
                               type="button"
-                              className="text-[10px] font-bold text-[#8B3A4A] bg-white border border-[#8B3A4A]/30 px-2 py-0.5 rounded-lg group-hover:bg-[#8B3A4A] group-hover:text-white transition-colors"
+                              className="text-[10px] font-bold text-[#2D3748] bg-[#EBEBEB] border border-transparent px-2 py-0.5 rounded-lg group-hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] group-hover:text-[#2D3748] transition-colors"
                             >
                               + Colocar
                             </button>
@@ -372,9 +372,9 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('round_table')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent hover:border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-rose-50 text-[#8B3A4A] flex items-center justify-center shrink-0 border border-rose-100 group-hover:scale-105 transition-transform">
+                  <div className="w-7 h-7 rounded-lg bg-rose-50 text-[#2D3748] flex items-center justify-center shrink-0 border border-rose-100 group-hover:scale-105 transition-transform">
                     <Circle className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
@@ -386,7 +386,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('rectangular_table')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent hover:border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center shrink-0 border border-amber-100 group-hover:scale-105 transition-transform">
                     <Square className="w-4 h-4" />
@@ -409,7 +409,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('single_chair')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent hover:border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-100 group-hover:scale-105 transition-transform">
                     <Armchair className="w-4 h-4" />
@@ -421,7 +421,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('chair_row')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent hover:border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-100 group-hover:scale-105 transition-transform">
                     <Armchair className="w-4 h-4" />
@@ -433,7 +433,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('armchair_luis_xv')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent hover:border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 border border-purple-100 group-hover:scale-105 transition-transform">
                     <Armchair className="w-4 h-4" />
@@ -445,7 +445,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('sofa_1_seat')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent hover:border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-700 flex items-center justify-center shrink-0 border border-orange-100 group-hover:scale-105 transition-transform">
                     <Armchair className="w-4 h-4" />
@@ -457,7 +457,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('sofa_2_seat')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] hover:border-[#8B3A4A] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent hover:border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-700 flex items-center justify-center shrink-0 border border-orange-100 group-hover:scale-105 transition-transform">
                     <Armchair className="w-4 h-4" />
@@ -478,7 +478,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('stage')}
-                  className="flex flex-col items-center p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-center transition-colors shadow-2xs group cursor-pointer"
+                  className="flex flex-col items-center p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent text-center transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-stone-100 text-[#2D2A26] flex items-center justify-center mb-1">
                     <Music className="w-3.5 h-3.5" />
@@ -489,7 +489,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('dance_floor')}
-                  className="flex flex-col items-center p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-center transition-colors shadow-2xs group cursor-pointer"
+                  className="flex flex-col items-center p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent text-center transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center mb-1">
                     <Sparkles className="w-3.5 h-3.5" />
@@ -500,7 +500,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('dj_booth')}
-                  className="flex flex-col items-center p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-center transition-colors shadow-2xs group cursor-pointer"
+                  className="flex flex-col items-center p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent text-center transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center mb-1">
                     <Radio className="w-3.5 h-3.5" />
@@ -519,7 +519,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('bar')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
                     <Wine className="w-3.5 h-3.5" />
@@ -530,7 +530,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('cake_table')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
                     <Cake className="w-3.5 h-3.5" />
@@ -541,7 +541,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('lounge')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
                     <Armchair className="w-3.5 h-3.5" />
@@ -552,7 +552,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('entrance')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
                     <DoorOpen className="w-3.5 h-3.5" />
@@ -563,7 +563,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('photo_booth')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
                     <Camera className="w-3.5 h-3.5" />
@@ -574,7 +574,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onAddElement('text_label')}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-[#F3EFEA] border border-[#E8DCCF] text-left transition-colors shadow-2xs group cursor-pointer"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-transparent text-left transition-colors shadow-2xs group cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-lg bg-stone-100 text-stone-700 flex items-center justify-center shrink-0">
                     <Type className="w-3.5 h-3.5" />
@@ -590,23 +590,23 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
       {/* ========================================================
           2. INSPECTOR DE PROPIEDADES DEL OBJETO SELECCIONADO
          ======================================================== */}
-      <div className="border-t border-[#E8DCCF] bg-white p-3.5 flex-1 space-y-3">
+      <div className="border-t border-transparent bg-[#EBEBEB] p-3.5 flex-1 space-y-3">
         <h3 className="font-bold text-xs uppercase tracking-wider text-[#8C8276] flex items-center justify-between">
           <span className="hidden sm:inline truncate">Propiedades del Objeto</span><span className="sm:hidden truncate">Propiedades</span>
-          <Sliders className="w-3.5 h-3.5 text-[#8B3A4A]" />
+          <Sliders className="w-3.5 h-3.5 text-[#2D3748]" />
         </h3>
 
         {selectedElement ? (
           <div className="space-y-3">
             {/* Quick Link to Registered Table (MESAS) */}
             {(selectedElement.type === 'round_table' || selectedElement.type === 'rectangular_table') && (
-              <div className="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#E8DCCF] space-y-1.5">
+              <div className="p-2.5 rounded-xl bg-[#FAF8F5] border border-transparent space-y-1.5">
                 <label className="block text-[10px] font-bold text-[#8C8276] uppercase flex items-center justify-between">
                   <span className="flex items-center space-x-1">
-                    <LinkIcon className="w-3 h-3 text-[#8B3A4A]" />
+                    <LinkIcon className="w-3 h-3 text-[#2D3748]" />
                     <span>Vincular a Mesa Registrada</span>
                   </span>
-                  <span className="text-[9px] text-[#8B3A4A] font-normal">Sincroniza invitados</span>
+                  <span className="text-[9px] text-[#2D3748] font-normal">Sincroniza invitados</span>
                 </label>
 
                 <select
@@ -623,7 +623,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       onLinkTableToElement(selectedElement.id, targetTable);
                     }
                   }}
-                  className="w-full px-2 py-1.5 bg-white border border-[#D9CEBF] rounded-lg text-xs font-semibold text-[#2D2A26] focus:outline-hidden focus:border-[#8B3A4A]"
+                  className="w-full px-2 py-1.5 bg-[#EBEBEB] border border-[#D9CEBF] rounded-lg text-xs font-semibold text-[#2D2A26] focus:outline-hidden focus:border-transparent"
                 >
                   <option value="">Seleccionar mesa de la boda... ▼</option>
                   {tables.map((t) => (
@@ -645,7 +645,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   type="text"
                   value={selectedElement.name}
                   onChange={(e) => onUpdateElement(selectedElement.id, { name: e.target.value })}
-                  className="w-full px-2.5 py-1.5 bg-[#FAF8F5] border border-[#D9CEBF] rounded-lg text-xs font-semibold focus:outline-hidden focus:border-[#8B3A4A]"
+                  className="w-full px-2.5 py-1.5 bg-[#FAF8F5] border border-[#D9CEBF] rounded-lg text-xs font-semibold focus:outline-hidden focus:border-transparent"
                 />
                 <div className="relative shrink-0" title="Color del texto">
                   <input
@@ -679,7 +679,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       tableNumber: parseInt(e.target.value) || 1,
                     })
                   }
-                  className="w-full px-2.5 py-1.5 bg-[#FAF8F5] border border-[#D9CEBF] rounded-lg text-xs font-semibold focus:outline-hidden focus:border-[#8B3A4A]"
+                  className="w-full px-2.5 py-1.5 bg-[#FAF8F5] border border-[#D9CEBF] rounded-lg text-xs font-semibold focus:outline-hidden focus:border-transparent"
                 />
               </div>
             )}
@@ -690,7 +690,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   <label className="text-[10px] font-bold text-[#8C8276] uppercase">
                     Número de Asientos
                   </label>
-                  <span className="font-bold text-[#8B3A4A] bg-rose-50 px-1 sm:px-2 py-0.5 rounded-full border border-rose-200">
+                  <span className="font-bold text-[#2D3748] bg-rose-50 px-1 sm:px-2 py-0.5 rounded-full border border-rose-200">
                     {selectedElement.seats.length} sillas
                   </span>
                 </div>
@@ -701,7 +701,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   step="1"
                   value={selectedElement.seats.length}
                   onChange={(e) => handleSeatCountChange(parseInt(e.target.value))}
-                  className="w-full accent-[#8B3A4A] cursor-pointer"
+                  className="w-full accent-[#2D3748] cursor-pointer"
                 />
                 <div className="flex justify-between text-[9px] text-[#8C8276] px-1">
                   <span>2</span>
@@ -721,7 +721,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                     <label className="text-[10px] font-bold text-[#8C8276] uppercase">
                       Sillas por Lado Largo
                     </label>
-                    <span className="font-bold text-[#8B3A4A]">
+                    <span className="font-bold text-[#2D3748]">
                       {selectedElement.seatsLongSide || 3}
                     </span>
                   </div>
@@ -737,7 +737,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                         selectedElement.seatsHead !== undefined ? selectedElement.seatsHead : 1
                       )
                     }
-                    className="w-full accent-[#8B3A4A] cursor-pointer"
+                    className="w-full accent-[#2D3748] cursor-pointer"
                   />
                 </div>
                 <div>
@@ -745,7 +745,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                     <label className="text-[10px] font-bold text-[#8C8276] uppercase">
                       Sillas en Cabeceras
                     </label>
-                    <span className="font-bold text-[#8B3A4A]">
+                    <span className="font-bold text-[#2D3748]">
                       {selectedElement.seatsHead !== undefined ? selectedElement.seatsHead : 1}
                     </span>
                   </div>
@@ -759,8 +759,8 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                         }
                         className={`py-1 rounded-md text-xs font-semibold border cursor-pointer ${
                           (selectedElement.seatsHead !== undefined ? selectedElement.seatsHead : 1) === head
-                            ? 'bg-[#8B3A4A] text-white border-[#8B3A4A]'
-                            : 'bg-white text-[#2D2A26] border-[#D9CEBF] hover:bg-[#F3EFEA]'
+                            ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent'
+                            : 'bg-[#EBEBEB] text-[#2D2A26] border-[#D9CEBF] hover:bg-[#F3EFEA]'
                         }`}
                       >
                         {head === 0 ? 'Sin cabeceras' : `${head} c/lado`}
@@ -777,7 +777,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   <label className="text-[10px] font-bold text-[#8C8276] uppercase">
                     Diámetro (px)
                   </label>
-                  <span className="font-mono text-[#8B3A4A]">
+                  <span className="font-mono text-[#2D3748]">
                     {(selectedElement.radius || 60) * 2}px
                   </span>
                 </div>
@@ -792,7 +792,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       radius: parseInt(e.target.value) / 2,
                     })
                   }
-                  className="w-full accent-[#8B3A4A] cursor-pointer"
+                  className="w-full accent-[#2D3748] cursor-pointer"
                 />
               </div>
             ) : (
@@ -867,7 +867,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 <label className="text-[10px] font-bold text-[#8C8276] uppercase">
                   Rotación
                 </label>
-                <span className="font-mono text-[#8B3A4A]">
+                <span className="font-mono text-[#2D3748]">
                   {selectedElement.rotation || 0}°
                 </span>
               </div>
@@ -882,7 +882,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       rotation: parseInt(e.target.value),
                     })
                   }
-                  className="flex-1 accent-[#8B3A4A] cursor-pointer"
+                  className="flex-1 accent-[#2D3748] cursor-pointer"
                 />
                 <button
                   type="button"
@@ -891,7 +891,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       rotation: ((selectedElement.rotation || 0) + 45) % 360,
                     })
                   }
-                  className="p-1.5 bg-[#FAF8F5] hover:bg-[#F3EFEA] border border-[#D9CEBF] rounded-lg cursor-pointer text-[#8B3A4A]"
+                  className="p-1.5 bg-[#FAF8F5] hover:bg-[#F3EFEA] border border-[#D9CEBF] rounded-lg cursor-pointer text-[#2D3748]"
                   title="Girar +45°"
                 >
                   <RotateCw className="w-3.5 h-3.5" />
@@ -918,7 +918,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                     title={col.name}
                     className={`w-6 h-6 rounded-full border shadow-2xs transition-transform hover:scale-110 cursor-pointer ${
                       selectedElement.color === col.bg
-                        ? 'ring-2 ring-[#8B3A4A] ring-offset-1 border-[#8B3A4A]'
+                        ? 'ring-2 ring-[#d1d1d1] ring-offset-1 border-transparent'
                         : 'border-[#D9CEBF]'
                     }`}
                   />
@@ -926,11 +926,11 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
               </div>
             </div>
             {/* Acciones de Objeto */}
-            <div className="pt-4 border-t border-[#E8DCCF] flex space-x-2">
+            <div className="pt-4 border-t border-transparent flex space-x-2">
               <button
                 type="button"
                 onClick={() => onDuplicateElement(selectedElement.id)}
-                className="flex-1 py-2 bg-white border border-[#D9CEBF] hover:bg-[#F3EFEA] hover:border-[#8B3A4A] text-[#2D2A26] rounded-xl text-xs font-bold transition-colors flex items-center justify-center cursor-pointer"
+                className="flex-1 py-2 bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#F3EFEA] hover:border-transparent text-[#2D2A26] rounded-xl text-xs font-bold transition-colors flex items-center justify-center cursor-pointer"
               >
                 <Copy className="w-3.5 h-3.5 mr-1.5" />
                 Duplicar
@@ -948,7 +948,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
               <button
                 type="button"
                 onClick={() => onBringToFront(selectedElement.id)}
-                className="flex-1 py-1.5 bg-white border border-[#D9CEBF] hover:bg-[#F3EFEA] text-[#2D2A26] rounded-lg text-[10px] font-bold transition-colors flex items-center justify-center cursor-pointer"
+                className="flex-1 py-1.5 bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#F3EFEA] text-[#2D2A26] rounded-lg text-[10px] font-bold transition-colors flex items-center justify-center cursor-pointer"
                 title="Traer al Frente"
               >
                 <ArrowUpToLine className="w-3.5 h-3.5 mr-1" />
@@ -957,7 +957,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
               <button
                 type="button"
                 onClick={() => onSendToBack(selectedElement.id)}
-                className="flex-1 py-1.5 bg-white border border-[#D9CEBF] hover:bg-[#F3EFEA] text-[#2D2A26] rounded-lg text-[10px] font-bold transition-colors flex items-center justify-center cursor-pointer"
+                className="flex-1 py-1.5 bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#F3EFEA] text-[#2D2A26] rounded-lg text-[10px] font-bold transition-colors flex items-center justify-center cursor-pointer"
                 title="Enviar al Fondo"
               >
                 <ArrowDownToLine className="w-3.5 h-3.5 mr-1" />

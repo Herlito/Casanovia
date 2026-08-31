@@ -57,7 +57,7 @@ const MainLayout: React.FC = () => {
   }
 
   return (
-        <div data-theme={appTheme} className={`min-h-screen flex flex-col ${isPublicHomeLanding ? "bg-[#EBEBEB] flex-1" : "bg-[#FDFBF7]"} text-[#2D2A26] font-sans antialiased selection:bg-[#8B3A4A]/20 selection:text-[#8B3A4A]`}>
+        <div data-theme={appTheme} className={`min-h-screen flex flex-col ${isPublicHomeLanding ? "bg-[#EBEBEB] flex-1" : "bg-[#EBEBEB]"} text-[#2D2A26] font-sans antialiased selection:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/20 selection:text-[#2D3748]`}>
       
       {/* Top Fixed Navigation & View Toggle */}
       <Navbar />

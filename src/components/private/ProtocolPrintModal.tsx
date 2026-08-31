@@ -85,14 +85,14 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto print:static print:inset-auto print:p-0 print:m-0 print:bg-white print:overflow-visible print:block print:w-full print:h-auto print:max-h-none print:shadow-none print:border-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto print:static print:inset-auto print:p-0 print:m-0 print:bg-[#EBEBEB] print:overflow-visible print:block print:w-full print:h-auto print:max-h-none print:shadow-none print:border-none">
       {/* Outer Modal Box */}
-      <div className="bg-white rounded-2xl max-w-4xl w-full p-6 sm:p-10 shadow-2xl border border-[#D9CEBF] my-6 relative max-h-[92vh] overflow-y-auto print:static print:max-w-none print:w-full print:max-h-none print:overflow-visible print:p-0 print:m-0 print:border-none print:shadow-none print:rounded-none">
+      <div className="bg-[#EBEBEB] rounded-2xl max-w-4xl w-full p-6 sm:p-10 shadow-2xl border border-[#D9CEBF] my-6 relative max-h-[92vh] overflow-y-auto print:static print:max-w-none print:w-full print:max-h-none print:overflow-visible print:p-0 print:m-0 print:border-none print:shadow-none print:rounded-none">
         
         {/* Floating Top Actions (Hidden in Print) */}
-        <div className="no-print flex items-center justify-between pb-4 mb-6 border-b border-[#E8DCCF]">
+        <div className="no-print flex items-center justify-between pb-4 mb-6 border-b border-transparent">
           <div className="flex items-center space-x-2">
-            <span className="px-3 py-1 rounded-full bg-[#8B3A4A]/10 text-[#8B3A4A] text-xs font-bold uppercase tracking-wider">
+            <span className="px-3 py-1 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] text-xs font-bold uppercase tracking-wider">
               Vista Imprimible / Escaleta Oficial
             </span>
           </div>
@@ -102,7 +102,7 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
               type="button"
               id="btn-download-protocol-pdf"
               onClick={handleDownloadPdf}
-              className="px-3.5 sm:px-4 py-2 bg-[#8B3A4A] text-white text-xs font-bold rounded-xl hover:bg-[#6E2937] transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
+              className="px-3.5 sm:px-4 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold rounded-xl hover:bg-[#EBEBEB] transition-all flex items-center space-x-1.5 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] cursor-pointer"
             >
               <Download className="w-4 h-4" />
               <span>Descargar PDF</span>
@@ -111,15 +111,15 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
               type="button"
               id="btn-print-protocol"
               onClick={handlePrint}
-              className="px-3.5 sm:px-4 py-2 bg-[#FAF7F2] text-[#524B42] border border-[#D9CEBF] text-xs font-semibold rounded-xl hover:bg-white hover:text-[#8B3A4A] transition-all flex items-center space-x-1.5 shadow-2xs cursor-pointer"
+              className="px-3.5 sm:px-4 py-2 bg-[#EBEBEB] text-[#524B42] border border-[#D9CEBF] text-xs font-semibold rounded-xl hover:bg-[#EBEBEB] hover:text-[#2D3748] transition-all flex items-center space-x-1.5 shadow-2xs cursor-pointer"
             >
-              <Printer className="w-4 h-4 text-[#8B3A4A]" />
+              <Printer className="w-4 h-4 text-[#2D3748]" />
               <span className="hidden sm:inline">Imprimir</span>
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-[#7A7268] hover:text-[#2D2A26] rounded-xl hover:bg-[#FAF7F2] cursor-pointer"
+              className="p-2 text-[#7A7268] hover:text-[#2D2A26] rounded-xl hover:bg-[#EBEBEB] cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -127,7 +127,7 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
         </div>
 
         {/* PRINTABLE DEDICATED DOCUMENT CONTAINER */}
-        <div id="print-area" className="print-container w-full bg-white text-black font-sans">
+        <div id="print-area" className="print-container w-full bg-[#EBEBEB] text-black font-sans">
           
           {/* DOCUMENT HEADER */}
           <div className="item-listado print-avoid-break text-center border-b-2 border-black/80 pb-4 pt-1 mb-6">
@@ -198,9 +198,9 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
             </div>
           </div>
 
-          {/* SECTION 2: TIMELINE MINUTO A MINUTO (Card Design adapted from Tarjetas view) */}
+                    {/* SECTION 2: TIMELINE MINUTO A MINUTO (Table Layout) */}
           <div className="mb-6">
-            <div className="item-listado print-avoid-break flex items-center justify-between bg-neutral-100 px-3 py-1.5 border-l-4 border-[#8B3A4A] mb-3.5">
+            <div className="item-listado print-avoid-break flex items-center justify-between bg-neutral-100 px-3 py-1.5 border-l-4 border-transparent mb-3.5">
               <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-900">
                 2. Cronograma Maestro (Minuto a Minuto del Día)
               </h2>
@@ -209,87 +209,51 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
               </span>
             </div>
 
-            <div className="space-y-3.5">
+            <div className="bg-[#EBEBEB] font-['Nunito',sans-serif] text-black w-full overflow-hidden border border-black rounded-lg">
               {sortedTimeline.length === 0 ? (
-                <div className="item-listado print-avoid-break p-4 text-center text-xs text-neutral-500 italic border border-dashed border-neutral-300 rounded-lg">
+                <div className="item-listado print-avoid-break p-4 text-center text-xs text-neutral-500 italic">
                   No se han registrado hitos en el cronograma de esta boda aún.
                 </div>
               ) : (
-                sortedTimeline.map((m, idx) => {
-                  const duration = getDurationToNext(idx);
-                  return (
-                    <div 
-                      key={m.id || idx}
-                      className={`item-listado print-avoid-break rounded-2xl p-4 sm:p-5 border transition-all ${
-                        m.isProtocolCrucial 
-                          ? 'bg-[#FFFDF9] border-[#D4AF37]/80 ring-1 ring-[#D4AF37]/30 shadow-2xs' 
-                          : 'bg-white border-[#E8DCCF] shadow-2xs'
-                      }`}
-                      style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
-                    >
-                      {/* Top Bar: Time Badge, Title, Duration, Crucial Star & Category Badge */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[#F2ECE3]">
-                        <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
-                          <span className="font-mono font-bold text-xs sm:text-sm bg-[#2D2A26] text-white px-2.5 py-1 rounded-xl shadow-2xs shrink-0">
-                            {m.time} hrs
-                          </span>
-                          <h3 className="font-serif-display text-base sm:text-lg font-bold text-[#2D2A26] leading-snug">
-                            {m.title}
-                          </h3>
-                          {duration && (
-                            <span className="font-semibold text-xs text-[#8B3A4A] bg-[#8B3A4A]/10 px-2 py-0.5 rounded-md font-mono border border-[#8B3A4A]/20">
-                              {duration}
-                            </span>
-                          )}
-                          {m.isProtocolCrucial && (
-                            <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-[#D4AF37]/20 text-[#8B6B23] text-[10px] font-bold uppercase tracking-wider border border-[#D4AF37]/40">
-                              <Star className="w-3 h-3 fill-[#D4AF37] text-[#D4AF37]" />
-                              <span>Hito Protocolar</span>
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="shrink-0 self-start sm:self-center">
-                          {getCategoryBadge(m.category)}
-                        </div>
+                sortedTimeline.map((item, idx) => (
+                  <div key={item.id || idx} className="item-listado print-avoid-break relative transition-colors" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    
+                    {/* Event Block Main */}
+                    <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] border-b border-black">
+                      <div className="pt-3 pb-1 pr-3 border-r border-black flex flex-col justify-start items-end">
+                        <span className="text-[17px] font-bold text-black text-right whitespace-nowrap">{item.time} hrs</span>
                       </div>
-
-                      {/* Description */}
-                      {m.description && (
-                        <p className="text-xs sm:text-sm text-[#524B42] my-2.5 leading-relaxed font-sans">
-                          {m.description}
-                        </p>
-                      )}
-
-                      {/* Bottom Metadata Grid: Location, Responsible Person & Items Required */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2.5 border-t border-[#F2ECE3] text-xs">
-                        <div className="flex items-center space-x-1.5 text-[#6B6358]">
-                          <MapPin className="w-3.5 h-3.5 text-[#8A9A86] shrink-0" />
-                          <span className="font-medium truncate">{m.location || 'Locación Principal'}</span>
-                        </div>
-
-                        <div className="flex items-center space-x-1.5">
-                          <User className="w-3.5 h-3.5 text-[#8B3A4A] shrink-0" />
-                          <span className="text-[#524B42]">A cargo de: </span>
-                          <strong className="font-semibold text-[#2D2A26] truncate">
-                            {formatAltibajas(m.responsiblePerson) || 'Novios & Coordinación'}
-                          </strong>
-                        </div>
-
-                        {m.dressOrItemsRequired ? (
-                          <div className="flex items-center space-x-1.5 text-[#8B6B23]">
-                            <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
-                            <span className="text-[11px] truncate">
-                              <strong className="font-semibold">Utilería: </strong>{m.dressOrItemsRequired}
-                            </span>
+                      <div className="pt-3 pb-1 pl-3 pr-12 flex flex-col justify-start items-start relative">
+                        <h3 className="text-[19px] font-bold text-black leading-snug w-full break-words">{item.title}</h3>
+                        
+                        {item.description && (
+                          <div className="text-[15px] text-black leading-snug mt-1 w-full break-words whitespace-pre-wrap">
+                            {item.description}
                           </div>
-                        ) : (
-                          <div className="hidden sm:block"></div>
+                        )}
+                        
+                        {item.dressOrItemsRequired && (
+                          <div className="text-[15px] font-bold italic text-black leading-snug mt-1 w-full break-words whitespace-pre-wrap">
+                            {item.dressOrItemsRequired}
+                          </div>
                         )}
                       </div>
                     </div>
-                  );
-                })
+                    
+                    {/* Event Block Sub */}
+                    <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] border-b border-black">
+                      <div className="pt-0.5 pb-2 pr-3 flex flex-col justify-start items-end">
+                        <span className="text-[14px] text-black text-right">{item.location || ''}</span>
+                      </div>
+                      <div className="pt-0.5 pb-2 pl-3 pr-2 flex flex-col justify-start items-start">
+                        <span className="text-[15px] font-bold text-black">
+                          {item.responsiblePerson ? (item.responsiblePerson) : 'Novios + Coordinación'}
+                        </span>
+                      </div>
+                    </div>
+
+                  </div>
+                ))
               )}
             </div>
           </div>

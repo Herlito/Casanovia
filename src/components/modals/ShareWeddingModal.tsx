@@ -87,27 +87,27 @@ export const ShareWeddingModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-[#FFFDFB] rounded-3xl border border-[#E8DCCF] shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-[#FFFDFB] rounded-3xl border border-transparent shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Header */}
-        <div className={isNeumorphic ? "p-6 relative text-gray-800" : "bg-gradient-to-r from-[#8B3A4A] to-[#6E2937] text-white p-6 relative"}>
+        <div className={isNeumorphic ? "p-6 relative text-gray-800" : "bg-gradient-to-r from-[#2D3748] to-[#2D3748] text-[#2D3748] p-6 relative"}>
           <button
             type="button"
             onClick={() => setShowShareModal(false)}
-            className="absolute top-5 right-5 text-white/80 hover:text-white bg-black/10 hover:bg-black/20 p-2 rounded-full transition-colors cursor-pointer"
+            className="absolute top-5 right-5 text-[#2D3748]/80 hover:text-[#2D3748] bg-black/10 hover:bg-black/20 p-2 rounded-full transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
           
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-xs flex items-center justify-center border border-white/20 shadow-inner">
-              <Share2 className="w-6 h-6 text-[#F7E7CE]" />
+            <div className="w-12 h-12 rounded-2xl bg-[#EBEBEB]/10 backdrop-blur-xs flex items-center justify-center border border-transparent shadow-inner">
+              <Share2 className="w-6 h-6 text-[#4A5568]" />
             </div>
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-widest text-[#F7E7CE] block">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[#4A5568] block">
                 Enlace Público para Invitados
               </span>
-              <h3 className="font-serif-display text-xl sm:text-2xl font-bold text-white">
+              <h3 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D3748]">
                 Compartir Web de Bodas
               </h3>
             </div>
@@ -140,7 +140,7 @@ export const ShareWeddingModal: React.FC = () => {
                   setSelectedWeddingForShare(e.target.value);
                   selectWedding(e.target.value);
                 }}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DCCF] bg-white text-sm text-[#2D2A26] font-medium focus:ring-2 focus:ring-[#8B3A4A]/20 focus:border-[#8B3A4A] outline-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-transparent bg-[#EBEBEB] text-sm text-[#2D2A26] font-medium focus:ring-2 focus:ring-[#d1d1d1]/20 focus:border-transparent outline-none"
               >
                 {availableWeddingsList.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -153,7 +153,7 @@ export const ShareWeddingModal: React.FC = () => {
 
           {/* Current Wedding Highlight Card */}
           {currentWedding && (
-            <div className="bg-[#FAF8F5] rounded-2xl p-4 border border-[#E8DCCF] space-y-3">
+            <div className="bg-[#FAF8F5] rounded-2xl p-4 border border-transparent space-y-3">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-serif-display text-lg font-bold text-[#2D2A26]">
@@ -170,7 +170,7 @@ export const ShareWeddingModal: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#8B3A4A]/10 text-[#8B3A4A] border border-[#8B3A4A]/20">
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] border border-transparent">
                   Web Activa
                 </span>
               </div>
@@ -185,17 +185,17 @@ export const ShareWeddingModal: React.FC = () => {
                     type="text"
                     readOnly
                     value={shareUrl}
-                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#E8DCCF] bg-white text-xs text-[#2D2A26] font-mono select-all focus:outline-none focus:border-[#8B3A4A]"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-transparent bg-[#EBEBEB] text-xs text-[#2D2A26] font-mono select-all focus:outline-none focus:border-transparent"
                     onClick={(e) => (e.target as HTMLInputElement).select()}
                   />
                   <button
                     type="button"
                     id="btn-modal-copy-link"
                     onClick={() => handleCopyLink(shareUrl, 'current')}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 shadow-sm ${
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] ${
                       copiedId === 'current'
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-[#8B3A4A] text-white hover:bg-[#6E2937]'
+                        ? 'bg-emerald-600 text-[#2D3748]'
+                        : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB]'
                     }`}
                   >
                     {copiedId === 'current' ? (
@@ -219,7 +219,7 @@ export const ShareWeddingModal: React.FC = () => {
                   type="button"
                   id="btn-modal-share-whatsapp"
                   onClick={handleShareWhatsApp}
-                  className="w-full py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors flex items-center justify-center space-x-2 shadow-sm cursor-pointer"
+                  className="w-full py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-[#2D3748] text-xs font-bold transition-colors flex items-center justify-center space-x-2 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>Compartir por WhatsApp</span>
@@ -229,7 +229,7 @@ export const ShareWeddingModal: React.FC = () => {
                   type="button"
                   id="btn-modal-open-preview"
                   onClick={handleOpenPreview}
-                  className="w-full py-2.5 px-3.5 rounded-xl bg-white border border-[#E8DCCF] hover:bg-[#FAF8F5] text-[#2D2A26] text-xs font-semibold transition-colors flex items-center justify-center space-x-2 shadow-2xs cursor-pointer"
+                  className="w-full py-2.5 px-3.5 rounded-xl bg-[#EBEBEB] border border-transparent hover:bg-[#FAF8F5] text-[#2D2A26] text-xs font-semibold transition-colors flex items-center justify-center space-x-2 shadow-2xs cursor-pointer"
                 >
                   <ExternalLink className="w-4 h-4 text-[#8C8276]" />
                   <span>Abrir Web de Invitados</span>
@@ -251,7 +251,7 @@ export const ShareWeddingModal: React.FC = () => {
                   return (
                     <div 
                       key={w.id} 
-                      className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E8DCCF] flex items-center justify-between gap-3 text-xs"
+                      className="p-3 rounded-xl bg-[#FAF8F5] border border-transparent flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-[#2D2A26] truncate">{w.coupleNames}</div>
@@ -262,8 +262,8 @@ export const ShareWeddingModal: React.FC = () => {
                         onClick={() => handleCopyLink(wUrl, w.id)}
                         className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center space-x-1 cursor-pointer shrink-0 ${
                           isCopied 
-                            ? 'bg-emerald-600 text-white' 
-                            : 'bg-white border border-[#E8DCCF] text-[#524B42] hover:border-[#8B3A4A] hover:text-[#8B3A4A]'
+                            ? 'bg-emerald-600 text-[#2D3748]' 
+                            : 'bg-[#EBEBEB] border border-transparent text-[#524B42] hover:border-transparent hover:text-[#2D3748]'
                         }`}
                       >
                         {isCopied ? (
@@ -288,11 +288,11 @@ export const ShareWeddingModal: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-[#FAF8F5] border-t border-[#E8DCCF] flex justify-end">
+        <div className="p-4 bg-[#FAF8F5] border-t border-transparent flex justify-end">
           <button
             type="button"
             onClick={() => setShowShareModal(false)}
-            className="px-5 py-2 rounded-xl bg-[#2D2A26] hover:bg-[#1F1D1B] text-white text-xs font-semibold transition-colors cursor-pointer"
+            className="px-5 py-2 rounded-xl bg-[#2D2A26] hover:bg-[#1F1D1B] text-[#2D3748] text-xs font-semibold transition-colors cursor-pointer"
           >
             Cerrar
           </button>

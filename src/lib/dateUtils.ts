@@ -272,7 +272,7 @@ export function parseMilestoneTimeToMinutes(timeStr?: string): number {
     let h = parseInt(hourMatch[1], 10);
     if (isPM && h < 12) h += 12;
     if (isAM && h === 12) h = 0;
-    if (h < 6) h += 24;
+    // if (h < 6) h += 24; removed to sort strictly
     return h * 60;
   }
 
@@ -285,11 +285,7 @@ export function parseMilestoneTimeToMinutes(timeStr?: string): number {
     hours = 0;
   }
 
-  // If hours < 6 (e.g. 00:30, 01:30, 02:00, 03:00, 04:00, 05:00)
-  // this is past-midnight party/celebration in the wedding day sequence
-  if (hours < 6) {
-    hours += 24;
-  }
+  // Removed +24h logic for early hours as requested by user to sort strictly chronologically
 
   return hours * 60 + minutes;
 }
