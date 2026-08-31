@@ -34,12 +34,9 @@ export const AuthModal: React.FC = () => {
     const res = login(username, clave);
 
     if (res.success) {
-      setSuccessMsg(res.message);
-      setTimeout(() => {
-        setSuccessMsg('');
-        setShowAuthModal(false);
-        setViewMode('private'); // Navigate directly to dashboard on login
-      }, 1500);
+      setSuccessMsg('');
+      setShowAuthModal(false);
+      setViewMode('private');
     } else {
       setErrorMsg(res.message);
     }

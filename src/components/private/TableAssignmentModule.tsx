@@ -500,7 +500,7 @@ export const TableAssignmentModule: React.FC = () => {
         <div className="max-w-2xl">
           <h2 className="font-serif-display text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2.5">
             <UtensilsCrossed className="w-6 h-6 sm:w-7 sm:h-7 text-gray-800" />
-            <span>Asignación de Mesas a los Invitados</span>
+            <span>Asignación de Mesas</span>
           </h2>
         </div>
 
@@ -532,7 +532,7 @@ export const TableAssignmentModule: React.FC = () => {
             title="Diseñador visual interactivo de planos en 2D con carga de PDF y asignación de asientos"
           >
             <MapIcon className="w-4 h-4 text-[#2D3748]" />
-            <span className="hidden sm:inline">Diseñador 2D / PDF</span>
+            <span className="hidden sm:inline">Plano Local</span>
           </button>
 
           <button
@@ -752,7 +752,7 @@ export const TableAssignmentModule: React.FC = () => {
                 onClick={() => setRoleFilter('all')}
                 className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer border ${
                   roleFilter === 'all'
-                    ? 'bg-[#2D2A26] text-[#2D3748] border-[#2D2A26]'
+                    ? 'bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] border-transparent font-bold'
                     : 'bg-[#EBEBEB] text-[#524B42] border-transparent hover:bg-[#EAE4DC]'
                 }`}
               >
@@ -765,7 +765,7 @@ export const TableAssignmentModule: React.FC = () => {
                   onClick={() => setRoleFilter(role.id)}
                   className={`px-2.5 py-1 rounded-lg whitespace-nowrap transition-colors cursor-pointer border ${
                     roleFilter === role.id
-                      ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent font-semibold'
+                      ? 'bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] border-transparent font-bold'
                       : 'bg-[#FAF8F5] text-[#7A7268] border-transparent hover:bg-[#EAE4DC]'
                   }`}
                 >
@@ -878,6 +878,7 @@ export const TableAssignmentModule: React.FC = () => {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelectGuest(guest.id)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-4 h-4 rounded text-[#2D3748] focus:ring-[#d1d1d1] border-[#D9CEBF] cursor-pointer"
                         />
                         <div className="min-w-0">
@@ -925,6 +926,7 @@ export const TableAssignmentModule: React.FC = () => {
                     )}
 
                     {/* Assignment Action Row */}
+                    {isSelected && (
                     <div className="flex items-center justify-between pt-1 border-t border-[#F0EAE1] gap-2">
                       {isAssigned ? (
                         <div className="flex items-center justify-between w-full">
@@ -935,7 +937,7 @@ export const TableAssignmentModule: React.FC = () => {
 
                           <button
                             type="button"
-                            onClick={() => handleUnassignGuest(guest.id)}
+                            onClick={(e) => { e.stopPropagation(); handleUnassignGuest(guest.id); }}
                             className="text-[10px] text-rose-700 hover:text-rose-900 hover:bg-rose-50 px-2 py-0.5 rounded transition-colors cursor-pointer"
                             title="Quitar de esta mesa"
                           >
@@ -950,10 +952,10 @@ export const TableAssignmentModule: React.FC = () => {
                           </span>
                           <button
                             type="button"
-                            onClick={() => updateGuest(guest.id, {
+                            onClick={(e) => { e.stopPropagation(); updateGuest(guest.id, {
                               rsvpStatus: 'confirmed',
                               confirmedPasses: guest.confirmedPasses || guest.totalPasses || 1,
-                            })}
+                            }); }}
                             className="font-bold text-emerald-800 hover:text-emerald-950 underline hover:no-underline ml-2 cursor-pointer whitespace-nowrap"
                             title="Confirmar asistencia para habilitar asignación"
                           >
@@ -965,6 +967,7 @@ export const TableAssignmentModule: React.FC = () => {
                           <select
                             value=""
                             onChange={(e) => handleAssignSingleGuest(guest.id, e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
                             className="w-full text-xs px-2.5 py-1 rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] text-[#2D2A26] focus:bg-[#EBEBEB] cursor-pointer font-medium"
                           >
                             <option value="">Asignar a Mesa... ▼</option>
@@ -983,6 +986,7 @@ export const TableAssignmentModule: React.FC = () => {
                         </div>
                       )}
                     </div>
+                    )}
 
                   </div>
                 );
@@ -1292,11 +1296,9 @@ export const TableAssignmentModule: React.FC = () => {
         onDelete={
           tableToEdit
             ? async () => {
-                if (window.confirm(`¿Seguro que deseas eliminar "${tableToEdit.name}"? Los comensales asignados pasarán a estado "Sin mesa".`)) {
-                  await deleteTable(tableToEdit.id);
-                  setIsTableModalOpen(false);
-                  setTableToEdit(null);
-                }
+                await deleteTable(tableToEdit.id);
+                setIsTableModalOpen(false);
+                setTableToEdit(null);
               }
             : undefined
         }

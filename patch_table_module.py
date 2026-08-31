@@ -1,13 +1,25 @@
 import re
 
 with open('src/components/private/TableAssignmentModule.tsx', 'r') as f:
-    text = f.read()
+    content = f.read()
 
-# Add hidden sm:inline to typical buttons
-text = text.replace('<span>Diseñador de Planos 2D / PDF</span>', '<span className="hidden sm:inline">Diseñador 2D / PDF</span>')
-text = text.replace('<span>+ Nueva Mesa</span>', '<span className="hidden sm:inline">Nueva Mesa</span>')
-text = text.replace('<span>Auto-Distribuir</span>', '<span className="hidden sm:inline">Auto-Distribuir</span>')
-text = text.replace('<span>Imprimir Plano</span>', '<span className="hidden sm:inline">Imprimir</span>')
+# Remove window.confirm from onDelete in TableAssignmentModule.tsx
+regex = re.compile(
+    r'onDelete=\{\s*tableToEdit\s*\?\s*async\s*\(\)\s*=>\s*\{\s*if\s*\(window\.confirm\(`¿Seguro que deseas eliminar[^`]+`\)\)\s*\{\s*await\s+deleteTable\(tableToEdit\.id\);\s*setIsTableModalOpen\(false\);\s*setTableToEdit\(null\);\s*\}\s*\}\s*:\s*undefined\s*\}',
+    re.DOTALL
+)
+
+replacement = """onDelete={
+          tableToEdit
+            ? async () => {
+                await deleteTable(tableToEdit.id);
+                setIsTableModalOpen(false);
+                setTableToEdit(null);
+              }
+            : undefined
+        }"""
+
+content = regex.sub(replacement, content)
 
 with open('src/components/private/TableAssignmentModule.tsx', 'w') as f:
-    f.write(text)
+    f.write(content)

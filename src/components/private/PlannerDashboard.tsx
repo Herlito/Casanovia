@@ -105,12 +105,9 @@ export const PlannerDashboard: React.FC = () => {
 
   // If user is not authenticated at all, show access protection banner
   if (!currentUser.isAuthenticated) {
-    // Instead of rendering a separate login window, we defer to the global AuthModal
-    // The user requested: "no manejes ventanas diferentes para loguearse."
     setTimeout(() => {
-      if (!showAuthModal) setShowAuthModal(true);
       setViewMode('public');
-    }, 100);
+    }, 0);
     return null;
   }
 
@@ -249,8 +246,7 @@ export const PlannerDashboard: React.FC = () => {
     { id: 'checklist', label: 'Tareas', icon: CheckSquare },
     { id: 'guests', label: 'Invitados', icon: Users },
     { id: 'seating', label: 'Mesas', icon: UtensilsCrossed },
-    { id: 'floorplan', label: 'Plano', icon: Map },
-    { id: 'timeline', label: 'Cronograma', icon: Clock },
+        { id: 'timeline', label: 'Cronograma', icon: Clock },
     { id: 'vendors', label: 'Proveedores', icon: Building2 },
     { id: 'budget', label: 'Presupuesto', icon: DollarSign },
   ];
@@ -282,12 +278,9 @@ export const PlannerDashboard: React.FC = () => {
                     <span className="hidden sm:inline">Nuevo Evento</span>
                   </button>
                 ) : (
-                  <div className="relative shrink-0" ref={weddingDropdownRef}>
-                    <button
-                      type="button"
-                      id="btn-bar-wedding-selector"
-                      onClick={() => setWeddingDropdownOpen(!weddingDropdownOpen)}
-                      className={isNeumorphic ? "flex items-center space-x-2.5 text-left group bg-[#EBEBEB] rounded-2xl px-3.5 py-1.5 shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d9e6,inset_-3px_-3px_6px_#ffffff] transition-all cursor-pointer" : "flex items-center space-x-2.5 text-left group bg-[#EBEBEB]/90 hover:bg-[#471822] border border-transparent rounded-2xl px-3.5 py-1.5 shadow-xs transition-colors cursor-pointer"}
+                  <div className="relative shrink-0">
+                    <div
+                      className={isNeumorphic ? "flex items-center space-x-2.5 text-left bg-[#EBEBEB] rounded-2xl px-3.5 py-1.5 shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff]" : "flex items-center space-x-2.5 text-left bg-[#EBEBEB]/90 border border-transparent rounded-2xl px-3.5 py-1.5 shadow-xs"}
                     >
                       <div className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] text-gray-800 flex items-center justify-center font-serif-display font-bold text-xs shrink-0">
                         {coupleInitials}
@@ -296,116 +289,10 @@ export const PlannerDashboard: React.FC = () => {
                         <span className={`font-serif-display font-bold text-sm sm:text-base tracking-wide truncate max-w-[160px] sm:max-w-[220px] ${isNeumorphic ? "text-gray-900" : "text-[#2D3748]"}`}>
                           {activeWedding?.coupleNames || settings.coupleNames}
                         </span>
-                        <ChevronDown className={`w-4 h-4 transition-transform duration-200 shrink-0 ${weddingDropdownOpen ? 'rotate-180' : ''} ${isNeumorphic ? 'text-gray-500' : 'text-[#E8DCCF] ' + (weddingDropdownOpen ? 'text-[#2D3748]' : '')}`} />
                       </div>
-                    </button>
-
-                    {/* Dropdown Menu for Multi-Weddings */}
-                    {weddingDropdownOpen && (
-                      <div 
-                        className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-full mt-2 w-72 sm:w-80 bg-[#EBEBEB] text-[#2D2A26] rounded-2xl shadow-2xl border border-transparent p-2.5 z-50 animate-fadeIn"
-                      >
-                        <div className="px-3 py-2 border-b border-[#F0EAE1] flex items-center justify-between">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8C8276] block">
-                            {isLevel3Planner ? `Mis Bodas Creadas (${accessibleWeddings.length})` : `Bodas Organizadas (${weddings.length})`}
-                          </span>
-                          {isLevel3Planner && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-teal-100 text-teal-800">
-                              Nivel 3 Planner
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="max-h-60 overflow-y-auto py-1 space-y-1">
-                          {(isLevel3Planner ? accessibleWeddings : weddings).length === 0 ? (
-                            <div className="p-4 text-center space-y-2">
-                              <p className="text-xs text-[#7A7268]">No tienes bodas creadas todavía.</p>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setWeddingDropdownOpen(false);
-                                  setShowNewWeddingModal(true);
-                                }}
-                                className="w-full py-2 px-3 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer"
-                              >
-                                <PlusCircle className="w-4 h-4" />
-                                <span className="hidden sm:inline">Nuevo Evento</span>
-                              </button>
-                            </div>
-                          ) : (
-                            (isLevel3Planner ? accessibleWeddings : weddings).map((w) => {
-                              const isCurrent = w.id === activeWeddingId;
-                              return (
-                                <div
-                                  key={w.id}
-                                  className={`w-full p-2 rounded-xl text-xs transition-colors flex items-center justify-between gap-2 ${
-                                    isCurrent 
-                                      ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] font-semibold border border-transparent' 
-                                      : 'hover:bg-[#FAF8F5] text-[#2D2A26]'
-                                  }`}
-                                >
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      selectWedding(w.id);
-                                      setWeddingDropdownOpen(false);
-                                    }}
-                                    className="flex-1 text-left min-w-0 cursor-pointer"
-                                  >
-                                    <div className="font-serif-display font-bold text-xs sm:text-sm text-[#2D2A26] truncate">
-                                      {w.coupleNames}
-                                    </div>
-                                    <div className="text-[10px] text-[#7A7268] flex items-center gap-1 mt-0.5 truncate">
-                                      <Calendar className="w-3 h-3 text-[#8C8276] shrink-0" />
-                                      <span className="truncate">{w.weddingDate ? new Date(w.weddingDate).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Fecha por definir'}</span>
-                                    </div>
-                                  </button>
-
-                                  <div className="flex items-center space-x-1 shrink-0">
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        selectWedding(w.id);
-                                        setWeddingDropdownOpen(false);
-                                        setShowShareModal(true);
-                                      }}
-                                      title="Compartir enlace de esta boda"
-                                      className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#2D3748] hover:bg-[#EBEBEB] transition-colors cursor-pointer border border-transparent hover:border-transparent"
-                                    >
-                                      <Share2 className="w-3.5 h-3.5" />
-                                    </button>
-                                    {isCurrent && (
-                                      <span className="px-2 py-0.5 rounded-full text-[9px] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]">
-                                        Activa
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-
-                        {canCreateWedding && (
-                          <div className="pt-2 border-t border-[#F0EAE1]">
-                            <button
-                              type="button"
-                              id="btn-dropdown-crear-boda-bar"
-                              onClick={() => {
-                                setWeddingDropdownOpen(false);
-                                setShowNewWeddingModal(true);
-                              }}
-                              className="w-full py-2 px-3 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer"
-                            >
-                              <PlusCircle className="w-4 h-4" />
-                              <span className="hidden sm:inline">Nuevo Evento</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    </div>
                   </div>
+
                 )
               ) : (
                 <div className="flex items-center space-x-2.5 bg-[#EBEBEB] shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] rounded-2xl px-3.5 py-1.5 shrink-0 border-none">
