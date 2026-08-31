@@ -253,7 +253,6 @@ export const PlannerDashboard: React.FC = () => {
     { id: 'timeline', label: 'Cronograma', icon: Clock },
     { id: 'vendors', label: 'Proveedores', icon: Building2 },
     { id: 'budget', label: 'Presupuesto', icon: DollarSign },
-    { id: 'public', label: 'Web Invitados', icon: ExternalLink },
   ];
 
   return (

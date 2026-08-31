@@ -257,7 +257,7 @@ export const Navbar: React.FC = () => {
                   type="button"
                   id="btn-nav-logo-home"
                   onClick={() => {
-                    window.location.href = '/';
+                    setActiveView('private');
                   }}
                   className="cursor-pointer bg-transparent border-0 p-0 m-0 flex items-center justify-center hover:opacity-80 active:scale-98 transition-all focus:outline-hidden group"
                   title="Casanovia"
@@ -281,30 +281,7 @@ export const Navbar: React.FC = () => {
             {/* Right: Auth status, Cloud Sync, Share button & Sandwich Menu (when not in isPublicHomeLanding mode) */}
             <div className="flex items-center justify-end space-x-2 sm:space-x-3 ml-auto z-20">
 
-              {/* Cloud Sync Status Indicator - Solo para Administrador de Sistema */}
-              {!isPublicHomeLanding && isLevel1Admin && (
-                <div 
-                  className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-medium shadow-2xs"
-                  title="Sincronización en la nube automática activa con Firestore"
-                >
-                  <Cloud className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-                  <span>Nube Activa</span>
-                </div>
-              )}
 
-              {/* Botón Compartir Web Invitados - Solo cuando está autenticado y permitido */}
-              {!isPublicHomeLanding && currentUser.isAuthenticated && !isLevel3Planner && !isHostUser && (
-                <button
-                  type="button"
-                  id="btn-nav-share-wedding"
-                  onClick={() => setShowShareModal(true)}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#8B3A4A] bg-[#FAF8F5] hover:bg-[#F3EFEA] transition-colors border border-[#E8DCCF] hover:border-[#8B3A4A]/40 cursor-pointer shadow-2xs"
-                  title="Compartir enlace de la web de invitados por WhatsApp o enlace directo"
-                >
-                  <Share2 className="w-3.5 h-3.5 text-[#8B3A4A]" />
-                  <span className="hidden sm:inline-block">Compartir Web</span>
-                </button>
-              )}
 
               {/* User Session Pill - Solo cuando está autenticado */}
               {!isPublicHomeLanding && currentUser.isAuthenticated && (
@@ -392,39 +369,7 @@ export const Navbar: React.FC = () => {
 
                           {/* Group 1: Administration & Weddings */}
                           <div className="space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#A09383] px-2 block">
-                              Difusión y Enlaces
-                            </span>
 
-                            {/* Compartir Web de Invitados */}
-                            <button
-                              type="button"
-                              id="sandwich-btn-share-wedding"
-                              onClick={() => {
-                                setSandwichMenuOpen(false);
-                                setShowShareModal(true);
-                              }}
-                              className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
-                            >
-                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center shrink-0 transition-transform text-[#8B3A4A]">
-                                <Share2 className="w-4 h-4 text-[#F7E7CE]" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="font-bold flex items-center justify-between text-[#8B3A4A]">
-                                  <span>Compartir Web Invitados</span>
-                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800">
-                                    Público
-                                  </span>
-                                </div>
-                                <p className="text-[10px] text-[#8C8276] truncate font-normal">
-                                  WhatsApp, enlace directo y pase digital sin login
-                                </p>
-                              </div>
-                            </button>
-
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#A09383] px-2 block pt-1">
-                              Gestión y Bodas
-                            </span>
 
                             {/* 1. Administrar Usuarios / Anfitriones */}
                             {canManageUsers && (
@@ -456,29 +401,49 @@ export const Navbar: React.FC = () => {
                               </button>
                             )}
 
-                            {/* Manual de Usuario (Solo Admin Nivel 1) */}
+{/* Manual de Usuario (Solo Admin Nivel 1) */}
                             {isLevel1Admin && (<>
-                              <button
-                                type="button"
-                                id="sandwich-btn-manual"
-                                onClick={() => {
-                                  setSandwichMenuOpen(false);
-                                  setViewMode('manual');
-                                }}
-                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
-                              >
-                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center shrink-0 transition-transform text-[#8B3A4A]">
-                                  <FileText className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-bold flex items-center justify-between">
-                                    <span>Manual de Usuario</span>
-                                  </div>
-                                  <p className="text-[10px] text-[#8C8276] truncate font-normal">
-                                    Guía y funcionalidades de Casanovia
-                                  </p>
-                                </div>
-                              </button>
+                              {/* Botones rápidos de Admin: Manual, Precios, Imágenes */}
+                              <div className="flex gap-2 w-full mt-2 mb-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSandwichMenuOpen(false);
+                                    setViewMode('manual');
+                                  }}
+                                  title="Manual de Usuario"
+                                  className="flex-1 flex items-center justify-center p-2 sm:p-2.5 rounded-xl text-[#8B3A4A] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all cursor-pointer border-none"
+                                >
+                                  <FileText className="w-5 h-5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSandwichMenuOpen(false);
+                                    setActiveView('tokens');
+                                  }}
+                                  title="Precios"
+                                  className="flex-1 flex items-center justify-center p-2 sm:p-2.5 rounded-xl text-[#8B3A4A] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all cursor-pointer border-none"
+                                >
+                                  <ShoppingCart className="w-5 h-5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSandwichMenuOpen(false);
+                                    setShowUploadedImagesModal(true);
+                                  }}
+                                  title="Imágenes Subidas"
+                                  className="flex-1 flex items-center justify-center p-2 sm:p-2.5 rounded-xl text-[#8B3A4A] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all cursor-pointer border-none relative"
+                                >
+                                  <ImageIcon className="w-5 h-5" />
+                                  {uploadedImages.length > 0 && (
+                                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-[#EBEBEB]">
+                                      {uploadedImages.length}
+                                    </span>
+                                  )}
+                                </button>
+                              </div>
 
                               {/* Theme Selector (Admin Only) */}
                               <div className="pt-2 mt-2 border-t border-[#d1d1d1]">
@@ -537,63 +502,9 @@ export const Navbar: React.FC = () => {
                               </div>
                             </button>
 
-                            {/* 3. Página de Precios & Planes (Solo Administrador) */}
-                            {isLevel1Admin && (
-                              <button
-                                type="button"
-                                id="sandwich-btn-precios-store"
-                                onClick={() => {
-                                  setSandwichMenuOpen(false);
-                                  setActiveView('tokens');
-                                }}
-                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
-                              >
-                                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-amber-200 shadow-2xs">
-                                  <ShoppingCart className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-bold flex items-center justify-between">
-                                    <span>Precios</span>
-                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800">
-                                      Admin
-                                    </span>
-                                  </div>
-                                  <p className="text-[10px] text-[#8C8276] truncate font-normal">
-                                    Planes de invitaciones y gestión nupcial
-                                  </p>
-                                </div>
-                              </button>
-                            )}
 
-                            {/* 4. Imágenes & Comprobantes Subidos (Solo Administrador) */}
-                            {isLevel1Admin && (
-                              <button
-                                type="button"
-                                id="sandwich-btn-uploaded-images"
-                                onClick={() => {
-                                  setSandwichMenuOpen(false);
-                                  setShowUploadedImagesModal(true);
-                                }}
-                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
-                              >
-                                <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-purple-200 shadow-2xs">
-                                  <ImageIcon className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-bold flex items-center justify-between">
-                                    <span>Imágenes Subidas</span>
-                                    {uploadedImages.length > 0 && (
-                                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-800">
-                                        {uploadedImages.length}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-[10px] text-[#8C8276] truncate font-normal">
-                                    Ver comprobantes y fotos subidas por visitantes
-                                  </p>
-                                </div>
-                              </button>
-                            )}
+
+
 
                             {/* 5. Plano de Bodas & Seating Chart (Solo Administrador y Planner) */}
                             {(isLevel1Admin || isLevel3Planner) && (
