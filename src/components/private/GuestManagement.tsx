@@ -370,16 +370,9 @@ export const GuestManagement: React.FC = () => {
       {/* Top Header & Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] text-xs font-bold mb-1">
-            <Users className="w-3.5 h-3.5" />
-            <span>Base de Datos & Clasificación de Invitados</span>
-          </div>
           <h1 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
             Lista de Invitados
           </h1>
-          <p className="text-xs sm:text-sm text-[#7A7268]">
-            Gestiona a todos los asistentes por rol: Anfitrión, Invitado, Familia Directa, Wedding Planner, Cortejo, Damitas, Pajes, Niños y Proveedores.
-          </p>
         </div>
 
         {/* Action Buttons */}

@@ -200,11 +200,6 @@ export const SettingsModule: React.FC = () => {
           <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
             {isPlannerOrAdmin ? 'Configuración' : 'Configuración'}
           </h2>
-          <p className="text-xs sm:text-sm text-[#7A7268]">
-            {isPlannerOrAdmin 
-              ? 'Edita los datos del evento, sedes de ceremonia/recepción, código de vestimenta, paleta visual y finanzas.'
-              : `Edita los datos de tu boda (${settings.coupleNames}), sedes de ceremonia/recepción, código de vestimenta, paleta visual y finanzas.`}
-          </p>
         </div>
 
         {(canEditActiveWedding || isLevel1Admin) && (

@@ -111,9 +111,6 @@ export const VendorsModule: React.FC = () => {
           <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26] mt-1">
             Gestión de Proveedores & Servicios
           </h2>
-          <p className="text-xs sm:text-sm text-[#7A7268]">
-            Directorio de contactos, estado de contratación y pagos de los servicios nupciales en Soles (S/.).
-          </p>
         </div>
 
         {canManageVendors && (

@@ -143,8 +143,7 @@ export const Navbar: React.FC = () => {
     <>
       {/* Updated Header Background */}
       <header className={`print:hidden sticky top-0 z-50 backdrop-blur-md border-b shadow-xs ${isPublicHomeLanding ? "bg-[#EBEBEB] border-[#D4D4D4]" : "bg-[#EBEBEB]/95 border-[#EADDCE]"}`}>
-        {/* Top Gold Ornament Bar */}
-        <div className="h-1.5 bg-linear-to-r from-[#D4AF37] via-[#C5A880] to-[#2D3748] w-full" />
+        
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">

@@ -79,6 +79,7 @@ export const TableAssignmentModule: React.FC = () => {
     tables = [], 
     updateGuest, 
     addTable, 
+    updateTables, 
     updateTable, 
     deleteTable, 
     batchAssignGuestsToTable,
@@ -449,16 +450,19 @@ export const TableAssignmentModule: React.FC = () => {
   // Quick Preset: Generate default tables
   const handleCreateDefaultTableBatch = async (count: number, capacity: number) => {
     const existingCount = tables.length;
+    const newTables = [];
     for (let i = 1; i <= count; i++) {
       const num = existingCount + i;
-      await addTable({
+      newTables.push({
+        id: `tbl-${Date.now()}-${i}-${Math.floor(100 + Math.random() * 900)}`,
         name: `Mesa ${num}`,
         capacity: capacity,
-        shape: 'round',
+        shape: 'round' as const,
         zone: 'Salón Principal',
         notes: `Mesa estándar para ${capacity} personas`,
       });
     }
+    await updateTables([...tables, ...newTables]);
   };
 
   // Clear all guests from a specific table
@@ -493,30 +497,38 @@ export const TableAssignmentModule: React.FC = () => {
           HEADER STATION
          ======================================================== */}
       <div className="bg-[#EBEBEB] rounded-[2.5rem] p-6 text-gray-800 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="space-y-1.5 max-w-2xl">
-          <div className="flex items-center space-x-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] bg-[#EBEBEB] text-gray-700">
-              Banquete & Protocolo Nupcial
-            </span>
-            <span className="text-[10px] font-semibold text-gray-600">
-              {settings.coupleNames}
-            </span>
-          </div>
+        <div className="max-w-2xl">
           <h2 className="font-serif-display text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2.5">
             <UtensilsCrossed className="w-6 h-6 sm:w-7 sm:h-7 text-gray-800" />
             <span>Asignación de Mesas a los Invitados</span>
           </h2>
-          <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-            Organiza los asientos del banquete, distribuye a los comensales por afinidad o familia y genera el plano oficial para el servicio de recepción.
-          </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+        <div className="grid grid-cols-2 gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={handleSmartAutoAssign}
+            className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-semibold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
+            title="Asigna automáticamente invitados sin mesa a los lugares libres"
+          >
+            <Wand2 className="w-4 h-4 text-gray-800" />
+            <span className="hidden sm:inline">Auto-Distribuir</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsPrintModalOpen(true)}
+            className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-semibold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            <span className="hidden sm:inline">Imprimir</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setShowFloorPlanModal(true)}
-            className="px-4 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-bold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center space-x-1.5 cursor-pointer"
+            className="px-4 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-bold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center space-x-1.5 cursor-pointer"
             title="Diseñador visual interactivo de planos en 2D con carga de PDF y asignación de asientos"
           >
             <MapIcon className="w-4 h-4 text-[#2D3748]" />
@@ -529,29 +541,10 @@ export const TableAssignmentModule: React.FC = () => {
               setTableToEdit(null);
               setIsTableModalOpen(true);
             }}
-            className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-bold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center space-x-1.5 cursor-pointer"
+            className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-bold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Nueva Mesa</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleSmartAutoAssign}
-            className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-semibold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center space-x-1.5 cursor-pointer"
-            title="Asigna automáticamente invitados sin mesa a los lugares libres"
-          >
-            <Wand2 className="w-4 h-4 text-gray-800" />
-            <span className="hidden sm:inline">Auto-Distribuir</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsPrintModalOpen(true)}
-            className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-semibold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center space-x-1.5 cursor-pointer"
-          >
-            <Printer className="w-4 h-4" />
-            <span className="hidden sm:inline">Imprimir</span>
           </button>
         </div>
       </div>
@@ -567,7 +560,7 @@ export const TableAssignmentModule: React.FC = () => {
       {/* ========================================================
           METRICS & CAPACITY OVERVIEW CARDS
          ======================================================== */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="hidden md:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         
         {/* Card 1: Cantidad de Mesas */}
         <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 border border-transparent shadow-2xs space-y-2" : "bg-[#FFFDFB] rounded-2xl p-4 sm:p-5 border border-transparent shadow-2xs space-y-2"}>
@@ -727,17 +720,7 @@ export const TableAssignmentModule: React.FC = () => {
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={handleSelectAllVisibleGuests}
-              className="text-[11px] font-semibold text-[#2D3748] hover:underline cursor-pointer flex items-center space-x-1"
-            >
-              {selectedGuestIds.length === filteredGuests.length && filteredGuests.length > 0 ? (
-                <span>Deseleccionar</span>
-              ) : (
-                <span>Seleccionar todos</span>
-              )}
-            </button>
+            
           </div>
 
           {/* Search & Filter Bar */}

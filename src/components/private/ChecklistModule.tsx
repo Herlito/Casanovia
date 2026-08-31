@@ -141,9 +141,6 @@ export const ChecklistModule: React.FC = () => {
           <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
             Plan Maestro de Tareas
           </h2>
-          <p className="text-xs sm:text-sm text-[#7A7268]">
-            Estructurado cronológicamente desde los fundamentos iniciales (12 a 9 meses) hasta el día del evento y post-boda.
-          </p>
         </div>
 
         {/* Progress & Quick Bulk Actions */}

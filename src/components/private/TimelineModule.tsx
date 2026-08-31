@@ -262,9 +262,6 @@ export const TimelineModule: React.FC = () => {
           <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
             Programa Principal / Timing
           </h2>
-          <p className="text-xs sm:text-sm text-[#7A7268]">
-            Secuencia temporal exacta de la boda con asignación de personas clave, padrinos y requerimientos técnicos.
-          </p>
         </div>
 
         <div className="flex items-center space-x-2.5 self-start sm:self-auto">

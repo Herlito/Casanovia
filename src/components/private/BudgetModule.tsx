@@ -138,9 +138,6 @@ export const BudgetModule: React.FC = () => {
           <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
             Control de Presupuesto & Finanzas
           </h2>
-          <p className="text-xs sm:text-sm text-[#7A7268]">
-            Supervisa cotizaciones estimadas, costos reales pactados, anticipos cubiertos y sincronización con proveedores.
-          </p>
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5 self-start sm:self-auto">

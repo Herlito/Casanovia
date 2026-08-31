@@ -131,10 +131,6 @@ export const NewWeddingTasksScreen: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             
             <div>
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EBEBEB]/15 text-[#2D3748] text-xs font-semibold backdrop-blur-xs mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>¡Nueva Boda Creada en la Nube!</span>
-              </div>
               <h1 className="font-serif-display text-2xl sm:text-4xl font-bold tracking-wide">
                 Lista de Tareas & Checklist
               </h1>
