@@ -64,6 +64,8 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
     applyWeddingColorsTheme,
     resetWeddingColorsTheme
   } = useWedding();
+  const { appTheme } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [dressCodeStyle, setDressCodeStyle] = useState(settings.dressCodeStyle || '');
   const [dressCodeDescription, setDressCodeDescription] = useState(settings.dressCodeDescription || '');
@@ -142,7 +144,7 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
       <div className="bg-white rounded-3xl max-w-2xl w-full my-8 overflow-hidden shadow-2xl border border-[#E8DCCF] transition-all">
         
         {/* Header */}
-        <div className="bg-linear-to-r from-[#2D2A26] to-[#4A3B32] text-white p-6 relative">
+        <div className={isNeumorphic ? "p-6 relative text-gray-800" : "bg-linear-to-r from-[#2D2A26] to-[#4A3B32] text-white p-6 relative"}>
           <button
             type="button"
             onClick={onClose}
@@ -156,10 +158,10 @@ export const DressCodeEditModal: React.FC<DressCodeEditModalProps> = ({ isOpen, 
               <Shirt className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block">
+              <span className={isNeumorphic ? "text-[10px] font-bold tracking-widest text-gray-500 uppercase block" : "text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block"}>
                 Edición de Protocolo & Estilo
               </span>
-              <h3 className="font-serif-display text-xl font-bold text-white">
+              <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-white"}`}>
                 Código de Vestimenta y Paleta Visual
               </h3>
             </div>

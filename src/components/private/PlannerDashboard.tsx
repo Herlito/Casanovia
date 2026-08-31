@@ -69,7 +69,7 @@ export const PlannerDashboard: React.FC = () => {
     selectWedding,
     setShowFloorPlanModal
   } = useWedding();
-  const isNeumorphic = appTheme === 'neumorphic';
+  const isNeumorphic = appTheme === 'neumorphic' || true;
 
   const [activeTab, setActiveTab] = useState<PlannerDashboardTab>('panel');
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
@@ -117,9 +117,9 @@ export const PlannerDashboard: React.FC = () => {
   // If Level 3 Wedding Planner has NO weddings created yet, show dedicated welcoming onboarding with "Crear Boda" button
   if (isLevel3Planner && accessibleWeddings.length === 0) {
     return (
-      <div className={isNeumorphic ? "min-h-[85vh] bg-[#EBEBEB] text-gray-800 flex flex-col" : "min-h-[85vh] bg-[#F7F3EE] flex flex-col selection:bg-[#8B3A4A]/20 selection:text-[#8B3A4A]"}>
+      <div className={isNeumorphic ? "min-h-[85vh] bg-[#F0F0F3] text-gray-800 flex flex-col" : "min-h-[85vh] bg-[#F7F3EE] flex flex-col selection:bg-[#8B3A4A]/20 selection:text-[#8B3A4A]"}>
         {/* Top Status Ribbon */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] text-gray-500 py-1.5 px-4 text-[11px] shadow-[inset_0px_-2px_4px_#d1d1d1]" : "bg-[#1F1D1B] text-stone-300 py-1.5 px-4 text-[11px] border-b border-stone-800"}>
+        <div className={isNeumorphic ? "bg-[#F0F0F3] text-gray-500 py-1.5 px-4 text-[11px] shadow-[inset_0px_-2px_4px_#d1d1d1]" : "bg-[#1F1D1B] text-stone-300 py-1.5 px-4 text-[11px] border-b border-stone-800"}>
           <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse shrink-0" />
@@ -140,10 +140,10 @@ export const PlannerDashboard: React.FC = () => {
         </div>
 
         {/* Header */}
-        <header className={isNeumorphic ? "bg-[#EBEBEB] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] py-2 px-6 border-b border-white/50" : "bg-[#6B2D38] text-white shadow-md py-4 px-6"}>
+        <header className={isNeumorphic ? "bg-[#F0F0F3] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] py-2 px-6 border-b border-white/50" : "bg-[#6B2D38] text-white shadow-md py-4 px-6"}>
           <div className="max-w-5xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className={isNeumorphic ? "w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center font-serif-display font-bold text-lg text-gray-800" : "w-10 h-10 rounded-xl bg-[#54212C] border border-[#8B3A4A]/60 flex items-center justify-center font-serif-display font-bold text-lg text-[#F7E7CE]"}>
+              <div className={isNeumorphic ? "w-10 h-10 rounded-xl bg-[#F0F0F3] shadow-[inset_4px_4px_8px_rgba(163,177,198,0.4),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] flex items-center justify-center font-serif-display font-bold text-lg text-gray-800" : "w-10 h-10 rounded-xl bg-[#54212C] border border-[#8B3A4A]/60 flex items-center justify-center font-serif-display font-bold text-lg text-[#F7E7CE]"}>
                 WP
               </div>
               <div>
@@ -160,7 +160,7 @@ export const PlannerDashboard: React.FC = () => {
               type="button"
               id="btn-planner-create-wedding-header"
               onClick={() => setShowNewWeddingModal(true)}
-              className={isNeumorphic ? "px-4 py-2 rounded-xl bg-[#EBEBEB] text-gray-800 text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]" : "px-4 py-2 rounded-xl bg-[#8B3A4A] hover:bg-[#803140] text-white text-xs font-bold transition-all shadow-md flex items-center space-x-2 cursor-pointer"}
+              className={isNeumorphic ? "px-4 py-2 rounded-xl bg-[#F0F0F3] text-gray-800 text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_rgba(163,177,198,0.4),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]" : "px-4 py-2 rounded-xl bg-[#8B3A4A] hover:bg-[#803140] text-white text-xs font-bold transition-all shadow-md flex items-center space-x-2 cursor-pointer"}
             >
               <PlusCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Nuevo Evento</span>
@@ -170,7 +170,7 @@ export const PlannerDashboard: React.FC = () => {
 
         {/* Main Welcome Hero */}
         <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-12 flex flex-col items-center justify-center">
-          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-8 sm:p-12 border border-[#E8DCCF] shadow-xl text-center max-w-2xl w-full space-y-6" : "bg-white rounded-3xl p-8 sm:p-12 border border-[#E8DCCF] shadow-xl text-center max-w-2xl w-full space-y-6"}>
+          <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-8 sm:p-12 border border-[#E8DCCF] shadow-xl text-center max-w-2xl w-full space-y-6" : "bg-white rounded-3xl p-8 sm:p-12 border border-[#E8DCCF] shadow-xl text-center max-w-2xl w-full space-y-6"}>
             
             <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-teal-50 to-teal-100 border border-teal-200 text-teal-800 mx-auto flex items-center justify-center shadow-sm">
               <Briefcase className="w-10 h-10 text-teal-700" />
@@ -257,7 +257,7 @@ export const PlannerDashboard: React.FC = () => {
   ];
 
   return (
-    <div className={isNeumorphic ? "min-h-screen bg-[#EBEBEB] text-gray-800 flex flex-col" : "min-h-screen bg-[#F7F3EE] flex flex-col selection:bg-[#8B3A4A]/20 selection:text-[#8B3A4A]"}>
+    <div className={isNeumorphic ? "min-h-screen bg-[#F0F0F3] text-gray-800 flex flex-col" : "min-h-screen bg-[#F7F3EE] flex flex-col selection:bg-[#8B3A4A]/20 selection:text-[#8B3A4A]"}>
 
       {/* ========================================================
           TOP NAVIGATION BAR (Matching screenshot wine burgundy theme)
@@ -265,7 +265,7 @@ export const PlannerDashboard: React.FC = () => {
           - Right / Rows: Navigation Tabs [Panel, Invitados, Mesas, Proveedores, Presupuesto, Cronograma, Tareas, Ajustes]
           - Auto-wrapping for mobile view
          ======================================================== */}
-      <header className={isNeumorphic ? "bg-[#EBEBEB] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] sticky top-16 sm:top-20 z-30" : "bg-[#6B2D38] text-white shadow-md sticky top-16 sm:top-20 z-30"}>
+      <header className={isNeumorphic ? "bg-[#F0F0F3] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] sticky top-16 sm:top-20 z-30" : "bg-[#6B2D38] text-white shadow-md sticky top-16 sm:top-20 z-30"}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-2">
           <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-start gap-1 sm:gap-2">
             
@@ -277,7 +277,7 @@ export const PlannerDashboard: React.FC = () => {
                     type="button"
                     id="btn-planner-bar-create-wedding"
                     onClick={() => setShowNewWeddingModal(true)}
-                    className={isNeumorphic ? "px-3 py-1.5 rounded-xl bg-[#EBEBEB] text-gray-800 text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]" : "px-3 py-1.5 rounded-xl bg-[#54212C] hover:bg-[#451822] text-white text-xs font-bold transition-all flex items-center space-x-1.5 border border-[#8B3A4A]/60 shadow-xs cursor-pointer shrink-0"}
+                    className={isNeumorphic ? "px-3 py-1.5 rounded-xl bg-[#F0F0F3] text-gray-800 text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d9e6,inset_-3px_-3px_6px_#ffffff]" : "px-3 py-1.5 rounded-xl bg-[#54212C] hover:bg-[#451822] text-white text-xs font-bold transition-all flex items-center space-x-1.5 border border-[#8B3A4A]/60 shadow-xs cursor-pointer shrink-0"}
                   >
                     <PlusCircle className="w-3.5 h-3.5 text-teal-300" />
                     <span className="hidden sm:inline">Nuevo Evento</span>
@@ -288,9 +288,9 @@ export const PlannerDashboard: React.FC = () => {
                       type="button"
                       id="btn-bar-wedding-selector"
                       onClick={() => setWeddingDropdownOpen(!weddingDropdownOpen)}
-                      className={isNeumorphic ? "flex items-center space-x-2.5 text-left group bg-[#EBEBEB] rounded-2xl px-3.5 py-1.5 shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transition-all cursor-pointer" : "flex items-center space-x-2.5 text-left group bg-[#54212C]/90 hover:bg-[#471822] border border-[#8B3A4A]/70 rounded-2xl px-3.5 py-1.5 shadow-xs transition-colors cursor-pointer"}
+                      className={isNeumorphic ? "flex items-center space-x-2.5 text-left group bg-[#F0F0F3] rounded-2xl px-3.5 py-1.5 shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d9e6,inset_-3px_-3px_6px_#ffffff] transition-all cursor-pointer" : "flex items-center space-x-2.5 text-left group bg-[#54212C]/90 hover:bg-[#471822] border border-[#8B3A4A]/70 rounded-2xl px-3.5 py-1.5 shadow-xs transition-colors cursor-pointer"}
                     >
-                      <div className={isNeumorphic ? "w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-800 flex items-center justify-center font-serif-display font-bold text-xs shrink-0" : "w-8 h-8 rounded-full bg-[#8B3A4A] text-[#F7E7CE] flex items-center justify-center font-serif-display font-bold text-xs shrink-0 border border-white/25 shadow-2xs"}>
+                      <div className={isNeumorphic ? "w-8 h-8 rounded-full bg-[#F0F0F3] shadow-[inset_3px_3px_6px_#d1d9e6,inset_-3px_-3px_6px_#ffffff] text-gray-800 flex items-center justify-center font-serif-display font-bold text-xs shrink-0" : "w-8 h-8 rounded-full bg-[#8B3A4A] text-[#F7E7CE] flex items-center justify-center font-serif-display font-bold text-xs shrink-0 border border-white/25 shadow-2xs"}>
                         {coupleInitials}
                       </div>
                       <div className="min-w-0 flex items-center space-x-1.5">
@@ -409,12 +409,12 @@ export const PlannerDashboard: React.FC = () => {
                   </div>
                 )
               ) : (
-                <div className={isNeumorphic ? "flex items-center space-x-2.5 bg-[#EBEBEB] shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] rounded-2xl px-3.5 py-1.5 shrink-0" : "flex items-center space-x-2.5 bg-[#54212C]/60 border border-[#8B3A4A]/40 rounded-2xl px-3.5 py-1.5 shrink-0"}>
-                  <div className={isNeumorphic ? "w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-800 flex items-center justify-center font-serif-display font-bold text-xs shrink-0" : "w-8 h-8 rounded-full bg-[#8B3A4A] text-[#F7E7CE] flex items-center justify-center font-serif-display font-bold text-xs shrink-0 border border-white/25 shadow-2xs"}>
+                <div className={isNeumorphic ? "flex items-center space-x-2.5 bg-[#F0F0F3] shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] rounded-2xl px-3.5 py-1.5 shrink-0" : "flex items-center space-x-2.5 bg-[#54212C]/60 border border-[#8B3A4A]/40 rounded-2xl px-3.5 py-1.5 shrink-0"}>
+                  <div className={isNeumorphic ? "w-8 h-8 rounded-full bg-[#F0F0F3] shadow-[inset_3px_3px_6px_#d1d9e6,inset_-3px_-3px_6px_#ffffff] text-gray-800 flex items-center justify-center font-serif-display font-bold text-xs shrink-0" : "w-8 h-8 rounded-full bg-[#8B3A4A] text-[#F7E7CE] flex items-center justify-center font-serif-display font-bold text-xs shrink-0 border border-white/25 shadow-2xs"}>
                     {coupleInitials}
                   </div>
                   <div className="min-w-0">
-                    <span className="font-serif-display font-bold text-sm sm:text-base text-white tracking-wide truncate block max-w-[160px] sm:max-w-[220px]">
+                    <span className={`font-serif-display font-bold text-sm sm:text-base tracking-wide truncate block max-w-[160px] sm:max-w-[220px] ${isNeumorphic ? "text-[#6D7587]" : "text-white"}`}>
                       {settings.coupleNames}
                     </span>
                   </div>
@@ -444,10 +444,10 @@ export const PlannerDashboard: React.FC = () => {
                         setActiveTab(tab.id as PlannerDashboardTab);
                       }
                     }}
-                    className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 ${
+                    className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 ${
                       isActive
-                        ? 'bg-[#8B3A4A] text-white shadow-xs font-semibold ring-1 ring-white/30'
-                        : 'text-stone-200 hover:text-white hover:bg-white/10'
+                        ? (isNeumorphic ? 'bg-[#F0F0F3] text-[#6D7587] shadow-[inset_3px_3px_6px_#d1d9e6,inset_-3px_-3px_6px_#ffffff]' : 'bg-[#8B3A4A] text-white shadow-xs font-semibold ring-1 ring-white/30')
+                        : (isNeumorphic ? 'text-[#6D7587] bg-[#F0F0F3] shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d9e6,-3px_-3px_6px_#ffffff]' : 'text-stone-200 hover:text-white hover:bg-white/10')
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -466,7 +466,7 @@ export const PlannerDashboard: React.FC = () => {
       <div className="flex-1 flex max-w-7xl w-full mx-auto px-0 sm:px-6 lg:px-8 py-2 sm:py-6 gap-0 sm:gap-6">
         
         {/* Left Vertical Icon Navigation Rail (Desktop) */}
-        <aside className={isNeumorphic ? "hidden md:flex flex-col items-center justify-between w-14 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-2.5 border border-[#E8DCCF] shadow-xs shrink-0 self-start sticky top-20" : "hidden md:flex flex-col items-center justify-between w-14 bg-white rounded-3xl p-2.5 border border-[#E8DCCF] shadow-xs shrink-0 self-start sticky top-20"}>
+        <aside className={isNeumorphic ? "hidden md:flex flex-col items-center justify-between w-14 bg-[#F0F0F3] rounded-[2.5rem] shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] p-2.5 shrink-0 self-start sticky top-20 border-none" : "hidden md:flex flex-col items-center justify-between w-14 bg-white rounded-3xl p-2.5 border border-[#E8DCCF] shadow-xs shrink-0 self-start sticky top-20"}>
           <div className="space-y-2.5 w-full flex flex-col items-center">
             {navTabs.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -486,10 +486,10 @@ export const PlannerDashboard: React.FC = () => {
                     }
                   }}
                   title={tab.label}
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-[#8B3A4A] text-white shadow-xs'
-                      : 'text-[#7A7268] hover:text-[#2D2A26] hover:bg-[#FAF8F5]'
+                      ? (isNeumorphic ? 'bg-[#F0F0F3] text-[#6D7587] shadow-[inset_3px_3px_6px_#d1d9e6,inset_-3px_-3px_6px_#ffffff]' : 'bg-[#8B3A4A] text-white shadow-xs')
+                      : (isNeumorphic ? 'text-[#6D7587] bg-[#F0F0F3] shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d9e6,-3px_-3px_6px_#ffffff]' : 'text-[#7A7268] hover:text-[#2D2A26] hover:bg-[#FAF8F5]')
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -516,7 +516,7 @@ export const PlannerDashboard: React.FC = () => {
             <NoviosOverviewPanel onNavigateTab={(tab) => setActiveTab(tab)} />
           )}
           {activeTab === 'guests' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
               <GuestManagement />
             </div>
           )}
@@ -524,27 +524,27 @@ export const PlannerDashboard: React.FC = () => {
             <TableAssignmentModule />
           )}
           {activeTab === 'vendors' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
               <VendorsModule />
             </div>
           )}
           {activeTab === 'budget' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
               <BudgetModule />
             </div>
           )}
           {activeTab === 'timeline' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
               <TimelineModule />
             </div>
           )}
           {activeTab === 'checklist' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
               <ChecklistModule />
             </div>
           )}
           {activeTab === 'settings' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-[#E8DCCF] shadow-xs" : "bg-white rounded-3xl p-6 border border-[#E8DCCF] shadow-xs"}>
               <SettingsModule />
             </div>
           )}

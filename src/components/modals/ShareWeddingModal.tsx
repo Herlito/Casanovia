@@ -28,6 +28,8 @@ export const ShareWeddingModal: React.FC = () => {
     getShareableWeddingUrl,
     selectWedding
   } = useWedding();
+  const { appTheme } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedWeddingForShare, setSelectedWeddingForShare] = useState<string>('');
@@ -88,7 +90,7 @@ export const ShareWeddingModal: React.FC = () => {
       <div className="bg-[#FFFDFB] rounded-3xl border border-[#E8DCCF] shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#8B3A4A] to-[#6E2937] text-white p-6 relative">
+        <div className={isNeumorphic ? "p-6 relative text-gray-800" : "bg-gradient-to-r from-[#8B3A4A] to-[#6E2937] text-white p-6 relative"}>
           <button
             type="button"
             onClick={() => setShowShareModal(false)}

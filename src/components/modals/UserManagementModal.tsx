@@ -37,6 +37,8 @@ export const UserManagementModal: React.FC = () => {
     isLevel1Admin,
     isLevel3Planner
   } = useWedding();
+  const { appTheme } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
@@ -170,7 +172,7 @@ export const UserManagementModal: React.FC = () => {
       <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-[#E8DCCF] flex flex-col">
         
         {/* Header */}
-        <div className="bg-linear-to-r from-[#2D2A26] via-[#4A3B32] to-[#8B3A4A] text-white p-6 relative shrink-0">
+        <div className={isNeumorphic ? "p-6 relative text-gray-800 shrink-0" : "bg-linear-to-r from-[#2D2A26] via-[#4A3B32] to-[#8B3A4A] text-white p-6 relative shrink-0"}>
           <button
             onClick={() => setShowUserManagementModal(false)}
             className="absolute top-5 right-5 p-1.5 rounded-full text-stone-300 hover:text-white hover:bg-white/10 transition-colors"
@@ -184,14 +186,14 @@ export const UserManagementModal: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block">
+                <span className={isNeumorphic ? "text-[10px] font-bold tracking-widest text-gray-500 uppercase block" : "text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block"}>
                   Panel de Control de Accesos & Roles
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/20 text-white">
                   {isLevel1Admin ? 'Nivel 1: Super Admin' : 'Nivel 3: Wedding Planner'}
                 </span>
               </div>
-              <h3 className="font-serif-display text-xl font-bold text-white">
+              <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-white"}`}>
                 Gestión de Usuarios
               </h3>
             </div>

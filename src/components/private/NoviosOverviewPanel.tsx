@@ -41,7 +41,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
     setShowShareModal,
     getShareableWeddingUrl
   } = useWedding();
-  const isNeumorphic = appTheme === 'neumorphic';
+  const isNeumorphic = appTheme === 'neumorphic' || true;
 
   const [guestGroupFilter, setGuestGroupFilter] = useState<'todos' | 'protocolar' | 'familia' | 'amigos' | 'general'>('todos');
   const [copiedLink, setCopiedLink] = useState(false);
@@ -208,12 +208,12 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
         <div className="lg:col-span-6 space-y-6">
 
           {/* CARD 1: Resumen General (KPIs) */}
-          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] relative overflow-hidden transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs relative overflow-hidden transition-all hover:shadow-md"}>
+          <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] relative overflow-hidden transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs relative overflow-hidden transition-all hover:shadow-md"}>
             {/* Corner Floral Bouquet */}
             <FloralBouquet className="absolute -top-1 -right-1 z-10" />
 
             <div className="relative z-20">
-              <h2 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26] tracking-tight mb-5">
+              <h2 className="font-serif-display text-xl sm:text-2xl font-bold text-[#6D7587] tracking-tight mb-5">
                 Resumen General (KPIs)
               </h2>
 
@@ -228,7 +228,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
                   <p className="text-xs font-semibold text-[#7A7268] group-hover:text-[#8B3A4A] transition-colors">
                     Invitados Confirmados
                   </p>
-                  <div className="text-xl sm:text-2xl font-serif-display font-bold text-[#2D2A26]">
+                  <div className="text-xl sm:text-2xl font-serif-display font-bold text-[#6D7587]">
                     ({confirmedPasses}/{totalAssignedPasses})
                   </div>
                   {/* Progress bar */}
@@ -248,7 +248,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
                   <p className="text-xs font-semibold text-[#7A7268] group-hover:text-[#8B3A4A] transition-colors">
                     Presupuesto Pagado
                   </p>
-                  <div className="text-xl sm:text-2xl font-serif-display font-bold text-[#2D2A26]">
+                  <div className="text-xl sm:text-2xl font-serif-display font-bold text-[#6D7587]">
                     ({paidPercentage}%)
                   </div>
                   {/* Progress bar */}
@@ -268,7 +268,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
                   <p className="text-xs font-semibold text-[#7A7268] group-hover:text-[#8B3A4A] transition-colors">
                     Tareas Completadas
                   </p>
-                  <div className="text-xl sm:text-2xl font-serif-display font-bold text-[#2D2A26]">
+                  <div className="text-xl sm:text-2xl font-serif-display font-bold text-[#6D7587]">
                     ({completedTasksCount}/{totalTasksCount})
                   </div>
                   {/* Progress bar */}
@@ -285,7 +285,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
                   <p className="text-xs font-semibold text-[#7A7268]">
                     Días Restantes
                   </p>
-                  <div className="text-xl sm:text-2xl font-serif-display font-bold text-[#2D2A26]">
+                  <div className="text-xl sm:text-2xl font-serif-display font-bold text-[#6D7587]">
                     {daysRemaining}
                   </div>
                   {/* Progress indicator */}
@@ -305,14 +305,14 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
           <FloorPlanPreviewCard />
 
           {/* CARD 3: Control de Presupuesto */}
-          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md"}>
+          <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md"}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-[#F0EAE1]">
-              <h3 className="font-serif-display text-lg sm:text-xl font-bold text-[#2D2A26]">
+              <h3 className="font-serif-display text-lg sm:text-xl font-bold text-[#6D7587]">
                 Control de Presupuesto
               </h3>
               <div className="text-right">
                 <span className="text-xs text-[#7A7268] mr-2">Presupuesto Total Real</span>
-                <span className="font-serif-display text-sm sm:text-base font-bold text-[#2D2A26]">
+                <span className="font-serif-display text-sm sm:text-base font-bold text-[#6D7587]">
                   {formatCurrencyShort(settings.totalRealBudget || totalBudgetActual || 20000)}
                 </span>
               </div>
@@ -332,13 +332,13 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
                 <tbody className="divide-y divide-[#F6F1EA]">
                   {categoryBudgetRows.map((cat) => (
                     <tr key={cat.key} className="hover:bg-[#FAF7F2] transition-colors">
-                      <td className="py-3 font-medium text-[#2D2A26]">
+                      <td className="py-3 font-medium text-[#6D7587]">
                         {cat.name}
                       </td>
                       <td className="py-3 text-right text-[#7A7268]">
                         {formatCurrencyShort(cat.estimated)}
                       </td>
-                      <td className="py-3 text-right font-medium text-[#2D2A26]">
+                      <td className="py-3 text-right font-medium text-[#6D7587]">
                         {formatCurrencyShort(cat.actual)}
                       </td>
                       <td className={`py-3 text-right font-semibold ${
@@ -376,12 +376,12 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
         <div className="lg:col-span-6 space-y-6">
 
           {/* CARD 4: Estado de Invitados */}
-          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] relative overflow-hidden transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs relative overflow-hidden transition-all hover:shadow-md"}>
+          <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] relative overflow-hidden transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs relative overflow-hidden transition-all hover:shadow-md"}>
             {/* Corner Floral Bouquet */}
             <FloralBouquet className="absolute -top-1 -right-1 z-10" />
 
             <div className="relative z-20 space-y-5">
-              <h2 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26] tracking-tight">
+              <h2 className="font-serif-display text-xl sm:text-2xl font-bold text-[#6D7587] tracking-tight">
                 Estado de Invitados
               </h2>
 
@@ -441,7 +441,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
                   {/* Center circle */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <span className="text-xs font-semibold text-[#8C8276]">Total</span>
-                    <span className="font-serif-display text-lg font-bold text-[#2D2A26]">
+                    <span className="font-serif-display text-lg font-bold text-[#6D7587]">
                       {totalAssignedPasses}
                     </span>
                   </div>
@@ -451,17 +451,17 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
                 <div className="space-y-2.5 text-xs text-[#524B42]">
                   <div className="flex items-center space-x-2.5">
                     <span className="w-3.5 h-3.5 rounded-full bg-[#8B3A4A] shrink-0 shadow-2xs" />
-                    <span className="font-medium text-[#2D2A26]">Confirmados</span>
+                    <span className="font-medium text-[#6D7587]">Confirmados</span>
                     <span className="text-[#8C8276] text-[11px]">({confirmedPasses})</span>
                   </div>
                   <div className="flex items-center space-x-2.5">
                     <span className="w-3.5 h-3.5 rounded-full bg-[#C59B67] shrink-0 shadow-2xs" />
-                    <span className="font-medium text-[#2D2A26]">Pendientes</span>
+                    <span className="font-medium text-[#6D7587]">Pendientes</span>
                     <span className="text-[#8C8276] text-[11px]">({pendingPasses})</span>
                   </div>
                   <div className="flex items-center space-x-2.5">
                     <span className="w-3.5 h-3.5 rounded-full bg-[#D1C7BD] shrink-0 shadow-2xs" />
-                    <span className="font-medium text-[#2D2A26]">No asistirán</span>
+                    <span className="font-medium text-[#6D7587]">No asistirán</span>
                     <span className="text-[#8C8276] text-[11px]">({declinedPasses})</span>
                   </div>
                 </div>
@@ -511,13 +511,13 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
                   <tbody className="divide-y divide-[#F6F1EA]">
                     {filteredGuestsForCard.map((guest, idx) => (
                       <tr key={guest.id || idx} className="hover:bg-[#FAF7F2] transition-colors">
-                        <td className="py-2.5 font-medium text-[#2D2A26]">
+                        <td className="py-2.5 font-medium text-[#6D7587]">
                           {guest.fullName}
                         </td>
                         <td className="py-2.5 text-center text-[#7A7268]">
                           {guest.updatedAt ? new Date(guest.updatedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '18 de 2024'}
                         </td>
-                        <td className="py-2.5 text-center font-semibold text-[#2D2A26]">
+                        <td className="py-2.5 text-center font-semibold text-[#6D7587]">
                           {guest.confirmedPasses || guest.totalPasses || 2}
                         </td>
                         <td className="py-2.5 text-right pr-2">
@@ -545,9 +545,9 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
           </div>
 
           {/* CARD 5: Tareas Próximas */}
-          <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md"}>
+          <div className={isNeumorphic ? "bg-[#F0F0F3] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-[#E8DCCF] shadow-xs transition-all hover:shadow-md"}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-serif-display text-lg sm:text-xl font-bold text-[#2D2A26]">
+              <h3 className="font-serif-display text-lg sm:text-xl font-bold text-[#6D7587]">
                 Tareas Próximas
               </h3>
               <button
@@ -587,7 +587,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
                       />
                       <div className="min-w-0">
                         <p className={`text-xs font-medium leading-snug ${
-                          task.isCompleted ? 'line-through text-[#8C8276]' : 'text-[#2D2A26]'
+                          task.isCompleted ? 'line-through text-[#8C8276]' : 'text-[#6D7587]'
                         }`}>
                           {task.title}
                         </p>
@@ -614,7 +614,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
               <button
                 type="button"
                 onClick={() => onNavigateTab('checklist')}
-                className={isNeumorphic ? "w-full py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-xl text-xs font-bold text-gray-700 transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider" : "w-full py-2 bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#524B42] rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 border border-[#E8DCCF]"}
+                className={isNeumorphic ? "w-full py-2 bg-[#F0F0F3] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] active:shadow-[inset_4px_4px_8px_rgba(163,177,198,0.4),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] rounded-xl text-xs font-bold text-gray-700 transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider" : "w-full py-2 bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#524B42] rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 border border-[#E8DCCF]"}
               >
                 <span>Abrir Gestor Maestro de Tareas</span>
                 <ArrowRight className="w-3.5 h-3.5 text-[#8B3A4A]" />

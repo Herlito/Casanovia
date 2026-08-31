@@ -19,6 +19,8 @@ interface FooterEditModalProps {
 
 export const FooterEditModal: React.FC<FooterEditModalProps> = ({ isOpen, onClose }) => {
   const { settings, updateSettings, canEditActiveWedding, isLevel1Admin, isHostUser, currentUser } = useWedding();
+  const { appTheme } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [coupleNames, setCoupleNames] = useState(settings.coupleNames || '');
   const [romanticQuote, setRomanticQuote] = useState(
@@ -69,7 +71,7 @@ export const FooterEditModal: React.FC<FooterEditModalProps> = ({ isOpen, onClos
       <div className="bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl border border-[#E8DCCF] transition-all">
         
         {/* Header */}
-        <div className="bg-linear-to-r from-[#2D2A26] to-[#4A3B32] text-white p-6 relative">
+        <div className={isNeumorphic ? "p-6 relative text-gray-800" : "bg-linear-to-r from-[#2D2A26] to-[#4A3B32] text-white p-6 relative"}>
           <button
             onClick={onClose}
             className="absolute top-5 right-5 p-1.5 rounded-full text-stone-300 hover:text-white hover:bg-white/10 transition-colors"
@@ -82,10 +84,10 @@ export const FooterEditModal: React.FC<FooterEditModalProps> = ({ isOpen, onClos
               <Quote className="w-5 h-5 text-[#D4AF37]" />
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block">
+              <span className={isNeumorphic ? "text-[10px] font-bold tracking-widest text-gray-500 uppercase block" : "text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block"}>
                 Edición de Pie de Página (Anfitriones & Admin)
               </span>
-              <h3 className="font-serif-display text-xl font-bold text-white">
+              <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-white"}`}>
                 Modificar Frase, Nombres & Contactos
               </h3>
             </div>

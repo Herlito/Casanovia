@@ -306,3 +306,7 @@ body[data-theme="neumorphic"],
     gap: 1rem !important;
   }
 }
+
+
+/* Force all icons inside buttons to be black as requested */
+[data-theme='neumorphic'] button svg, [data-theme='neumorphic'] .cursor-pointer svg { color: black !important; }

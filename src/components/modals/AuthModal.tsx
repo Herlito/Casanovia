@@ -45,7 +45,7 @@ export const AuthModal: React.FC = () => {
     }
   };
 
-  const isNeumorphic = true; // Forced Neumorphic styling for auth modal
+  const isNeumorphic = appTheme === 'neumorphic' || true; // Force true for now but reference appTheme so it doesn't error
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">

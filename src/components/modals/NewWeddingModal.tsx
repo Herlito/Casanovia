@@ -21,6 +21,8 @@ export const NewWeddingModal: React.FC = () => {
     isLevel3Planner,
     currentUser
   } = useWedding();
+  const { appTheme } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
 
   const [eventType, setEventType] = useState('Boda');
   const [coupleNames, setCoupleNames] = useState('');
@@ -65,10 +67,10 @@ export const NewWeddingModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-[#E8DCCF]">
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] max-w-lg w-full overflow-hidden border border-[#E8DCCF]" : "bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-[#E8DCCF]"}>
         
         {/* Modal Header */}
-        <div className="bg-[#8B3A4A] text-white p-6 relative">
+        <div className={isNeumorphic ? "p-6 relative text-gray-800" : "bg-[#8B3A4A] text-white p-6 relative"}>
           <button
             onClick={() => setShowNewWeddingModal(false)}
             className="absolute top-5 right-5 p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors"
@@ -77,14 +79,14 @@ export const NewWeddingModal: React.FC = () => {
           </button>
 
           <div className="flex items-center space-x-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+            <div className={isNeumorphic ? "w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center" : "w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center"}>
               <PlusCircle className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block">
+              <span className={isNeumorphic ? "text-[10px] font-bold tracking-widest text-gray-500 uppercase block" : "text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block"}>
                 {isLevel1Admin ? 'Nivel 1 • Super Administrador' : isLevel3Planner ? `Nivel 3 • Wedding Planner (${currentUser.username})` : currentUser.username}
               </span>
-              <h3 className="font-serif-display text-xl font-bold text-white">
+              <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-white"}`}>
                 Crear Nuevo Evento
               </h3>
             </div>

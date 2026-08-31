@@ -27,6 +27,8 @@ interface AdminUploadedImagesModalProps {
 
 export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> = ({ isOpen, onClose }) => {
   const { uploadedImages, deleteUploadedImage, isLevel1Admin } = useWedding();
+  const { appTheme } = useWedding();
+  const isNeumorphic = appTheme === 'neumorphic';
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'voucher' | 'gallery' | 'general'>('all');
   const [previewImage, setPreviewImage] = useState<UploadedImageRecord | null>(null);

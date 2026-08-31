@@ -4,7 +4,7 @@ export const CasanoviaHomeLanding: React.FC = () => {
   return (
     <div
       id="casanovia-home-landing"
-      className="min-h-[calc(100vh-5rem)] flex flex-col items-center justify-center bg-[#EBEBEB] px-4 sm:px-6 select-none animate-fadeIn"
+      className="min-h-[calc(100vh-5rem)] flex flex-col items-center justify-center bg-[#EBEBEB] px-4 sm:px-6 select-none animate-fadeIn flex-1"
     >
       <div className="flex flex-col items-center justify-center w-full text-center h-full">
         {/* Centered Circle with Casanovia Logo */}
