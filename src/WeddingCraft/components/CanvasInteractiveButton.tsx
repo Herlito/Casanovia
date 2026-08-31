@@ -5,7 +5,10 @@ import { CanvasElement } from '../types';
 export const CanvasInteractiveButton: React.FC<{
   el: CanvasElement;
   commonProps: any;
-}> = ({ el, commonProps }) => {
+  theme?: any;
+}> = ({ el, commonProps, theme }) => {
+  const isDef = el.style.isDefaultStyle && theme;
+  const getCol = (defVal, propVal) => isDef ? defVal : propVal;
   const groupRef = useRef<any>(null);
 
   const isOutline = el.style.variant === 'outline';

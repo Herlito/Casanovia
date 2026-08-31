@@ -53,7 +53,7 @@ export interface AnimationConfig {
 
 export interface CanvasElement {
   id: string;
-  type: 'text' | 'image' | 'svg-shape' | 'countdown-widget' | 'decorative-element' | 'interactive-button';
+  type: 'text' | 'image' | 'svg-shape' | 'countdown-widget' | 'decorative-element' | 'interactive-button' | 'audio-player';
   transform: {
     x: number;
     y: number;

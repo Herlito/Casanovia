@@ -301,6 +301,7 @@ export const CanvasStage: React.FC = () => {
                   scaleX: el.transform.scaleX,
                   scaleY: el.transform.scaleY,
                   draggable: !el.locked,
+                  opacity: el.style.opacity ?? 1,
                   onClick: () => selectElements([el.id]),
                   onTap: () => selectElements([el.id]),
                   onDragEnd: (e: any) => {
@@ -383,7 +384,7 @@ export const CanvasStage: React.FC = () => {
                     <Rect
                       key={el.id}
                       {...commonProps}
-                      fill={el.style.fill || '#cccccc'}
+                      fill={el.style.isDefaultStyle ? document.theme.palette.primary : (el.style.fill || '#cccccc')}
                     />
                   );
                 }
@@ -401,7 +402,7 @@ export const CanvasStage: React.FC = () => {
                 
                 if (el.type === 'countdown-widget') {
                   return (
-                    <CanvasCountdown
+                    <CanvasCountdown theme={document.theme}
                       key={el.id}
                       el={el}
                       commonProps={commonProps}
@@ -411,7 +412,7 @@ export const CanvasStage: React.FC = () => {
                 
                 if (el.type === 'interactive-button') {
                   return (
-                    <CanvasInteractiveButton
+                    <CanvasInteractiveButton theme={document.theme}
                       key={el.id}
                       el={el}
                       commonProps={commonProps}

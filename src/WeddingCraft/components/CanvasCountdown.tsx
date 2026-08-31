@@ -5,7 +5,10 @@ import { CanvasElement } from '../types';
 export const CanvasCountdown: React.FC<{
   el: CanvasElement;
   commonProps: any;
-}> = ({ el, commonProps }) => {
+  theme?: any;
+}> = ({ el, commonProps, theme }) => {
+  const isDef = el.style.isDefaultStyle && theme;
+  const getCol = (defVal, propVal) => isDef ? defVal : propVal;
   const [timeLeft, setTimeLeft] = useState({
     days: 0, hours: 0, minutes: 0, seconds: 0, expired: false
   });
@@ -44,7 +47,7 @@ export const CanvasCountdown: React.FC<{
         <Rect
           width={el.transform.width}
           height={el.transform.height}
-          fill={el.style.containerBackgroundColor || '#ffffff'}
+          fill={getCol(theme?.palette.background, el.style.containerBackgroundColor || '#ffffff')}
           opacity={el.style.containerOpacity ?? 0}
           cornerRadius={8}
         />
@@ -56,7 +59,7 @@ export const CanvasCountdown: React.FC<{
         align="center"
         fontSize={14}
         fontFamily={el.style.labelFont || 'Arial'}
-        fill={el.style.titleColor || '#000'}
+        fill={getCol(theme?.palette.primary, el.style.titleColor || '#000')}
         y={0}
       />
 
@@ -67,7 +70,7 @@ export const CanvasCountdown: React.FC<{
           align="center"
           fontSize={el.style.numberSize || 24}
           fontFamily={el.style.numberFont || 'Arial'}
-          fill={el.style.numberColor || '#000'}
+          fill={getCol(theme?.palette.primary, el.style.numberColor || '#000')}
           y={30 + innerHeight / 2 - (el.style.numberSize || 24) / 2}
         />
       ) : (
@@ -84,7 +87,7 @@ export const CanvasCountdown: React.FC<{
                 <Rect
                   width={itemWidth}
                   height={innerHeight}
-                  fill={el.style.backgroundColor || '#fff'}
+                  fill={getCol(theme?.palette.background, el.style.backgroundColor || '#fff')}
                   stroke={el.style.borderColor || '#ccc'}
                   cornerRadius={8}
                 />
@@ -93,7 +96,7 @@ export const CanvasCountdown: React.FC<{
                 <Rect
                   width={itemWidth}
                   height={innerHeight}
-                  fill={el.style.backgroundColor || '#fff'}
+                  fill={getCol(theme?.palette.background, el.style.backgroundColor || '#fff')}
                   stroke={el.style.borderColor || '#ccc'}
                   cornerRadius={Math.min(itemWidth, innerHeight) / 2}
                 />
@@ -104,7 +107,7 @@ export const CanvasCountdown: React.FC<{
                 align="center"
                 fontSize={el.style.numberSize || 24}
                 fontFamily={el.style.numberFont || 'Arial'}
-                fill={el.style.numberColor || '#000'}
+                fill={getCol(theme?.palette.primary, el.style.numberColor || '#000')}
                 y={innerHeight / 2 - (el.style.numberSize || 24) / 2 - 5}
               />
               <KonvaText
@@ -113,7 +116,7 @@ export const CanvasCountdown: React.FC<{
                 align="center"
                 fontSize={el.style.labelSize || 10}
                 fontFamily={el.style.labelFont || 'Arial'}
-                fill={el.style.labelColor || '#666'}
+                fill={getCol(theme?.palette.text, el.style.labelColor || '#666')}
                 y={innerHeight / 2 + (el.style.numberSize || 24) / 2 - 5}
               />
             </Group>

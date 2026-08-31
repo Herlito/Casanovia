@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { Undo2, Redo2, Download, Save, Type, Square, AlertCircle, LayoutTemplate, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Image as ImageIcon, Clock, Link2, Shapes } from 'lucide-react';
+import { Music, Undo2, Redo2, Download, Save, Type, Square, AlertCircle, LayoutTemplate, ArrowUpToLine, ArrowDownToLine, ArrowUp, ArrowDown, Image as ImageIcon, Clock, Link2, Shapes } from 'lucide-react';
 import { downloadHTML } from '../lib/exportHTML';
 
 export const Toolbar: React.FC = () => {
@@ -241,6 +241,22 @@ export const Toolbar: React.FC = () => {
             <Clock className="w-3.5 h-3.5 text-[#2D3748]" />
             <span>Cuenta Regresiva</span>
           </button>
+          
+          <button onClick={() => {
+            addElement({
+              type: 'audio-player',
+              content: { src: '', title: 'Canción' },
+              style: { backgroundColor: '#EBEBEB', color: '#2D3748', borderRadius: 24 },
+              transform: { x: 50, y: 150, width: 250, height: 60, rotation: 0, scaleX: 1, scaleY: 1 },
+              zIndex: 25,
+              locked: false,
+              visible: true
+            });
+          }} className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold hover:bg-[#F3EFEA] rounded border border-transparent">
+            <Music className="w-3.5 h-3.5 text-[#2D3748]" />
+            <span>Audio</span>
+          </button>
+
           <button onClick={handleAddButton} className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold hover:bg-[#F3EFEA] rounded border border-transparent">
             <Link2 className="w-3.5 h-3.5 text-[#2D3748]" />
             <span>Botón Ubicación</span>

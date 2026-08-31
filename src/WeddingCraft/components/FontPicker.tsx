@@ -73,7 +73,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({ value, onChange }) => {
   return (
     <div className="relative w-full" ref={containerRef}>
       <button 
-        className="w-full bg-[#EBEBEB] border border-transparent rounded-lg px-3 py-2 text-sm text-left flex justify-between items-center"
+        className="w-full bg-[#EBEBEB] border border-transparent rounded-lg px-3 py-2 text-sm text-gray-900 text-left flex justify-between items-center"
         onClick={() => setIsOpen(!isOpen)}
         style={{ fontFamily: `"${value}", sans-serif` }}
       >
@@ -88,7 +88,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({ value, onChange }) => {
             <input 
               type="text" 
               placeholder="Buscar fuente..." 
-              className="flex-1 outline-none text-sm bg-transparent"
+              className="flex-1 outline-none text-sm bg-transparent text-gray-900"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => {

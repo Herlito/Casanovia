@@ -34,6 +34,28 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
     position: absolute;
     box-sizing: border-box;
   }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes slideLeft { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes slideRight { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes slideUpOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-50px); opacity: 0; } }
+  @keyframes slideDownOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(50px); opacity: 0; } }
+  @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes zoomOut { from { transform: scale(1); opacity: 1; } to { transform: scale(0.5); opacity: 0; } }
+  @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); opacity: 1; } 70% { transform: scale(0.9); } 100% { transform: scale(1); } }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+  @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
+  @keyframes swing { 20% { transform: rotate3d(0, 0, 1, 15deg); } 40% { transform: rotate3d(0, 0, 1, -10deg); } 60% { transform: rotate3d(0, 0, 1, 5deg); } 80% { transform: rotate3d(0, 0, 1, -5deg); } to { transform: rotate3d(0, 0, 1, 0deg); } }
+  @keyframes heartbeat { 0% { transform: scale(1); } 14% { transform: scale(1.3); } 28% { transform: scale(1); } 42% { transform: scale(1.3); } 70% { transform: scale(1); } }
+  
+  .anim-wrapper { position: absolute; }
+
 </style>
 `;
   
@@ -151,6 +173,43 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
         });
         `;
       }
+    }
+    else if (el.type === 'audio-player') {
+      const audioId = `audio_${el.id}`;
+      const btnId = `btn_audio_${el.id}`;
+      const titleId = `title_audio_${el.id}`;
+      const bgColor = el.style.backgroundColor || '#EBEBEB';
+      const textColor = el.style.color || '#2D3748';
+      const radius = el.style.borderRadius ?? 24;
+      
+      innerHtml = `
+      <div id="container_${el.id}" class="el" style="${baseStyle} display: flex; align-items: center; background-color: ${bgColor}; border-radius: ${radius}px; padding: 5px; box-shadow: 6px 6px 12px #d1d1d1;">
+        <button id="${btnId}" style="width: ${el.transform.height - 10}px; height: ${el.transform.height - 10}px; border-radius: 50%; background-color: ${textColor}; color: ${bgColor}; border: none; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; outline: none;">
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path id="icon_${el.id}" d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div id="${titleId}" style="margin-left: 10px; flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: sans-serif; font-size: 14px; color: ${textColor};">${el.content.title || 'Audio'}</div>
+        <audio id="${audioId}" src="${el.content.src}"></audio>
+      </div>
+      `;
+      
+      scriptContent += `
+      (function() {
+         const btn = document.getElementById('${btnId}');
+         const audio = document.getElementById('${audioId}');
+         const icon = document.getElementById('icon_${el.id}');
+         let isPlaying = false;
+         btn.addEventListener('click', function() {
+            if (isPlaying) {
+               audio.pause();
+               icon.setAttribute('d', 'M8 5v14l11-7z'); // Play icon
+            } else {
+               audio.play().catch(e => console.log('Autoplay prevented', e));
+               icon.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z'); // Pause icon
+            }
+            isPlaying = !isPlaying;
+         });
+      })();
+      `;
     }
     else if (el.type === 'countdown-widget') {
       const cdId = `cd_${el.id}`;
