@@ -34,6 +34,7 @@ interface EditorState {
   // Element Manipulation
   addElement: (element: Omit<CanvasElement, 'id'>) => void;
   updateElement: (id: string, updates: Partial<CanvasElement>) => void;
+  updateCanvas: (updates: Partial<WeddingDesignDocument['canvas']>) => void;
   deleteElements: (ids: string[]) => void;
   selectElements: (ids: string[]) => void;
   
@@ -112,6 +113,13 @@ loadTemplates: (templates) => set({ templates }),
     }));
   },
 
+  updateCanvas: (updates) => {
+    set(produce((state: EditorState) => {
+      Object.assign(state.document.canvas, updates);
+      state.document.metadata.lastModified = Date.now();
+    }));
+  },
+  
   updateElement: (id, updates) => {
     set(produce((state: EditorState) => {
       const el = state.document.pages[0].elements.find(e => e.id === id);

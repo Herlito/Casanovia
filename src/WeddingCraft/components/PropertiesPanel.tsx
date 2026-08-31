@@ -6,7 +6,7 @@ import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic } from '
 
 
 export const PropertiesPanel: React.FC = () => {
-  const { document, selectedElementIds, updateElement, eventData } = useEditorStore();
+  const { document, selectedElementIds, updateElement, updateCanvas, eventData } = useEditorStore();
   
   const selectedElement = selectedElementIds.length === 1 
     ? document.pages[0].elements.find(e => e.id === selectedElementIds[0])
@@ -32,9 +32,7 @@ export const PropertiesPanel: React.FC = () => {
               className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
               value={canvasConfig.width}
               onChange={(e) => {
-                 const state = useEditorStore.getState();
-                 state.document.canvas.width = parseInt(e.target.value) || 375;
-                 useEditorStore.setState({ document: { ...state.document } });
+                 updateCanvas({ width: parseInt(e.target.value) || 375 });
               }}
             />
           </div>
@@ -45,9 +43,7 @@ export const PropertiesPanel: React.FC = () => {
               className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
               value={canvasConfig.height}
               onChange={(e) => {
-                 const state = useEditorStore.getState();
-                 state.document.canvas.height = parseInt(e.target.value) || 812;
-                 useEditorStore.setState({ document: { ...state.document } });
+                 updateCanvas({ height: parseInt(e.target.value) || 812 });
               }}
             />
           </div>
@@ -58,9 +54,7 @@ export const PropertiesPanel: React.FC = () => {
               className="w-full h-8 p-0.5 border border-gray-200 rounded bg-gray-50/50 cursor-pointer"
               value={canvasConfig.backgroundColor}
               onChange={(e) => {
-                 const state = useEditorStore.getState();
-                 state.document.canvas.backgroundColor = e.target.value;
-                 useEditorStore.setState({ document: { ...state.document } });
+                 updateCanvas({ backgroundColor: e.target.value });
               }}
             />
           </div>
