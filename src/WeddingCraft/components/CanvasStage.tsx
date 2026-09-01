@@ -168,39 +168,15 @@ export const CanvasStage: React.FC = () => {
         return;
     }
 
-    // Screen center snap
+    // Screen horizontal center snap
     const centerX = canvasConfig.width * scale / 2;
-    const centerY = canvasConfig.height * scale / 2;
-    
     const nodeCenterX = box.x - stageX + box.width / 2;
-    const nodeCenterY = box.y - stageY + box.height / 2;
 
     if (Math.abs(nodeCenterX - centerX) < threshold) {
-        newX = centerX - box.width/2 / scale;
+        // newX is in unscaled coordinates
+        newX = (canvasConfig.width / 2) - (box.width / scale / 2);
         guides.push({ type: 'line', points: [centerX, 0, centerX, canvasConfig.height * scale] });
     }
-    if (Math.abs(nodeCenterY - centerY) < threshold) {
-        newY = centerY - box.height/2 / scale;
-        guides.push({ type: 'line', points: [0, centerY, canvasConfig.width * scale, centerY] });
-    }
-
-    // Element snap
-    const siblings = stageRef.current.find('.wc-element');
-    siblings.forEach((sibling: any) => {
-        if (sibling === node) return;
-        const sBox = sibling.getClientRect();
-        const sLeft = sBox.x - stageX;
-        const sRight = sLeft + sBox.width;
-        const sCenter = sLeft + sBox.width/2;
-        
-        const nLeft = box.x - stageX;
-        const nRight = nLeft + box.width;
-        const nCenter = nLeft + box.width/2;
-
-        if (Math.abs(nLeft - sLeft) < threshold) { newX = sLeft / scale; guides.push({ type: 'line', points: [sLeft, 0, sLeft, canvasConfig.height * scale] }); }
-        if (Math.abs(nCenter - sCenter) < threshold) { newX = (sCenter - box.width/2) / scale; guides.push({ type: 'line', points: [sCenter, 0, sCenter, canvasConfig.height * scale] }); }
-        if (Math.abs(nRight - sRight) < threshold) { newX = (sRight - box.width) / scale; guides.push({ type: 'line', points: [sRight, 0, sRight, canvasConfig.height * scale] }); }
-    });
 
     node.x(newX);
     node.y(newY);
@@ -265,6 +241,16 @@ export const CanvasStage: React.FC = () => {
                     onTap: () => selectElements([el.id]),
                     onDragMove: handleDragMove,
                     onDragEnd: handleDragEnd,
+                    onTransform: (e: any) => {
+                        if (el.type === 'text') {
+                            const node = e.target;
+                            node.setAttrs({
+                                width: Math.max(5, node.width() * node.scaleX()),
+                                scaleX: 1,
+                                scaleY: 1
+                            });
+                        }
+                    },
                     onTransformEnd: (e: any) => {
                         const node = e.target;
                         const scaleX = node.scaleX();
@@ -294,16 +280,51 @@ export const CanvasStage: React.FC = () => {
                   const w = el.transform.width;
                   const h = el.transform.height;
                   
+                  const isGradient = el.style.gradientEnabled;
+                  let gradientProps: any = {};
+                  if (isGradient) {
+                      const colors = el.style.gradientColors || ['#ff0000', '#0000ff'];
+                      const stops = el.style.gradientStops || [0, 1];
+                      let colorStops: any[] = [];
+                      stops.forEach((stop, idx) => {
+                          colorStops.push(stop);
+                          colorStops.push(colors[idx] || colors[0]);
+                      });
+                      
+                      if (el.style.gradientType === 'radial') {
+                          gradientProps = {
+                              fillRadialGradientStartPoint: { x: w/2, y: h/2 },
+                              fillRadialGradientStartRadius: 0,
+                              fillRadialGradientEndPoint: { x: w/2, y: h/2 },
+                              fillRadialGradientEndRadius: Math.max(w, h) / 2,
+                              fillRadialGradientColorStops: colorStops,
+                          };
+                      } else {
+                          gradientProps = {
+                              fillLinearGradientStartPoint: { x: 0, y: 0 },
+                              fillLinearGradientEndPoint: { x: w, y: h },
+                              fillLinearGradientColorStops: colorStops,
+                          };
+                      }
+                  }
+
+                  const shapeProps = {
+                      ...commonProps,
+                      stroke,
+                      strokeWidth,
+                      ...(isGradient ? gradientProps : { fill })
+                  };
+                  
                   if (el.style.variant === 'line') {
-                    return <Line key={el.id} {...commonProps} points={[0, h/2, w, h/2]} stroke={fill} strokeWidth={strokeWidth || 4} />;
+                    return <Line key={el.id} {...shapeProps} points={[0, h/2, w, h/2]} />;
                   } else if (el.style.variant === 'circle') {
-                    return <Circle key={el.id} {...commonProps} x={w/2} y={h/2} radius={Math.min(w, h)/2} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+                    return <Circle key={el.id} {...shapeProps} x={w/2} y={h/2} radius={Math.min(w, h)/2} />;
                   } else if (el.style.variant === 'triangle') {
-                    return <RegularPolygon key={el.id} {...commonProps} x={w/2} y={h/2} sides={3} radius={Math.min(w, h)/2} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+                    return <RegularPolygon key={el.id} {...shapeProps} x={w/2} y={h/2} sides={3} radius={Math.min(w, h)/2} />;
                   } else if (el.style.variant === 'pentagon') {
-                    return <RegularPolygon key={el.id} {...commonProps} x={w/2} y={h/2} sides={5} radius={Math.min(w, h)/2} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+                    return <RegularPolygon key={el.id} {...shapeProps} x={w/2} y={h/2} sides={5} radius={Math.min(w, h)/2} />;
                   } else {
-                    return <Rect key={el.id} {...commonProps} fill={fill} stroke={stroke} strokeWidth={strokeWidth} cornerRadius={cornerRadius} />;
+                    return <Rect key={el.id} {...shapeProps} cornerRadius={cornerRadius} />;
                   }
                 }
 
@@ -330,6 +351,7 @@ export const CanvasStage: React.FC = () => {
                             <KonvaText
                                 text={editingTextValue || el.content.text}
                                 width={el.transform.width}
+                                height={undefined}
                                 fontSize={el.style.fontSize || 24}
                                 fontFamily={el.style.fontFamily || 'Arial'}
                                 fill={el.style.color || '#000000'}
@@ -343,6 +365,7 @@ export const CanvasStage: React.FC = () => {
                         <KonvaText
                             key={el.id}
                             {...commonProps}
+                            height={undefined}
                             text={el.content.text}
                             width={el.transform.width}
                             fontSize={el.style.fontSize || 24}

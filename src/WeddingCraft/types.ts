@@ -101,6 +101,10 @@ export interface ElementStyle {
   fontSize?: number;
   color?: string;
   fill?: string;
+  gradientEnabled?: boolean;
+  gradientType?: 'linear' | 'radial';
+  gradientColors?: string[];
+  gradientStops?: number[];
   fontFamily?: string;
   fontWeight?: number | string;
   fontStyle?: 'normal' | 'italic';
