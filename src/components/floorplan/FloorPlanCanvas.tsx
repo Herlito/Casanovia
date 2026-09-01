@@ -179,8 +179,13 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         };
       };
 
-      const longSeats = elem.seatsLongSide || Math.floor((count - (elem.seatsHead || 0) * 2) / 2) || 3;
-      const headSeats = elem.seatsHead !== undefined ? elem.seatsHead : 1;
+      const headSeatsRaw = elem.seatsHead !== undefined ? elem.seatsHead : 1;
+      const headSeats = Math.abs(headSeatsRaw);
+      const isOneSideOnly = headSeatsRaw < 0;
+      
+      const longSeatsRaw = elem.seatsLongSide !== undefined ? elem.seatsLongSide : (Math.floor((count - (isOneSideOnly ? headSeats : headSeats * 2)) / 2) || 3);
+      const isOneSideLong = longSeatsRaw < 0;
+      const longSeats = Math.abs(longSeatsRaw);
 
       let seatIdx = 0;
 
@@ -194,8 +199,8 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         seatIdx++;
       }
 
-      // Right Head
-      if (headSeats > 0 && seatIdx < count) {
+      // Right Head (Only if not one-side only)
+      if (headSeats > 0 && !isOneSideOnly && seatIdx < count) {
         for (let i = 1; i <= headSeats && seatIdx < count; i++) {
           const localX = w / 2 + 20;
           const localY = -h / 2 + (i * h) / (headSeats + 1);
@@ -205,17 +210,19 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         }
       }
 
-      // Bottom Side
+      // Bottom Side (Only if not one-side long)
       const botSpacing = w / (longSeats + 1);
-      for (let i = longSeats; i >= 1 && seatIdx < count; i--) {
+      if (!isOneSideLong) {
+        for (let i = longSeats; i >= 1 && seatIdx < count; i--) {
         const localX = -w / 2 + i * botSpacing;
         const localY = h / 2 + 20;
         const pt = rotatePoint(localX, localY);
         chairs.push({ seat: seats[seatIdx], x: pt.x, y: pt.y, angle: rot + Math.PI });
         seatIdx++;
+        }
       }
 
-      // Left Head
+      // Left Head (Always render if headSeats > 0, this is the "start" side where numbering technically starts geometrically on the left)
       if (headSeats > 0 && seatIdx < count) {
         for (let i = 1; i <= headSeats && seatIdx < count; i++) {
           const localX = -w / 2 - 20;

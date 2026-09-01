@@ -165,7 +165,9 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
   // Update seats array for rectangular tables
   const handleRectSeatsChange = (longSides: number, heads: number) => {
     if (!selectedElement) return;
-    const totalCount = longSides * 2 + heads * 2;
+    const actualHeadsCount = heads < 0 ? Math.abs(heads) : heads * 2;
+    const actualLongCount = longSides < 0 ? Math.abs(longSides) : longSides * 2;
+    const totalCount = actualLongCount + actualHeadsCount;
     const currentSeats = selectedElement.seats || [];
     let updatedSeats: FloorPlanSeat[] = [...currentSeats];
 
@@ -715,30 +717,50 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             )}
             {/* Configuración de Asientos para Mesa Rectangular */}
             {selectedElement.type === 'rectangular_table' && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="text-[10px] font-bold text-[#8C8276] uppercase">
                       Sillas por Lado Largo
                     </label>
                     <span className="font-bold text-[#2D3748]">
-                      {selectedElement.seatsLongSide || 3}
+                      {selectedElement.seatsLongSide === undefined ? 3 : 
+                        selectedElement.seatsLongSide < 0 ? `${Math.abs(selectedElement.seatsLongSide)} (Solo frente)` :
+                        selectedElement.seatsLongSide === 0 ? '0' : `${selectedElement.seatsLongSide} c/lado`}
                     </span>
                   </div>
                   <input
                     type="range"
-                    min="1"
+                    min="0"
                     max="8"
                     step="1"
-                    value={selectedElement.seatsLongSide || 3}
-                    onChange={(e) =>
+                    value={Math.abs(selectedElement.seatsLongSide !== undefined ? selectedElement.seatsLongSide : 3)}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      const isOneSidedLong = selectedElement.seatsLongSide !== undefined && selectedElement.seatsLongSide < 0;
                       handleRectSeatsChange(
-                        parseInt(e.target.value),
+                        val * (isOneSidedLong && val !== 0 ? -1 : 1),
                         selectedElement.seatsHead !== undefined ? selectedElement.seatsHead : 1
-                      )
-                    }
-                    className="w-full accent-[#2D3748] cursor-pointer"
+                      );
+                    }}
+                    className="w-full accent-[#2D3748] cursor-pointer mb-2"
                   />
+                  <div className="grid grid-cols-2 gap-1">
+                    {[-1, -2].map((longSide) => (
+                      <button
+                        key={longSide}
+                        type="button"
+                        onClick={() => handleRectSeatsChange(longSide, 0)}
+                        className={`py-1 rounded-md text-[10px] font-semibold border cursor-pointer ${
+                          selectedElement.seatsLongSide === longSide
+                            ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent'
+                            : 'bg-[#EBEBEB] text-[#2D2A26] border-[#D9CEBF] hover:bg-[#F3EFEA]'
+                        }`}
+                      >
+                        {Math.abs(longSide)} (Solo frente)
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
@@ -746,18 +768,21 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       Sillas en Cabeceras
                     </label>
                     <span className="font-bold text-[#2D3748]">
-                      {selectedElement.seatsHead !== undefined ? selectedElement.seatsHead : 1}
+                      {selectedElement.seatsHead === undefined ? 1 : 
+                        selectedElement.seatsHead < 0 ? `${Math.abs(selectedElement.seatsHead)} (Un lado)` :
+                        selectedElement.seatsHead === 0 ? '0' : `${selectedElement.seatsHead} c/lado`}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-1">
+                  <div className="grid grid-cols-3 gap-1 mb-1">
                     {[0, 1, 2].map((head) => (
                       <button
                         key={head}
                         type="button"
-                        onClick={() =>
-                          handleRectSeatsChange(selectedElement.seatsLongSide || 3, head)
-                        }
-                        className={`py-1 rounded-md text-xs font-semibold border cursor-pointer ${
+                        onClick={() => {
+                          const currentLong = selectedElement.seatsLongSide !== undefined ? selectedElement.seatsLongSide : 3;
+                          handleRectSeatsChange(currentLong === 0 && head === 0 ? 1 : currentLong, head);
+                        }}
+                        className={`py-1 rounded-md text-[10px] font-semibold border cursor-pointer ${
                           (selectedElement.seatsHead !== undefined ? selectedElement.seatsHead : 1) === head
                             ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent'
                             : 'bg-[#EBEBEB] text-[#2D2A26] border-[#D9CEBF] hover:bg-[#F3EFEA]'

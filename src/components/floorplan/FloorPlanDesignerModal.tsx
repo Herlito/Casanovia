@@ -1304,6 +1304,16 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           >
             <RotateCcw className="w-4 h-4" />
           </button>
+          <div className="relative flex items-center">
+            <input
+              type="number"
+              value={canvasRotation}
+              onChange={(e) => setCanvasRotation(Number(e.target.value))}
+              className="w-12 h-8 bg-transparent text-xs font-mono font-bold text-[#2D2A26] text-center focus:outline-hidden focus:ring-1 focus:ring-[#8C8276] rounded-md"
+              title="Giro del plano (grados)"
+            />
+            <span className="absolute right-1 text-[10px] font-bold text-[#2D2A26] pointer-events-none">°</span>
+          </div>
           <div className="w-px h-5 bg-[#D9CEBF] mx-1" />
           <button
             onClick={() => setGridSnap((s) => !s)}
