@@ -76,6 +76,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
   // Canvas Viewport State
   const [zoom, setZoom] = useState<number>(1.0);
+  const [canvasRotation, setCanvasRotation] = useState<number>(0);
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   const [gridSnap, setGridSnap] = useState<boolean>(true);
   const [gridSize, setGridSize] = useState<number>(30);
@@ -83,15 +84,15 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   const [canvasHeight, setCanvasHeight] = useState<number>(1200);
 
   // Mobile sidebar toggles
-  const [showMobileToolbar, setShowMobileToolbar] = useState<boolean>(false);
-  const [showMobileGuests, setShowMobileGuests] = useState<boolean>(false);
+  const [showLeftSidebar, setShowLeftSidebar] = useState<boolean>(window.innerWidth > 768);
+  const [showRightSidebar, setShowRightSidebar] = useState<boolean>(window.innerWidth > 768);
   const [showMobileTopBar, setShowMobileTopBar] = useState<boolean>(false);
 
   // Auto-show toolbar (which has properties) on mobile when element selected
   useEffect(() => {
     if (selectedElementId && window.innerWidth < 768) {
-      setShowMobileToolbar(true);
-      setShowMobileGuests(false);
+      setShowLeftSidebar(true);
+      if (window.innerWidth <= 768) setShowRightSidebar(false);
     }
   }, [selectedElementId]);
 
@@ -1063,51 +1064,6 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       {/* Tools & Actions Row */}
       <div className={`flex flex-wrap md:flex-nowrap items-center justify-center md:justify-end gap-2 px-4 sm:px-6 w-full md:flex-1`}>
 
-        {/* Center: Quick Canvas Navigation Controls */}
-        <div className="hidden md:flex items-center space-x-1.5 bg-[#FAF8F5] p-1 rounded-xl border border-transparent">
-          <button
-            onClick={() => setZoom((z) => Math.min(z * 1.15, 3.5))}
-            className="p-1.5 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#EBEBEB] rounded-lg transition-colors cursor-pointer"
-            title="Acercar (Zoom In)"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </button>
-          <span className="text-[11px] font-mono font-bold text-[#2D2A26] px-1.5">
-            {Math.round(zoom * 100)}%
-          </span>
-          <button
-            onClick={() => setZoom((z) => Math.max(z * 0.85, 0.25))}
-            className="p-1.5 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#EBEBEB] rounded-lg transition-colors cursor-pointer"
-            title="Alejar (Zoom Out)"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => {
-              setZoom(1.0);
-              setPan({ x: 50, y: 50 });
-            }}
-            className="p-1.5 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#EBEBEB] rounded-lg transition-colors cursor-pointer text-[10px] font-semibold"
-            title="Restablecer vista"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-          </button>
-
-          <div className="w-px h-4 bg-[#D9CEBF] mx-1" />
-
-          {/* Grid Snap Toggle */}
-          <button
-            onClick={() => setGridSnap((s) => !s)}
-            className={`p-1.5 rounded-lg transition-colors cursor-pointer flex items-center space-x-1 text-[11px] font-semibold ${
-              gridSnap ? 'bg-[#EBEBEB] text-[#2D3748] shadow-2xs border border-[#D9CEBF]' : 'text-[#8C8276] hover:text-[#2D2A26]'
-            }`}
-            title="Ajustar a la cuadrícula"
-          >
-            <Magnet className="w-3.5 h-3.5" />
-            <span className="hidden xl:inline">Imán</span>
-          </button>
-        </div>
-
         {/* Right: Actions */}
         <div className="flex flex-wrap items-center justify-center gap-2">
           
@@ -1305,12 +1261,12 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       {/* 3. MAIN 3-PANEL WORKSPACE (Toolbar | Canvas | Guest Manager) */}
       <div className="flex-1 flex overflow-hidden relative">
         
-        {/* Mobile Zoom Controls (Footer) */}
-        {!showMobileToolbar && !showMobileGuests && (
-          <div className="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-1.5 bg-[#EBEBEB]/90 backdrop-blur-sm p-1.5 rounded-full border border-transparent shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff]">
+        {/* Universal Zoom Controls (Footer) */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-1.5 bg-[#EBEBEB]/90 backdrop-blur-sm p-1.5 rounded-2xl border border-transparent shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]">
           <button
             onClick={() => setZoom((z) => Math.min(z * 1.15, 3.5))}
-            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-full transition-colors"
+            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#FAF8F5] rounded-xl transition-colors shadow-[inset_5px_5px_10px_transparent,inset_-5px_-5px_10px_transparent] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]"
+            title="Acercar (Zoom In)"
           >
             <ZoomIn className="w-4 h-4" />
           </button>
@@ -1319,33 +1275,49 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           </span>
           <button
             onClick={() => setZoom((z) => Math.max(z * 0.85, 0.25))}
-            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-full transition-colors"
+            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#FAF8F5] rounded-xl transition-colors shadow-[inset_5px_5px_10px_transparent,inset_-5px_-5px_10px_transparent] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]"
+            title="Alejar (Zoom Out)"
           >
             <ZoomOut className="w-4 h-4" />
           </button>
           <button
             onClick={() => {
-              setZoom(1.0);
+              const isMobile = window.innerWidth <= 768;
+              const availableWidth = window.innerWidth - (showLeftSidebar && !isMobile ? 320 : 0) - (showRightSidebar && !isMobile ? 320 : 0);
+              const availableHeight = window.innerHeight - 120;
+              const zoomX = availableWidth / canvasWidth;
+              const zoomY = availableHeight / canvasHeight;
+              const newZoom = Math.min(zoomX, zoomY, 3.5);
+              setZoom(Math.max(0.1, newZoom - 0.05));
               setPan({ x: 50, y: 50 });
             }}
-            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-full transition-colors"
+            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#FAF8F5] rounded-xl transition-colors shadow-[inset_5px_5px_10px_transparent,inset_-5px_-5px_10px_transparent] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]"
+            title="Restablecer vista"
           >
             <Maximize2 className="w-4 h-4" />
           </button>
           <div className="w-px h-5 bg-[#D9CEBF] mx-1" />
           <button
+            onClick={() => setCanvasRotation((r) => (r + 90) % 360)}
+            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#FAF8F5] rounded-xl transition-colors flex items-center shadow-[inset_5px_5px_10px_transparent,inset_-5px_-5px_10px_transparent] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]"
+            title="Girar Plano 90°"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+          <div className="w-px h-5 bg-[#D9CEBF] mx-1" />
+          <button
             onClick={() => setGridSnap((s) => !s)}
-            className={`p-2 rounded-full transition-colors flex items-center justify-center ${
-              gridSnap ? 'bg-[#FAF8F5] text-[#2D3748] shadow-inner border border-[#D9CEBF]' : 'text-[#8C8276] hover:text-[#2D2A26]'
+            className={`p-2 rounded-xl transition-colors flex items-center justify-center ${
+              gridSnap ? 'bg-[#EBEBEB] text-[#2D3748] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]' : 'text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#FAF8F5] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]'
             }`}
+            title="Ajustar a la cuadrícula"
           >
             <Magnet className="w-4 h-4" />
           </button>
         </div>
-        )}
-        
+
         {/* Left Sidebar: Furniture & Properties */}
-        <div className={`absolute md:relative z-50 h-full transition-transform duration-300 flex shadow-2xl md:shadow-none ${showMobileToolbar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <div className={`absolute md:relative z-50 h-full transition-all duration-300 flex shadow-2xl md:shadow-none ${showLeftSidebar ? 'translate-x-0 md:ml-0' : '-translate-x-full md:translate-x-0 md:-ml-80'}`}>
           <FloorPlanToolbar
           selectedElement={selectedElement}
           tables={tables}
@@ -1362,10 +1334,10 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         />
           {/* Collapse/Expand Handle Left */}
           <button
-            onClick={() => { setShowMobileToolbar(!showMobileToolbar); setShowMobileGuests(false); }}
-            className="md:hidden absolute -right-8 bottom-4 w-8 h-16 bg-[#EBEBEB] border border-l-0 border-transparent rounded-r-xl flex items-center justify-center shadow-[4px_0_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer z-50"
+            onClick={() => { setShowLeftSidebar(!showLeftSidebar); if (window.innerWidth <= 768) setShowRightSidebar(false); }}
+            className="absolute -right-8 bottom-4 w-8 h-16 bg-[#EBEBEB] border border-l-0 border-[#D9CEBF] rounded-r-xl flex items-center justify-center shadow-[4px_0_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer z-50"
           >
-            {showMobileToolbar ? <ChevronLeft className="w-5 h-5 text-[#2D3748]" /> : <ChevronRight className="w-5 h-5 text-[#2D3748]" />}
+            {showLeftSidebar ? <ChevronLeft className="w-5 h-5 text-[#2D3748]" /> : <ChevronRight className="w-5 h-5 text-[#2D3748]" />}
           </button>
         </div>
 
@@ -1390,6 +1362,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             onCalibrationLineDrawn={handleCalibrationLineDrawn}
             zoom={zoom}
             setZoom={setZoom}
+            canvasRotation={canvasRotation}
             pan={pan}
             setPan={setPan}
             canvasWidth={canvasWidth}
@@ -1430,13 +1403,13 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         </div>
 
         {/* Right Sidebar: Seating Guest List */}
-        <div className={`absolute right-0 md:relative z-50 h-full transition-transform duration-300 flex shadow-2xl md:shadow-none ${showMobileGuests ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}>
+        <div className={`absolute right-0 md:relative z-50 h-full transition-all duration-300 flex shadow-2xl md:shadow-none ${showRightSidebar ? 'translate-x-0 md:mr-0' : 'translate-x-full md:translate-x-0 md:-mr-80'}`}>
           {/* Collapse/Expand Handle Right */}
           <button
-            onClick={() => { setShowMobileGuests(!showMobileGuests); setShowMobileToolbar(false); }}
-            className="md:hidden absolute -left-8 bottom-4 w-8 h-16 bg-[#EBEBEB] border border-r-0 border-transparent rounded-l-xl flex items-center justify-center shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer z-50"
+            onClick={() => { setShowRightSidebar(!showRightSidebar); if (window.innerWidth <= 768) setShowLeftSidebar(false); }}
+            className="absolute -left-8 bottom-4 w-8 h-16 bg-[#EBEBEB] border border-r-0 border-[#D9CEBF] rounded-l-xl flex items-center justify-center shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer z-50"
           >
-            {showMobileGuests ? <ChevronRight className="w-5 h-5 text-[#2D3748]" /> : <ChevronLeft className="w-5 h-5 text-[#2D3748]" />}
+            {showRightSidebar ? <ChevronRight className="w-5 h-5 text-[#2D3748]" /> : <ChevronLeft className="w-5 h-5 text-[#2D3748]" />}
           </button>
           <FloorPlanGuestSidebar
           guests={guests}

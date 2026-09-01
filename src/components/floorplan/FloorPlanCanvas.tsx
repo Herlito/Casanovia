@@ -28,6 +28,7 @@ interface FloorPlanCanvasProps {
   setPan: (p: { x: number; y: number } | ((prev: { x: number; y: number }) => { x: number; y: number })) => void;
   canvasWidth: number;
   canvasHeight: number;
+  canvasRotation?: number;
   draggedGuest: Guest | null;
   onSeatClick?: (elementId: string, seat: FloorPlanSeat, screenPos: { x: number; y: number }) => void;
 }
@@ -53,6 +54,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
   backgroundOpacity = 0.85,
   draggedGuest,
   onSeatClick,
+  canvasRotation = 0
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -92,28 +94,54 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
   }, [backgroundImageUrl]);
 
   // Coordinate Conversion Helpers
-  const screenToWorld = useCallback(
+      const screenToWorld = useCallback(
     (screenX: number, screenY: number) => {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return { x: 0, y: 0 };
       const clientX = screenX - rect.left;
       const clientY = screenY - rect.top;
+      
+      let x = clientX - pan.x;
+      let y = clientY - pan.y;
+      
+      x -= rect.width / 2;
+      y -= rect.height / 2;
+      const rad = -(canvasRotation || 0) * Math.PI / 180;
+      const rx = x * Math.cos(rad) - y * Math.sin(rad);
+      const ry = x * Math.sin(rad) + y * Math.cos(rad);
+      x = rx + rect.width / 2;
+      y = ry + rect.height / 2;
+
       return {
-        x: (clientX - pan.x) / zoom,
-        y: (clientY - pan.y) / zoom,
+        x: x / zoom,
+        y: y / zoom,
       };
     },
-    [pan.x, pan.y, zoom]
+    [pan.x, pan.y, zoom, canvasRotation]
   );
 
-  const worldToScreen = useCallback(
+      const worldToScreen = useCallback(
     (worldX: number, worldY: number) => {
-      return {
-        x: worldX * zoom + pan.x,
-        y: worldY * zoom + pan.y,
-      };
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return { x: 0, y: 0 };
+      
+      let x = worldX * zoom;
+      let y = worldY * zoom;
+      
+      x -= rect.width / 2;
+      y -= rect.height / 2;
+      const rad = (canvasRotation || 0) * Math.PI / 180;
+      const rx = x * Math.cos(rad) - y * Math.sin(rad);
+      const ry = x * Math.sin(rad) + y * Math.cos(rad);
+      x = rx + rect.width / 2;
+      y = ry + rect.height / 2;
+      
+      x += pan.x;
+      y += pan.y;
+      
+      return { x, y };
     },
-    [pan.x, pan.y, zoom]
+    [pan.x, pan.y, zoom, canvasRotation]
   );
 
   // Calculate chair world positions for a table
@@ -221,9 +249,15 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     ctx.fillStyle = '#FAF8F5';
     ctx.fillRect(0, 0, width, height);
 
-    // Apply World Transformations
+            // Apply World Transformations
     ctx.save();
     ctx.translate(pan.x, pan.y);
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate((canvasRotation || 0) * Math.PI / 180);
+    ctx.translate(-width / 2, -height / 2);
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate((canvasRotation || 0) * Math.PI / 180);
+    ctx.translate(-width / 2, -height / 2);
     ctx.scale(zoom, zoom);
 
     // 1. Draw PDF Background / Blueprint image
@@ -1224,21 +1258,30 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           }}
           className="absolute z-30 pointer-events-none bg-[#2D2A26] text-[#2D3748] p-2.5 rounded-xl shadow-xl border border-stone-700 text-xs min-w-[170px] max-w-[240px] animate-in fade-in zoom-in-95 duration-150"
         >
-          <div className="flex items-center justify-between font-bold border-b border-stone-700/80 pb-1 mb-1">
-            <span className="text-amber-400">Asiento #{hoveredSeat.seat.seatNumber}</span>
-            <span className="text-[10px] text-stone-400">
-              {hoveredSeat.seat.guestId ? 'Asignado' : 'Disponible'}
-            </span>
-          </div>
-
           {hoveredSeat.seat.guestId ? (
-            <div className="space-y-0.5">
-              <p className="font-semibold text-[#2D3748] truncate text-[11px]">{hoveredSeat.seat.guestName}</p>
-            </div>
+            <>
+              <div className="border-b border-stone-700/80 pb-1.5 mb-1.5">
+                <p className="font-bold text-white truncate text-[12px]">{hoveredSeat.seat.guestName}</p>
+              </div>
+              <div className="flex items-center justify-between font-bold">
+                <span className="text-amber-400">Asiento #{hoveredSeat.seat.seatNumber}</span>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-md">
+                  Asignado
+                </span>
+              </div>
+            </>
           ) : (
-            <p className="text-[10px] text-stone-300">
-              Arrastra un invitado desde la barra lateral o haz clic para asignar.
-            </p>
+            <>
+              <div className="flex items-center justify-between font-bold border-b border-stone-700/80 pb-1.5 mb-1.5">
+                <span className="text-amber-400">Asiento #{hoveredSeat.seat.seatNumber}</span>
+                <span className="text-[10px] text-stone-400">
+                  Disponible
+                </span>
+              </div>
+              <p className="text-[10px] text-stone-300">
+                Toca o haz clic en un asiento para asignar.
+              </p>
+            </>
           )}
         </div>
       )}
@@ -1246,7 +1289,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
       {/* Scale Calibration Guide Banner */}
       {isCalibratingScale && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] px-4 py-2 rounded-full shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] border border-amber-300 flex items-center space-x-2 text-xs font-semibold animate-pulse">
-          <span>📏 Haz clic en el punto inicial y luego en el punto final de una pared o medida conocida</span>
+          <span>📏 Toca o haz clic en el punto inicial y luego en el final de una pared o medida conocida</span>
         </div>
       )}
     </div>

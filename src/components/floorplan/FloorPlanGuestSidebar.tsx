@@ -235,7 +235,7 @@ export const FloorPlanGuestSidebar: React.FC<FloorPlanGuestSidebarProps> = ({
       {/* Quick Help Footer */}
       <div className="p-2.5 bg-[#EBEBEB] border-t border-transparent text-[10px] text-[#8C8276] flex items-center space-x-1.5">
         <Sparkles className="w-3.5 h-3.5 text-[#2D3748] shrink-0" />
-        <span>Arrastra cualquier invitado directamente sobre una silla en el plano para asignarlo.</span>
+        <span>Toca o haz clic en cualquier asiento del plano para asignarle un invitado.</span>
       </div>
     </div>
   );
