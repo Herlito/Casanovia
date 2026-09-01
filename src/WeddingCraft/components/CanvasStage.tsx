@@ -149,8 +149,15 @@ export const CanvasStage: React.FC = () => {
   );
   const scale = baseScale * zoom;
   
-  const stageX = (stageSize.width - canvasConfig.width * scale) / 2;
-  const stageY = (stageSize.height - canvasConfig.height * scale) / 2;
+  const padding = 100;
+  const contentWidth = canvasConfig.width * scale + padding;
+  const contentHeight = canvasConfig.height * scale + padding;
+
+  const actualStageWidth = Math.max(stageSize.width, contentWidth);
+  const actualStageHeight = Math.max(stageSize.height, contentHeight);
+  
+  const stageX = (actualStageWidth - canvasConfig.width * scale) / 2;
+  const stageY = (actualStageHeight - canvasConfig.height * scale) / 2;
 
   // Snapping logic
   const handleDragMove = (e: any) => {
@@ -173,14 +180,27 @@ export const CanvasStage: React.FC = () => {
     const nodeCenterX = box.x - stageX + box.width / 2;
 
     if (Math.abs(nodeCenterX - centerX) < threshold) {
-        // newX is in unscaled coordinates
-        newX = (canvasConfig.width / 2) - (box.width / scale / 2);
-        guides.push({ type: 'line', points: [centerX, 0, centerX, canvasConfig.height * scale] });
+        const diffInScaled = centerX - nodeCenterX;
+        newX = node.x() + (diffInScaled / scale);
+        guides.push({ type: 'line', points: [canvasConfig.width / 2, -1000, canvasConfig.width / 2, canvasConfig.height + 1000] });
     }
 
     node.x(newX);
     node.y(newY);
     setGuidelines(guides);
+  };
+
+
+  const handleWheel = (e: any) => {
+    e.evt.preventDefault();
+    const scaleBy = 1.1;
+    const currentZoom = useEditorStore.getState().zoom;
+    
+    // Zoom in on scroll up (deltaY < 0), zoom out on scroll down
+    let newZoom = e.evt.deltaY > 0 ? currentZoom / scaleBy : currentZoom * scaleBy;
+    newZoom = Math.max(0.1, Math.min(newZoom, 5));
+    
+    useEditorStore.getState().setZoom(newZoom);
   };
 
   const handleDragEnd = (e: any) => {
@@ -197,15 +217,16 @@ export const CanvasStage: React.FC = () => {
 
   return (
     <div 
-      className="flex-1 bg-gray-100 flex items-center justify-center overflow-hidden relative"
+      className="flex-1 bg-gray-100 flex items-start justify-start overflow-auto relative"
       ref={containerRef}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
       <Stage
-        width={stageSize.width}
-        height={stageSize.height}
+        width={actualStageWidth}
+        height={actualStageHeight}
         ref={stageRef}
+        onWheel={handleWheel}
         onClick={(e) => {
           if (e.target === e.target.getStage() || e.target.name() === 'canvas-bg') {
             selectElements([]);
@@ -399,7 +420,7 @@ export const CanvasStage: React.FC = () => {
 
             {/* Guidelines */}
             {guidelines.map((g, i) => (
-                <Line key={`guide-${i}`} name="guideline" points={g.points} stroke="#00d2ff" strokeWidth={1} dash={[4, 4]} />
+                <Line key={`guide-${i}`} name="guideline" points={g.points} stroke="#ec4899" strokeWidth={1.5 / scale} dash={[4 / scale, 4 / scale]} />
             ))}
           </Group>
           {<Transformer ref={trRef} boundBoxFunc={(oldBox, newBox) => { if (newBox.width < 5 || newBox.height < 5) return oldBox; return newBox; }} />}

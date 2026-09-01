@@ -29,6 +29,15 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Prevent body scroll when editor is open
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
+  useEffect(() => {
     const init = async () => {
       try {
         setIsLoading(true);
