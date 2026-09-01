@@ -3,12 +3,14 @@ import { PropertiesPanel } from './PropertiesPanel';
 import { ThemeSelector } from './ThemeSelector';
 import { AnimationPanel } from './AnimationPanel';
 import { TemplatesPanel } from './TemplatesPanel';
+import { LibraryPanel } from './LibraryPanel';
+import { Library } from 'lucide-react';
 import { LayoutTemplate } from 'lucide-react';
 import { Wand2 } from 'lucide-react';
 import { Settings2, Palette } from 'lucide-react';
 
 export const RightSidebar: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => {
-  const [activeTab, setActiveTab] = useState<'properties' | 'themes' | 'animations' | 'templates'>('properties');
+  const [activeTab, setActiveTab] = useState<'properties' | 'themes' | 'animations' | 'templates' | 'library'>('properties');
 
   return (
     <div className={`flex flex-col h-full wc-right-sidebar overflow-hidden ${isMobile ? "w-full bg-transparent border-none rounded-none m-0" : "w-80 bg-[#EBEBEB]/80 backdrop-blur-2xl border border-transparent rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] m-3 ml-0"}`}>
@@ -60,6 +62,17 @@ export const RightSidebar: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => 
           <span className="hidden xl:inline">Plantillas</span>
         </button>
 
+              <button 
+          className={`flex-1 py-2 rounded-md text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition-all ${
+            activeTab === 'library' 
+              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-800 border border-gray-200/50' 
+              : 'text-gray-500 hover:bg-gray-100/50 border border-transparent'
+          }`}
+          onClick={() => setActiveTab('library')}
+        >
+          <Library className="w-3.5 h-3.5" />
+          <span className="hidden xl:inline">Librería</span>
+        </button>
       </div>
       {/* Tab Content */}
       <div className="flex-1 overflow-hidden relative">
@@ -77,6 +90,9 @@ export const RightSidebar: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => 
           <TemplatesPanel />
         </div>
 
+        <div className={`absolute inset-0 transition-opacity duration-200 ${activeTab === 'library' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
+          <LibraryPanel />
+        </div>
       </div>
     </div>
   );

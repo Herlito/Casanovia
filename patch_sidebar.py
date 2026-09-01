@@ -1,26 +1,33 @@
 import re
 
-with open('src/components/private/PlannerDashboard.tsx', 'r') as f:
+with open('src/WeddingCraft/components/RightSidebar.tsx', 'r') as f:
     content = f.read()
 
-# Replace main background
-content = re.sub(
-    r'min-h-screen bg-\[\#F0F0F3\][^\"]*|min-h-screen bg-\[\#F7F3EE\][^\"]*', 
-    'min-h-screen bg-[#EBEBEB] text-gray-800 flex flex-col', 
-    content
-)
+if 'LibraryPanel' not in content:
+    content = content.replace("import { TemplatesPanel } from './TemplatesPanel';", "import { TemplatesPanel } from './TemplatesPanel';\nimport { LibraryPanel } from './LibraryPanel';\nimport { Library } from 'lucide-react';")
+    content = content.replace("useState<'properties' | 'themes' | 'animations' | 'templates'>('properties');", "useState<'properties' | 'themes' | 'animations' | 'templates' | 'library'>('properties');")
+    
+    # Add tab button
+    tab_btn = """        <button 
+          className={`flex-1 py-2 rounded-md text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition-all ${
+            activeTab === 'library' 
+              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-800 border border-gray-200/50' 
+              : 'text-gray-500 hover:bg-gray-100/50 border border-transparent'
+          }`}
+          onClick={() => setActiveTab('library')}
+        >
+          <Library className="w-3.5 h-3.5" />
+          <span className="hidden xl:inline">Librería</span>
+        </button>"""
+    
+    content = content.replace("</div>\n      {/* Tab Content */}", tab_btn + "\n      </div>\n      {/* Tab Content */}")
+    
+    # Add tab content
+    tab_content = """        <div className={`absolute inset-0 transition-opacity duration-200 ${activeTab === 'library' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
+          <LibraryPanel />
+        </div>"""
+        
+    content = content.replace("      </div>\n    </div>", tab_content + "\n      </div>\n    </div>")
 
-# Replace header
-content = re.sub(
-    r'<header className=\{isNeumorphic \? "bg-\[\#F0F0F3\].*? : "bg-\[\#6B2D38\].*?\}',
-    '<header className="bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] sticky top-16 sm:top-20 z-30"',
-    content
-)
-
-# Fix Wedding Selector Dropdown Button (top bar)
-content = re.sub(
-    r'<button\s+onClick=\{.*?\}.*?className="flex items-center space-x-2\.5 bg-\[\#54212C\]\/60 border border-\[\#8B3A4A\]\/40 rounded-2xl px-3\.5 py-1\.5 hover:bg-\[\#54212C\] transition-colors cursor-pointer w-full text-left"',
-    '<button onClick={() => setWeddingDropdownOpen(!weddingDropdownOpen)} className="flex items-center space-x-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-2xl px-3.5 py-1.5 transition-all cursor-pointer w-full text-left border-none"',
-    content
-)
-# Need to make sure I don't break logic.
+with open('src/WeddingCraft/components/RightSidebar.tsx', 'w') as f:
+    f.write(content)

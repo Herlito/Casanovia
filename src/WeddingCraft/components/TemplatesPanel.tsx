@@ -1,3 +1,5 @@
+import { db } from '../../lib/firebase';
+import { doc, deleteDoc } from 'firebase/firestore';
 import React from 'react';
 import { useEditorStore } from '../store/useEditorStore';
 import { LayoutTemplate, Trash2, DownloadCloud } from 'lucide-react';
@@ -8,18 +10,15 @@ export const TemplatesPanel: React.FC = () => {
 
   const handleLoad = (templateDoc: any) => {
     if (confirm('¿Estás seguro de cargar esta plantilla? Se sobrescribirá tu diseño actual.')) {
-      // Create a fresh copy
       const newDoc = JSON.parse(JSON.stringify(templateDoc));
-      newDoc.id = document.id; // Keep current ID
       initializeDocument(newDoc);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (confirm('¿Eliminar esta plantilla?')) {
-      const newTemplates = templates.filter(t => t.id !== id);
-      await set('wedding_craft_templates', newTemplates);
-      loadTemplates(newTemplates);
+      await deleteDoc(doc(db, 'weddingcraft_templates', id));
+      loadTemplates(templates.filter(t => t.id !== id));
     }
   };
 

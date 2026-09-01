@@ -143,7 +143,7 @@ export const AnimationPanel: React.FC = () => {
 
         <button 
           onClick={() => useEditorStore.getState().setPreviewModalOpen(true)}
-          className="w-full flex items-center justify-center space-x-2 py-2.5 bg-gray-900 text-[#2D3748] rounded-xl hover:bg-gray-800 transition-colors shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] font-semibold text-xs mt-2"
+          className="w-full flex items-center justify-center space-x-2 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] font-semibold text-xs mt-2"
         >
           <Play className="w-3.5 h-3.5" />
           <span>Aplicar y Previsualizar</span>

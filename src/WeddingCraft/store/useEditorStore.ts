@@ -1,3 +1,5 @@
+import { db } from '../../lib/firebase';
+import { collection, getDocs, setDoc, doc } from 'firebase/firestore';
 import { create } from 'zustand';
 import { produce } from 'immer';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,6 +17,8 @@ interface EditorState {
   // Editor UI State
   selectedElementIds: string[];
   zoom: number;
+  magnetEnabled: boolean;
+  setMagnetEnabled: (enabled: boolean) => void;
   
   // History for Undo/Redo
   history: {
@@ -24,7 +28,7 @@ interface EditorState {
   templates: { id: string; name: string; document: WeddingDesignDocument }[];
   isPreviewModalOpen: boolean;
   setPreviewModalOpen: (isOpen: boolean) => void;
-  saveTemplate: (name: string) => void;
+  saveTemplate: (name: string, overwrite?: boolean) => void;
   loadTemplates: (templates: any[]) => void;
 
   // Actions
@@ -74,24 +78,28 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   
   selectedElementIds: [],
   zoom: 1,
+  magnetEnabled: true,
+  setMagnetEnabled: (enabled) => set({ magnetEnabled: enabled }),
   
   history: { past: [], future: [] },
   templates: [],
   isPreviewModalOpen: false,
   setPreviewModalOpen: (isOpen) => set({ isPreviewModalOpen: isOpen }),
 loadTemplates: (templates) => set({ templates }),
-  saveTemplate: (name) => set((state) => {
-    idbGet('wedding_craft_templates').then((existing) => {
-      const templates = existing || [];
-      const newTemplate = { id: Date.now().toString(), name, document: JSON.parse(JSON.stringify(state.document)) };
-      templates.push(newTemplate);
-      idbSet('wedding_craft_templates', templates).then(() => {
+    saveTemplate: (name, overwrite = false) => set((state) => {
+    let newId = overwrite ? state.document.id : Date.now().toString();
+    if (!overwrite) {
+        state.document.id = newId;
+    }
+    const newTemplate = { id: newId, name, document: JSON.parse(JSON.stringify(state.document)) };
+    setDoc(doc(db, 'weddingcraft_templates', newTemplate.id), newTemplate).then(() => {
+      getDocs(collection(db, 'weddingcraft_templates')).then((snapshot) => {
+        const templates = snapshot.docs.map(d => d.data());
         useEditorStore.getState().loadTemplates(templates);
       });
-    });
+    }).catch(e => console.error("Error saving template", e));
     return state;
   }),
-
   setEventData: (data) => set({ eventData: data }),
   
   initializeDocument: (doc) => set({ document: doc, history: { past: [], future: [] } }),

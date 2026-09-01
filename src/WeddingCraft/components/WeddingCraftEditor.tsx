@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Toolbar } from './Toolbar';
-import { LayersPanel } from './LayersPanel';
+import { LeftSidebar } from './LeftSidebar';
+import { FooterControls } from './FooterControls';
 import { RightSidebar } from './RightSidebar';
 import { MobileNavigation } from './MobileNavigation';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { CanvasStage } from './CanvasStage';
 import { useEditorStore } from '../store/useEditorStore';
+import { db } from '../../lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 import { get, set } from 'idb-keyval';
 import { EventDataAdapter } from '../adapter/EventDataAdapter';
 import { WeddingDesignDocument } from '../types';
@@ -62,6 +65,14 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
         }
 
         setIsLoading(false);
+        // Load templates from Firebase
+        try {
+           const snap = await getDocs(collection(db, 'weddingcraft_templates'));
+           const templates = snap.docs.map(d => d.data());
+           useEditorStore.getState().loadTemplates(templates);
+        } catch (e) {
+           console.error("Error loading templates", e);
+        }
       } catch (err: any) {
         setError(err.message || 'Error inicializando el editor visual.');
         setIsLoading(false);
@@ -109,8 +120,11 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
     <div className="fixed inset-0 z-[9999] bg-[#f2f2f7] flex flex-col wc-editor-root font-sans">
       <Toolbar />
       <div className="flex-1 flex overflow-hidden p-0 md:p-3 md:gap-3">
-        <div className="hidden md:flex flex-col h-full"><LayersPanel /></div>
-        <CanvasStage />
+        <LeftSidebar />
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+          <CanvasStage />
+          <FooterControls />
+        </div>
         <div className="hidden md:flex flex-col h-full"><RightSidebar /></div>
       </div>
       
