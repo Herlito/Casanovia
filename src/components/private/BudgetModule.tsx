@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { BudgetItem } from '../../types';
 import { BudgetItemModal } from './BudgetItemModal';
-import { formatCurrency } from '../../lib/formatUtils';
+import { formatCurrencyInteger } from '../../lib/formatUtils';
 import { 
   DollarSign, 
   Plus, 
@@ -199,12 +199,12 @@ export const BudgetModule: React.FC = () => {
         <div className="flex items-center space-x-4 bg-[#EBEBEB] px-3.5 py-2 rounded-xl border border-transparent shrink-0 self-start md:self-auto">
           <div>
             <span className="text-[10px] text-stone-500 block uppercase tracking-wider font-semibold">Total Contratos</span>
-            <span className="font-bold font-mono text-[#2D2A26]">{formatCurrency(totalVendorsContracted)}</span>
+            <span className="font-bold font-mono text-[#2D2A26]">{formatCurrencyInteger(totalVendorsContracted)}</span>
           </div>
           <div className="h-6 w-px bg-stone-200" />
           <div>
             <span className="text-[10px] text-stone-500 block uppercase tracking-wider font-semibold">Anticipos Proveedores</span>
-            <span className="font-bold font-mono text-emerald-700">{formatCurrency(totalVendorsPaid)}</span>
+            <span className="font-bold font-mono text-emerald-700">{formatCurrencyInteger(totalVendorsPaid)}</span>
           </div>
         </div>
       </div>
@@ -270,12 +270,12 @@ export const BudgetModule: React.FC = () => {
             </div>
           ) : (
             <div className="font-serif-display text-2xl font-bold text-[#2D2A26]">
-              {formatCurrency(effectiveTotalRealBudget)}
+              {formatCurrencyInteger(effectiveTotalRealBudget)}
             </div>
           )}
 
           <div className="text-[11px] text-[#7A7268] mt-1">
-            Gastos sumados: {formatCurrency(totalActual)} • Est: {formatCurrency(totalEstimated)}
+            Gastos sumados: {formatCurrencyInteger(totalActual)} • Est: {formatCurrencyInteger(totalEstimated)}
           </div>
         </div>
 
@@ -288,7 +288,7 @@ export const BudgetModule: React.FC = () => {
             </div>
           </div>
           <div className="font-serif-display text-2xl font-bold text-emerald-700">
-            {formatCurrency(totalPaid)}
+            {formatCurrencyInteger(totalPaid)}
           </div>
           <div className="text-[11px] text-emerald-600 mt-1 font-medium">
             {paidPercentage}% del total liquidado
@@ -304,7 +304,7 @@ export const BudgetModule: React.FC = () => {
             </div>
           </div>
           <div className="font-serif-display text-2xl font-bold text-amber-700">
-            {formatCurrency(totalPending)}
+            {formatCurrencyInteger(totalPending)}
           </div>
           <div className="text-[11px] text-amber-600 mt-1">
             Pendiente para la semana final
@@ -388,12 +388,10 @@ export const BudgetModule: React.FC = () => {
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-900 border border-amber-200/80">
                             <Building2 className="w-3 h-3 mr-1 text-amber-700" />
                             {item.vendor}
+                            {item.vendorId && (
+                              <Check className="w-3 h-3 ml-1 text-emerald-600" title="Sincronizado" />
+                            )}
                           </span>
-                          {item.vendorId && (
-                            <span className="text-[9px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-sm font-medium">
-                              Sincronizado
-                            </span>
-                          )}
                         </div>
                       )}
                       {item.notes && (
@@ -401,26 +399,16 @@ export const BudgetModule: React.FC = () => {
                       )}
                     </td>
 
-                    <td className="px-4 py-3.5">
-                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#EBEBEB] text-[#524B42] border border-transparent">
-                        {getCategoryLabel(item.category)}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3.5 text-right font-mono text-[#7A7268]">
-                      {formatCurrency(item.estimatedCost)}
-                    </td>
-
                     <td className="px-4 py-3.5 text-right font-mono font-bold text-[#2D2A26]">
-                      {formatCurrency(item.actualCost)}
+                      {formatCurrencyInteger(item.actualCost)}
                     </td>
 
                     <td className="px-4 py-3.5 text-right font-mono text-emerald-700 font-semibold">
-                      {formatCurrency(item.paidAmount)}
+                      {formatCurrencyInteger(item.paidAmount)}
                     </td>
 
                     <td className="px-4 py-3.5 text-right font-mono font-bold text-amber-700">
-                      {balance === 0 ? <span className="text-emerald-600 font-normal">Liquidado</span> : formatCurrency(balance)}
+                      {balance === 0 ? <span className="text-emerald-600 font-normal">Liquidado</span> : formatCurrencyInteger(balance)}
                     </td>
 
                     <td className="px-4 py-3.5 text-center">
