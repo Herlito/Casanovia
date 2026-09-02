@@ -2,9 +2,37 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Stage, Layer, Transformer, Rect, Circle, RegularPolygon, Line, Group, Text as KonvaText, Image as KonvaImage } from 'react-konva';
 import { useEditorStore } from '../store/useEditorStore';
 import { CanvasCountdown } from './CanvasCountdown';
+import { CanvasInteractiveButton } from './CanvasInteractiveButton';
 import useImage from 'use-image';
 import { db } from '../../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+
+export const getGradientProps = (style: any, w: number, h: number) => {
+    if (!style.gradientEnabled) return {};
+    const colors = style.gradientColors || ['#ff0000', '#0000ff'];
+    const stops = style.gradientStops || [0, 1];
+    let colorStops: any[] = [];
+    stops.forEach((stop: number, idx: number) => {
+        colorStops.push(stop);
+        colorStops.push(colors[idx] || colors[0]);
+    });
+    
+    if (style.gradientType === 'radial') {
+        return {
+            fillRadialGradientStartPoint: { x: w/2, y: h/2 },
+            fillRadialGradientStartRadius: 0,
+            fillRadialGradientEndPoint: { x: w/2, y: h/2 },
+            fillRadialGradientEndRadius: Math.max(w, h) / 2,
+            fillRadialGradientColorStops: colorStops,
+        };
+    } else {
+        return {
+            fillLinearGradientStartPoint: { x: 0, y: 0 },
+            fillLinearGradientEndPoint: { x: w, y: h },
+            fillLinearGradientColorStops: colorStops,
+        };
+    }
+};
 
 // Helper component for Image
 const URLImage = ({ image, ...props }: any) => {
@@ -325,6 +353,7 @@ export const CanvasStage: React.FC = () => {
                 const commonProps = {
                     id: el.id,
                     name: "wc-element",
+                    opacity: el.style.opacity ?? 1,
                     x: el.transform.x,
                     y: el.transform.y,
                     width: el.transform.width,
@@ -367,40 +396,17 @@ export const CanvasStage: React.FC = () => {
                 };
 
                 if (el.type === 'svg-shape') {
-                  const fill = el.style.fill || '#cccccc';
-                  const stroke = el.style.stroke || undefined;
+                  const isDef = el.style.isDefaultStyle && document.theme;
+                  const getCol = (defVal: any, propVal: any) => isDef ? defVal : propVal;
+                  const fill = getCol(document.theme?.palette.primary, el.style.fill || '#cccccc');
+                  const stroke = getCol(document.theme?.palette.text, el.style.stroke || (el.style.strokeWidth > 0 ? '#000000' : undefined));
                   const strokeWidth = el.style.strokeWidth || 0;
                   const cornerRadius = el.style.borderRadius || 0;
                   const w = el.transform.width;
                   const h = el.transform.height;
                   
                   const isGradient = el.style.gradientEnabled;
-                  let gradientProps: any = {};
-                  if (isGradient) {
-                      const colors = el.style.gradientColors || ['#ff0000', '#0000ff'];
-                      const stops = el.style.gradientStops || [0, 1];
-                      let colorStops: any[] = [];
-                      stops.forEach((stop, idx) => {
-                          colorStops.push(stop);
-                          colorStops.push(colors[idx] || colors[0]);
-                      });
-                      
-                      if (el.style.gradientType === 'radial') {
-                          gradientProps = {
-                              fillRadialGradientStartPoint: { x: w/2, y: h/2 },
-                              fillRadialGradientStartRadius: 0,
-                              fillRadialGradientEndPoint: { x: w/2, y: h/2 },
-                              fillRadialGradientEndRadius: Math.max(w, h) / 2,
-                              fillRadialGradientColorStops: colorStops,
-                          };
-                      } else {
-                          gradientProps = {
-                              fillLinearGradientStartPoint: { x: 0, y: 0 },
-                              fillLinearGradientEndPoint: { x: w, y: h },
-                              fillLinearGradientColorStops: colorStops,
-                          };
-                      }
-                  }
+                  const gradientProps = getGradientProps(el.style, w, h);
 
                   const shapeProps = {
                       ...commonProps,
@@ -423,8 +429,10 @@ export const CanvasStage: React.FC = () => {
                 }
 
                 if (el.type === 'audio-player') {
-                  const bgColor = el.style.backgroundColor || 'rgba(255,255,255,0.8)';
-                  const iconColor = el.style.color || '#000000';
+                  const isDef = el.style.isDefaultStyle && document.theme;
+                  const getCol = (defVal: any, propVal: any) => isDef ? defVal : propVal;
+                  const bgColor = getCol(document.theme?.palette.background, el.style.backgroundColor || 'rgba(255,255,255,0.8)');
+                  const iconColor = getCol(document.theme?.palette.primary, el.style.color || '#000000');
                   const w = el.transform.width;
                   const h = el.transform.height;
                   const radius = Math.min(w, h) / 2;
@@ -448,7 +456,7 @@ export const CanvasStage: React.FC = () => {
                                 height={undefined}
                                 fontSize={el.style.fontSize || 24}
                                 fontFamily={el.style.fontFamily || 'Arial'}
-                                fill={el.style.color || '#000000'}
+                                fill={el.style.fill || el.style.color || '#000000'}
                                 align={el.style.align || 'left'}
                             />
                         </Group>
@@ -464,8 +472,9 @@ export const CanvasStage: React.FC = () => {
                             width={el.transform.width}
                             fontSize={el.style.fontSize || 24}
                             fontFamily={el.style.fontFamily || 'Arial'}
-                            fill={el.style.color || '#000000'}
+                            fill={!el.style.gradientEnabled ? (el.style.fill || el.style.color || '#000000') : undefined}
                             align={el.style.align || 'left'}
+                            {...getGradientProps(el.style, el.transform.width, el.style.fontSize || 24)}
                             onDblClick={() => setEditingTextId(el.id)}
                             onDblTap={() => setEditingTextId(el.id)}
                         />
@@ -482,9 +491,13 @@ export const CanvasStage: React.FC = () => {
                 
                 if (el.type === 'countdown-widget') {
                     return (
-                        <Group key={el.id} {...commonProps}>
-                            <CanvasCountdown el={el} commonProps={commonProps} />
-                        </Group>
+                        <CanvasCountdown key={el.id} el={el} commonProps={commonProps} theme={document.theme} />
+                    );
+                }
+                
+                if (el.type === 'interactive-button') {
+                    return (
+                        <CanvasInteractiveButton key={el.id} el={el} commonProps={commonProps} theme={document.theme} />
                     );
                 }
 

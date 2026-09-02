@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Group, Text as KonvaText, Rect } from 'react-konva';
 import { CanvasElement } from '../types';
+import { getGradientProps } from './CanvasStage';
 
 export const CanvasCountdown: React.FC<{
   el: CanvasElement;
@@ -87,7 +88,8 @@ export const CanvasCountdown: React.FC<{
                 <Rect
                   width={itemWidth}
                   height={innerHeight}
-                  fill={getCol(theme?.palette.background, el.style.backgroundColor || '#fff')}
+                  fill={!el.style.gradientEnabled ? getCol(theme?.palette.background, el.style.backgroundColor || '#fff') : undefined}
+                  {...getGradientProps(el.style, itemWidth, innerHeight)}
                   stroke={el.style.borderColor || '#ccc'}
                   cornerRadius={8}
                 />
@@ -96,7 +98,8 @@ export const CanvasCountdown: React.FC<{
                 <Rect
                   width={itemWidth}
                   height={innerHeight}
-                  fill={getCol(theme?.palette.background, el.style.backgroundColor || '#fff')}
+                  fill={!el.style.gradientEnabled ? getCol(theme?.palette.background, el.style.backgroundColor || '#fff') : undefined}
+                  {...getGradientProps(el.style, itemWidth, innerHeight)}
                   stroke={el.style.borderColor || '#ccc'}
                   cornerRadius={Math.min(itemWidth, innerHeight) / 2}
                 />

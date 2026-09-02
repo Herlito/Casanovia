@@ -389,7 +389,9 @@ export const BudgetModule: React.FC = () => {
                             <Building2 className="w-3 h-3 mr-1 text-amber-700" />
                             {item.vendor}
                             {item.vendorId && (
-                              <Check className="w-3 h-3 ml-1 text-emerald-600" title="Sincronizado" />
+                              <span title="Sincronizado" className="flex items-center">
+                                <Check className="w-3 h-3 ml-1 text-emerald-600" />
+                              </span>
                             )}
                           </span>
                         </div>

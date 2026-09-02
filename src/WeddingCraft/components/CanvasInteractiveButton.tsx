@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Group, Rect, Text as KonvaText } from 'react-konva';
 import { CanvasElement } from '../types';
+import { getGradientProps } from './CanvasStage';
 
 export const CanvasInteractiveButton: React.FC<{
   el: CanvasElement;
@@ -18,8 +19,9 @@ export const CanvasInteractiveButton: React.FC<{
       <Rect
         width={el.transform.width}
         height={el.transform.height}
-        fill={isOutline ? 'transparent' : (el.style.backgroundColor || '#000')}
-        stroke={el.style.backgroundColor || '#000'}
+        fill={isOutline ? 'transparent' : (!el.style.gradientEnabled ? getCol(theme?.palette.primary, el.style.backgroundColor || '#000') : undefined)}
+        {...(isOutline ? {} : getGradientProps(el.style, el.transform.width, el.transform.height))}
+        stroke={getCol(theme?.palette.primary, el.style.backgroundColor || '#000')}
         strokeWidth={isOutline ? 2 : 0}
         cornerRadius={el.style.borderRadius || 8}
       />
@@ -31,7 +33,7 @@ export const CanvasInteractiveButton: React.FC<{
         verticalAlign="middle"
         fontSize={el.style.fontSize || 16}
         fontFamily={el.style.fontFamily || 'Arial'}
-        fill={isOutline ? (el.style.backgroundColor || '#000') : (el.style.color || '#fff')}
+        fill={isOutline ? getCol(theme?.palette.primary, el.style.backgroundColor || '#000') : getCol(theme?.palette.background, el.style.color || '#fff')}
       />
     </Group>
   );

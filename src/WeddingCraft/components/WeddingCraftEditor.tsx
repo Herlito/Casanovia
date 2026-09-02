@@ -74,11 +74,14 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
         }
 
         setIsLoading(false);
-        // Load templates from Firebase
+        // Load templates from Firebase (real-time)
         try {
-           const snap = await getDocs(collection(db, 'weddingcraft_templates'));
-           const templates = snap.docs.map(d => d.data());
-           useEditorStore.getState().loadTemplates(templates);
+           import('firebase/firestore').then(({ onSnapshot, collection }) => {
+              onSnapshot(collection(db, 'weddingcraft_templates'), (snap) => {
+                 const templates = snap.docs.map(d => d.data());
+                 useEditorStore.getState().loadTemplates(templates);
+              });
+           });
         } catch (e) {
            console.error("Error loading templates", e);
         }

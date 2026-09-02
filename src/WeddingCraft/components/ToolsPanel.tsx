@@ -45,10 +45,16 @@ export const ToolsPanel: React.FC = () => {
   const handleAddCountdown = () => {
     addElement({
       type: 'countdown-widget',
-      content: { date: '2026-12-31' },
+      content: { 
+        targetDate: '2026-12-31T00:00:00.000Z', 
+        title: 'Faltan', 
+        expiredMessage: '¡Llegó el gran día!' 
+      },
       style: {
         backgroundColor: '#FFFFFF',
-        color: '#2D3748',
+        numberColor: '#2D3748',
+        titleColor: '#2D3748',
+        labelColor: '#666666',
         variant: 'cards',
         opacity: 1
       },

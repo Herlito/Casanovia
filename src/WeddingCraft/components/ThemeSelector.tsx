@@ -56,7 +56,7 @@ export const ThemeSelector: React.FC = () => {
             <input 
               type="text" 
               className="w-full text-xs p-1.5 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] transition-all"
-              value={editedTheme.name}
+              value={editedTheme.name || ''}
               onChange={e => setEditedTheme({...editedTheme, name: e.target.value})}
             />
           </div>
@@ -65,23 +65,23 @@ export const ThemeSelector: React.FC = () => {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-[10px] text-[#8C8276] mb-1">Primario</label>
-              <input type="color" className="w-full h-7 p-0.5 border border-gray-200 cursor-pointer rounded bg-gray-50/50" value={editedTheme.palette.primary} onChange={e => setEditedTheme({...editedTheme, palette: {...editedTheme.palette, primary: e.target.value}})} />
+              <input type="color" className="w-full h-7 p-0.5 border border-gray-200 cursor-pointer rounded bg-gray-50/50" value={editedTheme.palette.primary || '#000000'} onChange={e => setEditedTheme({...editedTheme, palette: {...editedTheme.palette, primary: e.target.value}})} />
             </div>
             <div>
               <label className="block text-[10px] text-[#8C8276] mb-1">Secundario</label>
-              <input type="color" className="w-full h-7 p-0.5 border border-gray-200 cursor-pointer rounded bg-gray-50/50" value={editedTheme.palette.secondary} onChange={e => setEditedTheme({...editedTheme, palette: {...editedTheme.palette, secondary: e.target.value}})} />
+              <input type="color" className="w-full h-7 p-0.5 border border-gray-200 cursor-pointer rounded bg-gray-50/50" value={editedTheme.palette.secondary || '#000000'} onChange={e => setEditedTheme({...editedTheme, palette: {...editedTheme.palette, secondary: e.target.value}})} />
             </div>
             <div>
               <label className="block text-[10px] text-[#8C8276] mb-1">Fondo</label>
-              <input type="color" className="w-full h-7 p-0.5 border border-gray-200 cursor-pointer rounded bg-gray-50/50" value={editedTheme.palette.background} onChange={e => setEditedTheme({...editedTheme, palette: {...editedTheme.palette, background: e.target.value}})} />
+              <input type="color" className="w-full h-7 p-0.5 border border-gray-200 cursor-pointer rounded bg-gray-50/50" value={editedTheme.palette.background || '#ffffff'} onChange={e => setEditedTheme({...editedTheme, palette: {...editedTheme.palette, background: e.target.value}})} />
             </div>
             <div>
               <label className="block text-[10px] text-[#8C8276] mb-1">Texto</label>
-              <input type="color" className="w-full h-7 p-0.5 border border-gray-200 cursor-pointer rounded bg-gray-50/50" value={editedTheme.palette.text} onChange={e => setEditedTheme({...editedTheme, palette: {...editedTheme.palette, text: e.target.value}})} />
+              <input type="color" className="w-full h-7 p-0.5 border border-gray-200 cursor-pointer rounded bg-gray-50/50" value={editedTheme.palette.text || '#000000'} onChange={e => setEditedTheme({...editedTheme, palette: {...editedTheme.palette, text: e.target.value}})} />
             </div>
             <div>
               <label className="block text-[10px] text-[#8C8276] mb-1">Muted</label>
-              <input type="color" className="w-full h-7 p-0.5 border border-gray-200 cursor-pointer rounded bg-gray-50/50" value={editedTheme.palette.muted} onChange={e => setEditedTheme({...editedTheme, palette: {...editedTheme.palette, muted: e.target.value}})} />
+              <input type="color" className="w-full h-7 p-0.5 border border-gray-200 cursor-pointer rounded bg-gray-50/50" value={editedTheme.palette.muted || '#000000'} onChange={e => setEditedTheme({...editedTheme, palette: {...editedTheme.palette, muted: e.target.value}})} />
             </div>
           </div>
           
