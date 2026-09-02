@@ -130,7 +130,7 @@ export const BudgetModule: React.FC = () => {
   ).filter(Boolean);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       
       {/* Module Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -333,7 +333,7 @@ export const BudgetModule: React.FC = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex overflow-x-auto pb-2 gap-2 text-xs border-b border-transparent">
+      <div className="flex overflow-x-auto pb-0 gap-2 text-xs border-b border-transparent">
         <button
           onClick={() => setCategoryFilter('all')}
           className={`px-3 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap cursor-pointer ${
@@ -365,14 +365,13 @@ export const BudgetModule: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-[#EBEBEB] text-[#7A7268] border-b border-transparent uppercase tracking-wider font-semibold">
               <tr>
-                <th className="px-4 py-3">Concepto & Proveedor</th>
-                <th className="px-4 py-3">Categoría</th>
-                <th className="px-4 py-3 text-right">Estimado</th>
-                <th className="px-4 py-3 text-right">Costo Real</th>
-                <th className="px-4 py-3 text-right">Pagado / Anticipo</th>
-                <th className="px-4 py-3 text-right">Saldo Pendiente</th>
-                <th className="px-4 py-3 text-center">Estado</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
+                <th className="px-4 py-1.5">Concepto & Proveedor</th>
+                <th className="px-4 py-1.5">Categoría</th>
+                <th className="px-4 py-1.5 text-right">Estimado</th>
+                <th className="px-4 py-1.5 text-right">Costo Real</th>
+                <th className="px-4 py-1.5 text-right">Pagado / Anticipo</th>
+                <th className="px-4 py-1.5 text-right">Saldo Pendiente</th>
+                
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F2ECE3] text-[#2D2A26]">
@@ -381,39 +380,27 @@ export const BudgetModule: React.FC = () => {
                 return (
                   <tr key={item.id} className="hover:bg-[#FAF8F5] transition-colors">
                     
-                    <td className="px-4 py-3.5">
+                    <td className="px-4 py-1.5">
                       <div className="font-bold text-[#2D2A26]">{item.concept}</div>
-                      {item.vendor && (
-                        <div className="mt-1 flex items-center space-x-1.5">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-900 border border-amber-200/80">
-                            <Building2 className="w-3 h-3 mr-1 text-amber-700" />
-                            {item.vendor}
-                            {item.vendorId && (
-                              <span title="Sincronizado" className="flex items-center">
-                                <Check className="w-3 h-3 ml-1 text-emerald-600" />
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                      )}
+
                       {item.notes && (
                         <div className="text-[10px] text-[#9E9488] italic mt-1">{item.notes}</div>
                       )}
                     </td>
 
-                    <td className="px-4 py-3.5 text-right font-mono font-bold text-[#2D2A26]">
+                    <td className="px-4 py-1.5 text-right font-mono font-bold text-[#2D2A26]">
                       {formatCurrencyInteger(item.actualCost)}
                     </td>
 
-                    <td className="px-4 py-3.5 text-right font-mono text-emerald-700 font-semibold">
+                    <td className="px-4 py-1.5 text-right font-mono text-emerald-700 font-semibold">
                       {formatCurrencyInteger(item.paidAmount)}
                     </td>
 
-                    <td className="px-4 py-3.5 text-right font-mono font-bold text-amber-700">
+                    <td className="px-4 py-1.5 text-right font-mono font-bold text-amber-700">
                       {balance === 0 ? <span className="text-emerald-600 font-normal">Liquidado</span> : formatCurrencyInteger(balance)}
                     </td>
 
-                    <td className="px-4 py-3.5 text-center">
+                    <td className="px-4 py-1.5 text-center">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                         item.status === 'paid'
                           ? 'bg-emerald-100 text-emerald-800'
@@ -425,7 +412,7 @@ export const BudgetModule: React.FC = () => {
                       </span>
                     </td>
 
-                    <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                    <td className="px-4 py-1.5 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end space-x-1">
                         <button
                           onClick={() => handleOpenEdit(item)}

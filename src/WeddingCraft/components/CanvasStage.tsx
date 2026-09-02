@@ -264,30 +264,21 @@ export const CanvasStage: React.FC = () => {
   const handleDragMove = (e: any) => {
     const node = e.target;
     if (node.name() === 'guideline') return;
-
-    const box = node.getClientRect();
-    const threshold = 10;
-    let newX = node.x();
-    let newY = node.y();
+    
     let guides: any[] = [];
-
     if (!magnetEnabled) {
         setGuidelines([]);
         return;
     }
 
-    // Screen horizontal center snap
+    const box = node.getClientRect();
     const centerX = canvasConfig.width * scale / 2;
     const nodeCenterX = box.x - stageX + box.width / 2;
 
-    if (Math.abs(nodeCenterX - centerX) < threshold) {
-        const diffInScaled = centerX - nodeCenterX;
-        newX = node.x() + (diffInScaled / scale);
+    if (Math.abs(nodeCenterX - centerX) < 2) {
         guides.push({ type: 'line', points: [canvasConfig.width / 2, -1000, canvasConfig.width / 2, canvasConfig.height + 1000] });
     }
 
-    node.x(newX);
-    node.y(newY);
     setGuidelines(guides);
   };
 
@@ -307,6 +298,7 @@ export const CanvasStage: React.FC = () => {
   const handleDragEnd = (e: any) => {
     setGuidelines([]);
     const id = e.target.id();
+    console.log("Drag End! Target X:", e.target.x(), "Target Y:", e.target.y());
     updateElement(id, {
       transform: {
         ...elements.find(el => el.id === id)?.transform,
@@ -360,6 +352,17 @@ export const CanvasStage: React.FC = () => {
                     height: el.transform.height,
                     rotation: el.transform.rotation,
                     draggable: !el.locked,
+                    dragBoundFunc: (pos: any) => {
+                        if (!magnetEnabled) return pos;
+                        let newX = pos.x;
+                        const centerX = stageX + (canvasConfig.width * scale) / 2;
+                        const nodeW = el.transform.width * scale;
+                        const nodeCenterX = newX + nodeW / 2;
+                        if (Math.abs(nodeCenterX - centerX) < 15) {
+                            newX = centerX - nodeW / 2;
+                        }
+                        return { x: newX, y: pos.y };
+                    },
                     onClick: () => selectElements([el.id]),
                     onTap: () => selectElements([el.id]),
                     onDragMove: handleDragMove,
@@ -415,17 +418,25 @@ export const CanvasStage: React.FC = () => {
                       ...(isGradient ? gradientProps : { fill })
                   };
                   
+                  const visualProps = { stroke, strokeWidth, ...(isGradient ? gradientProps : { fill }) };
+                  let innerShape;
                   if (el.style.variant === 'line') {
-                    return <Line key={el.id} {...shapeProps} points={[0, h/2, w, h/2]} />;
+                    innerShape = <Line points={[0, h/2, w, h/2]} {...visualProps} />;
                   } else if (el.style.variant === 'circle') {
-                    return <Circle key={el.id} {...shapeProps} x={w/2} y={h/2} radius={Math.min(w, h)/2} />;
+                    innerShape = <Circle x={w/2} y={h/2} radius={Math.min(w, h)/2} {...visualProps} />;
                   } else if (el.style.variant === 'triangle') {
-                    return <RegularPolygon key={el.id} {...shapeProps} x={w/2} y={h/2} sides={3} radius={Math.min(w, h)/2} />;
+                    innerShape = <RegularPolygon x={w/2} y={h/2} sides={3} radius={Math.min(w, h)/2} {...visualProps} />;
                   } else if (el.style.variant === 'pentagon') {
-                    return <RegularPolygon key={el.id} {...shapeProps} x={w/2} y={h/2} sides={5} radius={Math.min(w, h)/2} />;
+                    innerShape = <RegularPolygon x={w/2} y={h/2} sides={5} radius={Math.min(w, h)/2} {...visualProps} />;
                   } else {
-                    return <Rect key={el.id} {...shapeProps} cornerRadius={cornerRadius} />;
+                    innerShape = <Rect width={w} height={h} cornerRadius={cornerRadius} {...visualProps} />;
                   }
+                  
+                  return (
+                    <Group key={el.id} {...commonProps}>
+                      {innerShape}
+                    </Group>
+                  );
                 }
 
                 if (el.type === 'audio-player') {

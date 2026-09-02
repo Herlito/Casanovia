@@ -8,7 +8,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { CanvasStage } from './CanvasStage';
 import { useEditorStore } from '../store/useEditorStore';
 import { db } from '../../lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { get, set } from 'idb-keyval';
 import { EventDataAdapter } from '../adapter/EventDataAdapter';
 import { WeddingDesignDocument } from '../types';
@@ -76,12 +76,10 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
         setIsLoading(false);
         // Load templates from Firebase (real-time)
         try {
-           import('firebase/firestore').then(({ onSnapshot, collection }) => {
-              onSnapshot(collection(db, 'weddingcraft_templates'), (snap) => {
-                 const templates = snap.docs.map(d => d.data());
-                 useEditorStore.getState().loadTemplates(templates);
-              });
-           });
+            onSnapshot(collection(db, 'weddingcraft_templates'), (snap) => {
+                const templates = snap.docs.map(d => d.data());
+                useEditorStore.getState().loadTemplates(templates);
+            });
         } catch (e) {
            console.error("Error loading templates", e);
         }
