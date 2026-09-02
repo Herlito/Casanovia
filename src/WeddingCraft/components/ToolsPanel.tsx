@@ -87,11 +87,11 @@ export const ToolsPanel: React.FC = () => {
     <div className="w-full h-full flex flex-col bg-[#EBEBEB] rounded-3xl shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-4">
       <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Herramientas</h3>
       <div className="flex flex-col space-y-2">
-        <button onClick={handleAddText} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB]">
+        <button onClick={handleAddText} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
           <Type className="w-4 h-4 text-[#2D3748]" />
           <span>Texto</span>
         </button>
-        <button onClick={handleAddShape} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB]">
+        <button onClick={handleAddShape} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
           <Square className="w-4 h-4 text-[#2D3748]" />
           <span>Forma</span>
         </button>
@@ -125,7 +125,7 @@ export const ToolsPanel: React.FC = () => {
               e.target.value = '';
             }}
           />
-          <button className="w-full flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB]">
+          <button className="w-full flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
             <ImageIcon className="w-4 h-4 text-[#2D3748]" />
             <span>Imagen</span>
           </button>
@@ -171,12 +171,12 @@ export const ToolsPanel: React.FC = () => {
               e.target.value = '';
             }}
           />
-          <button className="w-full flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB]">
+          <button className="w-full flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
             <Shapes className="w-4 h-4 text-[#2D3748]" />
             <span>Objeto</span>
           </button>
         </div>
-        <button onClick={handleAddCountdown} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB]">
+        <button onClick={handleAddCountdown} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
           <Clock className="w-4 h-4 text-[#2D3748]" />
           <span>Cuenta Regresiva</span>
         </button>
@@ -190,11 +190,11 @@ export const ToolsPanel: React.FC = () => {
             locked: false,
             visible: true
           });
-        }} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB]">
+        }} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
           <Music className="w-4 h-4 text-[#2D3748]" />
           <span>Audio</span>
         </button>
-        <button onClick={handleAddButton} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB]">
+        <button onClick={handleAddButton} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
           <Link2 className="w-4 h-4 text-[#2D3748]" />
           <span>Botón Ubicación</span>
         </button>

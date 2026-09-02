@@ -59,15 +59,21 @@ export const Toolbar: React.FC = () => {
           onClick={() => {
             const store = useEditorStore.getState();
             const hasElements = store.document.pages[0].elements.length > 0;
+            const existingTemplate = store.templates.find(t => t.id === store.document.id);
+            const isSavedAndUnchanged = existingTemplate && JSON.stringify(existingTemplate.document) === JSON.stringify(store.document);
             
-            if (hasElements) {
+            if (hasElements && !isSavedAndUnchanged) {
                const confirmNew = window.confirm("¿Deseas guardar la plantilla actual antes de crear una nueva?\n\nAceptar: Guardar y continuar\nCancelar: Descartar y empezar de cero");
                if (confirmNew) {
-                   const name = prompt("Nombre de la plantilla para guardar:");
-                   if (name) {
-                       store.saveTemplate(name);
+                   if (existingTemplate) {
+                       store.saveTemplate(existingTemplate.name, true);
                    } else {
-                       return;
+                       const name = prompt("Nombre de la plantilla para guardar:");
+                       if (name) {
+                           store.saveTemplate(name, false);
+                       } else {
+                           return;
+                       }
                    }
                }
             }

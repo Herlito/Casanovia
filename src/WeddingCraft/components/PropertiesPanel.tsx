@@ -155,7 +155,7 @@ export const PropertiesPanel: React.FC = () => {
           <div>
             <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Texto</label>
             <textarea 
-              className="w-full text-xs p-2 border border-[#D9CEBF] rounded-lg bg-[#FAF8F5] resize-none"
+              className="w-full text-xs p-2 border border-[#D9CEBF] rounded-lg bg-[#FAF8F5] resize-none text-gray-900"
               rows={3}
               value={selectedElement.content.text || ''}
               onChange={(e) => handleUpdateContent(e.target.value)}
@@ -177,7 +177,7 @@ export const PropertiesPanel: React.FC = () => {
             />
             <input 
               type="text" 
-              className="flex-1 text-xs p-1.5 border border-[#D9CEBF] rounded uppercase font-mono"
+              className="flex-1 text-xs p-1.5 border border-[#D9CEBF] rounded uppercase font-mono text-gray-900"
               value={selectedElement.style.fill || '#000000'}
               onChange={(e) => {
                 handleUpdateStyle('fill', e.target.value);
@@ -289,7 +289,7 @@ export const PropertiesPanel: React.FC = () => {
               <div>
                 <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Tamaño</label>
                 <div className="flex items-center space-x-1">
-                  <button className="px-2 py-1 bg-gray-100 rounded" onClick={() => {
+                  <button className="px-2 py-1 bg-gray-100 rounded text-gray-900" onClick={() => {
                     handleUpdateStyle('fontSize', Math.max(8, (selectedElement.style.fontSize || 16) - 1));
                     handleUpdateStyle('isDefaultStyle', false);
                   }}>-</button>
@@ -302,7 +302,7 @@ export const PropertiesPanel: React.FC = () => {
                       handleUpdateStyle('isDefaultStyle', false);
                     }}
                   />
-                  <button className="px-2 py-1 bg-gray-100 rounded" onClick={() => {
+                  <button className="px-2 py-1 bg-gray-100 rounded text-gray-900" onClick={() => {
                     handleUpdateStyle('fontSize', Math.min(144, (selectedElement.style.fontSize || 16) + 1));
                     handleUpdateStyle('isDefaultStyle', false);
                   }}>+</button>
@@ -331,25 +331,25 @@ export const PropertiesPanel: React.FC = () => {
             <div className="flex items-center justify-between bg-gray-50 p-1 rounded-lg">
               <div className="flex space-x-1">
                 <button 
-                  className={`p-1.5 rounded ${selectedElement.style.align === 'left' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
+                  className={`text-gray-900 p-1.5 rounded ${selectedElement.style.align === 'left' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
                   onClick={() => handleUpdateStyle('align', 'left')}
                 >
                   <AlignLeft className="w-4 h-4" />
                 </button>
                 <button 
-                  className={`p-1.5 rounded ${(selectedElement.style.align || 'center') === 'center' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
+                  className={`text-gray-900 p-1.5 rounded ${(selectedElement.style.align || 'center') === 'center' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
                   onClick={() => handleUpdateStyle('align', 'center')}
                 >
                   <AlignCenter className="w-4 h-4" />
                 </button>
                 <button 
-                  className={`p-1.5 rounded ${selectedElement.style.align === 'right' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
+                  className={`text-gray-900 p-1.5 rounded ${selectedElement.style.align === 'right' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
                   onClick={() => handleUpdateStyle('align', 'right')}
                 >
                   <AlignRight className="w-4 h-4" />
                 </button>
                 <button 
-                  className={`p-1.5 rounded ${selectedElement.style.align === 'justify' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
+                  className={`text-gray-900 p-1.5 rounded ${selectedElement.style.align === 'justify' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
                   onClick={() => handleUpdateStyle('align', 'justify')}
                 >
                   <AlignJustify className="w-4 h-4" />
@@ -358,7 +358,7 @@ export const PropertiesPanel: React.FC = () => {
 
               <div className="flex space-x-1 border-l pl-2 border-gray-200">
                 <button 
-                  className={`p-1.5 rounded ${selectedElement.style.fontStyle === 'italic' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
+                  className={`text-gray-900 p-1.5 rounded ${selectedElement.style.fontStyle === 'italic' ? 'bg-[#EBEBEB] shadow' : 'hover:bg-gray-200'}`}
                   onClick={() => handleUpdateStyle('fontStyle', selectedElement.style.fontStyle === 'italic' ? 'normal' : 'italic')}
                 >
                   <Italic className="w-4 h-4" />
@@ -397,10 +397,10 @@ export const PropertiesPanel: React.FC = () => {
             <div>
                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Transformación</label>
                <div className="flex border border-gray-200 rounded-lg overflow-hidden">
-                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'none' || !selectedElement.style.textTransform ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'none')}>Aa</button>
-                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'uppercase' ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'uppercase')}>AA</button>
-                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'lowercase' ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'lowercase')}>aa</button>
-                 <button className={`flex-1 text-xs py-1 ${selectedElement.style.textTransform === 'capitalize' ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'capitalize')}>Aa</button>
+                 <button className={`flex-1 text-xs py-1 text-gray-900 ${selectedElement.style.textTransform === 'none' || !selectedElement.style.textTransform ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'none')}>Aa</button>
+                 <button className={`flex-1 text-xs py-1 text-gray-900 ${selectedElement.style.textTransform === 'uppercase' ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'uppercase')}>AA</button>
+                 <button className={`flex-1 text-xs py-1 text-gray-900 ${selectedElement.style.textTransform === 'lowercase' ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'lowercase')}>aa</button>
+                 <button className={`flex-1 text-xs py-1 text-gray-900 ${selectedElement.style.textTransform === 'capitalize' ? 'bg-gray-200 font-bold' : 'bg-[#EBEBEB]'}`} onClick={() => handleUpdateStyle('textTransform', 'capitalize')}>Aa</button>
                </div>
             </div>
             
@@ -488,7 +488,7 @@ export const PropertiesPanel: React.FC = () => {
                       disabled={selectedElement.style.fill === 'transparent'}
                     />
                     <button 
-                        className={`text-xs px-2 py-1 rounded border ${selectedElement.style.fill === 'transparent' ? 'bg-blue-100 border-blue-300' : 'bg-gray-100 border-gray-300'}`}
+                        className={`text-xs px-2 py-1 rounded border text-gray-900 ${selectedElement.style.fill === 'transparent' ? 'bg-blue-100 border-blue-300' : 'bg-gray-100 border-gray-300'}`}
                         onClick={() => handleUpdateStyle('fill', selectedElement.style.fill === 'transparent' ? '#cccccc' : 'transparent')}
                     >T</button>
                 </div>
@@ -504,7 +504,7 @@ export const PropertiesPanel: React.FC = () => {
                       disabled={selectedElement.style.stroke === 'transparent'}
                     />
                     <button 
-                        className={`text-xs px-2 py-1 rounded border ${selectedElement.style.stroke === 'transparent' ? 'bg-blue-100 border-blue-300' : 'bg-gray-100 border-gray-300'}`}
+                        className={`text-xs px-2 py-1 rounded border text-gray-900 ${selectedElement.style.stroke === 'transparent' ? 'bg-blue-100 border-blue-300' : 'bg-gray-100 border-gray-300'}`}
                         onClick={() => handleUpdateStyle('stroke', selectedElement.style.stroke === 'transparent' ? '#000000' : 'transparent')}
                     >T</button>
                 </div>
