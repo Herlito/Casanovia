@@ -212,29 +212,45 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
       `;
     }
     else if (el.type === 'svg-shape') {
-      const fill = el.style.isDefaultStyle ? (doc.theme.palette.primary) : (el.style.fill || '#cccccc');
-      const stroke = el.style.stroke || 'transparent';
-      const strokeWidth = el.style.strokeWidth || 0;
+      const variant = el.style.variant || 'rectangle';
+      const isLine = variant === 'line';
+      const isCircle = variant === 'circle';
+      const isOval = variant === 'oval' || variant === 'ovalo';
+
+      let fill = isLine ? 'transparent' : (el.style.isDefaultStyle ? (doc.theme.palette.primary) : (el.style.fill || '#cccccc'));
+      let strokeWidth = el.style.strokeWidth ?? 0;
+      let stroke = el.style.stroke;
+
+      if (isLine) {
+        if (!strokeWidth || strokeWidth <= 0) strokeWidth = 2;
+        if (!stroke || stroke === 'transparent') {
+          stroke = el.style.fill && el.style.fill !== 'transparent' ? el.style.fill : '#2D3748';
+        }
+      } else if (isCircle || isOval) {
+        if (!strokeWidth || strokeWidth <= 0) strokeWidth = 2;
+        if (!stroke || stroke === 'transparent') {
+          stroke = '#2D3748';
+        }
+      }
+
       const cornerRadius = el.style.borderRadius || 0;
       const w = el.transform.width;
       const h = el.transform.height;
-      const variant = el.style.variant || 'rectangle';
       
       let shapeHtml = '';
-      if (variant === 'line') {
-        shapeHtml = `<svg width="100%" height="100%" preserveAspectRatio="none"><line x1="0" y1="${h/2}" x2="${w}" y2="${h/2}" stroke="${fill}" stroke-width="${strokeWidth || 4}" /></svg>`;
-      } else if (variant === 'circle') {
+      if (isLine) {
+        shapeHtml = `<svg width="100%" height="100%" preserveAspectRatio="none"><line x1="0" y1="${h/2}" x2="${w}" y2="${h/2}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" /></svg>`;
+      } else if (isCircle || isOval) {
         shapeHtml = `<div style="width: 100%; height: 100%; border-radius: 50%; background-color: ${fill}; border: ${strokeWidth}px solid ${stroke}; box-sizing: border-box;"></div>`;
       } else if (variant === 'triangle') {
-        shapeHtml = `<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="50,0 100,100 0,100" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" /></svg>`;
+        shapeHtml = `<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="50,0 100,100 0,100" fill="${fill}" stroke="${stroke || 'transparent'}" stroke-width="${strokeWidth}" /></svg>`;
       } else if (variant === 'pentagon') {
-        shapeHtml = `<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="50,0 100,38 81,100 19,100 0,38" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" /></svg>`;
+        shapeHtml = `<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="50,0 100,38 81,100 19,100 0,38" fill="${fill}" stroke="${stroke || 'transparent'}" stroke-width="${strokeWidth}" /></svg>`;
       } else {
-        shapeHtml = `<div style="width: 100%; height: 100%; background-color: ${fill}; border: ${strokeWidth}px solid ${stroke}; border-radius: ${cornerRadius}px; box-sizing: border-box;"></div>`;
+        shapeHtml = `<div style="width: 100%; height: 100%; background-color: ${fill}; border: ${strokeWidth}px solid ${stroke || 'transparent'}; border-radius: ${cornerRadius}px; box-sizing: border-box;"></div>`;
       }
       
-      innerHtml = `<div class="el" style="${baseStyle}">${shapeHtml}</div>
-`;
+      innerHtml = `<div class="el" style="${baseStyle}">${shapeHtml}</div>\n`;
     }
     else if (el.type === 'countdown-widget') {
       const cdId = `cd_${el.id}`;

@@ -30,8 +30,8 @@ export const ToolsPanel: React.FC = () => {
       content: { svg: '' },
       style: {
         fill: '#8C8276',
-        stroke: 'transparent',
-        strokeWidth: 0,
+        stroke: '#2D3748',
+        strokeWidth: 2,
         variant: 'rectangle',
         opacity: 1
       },

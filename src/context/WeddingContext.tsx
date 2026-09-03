@@ -705,7 +705,17 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // View switch interceptor
   const setViewMode = (newMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual') => {
     if (newMode === 'private' || newMode === 'new_wedding_tasks') {
-      if (!currentUser.isAuthenticated) {
+      let isAuth = currentUser.isAuthenticated;
+      if (!isAuth && typeof window !== 'undefined') {
+        try {
+          const stored = sessionStorage.getItem('wedding_hub_auth');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.isAuthenticated) isAuth = true;
+          }
+        } catch {}
+      }
+      if (!isAuth) {
         setShowAuthModal(true);
         return;
       }
@@ -904,7 +914,15 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } catch {
       // ignore
     }
-    setShowAuthModal(false); setViewMode('public');
+    setShowAuthModal(false);
+    setViewModeState('public');
+    try {
+      if (typeof window !== 'undefined') {
+        window.location.href = 'index.html';
+      }
+    } catch (err) {
+      console.error('Error al cargar index.html:', err);
+    }
   };
 
   // System Users CRUD (for Level 1 Admin)

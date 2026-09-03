@@ -14,7 +14,7 @@ export const AuthModal: React.FC = () => {
     showAuthModal, 
     setShowAuthModal, 
     login,
-    setViewMode, 
+    currentUser,
     appTheme 
   } = useWedding();
 
@@ -24,7 +24,14 @@ export const AuthModal: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const claveInputRef = useRef<HTMLInputElement>(null);
 
-  if (!showAuthModal) return null;
+  // If already authenticated or modal is not requested, do not render
+  if (!showAuthModal || currentUser.isAuthenticated) return null;
+
+  const handleClose = () => {
+    setShowAuthModal(false);
+    setErrorMsg('');
+    setSuccessMsg('');
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +43,8 @@ export const AuthModal: React.FC = () => {
     if (res.success) {
       setSuccessMsg('');
       setShowAuthModal(false);
-      setViewMode('private');
+      setUsername('');
+      setClave('');
     } else {
       setErrorMsg(res.message);
     }
@@ -52,7 +60,7 @@ export const AuthModal: React.FC = () => {
         {!isNeumorphic && (
           <div className="bg-[#5D4037] pt-8 pb-6 px-8 text-center relative">
             <button
-              onClick={() => setShowAuthModal(false)}
+              onClick={handleClose}
               className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer bg-[#EBEBEB]/10 hover:bg-[#EBEBEB]/20 text-[#2D3748]/80 hover:text-[#2D3748]"
             >
               <X className="w-4 h-4" />
@@ -69,7 +77,7 @@ export const AuthModal: React.FC = () => {
         {/* Neumorphic Close Button */}
         {isNeumorphic && (
           <button
-            onClick={() => setShowAuthModal(false)}
+            onClick={handleClose}
             className="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-500 hover:text-gray-800"
           >
             <X className="w-4 h-4" />

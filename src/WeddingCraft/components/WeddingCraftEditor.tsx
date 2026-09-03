@@ -14,6 +14,7 @@ import { EventDataAdapter } from '../adapter/EventDataAdapter';
 import { WeddingDesignDocument } from '../types';
 import { X } from 'lucide-react';
 import { exportToHTML } from '../lib/exportHTML';
+import { SaveTemplateModal } from './SaveTemplateModal';
 
 interface WeddingCraftEditorProps {
   externalAPI: any;
@@ -139,6 +140,7 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
       </div>
       
       <MobileNavigation />
+      <SaveTemplateModal />
       {/* Preview Modal */}
       {isPreviewModalOpen && (
         <div className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-8">

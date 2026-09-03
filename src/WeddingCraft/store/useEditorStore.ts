@@ -1,11 +1,21 @@
 import { db } from '../../lib/firebase';
-import { collection, getDocs, setDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { create } from 'zustand';
 import { produce } from 'immer';
 import { v4 as uuidv4 } from 'uuid';
 import { WeddingDesignDocument, CanvasElement, EventDataInput } from '../types';
 import { ThemePreset, predefinedThemes } from '../themes';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
+import { sanitizeForFirestore } from '../lib/libraryService';
+
+export interface TemplateItem {
+  id: string;
+  name: string;
+  document: WeddingDesignDocument;
+  author?: string;
+  createdAt?: number;
+  updatedAt?: number;
+}
 
 interface EditorState {
   // Event Data (Read Only)
@@ -14,6 +24,18 @@ interface EditorState {
   // Design Document
   document: WeddingDesignDocument;
   
+  // Template Tracking
+  currentTemplateId: string | null;
+  currentTemplateName: string | null;
+  lastSavedHash: string | null;
+  setCurrentTemplate: (id: string | null, name: string | null) => void;
+  setLastSavedHash: (hash: string | null) => void;
+  hasUnsavedChanges: () => boolean;
+  
+  // Save Modal
+  isSaveModalOpen: boolean;
+  setSaveModalOpen: (isOpen: boolean) => void;
+
   // Editor UI State
   selectedElementIds: string[];
   zoom: number;
@@ -25,10 +47,13 @@ interface EditorState {
     past: WeddingDesignDocument[];
     future: WeddingDesignDocument[];
   };
-  templates: { id: string; name: string; document: WeddingDesignDocument }[];
+  templates: TemplateItem[];
   isPreviewModalOpen: boolean;
   setPreviewModalOpen: (isOpen: boolean) => void;
-  saveTemplate: (name: string, overwrite?: boolean) => void;
+  saveTemplate: (name: string, overwrite?: boolean) => Promise<{ success: boolean; id: string; name: string }>;
+  duplicateTemplate: (templateId: string) => Promise<boolean>;
+  deleteTemplate: (templateId: string) => Promise<boolean>;
+  loadTemplateToCanvas: (template: TemplateItem) => void;
   loadTemplates: (templates: any[]) => void;
 
   // Actions
@@ -76,6 +101,23 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     assetReferences: []
   },
   
+  currentTemplateId: null,
+  currentTemplateName: null,
+  lastSavedHash: null,
+  setCurrentTemplate: (id, name) => set({ currentTemplateId: id, currentTemplateName: name }),
+  setLastSavedHash: (hash) => set({ lastSavedHash: hash }),
+  hasUnsavedChanges: () => {
+    const state = get();
+    const elements = state.document.pages[0]?.elements || [];
+    if (elements.length === 0) return false;
+    const currentHash = JSON.stringify(elements);
+    if (!state.lastSavedHash) return true; // Has elements but was never saved in this session
+    return currentHash !== state.lastSavedHash;
+  },
+
+  isSaveModalOpen: false,
+  setSaveModalOpen: (isOpen) => set({ isSaveModalOpen: isOpen }),
+
   selectedElementIds: [],
   zoom: 1,
   magnetEnabled: true,
@@ -85,31 +127,143 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   templates: [],
   isPreviewModalOpen: false,
   setPreviewModalOpen: (isOpen) => set({ isPreviewModalOpen: isOpen }),
-loadTemplates: (templates) => set({ templates }),
-    saveTemplate: async (name, overwrite = false) => {
-    const state = useEditorStore.getState();
-    const newId = overwrite ? state.document.id : Date.now().toString();
+  loadTemplates: (templates) => set({ templates }),
+
+  loadTemplateToCanvas: (template: TemplateItem) => {
+    const docCopy = JSON.parse(JSON.stringify(template.document));
+    docCopy.id = template.id;
+    const elementsHash = JSON.stringify(docCopy.pages[0]?.elements || []);
     
-    // Create new document with updated ID
+    set({
+      document: docCopy,
+      currentTemplateId: template.id,
+      currentTemplateName: template.name,
+      lastSavedHash: elementsHash,
+      history: { past: [], future: [] },
+      selectedElementIds: []
+    });
+  },
+
+  saveTemplate: async (name: string, overwrite = false) => {
+    const state = get();
+    const targetId = (overwrite && state.currentTemplateId) ? state.currentTemplateId : Date.now().toString();
+    
+    // Create clean deep copy
     const newDoc = JSON.parse(JSON.stringify(state.document));
-    if (!overwrite) {
-        newDoc.id = newId;
-        // Update document ID in store
-        useEditorStore.setState({ document: newDoc });
-    }
+    newDoc.id = targetId;
+    newDoc.metadata = {
+      ...newDoc.metadata,
+      lastModified: Date.now()
+    };
     
-    const newTemplate = { id: newId, name, document: newDoc };
+    // Sanitize to avoid any undefined value issues in Firestore
+    const cleanDoc = sanitizeForFirestore(newDoc);
     
+    const existingTemplate = state.templates.find(t => t.id === targetId);
+    const templateData: TemplateItem = {
+      id: targetId,
+      name: name.trim() || 'Sin Nombre',
+      document: cleanDoc,
+      author: 'Romina / Herly Lizarazo',
+      createdAt: (existingTemplate && overwrite) ? (existingTemplate.createdAt || Date.now()) : Date.now(),
+      updatedAt: Date.now()
+    };
+
+    // 1. Update local store state immediately
+    const existingList = state.templates.filter(t => t.id !== targetId);
+    const updatedTemplates = [templateData, ...existingList];
+    const elementsHash = JSON.stringify(cleanDoc.pages[0]?.elements || []);
+
+    set({
+      document: cleanDoc,
+      currentTemplateId: targetId,
+      currentTemplateName: templateData.name,
+      lastSavedHash: elementsHash,
+      templates: updatedTemplates
+    });
+
+    // 2. Save to IndexedDB & localStorage for guaranteed local persistence
     try {
-        await setDoc(doc(db, 'weddingcraft_templates', newTemplate.id), newTemplate);
-        // Load latest
-        const snapshot = await getDocs(collection(db, 'weddingcraft_templates'));
-        const templates = snapshot.docs.map(d => d.data());
-        useEditorStore.getState().loadTemplates(templates);
-    } catch (e) {
-        console.error("Error saving template to cloud:", e);
-        alert("Hubo un error al guardar la plantilla en la nube. Revisa tu conexión y permisos.");
+      await idbSet('wedding_craft_templates', updatedTemplates);
+      localStorage.setItem('weddingcraft_templates_backup', JSON.stringify(updatedTemplates));
+    } catch (localErr) {
+      console.warn('Error saving templates locally:', localErr);
     }
+
+    // 3. Save to Firestore (Shared across Romina & Herly Lizarazo)
+    try {
+      await setDoc(doc(db, 'weddingcraft_templates', targetId), templateData);
+    } catch (cloudErr) {
+      console.warn('Error saving template to Firestore:', cloudErr);
+    }
+
+    return { success: true, id: targetId, name: templateData.name };
+  },
+
+  duplicateTemplate: async (templateId: string) => {
+    const state = get();
+    const original = state.templates.find(t => t.id === templateId);
+    if (!original) return false;
+
+    const newId = Date.now().toString();
+    const newName = `${original.name} (Copia)`;
+    const newDoc = JSON.parse(JSON.stringify(original.document));
+    newDoc.id = newId;
+    newDoc.metadata = {
+      ...newDoc.metadata,
+      createdAt: Date.now(),
+      lastModified: Date.now()
+    };
+
+    const cleanDoc = sanitizeForFirestore(newDoc);
+    const duplicatedTemplate: TemplateItem = {
+      id: newId,
+      name: newName,
+      document: cleanDoc,
+      author: 'Romina / Herly Lizarazo',
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+
+    const updatedTemplates = [duplicatedTemplate, ...state.templates];
+    set({ templates: updatedTemplates });
+
+    try {
+      await idbSet('wedding_craft_templates', updatedTemplates);
+      localStorage.setItem('weddingcraft_templates_backup', JSON.stringify(updatedTemplates));
+    } catch (e) {}
+
+    try {
+      await setDoc(doc(db, 'weddingcraft_templates', newId), duplicatedTemplate);
+    } catch (cloudErr) {
+      console.warn('Error duplicating template to Firestore:', cloudErr);
+    }
+
+    return true;
+  },
+
+  deleteTemplate: async (templateId: string) => {
+    const state = get();
+    const updated = state.templates.filter(t => t.id !== templateId);
+    
+    // If deleting the active template, unbind it
+    if (state.currentTemplateId === templateId) {
+      set({ currentTemplateId: null, currentTemplateName: null, lastSavedHash: null });
+    }
+    set({ templates: updated });
+
+    try {
+      await idbSet('wedding_craft_templates', updated);
+      localStorage.setItem('weddingcraft_templates_backup', JSON.stringify(updated));
+    } catch (e) {}
+
+    try {
+      await deleteDoc(doc(db, 'weddingcraft_templates', templateId));
+    } catch (cloudErr) {
+      console.warn('Error deleting template from Firestore:', cloudErr);
+    }
+
+    return true;
   },
   setEventData: (data) => set({ eventData: data }),
   

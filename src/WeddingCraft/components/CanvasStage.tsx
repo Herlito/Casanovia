@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Stage, Layer, Transformer, Rect, Circle, RegularPolygon, Line, Group, Text as KonvaText, Image as KonvaImage } from 'react-konva';
+import { Stage, Layer, Transformer, Rect, Circle, Ellipse, RegularPolygon, Line, Group, Text as KonvaText, Image as KonvaImage } from 'react-konva';
 import { useEditorStore } from '../store/useEditorStore';
 import { CanvasCountdown } from './CanvasCountdown';
 import { CanvasInteractiveButton } from './CanvasInteractiveButton';
 import useImage from 'use-image';
 import { db } from '../../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { saveElementToLibrary } from '../lib/libraryService';
+import { CanvasElement } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const getGradientProps = (style: any, w: number, h: number) => {
     if (!style.gradientEnabled) return {};
@@ -131,7 +134,8 @@ export const CanvasStage: React.FC = () => {
                       const src = event.target?.result as string;
                       const img = new Image();
                       img.onload = () => {
-                          store.addElement({
+                          const newEl: CanvasElement = {
+                              id: uuidv4(),
                               type: 'image',
                               content: { src, originalSrc: src, naturalWidth: img.width, naturalHeight: img.height },
                               style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
@@ -139,7 +143,9 @@ export const CanvasStage: React.FC = () => {
                               zIndex: store.document.pages[0].elements.length,
                               visible: true,
                               locked: false
-                          });
+                          };
+                          store.addElement(newEl);
+                          saveElementToLibrary(newEl, 'Imágenes Pegadas (Ctrl+V)');
                       };
                       img.src = src;
                   };
@@ -156,14 +162,20 @@ export const CanvasStage: React.FC = () => {
                   if (parsed.wc_internal && parsed.elements) {
                       parsed.elements.forEach((el: any) => {
                           const { id, ...elWithoutId } = el;
-                          const newEl = { ...elWithoutId, transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } };
+                          const newEl: CanvasElement = { 
+                              ...elWithoutId, 
+                              id: uuidv4(),
+                              transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
+                          };
                           store.addElement(newEl);
+                          saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
                       });
                       return;
                   }
               } catch(err) {
                   // Standard text paste
-                  store.addElement({
+                  const newEl: CanvasElement = {
+                      id: uuidv4(),
                       type: 'text',
                       content: { text: text },
                       style: { fontFamily: 'Playfair Display', fontSize: 24, color: '#000000', align: 'left' },
@@ -171,7 +183,9 @@ export const CanvasStage: React.FC = () => {
                       zIndex: store.document.pages[0].elements.length,
                       visible: true,
                       locked: false
-                  });
+                  };
+                  store.addElement(newEl);
+                  saveElementToLibrary(newEl, 'Textos Pegados (Ctrl+V)');
                   return;
               }
           }
@@ -184,8 +198,13 @@ export const CanvasStage: React.FC = () => {
                   if (parsed.wc_internal && parsed.elements) {
                       parsed.elements.forEach((el: any) => {
                           const { id, ...elWithoutId } = el;
-                          const newEl = { ...elWithoutId, transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } };
+                          const newEl: CanvasElement = { 
+                              ...elWithoutId, 
+                              id: uuidv4(),
+                              transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
+                          };
                           store.addElement(newEl);
+                          saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
                       });
                   }
               } catch(err) {}
@@ -401,35 +420,119 @@ export const CanvasStage: React.FC = () => {
                 if (el.type === 'svg-shape') {
                   const isDef = el.style.isDefaultStyle && document.theme;
                   const getCol = (defVal: any, propVal: any) => isDef ? defVal : propVal;
-                  const fill = getCol(document.theme?.palette.primary, el.style.fill || '#cccccc');
-                  const stroke = getCol(document.theme?.palette.text, el.style.stroke || (el.style.strokeWidth > 0 ? '#000000' : undefined));
-                  const strokeWidth = el.style.strokeWidth || 0;
+                  
+                  const variant = el.style.variant || 'rectangle';
+                  const isLine = variant === 'line';
+                  const isCircle = variant === 'circle';
+                  const isOval = variant === 'oval' || variant === 'ovalo';
+
+                  // For Line: No fill
+                  let fill = isLine ? 'transparent' : getCol(document.theme?.palette.primary, el.style.fill || '#cccccc');
+                  if (isLine) fill = 'transparent';
+
+                  // Stroke width and color defaults
+                  let strokeWidth = el.style.strokeWidth ?? 0;
+                  let stroke = el.style.stroke;
+
+                  if (isLine) {
+                    // Line must have default strokeWidth 2 and no fill, plus hitStrokeWidth so it is easily selectable
+                    if (!strokeWidth || strokeWidth <= 0) strokeWidth = 2;
+                    if (!stroke || stroke === 'transparent') {
+                      stroke = el.style.fill && el.style.fill !== 'transparent' ? el.style.fill : '#2D3748';
+                    }
+                  } else if (isCircle || isOval) {
+                    // Circle & Oval must have border by default
+                    if (!strokeWidth || strokeWidth <= 0) strokeWidth = 2;
+                    if (!stroke || stroke === 'transparent') {
+                      stroke = '#2D3748';
+                    }
+                  } else {
+                    if (stroke && stroke !== 'transparent' && (!strokeWidth || strokeWidth <= 0)) {
+                      strokeWidth = 1;
+                    }
+                  }
+
                   const cornerRadius = el.style.borderRadius || 0;
                   const w = el.transform.width;
                   const h = el.transform.height;
                   
-                  const isGradient = el.style.gradientEnabled;
+                  const isGradient = el.style.gradientEnabled && !isLine;
                   const gradientProps = getGradientProps(el.style, w, h);
 
-                  const shapeProps = {
-                      ...commonProps,
-                      stroke,
-                      strokeWidth,
-                      ...(isGradient ? gradientProps : { fill })
-                  };
-                  
-                  const visualProps = { stroke, strokeWidth, ...(isGradient ? gradientProps : { fill }) };
                   let innerShape;
-                  if (el.style.variant === 'line') {
-                    innerShape = <Line points={[0, h/2, w, h/2]} {...visualProps} />;
-                  } else if (el.style.variant === 'circle') {
-                    innerShape = <Circle x={w/2} y={h/2} radius={Math.min(w, h)/2} {...visualProps} />;
-                  } else if (el.style.variant === 'triangle') {
-                    innerShape = <RegularPolygon x={w/2} y={h/2} sides={3} radius={Math.min(w, h)/2} {...visualProps} />;
-                  } else if (el.style.variant === 'pentagon') {
-                    innerShape = <RegularPolygon x={w/2} y={h/2} sides={5} radius={Math.min(w, h)/2} {...visualProps} />;
+                  if (isLine) {
+                    innerShape = (
+                      <Line 
+                        points={[0, h/2, w, h/2]} 
+                        stroke={stroke} 
+                        strokeWidth={strokeWidth} 
+                        hitStrokeWidth={Math.max(24, strokeWidth + 16)}
+                        lineCap="round"
+                      />
+                    );
+                  } else if (isCircle) {
+                    innerShape = (
+                      <Circle 
+                        x={w/2} 
+                        y={h/2} 
+                        radius={Math.min(w, h)/2} 
+                        fill={fill !== 'transparent' ? fill : undefined}
+                        stroke={stroke !== 'transparent' ? stroke : undefined}
+                        strokeWidth={strokeWidth}
+                        {...(isGradient ? gradientProps : {})}
+                      />
+                    );
+                  } else if (isOval) {
+                    innerShape = (
+                      <Ellipse 
+                        x={w/2} 
+                        y={h/2} 
+                        radiusX={w/2}
+                        radiusY={h/2}
+                        fill={fill !== 'transparent' ? fill : undefined}
+                        stroke={stroke !== 'transparent' ? stroke : undefined}
+                        strokeWidth={strokeWidth}
+                        {...(isGradient ? gradientProps : {})}
+                      />
+                    );
+                  } else if (variant === 'triangle') {
+                    innerShape = (
+                      <RegularPolygon 
+                        x={w/2} 
+                        y={h/2} 
+                        sides={3} 
+                        radius={Math.min(w, h)/2} 
+                        fill={fill !== 'transparent' ? fill : undefined}
+                        stroke={stroke !== 'transparent' ? stroke : undefined}
+                        strokeWidth={strokeWidth}
+                        {...(isGradient ? gradientProps : {})}
+                      />
+                    );
+                  } else if (variant === 'pentagon') {
+                    innerShape = (
+                      <RegularPolygon 
+                        x={w/2} 
+                        y={h/2} 
+                        sides={5} 
+                        radius={Math.min(w, h)/2} 
+                        fill={fill !== 'transparent' ? fill : undefined}
+                        stroke={stroke !== 'transparent' ? stroke : undefined}
+                        strokeWidth={strokeWidth}
+                        {...(isGradient ? gradientProps : {})}
+                      />
+                    );
                   } else {
-                    innerShape = <Rect width={w} height={h} cornerRadius={cornerRadius} {...visualProps} />;
+                    innerShape = (
+                      <Rect 
+                        width={w} 
+                        height={h} 
+                        cornerRadius={cornerRadius} 
+                        fill={fill !== 'transparent' ? fill : undefined}
+                        stroke={stroke !== 'transparent' ? stroke : undefined}
+                        strokeWidth={strokeWidth}
+                        {...(isGradient ? gradientProps : {})}
+                      />
+                    );
                   }
                   
                   return (

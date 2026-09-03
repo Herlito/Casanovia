@@ -465,11 +465,35 @@ export const PropertiesPanel: React.FC = () => {
               <select 
                 className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 outline-none"
                 value={selectedElement.style.variant || 'rectangle'}
-                onChange={(e) => handleUpdateStyle('variant', e.target.value)}
+                onChange={(e) => {
+                  const newVariant = e.target.value;
+                  if (newVariant === 'line') {
+                    handleUpdateStyle('variant', 'line');
+                    handleUpdateStyle('fill', 'transparent');
+                    const curWidth = selectedElement.style.strokeWidth || 0;
+                    if (curWidth <= 0) handleUpdateStyle('strokeWidth', 2);
+                    if (!selectedElement.style.stroke || selectedElement.style.stroke === 'transparent') {
+                      handleUpdateStyle('stroke', '#2D3748');
+                    }
+                  } else if (newVariant === 'circle' || newVariant === 'oval') {
+                    handleUpdateStyle('variant', newVariant);
+                    const curWidth = selectedElement.style.strokeWidth || 0;
+                    if (curWidth <= 0) handleUpdateStyle('strokeWidth', 2);
+                    if (!selectedElement.style.stroke || selectedElement.style.stroke === 'transparent') {
+                      handleUpdateStyle('stroke', '#2D3748');
+                    }
+                    if (selectedElement.style.fill === 'transparent') {
+                      handleUpdateStyle('fill', '#D9CEBF');
+                    }
+                  } else {
+                    handleUpdateStyle('variant', newVariant);
+                  }
+                }}
               >
                 <option value="rectangle">Rectángulo</option>
                 <option value="square">Cuadrado</option>
                 <option value="circle">Círculo</option>
+                <option value="oval">Óvalo</option>
                 <option value="line">Línea</option>
                 <option value="triangle">Triángulo</option>
                 <option value="pentagon">Pentágono</option>
@@ -477,48 +501,69 @@ export const PropertiesPanel: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-2 gap-1.5">
-              <div>
-                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color Relleno</label>
-                <div className="flex items-center space-x-1">
+              {selectedElement.style.variant === 'line' ? (
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color de Línea</label>
+                  <div className="flex items-center space-x-1">
                     <input 
                       type="color" 
                       className="w-full h-7 p-0.5 border border-gray-200 rounded bg-gray-50/50 cursor-pointer"
-                      value={selectedElement.style.fill || '#cccccc'}
-                      onChange={(e) => handleUpdateStyle('fill', e.target.value)}
-                      disabled={selectedElement.style.fill === 'transparent'}
-                    />
-                    <button 
-                        className={`text-xs px-2 py-1 rounded border text-gray-900 ${selectedElement.style.fill === 'transparent' ? 'bg-blue-100 border-blue-300' : 'bg-gray-100 border-gray-300'}`}
-                        onClick={() => handleUpdateStyle('fill', selectedElement.style.fill === 'transparent' ? '#cccccc' : 'transparent')}
-                    >T</button>
-                </div>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color Borde</label>
-                <div className="flex items-center space-x-1">
-                    <input 
-                      type="color" 
-                      className="w-full h-7 p-0.5 border border-gray-200 rounded bg-gray-50/50 cursor-pointer"
-                      value={selectedElement.style.stroke || '#000000'}
+                      value={selectedElement.style.stroke && selectedElement.style.stroke !== 'transparent' ? selectedElement.style.stroke : '#2D3748'}
                       onChange={(e) => handleUpdateStyle('stroke', e.target.value)}
-                      disabled={selectedElement.style.stroke === 'transparent'}
                     />
-                    <button 
-                        className={`text-xs px-2 py-1 rounded border text-gray-900 ${selectedElement.style.stroke === 'transparent' ? 'bg-blue-100 border-blue-300' : 'bg-gray-100 border-gray-300'}`}
-                        onClick={() => handleUpdateStyle('stroke', selectedElement.style.stroke === 'transparent' ? '#000000' : 'transparent')}
-                    >T</button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color Relleno</label>
+                    <div className="flex items-center space-x-1">
+                        <input 
+                          type="color" 
+                          className="w-full h-7 p-0.5 border border-gray-200 rounded bg-gray-50/50 cursor-pointer"
+                          value={selectedElement.style.fill || '#cccccc'}
+                          onChange={(e) => handleUpdateStyle('fill', e.target.value)}
+                          disabled={selectedElement.style.fill === 'transparent'}
+                        />
+                        <button 
+                            className={`text-xs px-2 py-1 rounded border text-gray-900 ${selectedElement.style.fill === 'transparent' ? 'bg-blue-100 border-blue-300' : 'bg-gray-100 border-gray-300'}`}
+                            onClick={() => handleUpdateStyle('fill', selectedElement.style.fill === 'transparent' ? '#cccccc' : 'transparent')}
+                            title="Alternar transparente"
+                        >T</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color Borde</label>
+                    <div className="flex items-center space-x-1">
+                        <input 
+                          type="color" 
+                          className="w-full h-7 p-0.5 border border-gray-200 rounded bg-gray-50/50 cursor-pointer"
+                          value={selectedElement.style.stroke && selectedElement.style.stroke !== 'transparent' ? selectedElement.style.stroke : '#2D3748'}
+                          onChange={(e) => handleUpdateStyle('stroke', e.target.value)}
+                          disabled={selectedElement.style.stroke === 'transparent'}
+                        />
+                        <button 
+                            className={`text-xs px-2 py-1 rounded border text-gray-900 ${selectedElement.style.stroke === 'transparent' ? 'bg-blue-100 border-blue-300' : 'bg-gray-100 border-gray-300'}`}
+                            onClick={() => handleUpdateStyle('stroke', selectedElement.style.stroke === 'transparent' ? '#2D3748' : 'transparent')}
+                            title="Alternar transparente"
+                        >T</button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             
             <div className="grid grid-cols-2 gap-1.5">
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Grosor Borde</label>
+                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    {selectedElement.style.variant === 'line' ? 'Grosor de Línea' : 'Grosor Borde'}
+                  </label>
                   <input 
                     type="number" 
-                    min="0"
+                    min={selectedElement.style.variant === 'line' ? "1" : "0"}
+                    max="50"
                     className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
-                    value={selectedElement.style.strokeWidth || 0}
+                    value={selectedElement.style.strokeWidth ?? (selectedElement.style.variant === 'line' || selectedElement.style.variant === 'circle' || selectedElement.style.variant === 'oval' ? 2 : 0)}
                     onChange={(e) => handleUpdateStyle('strokeWidth', parseInt(e.target.value) || 0)}
                   />
                 </div>

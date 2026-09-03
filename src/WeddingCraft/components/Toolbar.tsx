@@ -2,9 +2,61 @@ import React from 'react';
 import { useEditorStore } from '../store/useEditorStore';
 import { downloadHTML } from '../lib/exportHTML';
 import { Save, FilePlus, Download, Undo2, Redo2, ArrowUpToLine, ArrowUp, ArrowDown, ArrowDownToLine } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 export const Toolbar: React.FC = () => {
-  const { document, selectedElementIds, bringToFront, bringForward, sendBackward, sendToBack, undo, redo, history } = useEditorStore();
+  const { 
+    document, 
+    selectedElementIds, 
+    bringToFront, 
+    bringForward, 
+    sendBackward, 
+    sendToBack, 
+    undo, 
+    redo, 
+    history,
+    currentTemplateName,
+    setSaveModalOpen
+  } = useEditorStore();
+
+  const handleNewTemplate = () => {
+    const store = useEditorStore.getState();
+    const elements = store.document.pages[0]?.elements || [];
+
+    // If canvas is already empty, reset template state
+    if (elements.length === 0) {
+      store.setCurrentTemplate(null, null);
+      store.setLastSavedHash(null);
+      return;
+    }
+
+    const hasUnsaved = store.hasUnsavedChanges();
+
+    // "Solo si no se ha guardado, preguntar si se desea guardar."
+    if (hasUnsaved) {
+      const shouldSave = window.confirm(
+        "Hay cambios sin guardar en la plantilla actual.\n\n¿Deseas guardar los cambios antes de crear una nueva plantilla?\n\n• Aceptar: Guardar cambios\n• Cancelar: Descartar y limpiar lienzo"
+      );
+
+      if (shouldSave) {
+        store.setSaveModalOpen(true);
+        return;
+      }
+    }
+
+    // "SI ya se ha guardado anteriormente y no hay cambios, limpiar el canva."
+    store.initializeDocument({
+      id: uuidv4(),
+      parentEventId: store.eventData?.eventId || '',
+      metadata: { createdAt: Date.now(), lastModified: Date.now(), version: '1.0.0' },
+      canvas: { width: 375, height: 812, backgroundColor: store.document.theme?.palette?.background || '#FDFBF7' },
+      theme: store.document.theme,
+      pages: [{ id: 'cover', name: 'Portada', elements: [] }],
+      assetReferences: []
+    });
+    store.setCurrentTemplate(null, null);
+    store.setLastSavedHash(null);
+  };
   
   return (
     <div className="m-3 mb-0 h-14 bg-[#EBEBEB]/80 backdrop-blur-2xl border border-transparent rounded-2xl flex items-center justify-between px-4 wc-toolbar z-10 relative shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]">
@@ -29,6 +81,15 @@ export const Toolbar: React.FC = () => {
           </button>
         </div>
 
+        {currentTemplateName && (
+          <div className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 bg-[#EBEBEB] rounded-xl shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span className="text-[11px] font-medium text-gray-700 truncate max-w-[160px]">
+              Editando: <strong className="text-gray-900">{currentTemplateName}</strong>
+            </span>
+          </div>
+        )}
+
         {selectedElementIds.length === 1 && (
           <>
             <div className="h-6 w-px bg-[#E8DCCF]"></div>
@@ -51,80 +112,36 @@ export const Toolbar: React.FC = () => {
       </div>
 
       <div className="flex items-center space-x-3">
-        <button className="flex items-center justify-center w-8 h-8 bg-[#EBEBEB] border border-[#D9CEBF] rounded hover:bg-[#F3EFEA] transition-colors" title="Guardar Borrador">
-          <Save className="w-4 h-4 text-emerald-600" />
-        </button>
-
+        {/* Nueva Plantilla */}
         <button 
-          onClick={() => {
-            const store = useEditorStore.getState();
-            const hasElements = store.document.pages[0].elements.length > 0;
-            const existingTemplate = store.templates.find(t => t.id === store.document.id);
-            const isSavedAndUnchanged = existingTemplate && JSON.stringify(existingTemplate.document) === JSON.stringify(store.document);
-            
-            if (hasElements && !isSavedAndUnchanged) {
-               const confirmNew = window.confirm("¿Deseas guardar la plantilla actual antes de crear una nueva?\n\nAceptar: Guardar y continuar\nCancelar: Descartar y empezar de cero");
-               if (confirmNew) {
-                   if (existingTemplate) {
-                       store.saveTemplate(existingTemplate.name, true);
-                   } else {
-                       const name = prompt("Nombre de la plantilla para guardar:");
-                       if (name) {
-                           store.saveTemplate(name, false);
-                       } else {
-                           return;
-                       }
-                   }
-               }
-            }
-            
-            store.initializeDocument({
-               ...store.document,
-               id: Date.now().toString(),
-               pages: [{ id: 'cover', name: 'Portada', elements: [] }]
-            });
-          }}
-          className="flex items-center justify-center w-8 h-8 bg-[#EBEBEB] border border-[#D9CEBF] rounded hover:bg-[#F3EFEA] transition-colors" title="Nueva Plantilla"
+          onClick={handleNewTemplate}
+          className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-xl transition-all text-blue-700 text-xs font-semibold"
+          title="Nueva Plantilla"
         >
           <FilePlus className="w-4 h-4 text-blue-600" />
+          <span className="hidden sm:inline">Nueva</span>
         </button>
 
+        {/* Guardar Plantilla (Unico y funcional) */}
         <button 
-          onClick={() => {
-            const store = useEditorStore.getState();
-            const existingTemplate = store.templates.find(t => t.id === store.document.id);
-            
-            if (existingTemplate) {
-                const choice = prompt(`Esta plantilla ya existe como "${existingTemplate.name}".\nEscribe "1" para Sobrescribir\nEscribe "2" para Guardar como nueva`);
-                if (choice === '1') {
-                    store.saveTemplate(existingTemplate.name, true);
-                    alert("Plantilla sobrescrita.");
-                    return;
-                } else if (choice === '2') {
-                    const name = prompt("Nombre de la nueva plantilla:");
-                    if (name) {
-                        store.saveTemplate(name, false);
-                        alert("Plantilla guardada como nueva.");
-                    }
-                    return;
-                }
-            } else {
-                const name = prompt("Nombre de la plantilla:");
-                if (name) {
-                  store.saveTemplate(name, false);
-                  alert("Plantilla guardada.");
-                }
-            }
-          }}
-          className="flex items-center justify-center w-8 h-8 bg-[#EBEBEB] border border-[#D9CEBF] rounded hover:bg-[#F3EFEA] transition-colors" title="Guardar Plantilla"
+          onClick={() => setSaveModalOpen(true)}
+          className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-xl transition-all text-emerald-700 text-xs font-semibold"
+          title="Guardar Plantilla"
         >
           <Save className="w-4 h-4 text-emerald-600" />
+          <span>{currentTemplateName ? 'Guardar' : 'Guardar Plantilla'}</span>
         </button>
 
-        <button onClick={() => downloadHTML(useEditorStore.getState().document)} className="flex items-center justify-center w-8 h-8 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] rounded hover:bg-[#7a3240] transition-colors group" title="Exportar Diseño">
-          <Download className="w-4 h-4 text-purple-600 group-hover:text-white" />
+        {/* Exportar HTML */}
+        <button 
+          onClick={() => downloadHTML(useEditorStore.getState().document)} 
+          className="flex items-center justify-center w-8 h-8 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-xl transition-all group" 
+          title="Exportar Diseño"
+        >
+          <Download className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
         </button>
       </div>
     </div>
   );
 };
+
