@@ -24,8 +24,8 @@ export const AuthModal: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const claveInputRef = useRef<HTMLInputElement>(null);
 
-  // If already authenticated or modal is not requested, do not render
-  if (!showAuthModal || currentUser.isAuthenticated) return null;
+  // If modal is not requested, do not render
+  if (!showAuthModal) return null;
 
   const handleClose = () => {
     setShowAuthModal(false);
@@ -53,7 +53,7 @@ export const AuthModal: React.FC = () => {
   const isNeumorphic = appTheme === 'neumorphic' || true; // Force true for now but reference appTheme so it doesn't error
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
+    <div id="auth-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
       <div className={`max-w-sm w-full transition-all relative overflow-hidden ${isNeumorphic ? 'bg-[#EBEBEB] rounded-[2.5rem] shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] p-8' : 'bg-[#EBEBEB] rounded-3xl shadow-2xl'}`}>
         
         {/* Classic Theme Top Header */}

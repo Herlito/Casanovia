@@ -96,6 +96,13 @@ export const Navbar: React.FC = () => {
     };
   }, [sandwichMenuOpen]);
 
+  // Ensure sandwich menu is closed whenever user is not authenticated
+  useEffect(() => {
+    if (!currentUser.isAuthenticated) {
+      setSandwichMenuOpen(false);
+    }
+  }, [currentUser.isAuthenticated]);
+
   const primaryGuests = guests.filter(g => !g.mainGuestId);
   const confirmedCount = primaryGuests.filter(g => g.rsvpStatus === 'confirmed').reduce((acc, g) => acc + (g.confirmedPasses || g.totalPasses || 1), 0);
   const totalInvited = primaryGuests.reduce((acc, g) => acc + (g.totalPasses || 1), 0);
@@ -191,65 +198,23 @@ export const Navbar: React.FC = () => {
             {/* Center: In home landing without login, display Sandwich Menu in the middle of header; otherwise official logo or wedding badge */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex items-center justify-center pointer-events-auto">
               {isPublicHomeLanding ? (
-                /* Sandwich Menu in the middle of header when unauthenticated home */
-                <div className="relative" ref={sandwichMenuRef}>
+                /* Sandwich Menu in the middle of header when unauthenticated home: direct login modal */
+                <div className="relative">
                   <button
                     type="button"
                     id="btn-sandwich-menu-center"
-                    onClick={() => {
-                      if (isPublicHomeLanding) {
-                        setShowAuthModal(true);
-                      } else if (!currentUser.isAuthenticated) {
-                        setShowAuthModal(true);
-                      } else {
-                        setSandwichMenuOpen(!sandwichMenuOpen);
-                      }
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSandwichMenuOpen(false);
+                      setShowAuthModal(true);
                     }}
                     aria-label="Abrir Menú de Opciones"
-                    className={
-                      (isPublicHomeLanding)
-                        ? "p-3 sm:p-4 rounded-full bg-[#EBEBEB] text-gray-700 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all duration-200 cursor-pointer border-none"
-                        : `p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
-                            sandwichMenuOpen
-                              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] ring-2 ring-[#d1d1d1]/30'
-                              : 'bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#2D2A26] border-[#D9CEBF]'
-                          }`
-                    }
+                    className="p-3 sm:p-4 rounded-full bg-[#EBEBEB] text-gray-700 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all duration-200 cursor-pointer border-none"
                     title="Menú de Acciones y Herramientas"
                   >
-                    {sandwichMenuOpen ? (
-                      <X className={isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 transition-transform"} />
-                    ) : (
-                      <Menu className={isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 text-[#2D3748] transition-transform"} />
-                    )}
+                    <Menu className="w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" />
                   </button>
-
-                  {/* Dropdown under centered menu */}
-                  {sandwichMenuOpen && (
-                    <>
-                      <div 
-                        className="fixed inset-0 z-50 bg-black/20 backdrop-blur-2xs"
-                        onClick={() => setSandwichMenuOpen(false)}
-                      />
-
-                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-56 p-2 bg-[#EBEBEB] rounded-3xl shadow-2xl border border-transparent z-[60] animate-fadeIn">
-                        <div className="p-1">
-                          <button
-                            type="button"
-                            id="sandwich-btn-acceder-center"
-                            onClick={() => {
-                              setShowAuthModal(true);
-                              setSandwichMenuOpen(false);
-                            }}
-                            className="w-full py-2.5 px-4 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer shadow-xs"
-                          >
-                            <User className="w-4 h-4" />
-                            <span>Acceder</span>
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
                 </div>
               ) : (currentUser.isAuthenticated || activeView === 'tokens') ? (
                 <button
@@ -277,10 +242,8 @@ export const Navbar: React.FC = () => {
               )}
             </div>
 
-            {/* Right: Auth status, Cloud Sync, Share button & Sandwich Menu (when not in isPublicHomeLanding mode) */}
+            {/* Right: Auth status, Cloud Sync, Share button & Sandwich Menu */}
             <div className="flex items-center justify-end space-x-2 sm:space-x-3 ml-auto z-20">
-
-
 
               {/* User Session Pill - Solo cuando está autenticado */}
               {!isPublicHomeLanding && currentUser.isAuthenticated && (
@@ -294,57 +257,53 @@ export const Navbar: React.FC = () => {
                 </div>
               )}
 
-              {/* Sandwich Menu Trigger Button (Icon only) - Only when not centered in isPublicHomeLanding mode */}
-              {!isPublicHomeLanding && (
-                <div className="relative" ref={sandwichMenuRef}>
-                  <button
-                    type="button"
-                    id="btn-sandwich-menu"
-                    onClick={() => {
-                      if (isPublicHomeLanding) {
-                        setShowAuthModal(true);
-                      } else if (!currentUser.isAuthenticated) {
-                        setShowAuthModal(true);
-                      } else {
-                        setSandwichMenuOpen(!sandwichMenuOpen);
-                      }
-                    }}
-                    aria-label="Abrir Menú de Opciones"
-                    className={
-                      (isPublicHomeLanding)
-                        ? "p-3 sm:p-4 rounded-full bg-[#EBEBEB] text-gray-700 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all duration-200 cursor-pointer border-none"
-                        : `p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
-                            sandwichMenuOpen
-                              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] ring-2 ring-[#d1d1d1]/30'
-                              : 'bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#2D2A26] border-[#D9CEBF]'
-                          }`
+              {/* Sandwich Menu Trigger Button (Icon only) - Always available, direct login when unauthenticated */}
+              <div className="relative" ref={sandwichMenuRef}>
+                <button
+                  type="button"
+                  id="btn-sandwich-menu"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!currentUser || !currentUser.isAuthenticated) {
+                      setSandwichMenuOpen(false);
+                      setShowAuthModal(true);
+                    } else {
+                      setSandwichMenuOpen(!sandwichMenuOpen);
                     }
-                    title="Menú de Acciones y Herramientas"
-                  >
-                    {sandwichMenuOpen ? (
-                      <X className={isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 transition-transform"} />
-                    ) : (
-                      <Menu className={isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 text-[#2D3748] transition-transform"} />
-                    )}
-                  </button>
+                  }}
+                  aria-label="Abrir Menú de Opciones"
+                  className={
+                    isPublicHomeLanding
+                      ? "p-2 sm:p-2.5 rounded-2xl bg-[#EBEBEB] text-gray-700 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all duration-200 cursor-pointer border-none"
+                      : `p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs ${
+                          sandwichMenuOpen
+                            ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] ring-2 ring-[#d1d1d1]/30'
+                            : 'bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#2D2A26] border-[#D9CEBF]'
+                        }`
+                  }
+                  title="Menú de Acciones y Herramientas"
+                >
+                  {sandwichMenuOpen && currentUser?.isAuthenticated ? (
+                    <X className={isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 transition-transform"} />
+                  ) : (
+                    <Menu className={isPublicHomeLanding ? "w-5 h-5 text-gray-600 transition-transform drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]" : "w-5 h-5 text-[#2D3748] transition-transform"} />
+                  )}
+                </button>
 
-                  {/* Sandwich Menu Floating Dropdown */}
-                  {sandwichMenuOpen && !isPublicHomeLanding && (
-                  <>
-                    {/* Backdrop for click outside */}
-                    <div 
-                      className="fixed inset-0 z-50 bg-black/20 backdrop-blur-2xs hidden sm:block"
-                      onClick={() => setSandwichMenuOpen(false)}
-                    />
+                {/* Sandwich Menu Floating Dropdown - Only for authenticated users */}
+                {sandwichMenuOpen && currentUser?.isAuthenticated && (
+                <>
+                  {/* Backdrop for click outside */}
+                  <div 
+                    className="fixed inset-0 z-50 bg-black/20 backdrop-blur-2xs hidden sm:block"
+                    onClick={() => setSandwichMenuOpen(false)}
+                  />
 
                     <div 
-                      className={`fixed inset-0 top-0 h-[100dvh] w-full sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:h-auto overflow-y-auto sm:overflow-visible ${
-                        currentUser.isAuthenticated ? 'sm:w-80 p-[2px] sm:p-3 space-y-2 sm:space-y-3' : 'w-full sm:w-56 p-2'
-                      } bg-[#EBEBEB] sm:rounded-3xl shadow-none sm:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border-none z-[60] animate-fadeIn`}
+                      className="fixed inset-0 top-0 h-[100dvh] w-full sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:h-auto overflow-y-auto sm:overflow-visible sm:w-80 p-[2px] sm:p-3 space-y-2 sm:space-y-3 bg-[#EBEBEB] sm:rounded-3xl shadow-none sm:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border-none z-[60] animate-fadeIn"
                     >
-                      {currentUser.isAuthenticated ? (
-                        <>
-                          {/* Mobile Header with Close Button */}
+                      {/* Mobile Header with Close Button */}
                           <div className="sm:hidden flex items-center justify-between p-3 mb-2 border-b border-[#d1d1d1] sticky top-0 bg-[#EBEBEB] z-10">
                             <span className="font-serif-display font-bold text-gray-800 text-lg">Menú</span>
                             <button 
@@ -600,30 +559,10 @@ export const Navbar: React.FC = () => {
                               <span>Cerrar Sesión ({currentUser.username})</span>
                             </button>
                           </div>
-                        </>
-                      ) : (
-                        /* When not logged in: Only "Acceder" button */
-                        <div className="p-1">
-                          <button
-                            type="button"
-                            id="sandwich-btn-acceder"
-                            onClick={() => {
-                              setShowAuthModal(true);
-                              setSandwichMenuOpen(false);
-                            }}
-                            className="w-full py-2.5 px-4 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer shadow-xs"
-                          >
-                            <User className="w-4 h-4" />
-                            <span>Acceder</span>
-                          </button>
                         </div>
-                      )}
-
-                    </div>
-                  </>
-                )}
-              </div>
-              )}
+                      </>
+                    )}
+                  </div>
 
             </div>
           </div>

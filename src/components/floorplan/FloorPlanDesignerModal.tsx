@@ -25,7 +25,9 @@ import {
   RefreshCw,
   Undo2,
   Users,
-  Redo2
+  Redo2,
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { useWedding } from '../../context/WeddingContext';
 import {
@@ -42,7 +44,15 @@ import { FloorPlanGuestSidebar } from './FloorPlanGuestSidebar';
 import { FloorPlanPhpSqlModal } from './FloorPlanPhpSqlModal';
 import { renderPdfFirstPageToImage } from '../../lib/pdfUtils';
 import { exportFloorPlanToPdf } from './FloorPlanExportPdf';
-import { buildFloorPlanFromWedding, buildTableSeats, extractTableNumber } from './floorPlanSyncUtils';
+import {
+  buildFloorPlanFromWedding,
+  buildTableSeats,
+  extractTableNumber,
+  ensureUniqueTableIdentities,
+  normalizeTableText,
+  getGuestGroupInfo,
+  checkFloorPlanElementCapacityForGroup,
+} from './floorPlanSyncUtils';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { cleanFirestoreData } from '../../lib/firestoreUtils';
@@ -65,6 +75,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     tables,
     settings,
     isLevel1Admin,
+    updateGuest,
   } = useWedding();
 
   // Floor plan layout state
@@ -209,7 +220,16 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveSuccessNotice, setSaveSuccessNotice] = useState<boolean>(false);
   const [syncSuccessNotice, setSyncSuccessNotice] = useState<boolean>(false);
+  const [capacityWarning, setCapacityWarning] = useState<string | null>(null);
+  const [assignmentNotice, setAssignmentNotice] = useState<string | null>(null);
   const [autoSync, setAutoSync] = useState<boolean>(false);
+
+  const showCapacityWarning = (msg: string) => {
+    setCapacityWarning(msg);
+    setTimeout(() => {
+      setCapacityWarning((prev) => (prev === msg ? null : prev));
+    }, 6000);
+  };
   const [syncConfirmAction, setSyncConfirmAction] = useState<'auto' | 'manual' | null>(null);
   const [isProcessingPdf, setIsProcessingPdf] = useState<boolean>(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
@@ -262,9 +282,9 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         if (loadedElements) {
           // We have a saved plan
           if (autoSync) {
-            setElements(buildFloorPlanFromWedding(tables, guests, loadedElements));
+            setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests, loadedElements), tables));
           } else {
-            setElements(loadedElements);
+            setElements(ensureUniqueTableIdentities(loadedElements, tables));
           }
           if (loadedData.backgroundImageUrl) setBackgroundImageUrl(loadedData.backgroundImageUrl);
           if (loadedData.backgroundFileName) setBackgroundFileName(loadedData.backgroundFileName);
@@ -277,7 +297,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         } else {
           // NO saved plan
           if (autoSync) {
-            setElements(buildFloorPlanFromWedding(tables, guests));
+            setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
           } else {
             setElements([]);
           }
@@ -307,8 +327,35 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   // Add Element to Canvas
   const handleAddElement = (type: FloorPlanElementType) => {
     const newId = `elem_${type}_${Date.now()}`;
-    const nextTableNumber =
-      elements.filter((e) => e.type === 'round_table' || e.type === 'rectangular_table').length + 1;
+    const isTable = type === 'round_table' || type === 'rectangular_table';
+
+    let nextTableNumber = 1;
+    let newTableName = '';
+
+    if (isTable) {
+      const usedNumbers = new Set<number>();
+      const usedNames = new Set<string>();
+
+      elements.forEach((e) => {
+        if (e.name) usedNames.add(normalizeTableText(e.name));
+        if (e.tableNumber) usedNumbers.add(e.tableNumber);
+        const extracted = extractTableNumber(e.name);
+        if (extracted !== null) usedNumbers.add(extracted);
+      });
+
+      tables.forEach((t) => {
+        if (t.name) usedNames.add(normalizeTableText(t.name));
+        const extracted = extractTableNumber(t.name);
+        if (extracted !== null) usedNumbers.add(extracted);
+      });
+
+      let candidateNum = Math.max(0, ...Array.from(usedNumbers)) + 1;
+      while (usedNumbers.has(candidateNum) || usedNames.has(`mesa ${candidateNum}`)) {
+        candidateNum++;
+      }
+      nextTableNumber = candidateNum;
+      newTableName = `Mesa ${nextTableNumber}`;
+    }
 
     let newElem: FloorPlanElement;
 
@@ -321,7 +368,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         newElem = {
           id: newId,
           type: 'round_table',
-          name: `Mesa ${nextTableNumber}`,
+          name: newTableName,
           tableNumber: nextTableNumber,
           x: spawnX,
           y: spawnY,
@@ -343,7 +390,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         newElem = {
           id: newId,
           type: 'rectangular_table',
-          name: `Mesa Imperial ${nextTableNumber}`,
+          name: newTableName,
           tableNumber: nextTableNumber,
           x: spawnX,
           y: spawnY,
@@ -696,21 +743,55 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     if (!elem) return;
 
     const newId = `elem_${elem.type}_${Date.now()}`;
+    const isTable = elem.type === 'round_table' || elem.type === 'rectangular_table';
+
+    const usedNumbers = new Set<number>();
+    const usedNames = new Set<string>();
+
+    elements.forEach((e) => {
+      if (e.name) usedNames.add(normalizeTableText(e.name));
+      if (e.tableNumber) usedNumbers.add(e.tableNumber);
+      const extracted = extractTableNumber(e.name);
+      if (extracted !== null) usedNumbers.add(extracted);
+    });
+
+    tables.forEach((t) => {
+      if (t.name) usedNames.add(normalizeTableText(t.name));
+      const extracted = extractTableNumber(t.name);
+      if (extracted !== null) usedNumbers.add(extracted);
+    });
+
+    let nextTableNum: number | undefined = undefined;
+    let newName = '';
+
+    if (isTable) {
+      let candidateNum = Math.max(0, ...Array.from(usedNumbers)) + 1;
+      while (usedNumbers.has(candidateNum) || usedNames.has(`mesa ${candidateNum}`)) {
+        candidateNum++;
+      }
+      nextTableNum = candidateNum;
+      newName = `Mesa ${nextTableNum}`;
+    } else {
+      const baseName = elem.name.replace(/\s*\(Copia(\s+\d+)?\)$/i, '').trim();
+      let candidateName = `${baseName} (Copia)`;
+      let copyIdx = 2;
+      while (usedNames.has(normalizeTableText(candidateName))) {
+        candidateName = `${baseName} (Copia ${copyIdx})`;
+        copyIdx++;
+      }
+      newName = candidateName;
+    }
+
     const duplicateSeats = (elem.seats || []).map((s, idx) => ({
       id: `seat_${newId}_${idx + 1}`,
       seatNumber: idx + 1,
       // Clear assigned guest on duplicate
     }));
 
-    const nextTableNum =
-      elem.tableNumber !== undefined
-        ? elements.filter((e) => e.type === 'round_table' || e.type === 'rectangular_table').length + 1
-        : undefined;
-
     const duplicated: FloorPlanElement = {
       ...elem,
       id: newId,
-      name: nextTableNum ? `Mesa ${nextTableNum}` : `${elem.name} (Copia)`,
+      name: newName,
       tableNumber: nextTableNum,
       x: elem.x + 35,
       y: elem.y + 35,
@@ -739,13 +820,31 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   };
 
   // Assign guest to specific seat
-  const handleAssignGuestToSeat = (elementId: string, seatId: string, guest: Guest) => {
+  const handleAssignGuestToSeat = async (elementId: string, seatId: string, guest: Guest) => {
+    const targetElem = elements.find((e) => e.id === elementId);
+    if (!targetElem) return;
+
+    // 1. Validar que la mesa tenga capacidad suficiente para el invitado y su(s) acompañante(s)
+    const capacityCheck = checkFloorPlanElementCapacityForGroup(targetElem, guest, guests);
+    if (!capacityCheck.canFit) {
+      showCapacityWarning(
+        capacityCheck.warningMessage ||
+          `La mesa "${targetElem.name}" sobrepasa su capacidad.`
+      );
+      return;
+    }
+
+    const groupInfo = getGuestGroupInfo(guest, guests);
+    const mainGuest = groupInfo.mainGuest;
+    const registeredCompanions = groupInfo.registeredCompanions;
+    const groupMemberIds = new Set([mainGuest.id, ...registeredCompanions.map((c) => c.id), guest.id]);
+
     setElements((prev) => {
-      // First unassign guest from any other seat if already assigned
+      // 2. Primero desasignar al invitado, a sus acompañantes y a sus pases de cualquier asiento previo
       const cleaned = prev.map((elem) => ({
         ...elem,
         seats: (elem.seats || []).map((seat) =>
-          seat.guestId === guest.id
+          (seat.guestId && (groupMemberIds.has(seat.guestId) || seat.guestId.startsWith(`companion_${mainGuest.id}_`) || seat.guestId.startsWith(`companion_${guest.id}_`)))
             ? {
                 ...seat,
                 guestId: undefined,
@@ -759,32 +858,97 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         ),
       }));
 
-      // Now assign to target seat
+      // 3. Asignar en la mesa destino
       return cleaned.map((elem) => {
         if (elem.id !== elementId) return elem;
-        return {
-          ...elem,
-          seats: (elem.seats || []).map((seat) => {
-            if (seat.id !== seatId) return seat;
-            const initials = guest.fullName
+
+        const currentSeats = [...(elem.seats || [])];
+        const primaryGuest = guest;
+        const initials = primaryGuest.fullName
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .substring(0, 2)
+          .toUpperCase();
+
+        const targetSeatIndex = currentSeats.findIndex((s) => s.id === seatId);
+        if (targetSeatIndex !== -1) {
+          currentSeats[targetSeatIndex] = {
+            ...currentSeats[targetSeatIndex],
+            guestId: primaryGuest.id,
+            guestName: primaryGuest.fullName,
+            guestInitials: initials,
+            guestPhone: primaryGuest.phone,
+            dietaryRequirement: primaryGuest.dietaryRestrictions,
+            companionCount: groupInfo.requiredSeats,
+          };
+        }
+
+        // Asignar acompañantes registrados a los siguientes asientos libres
+        let companionIndex = 0;
+        for (const comp of registeredCompanions) {
+          if (comp.id === primaryGuest.id) continue;
+          const nextFreeIdx = currentSeats.findIndex(
+            (s, idx) => idx !== targetSeatIndex && (!s.guestId || s.guestId.trim() === '')
+          );
+          if (nextFreeIdx !== -1) {
+            const compInitials = comp.fullName
               .split(' ')
               .map((n) => n[0])
               .join('')
               .substring(0, 2)
               .toUpperCase();
-            return {
-              ...seat,
-              guestId: guest.id,
-              guestName: guest.fullName,
-              guestInitials: initials,
-              guestPhone: guest.phone,
-              dietaryRequirement: guest.dietaryRestrictions,
-              companionCount: guest.confirmedPasses || guest.totalPasses || 1,
+            currentSeats[nextFreeIdx] = {
+              ...currentSeats[nextFreeIdx],
+              guestId: comp.id,
+              guestName: comp.fullName,
+              guestInitials: compInitials,
+              guestPhone: comp.phone,
+              dietaryRequirement: comp.dietaryRestrictions,
+              companionCount: 1,
             };
-          }),
+            companionIndex++;
+          }
+        }
+
+        // Asignar pases extra adicionales sin acompañante registrado
+        const remainingPasses = groupInfo.requiredSeats - 1 - companionIndex;
+        for (let i = 0; i < remainingPasses; i++) {
+          const nextFreeIdx = currentSeats.findIndex(
+            (s, idx) => idx !== targetSeatIndex && (!s.guestId || s.guestId.trim() === '')
+          );
+          if (nextFreeIdx !== -1) {
+            currentSeats[nextFreeIdx] = {
+              ...currentSeats[nextFreeIdx],
+              guestId: `companion_${mainGuest.id}_${i + 1}`,
+              guestName: `Acompañante de ${mainGuest.fullName}`,
+              guestInitials: `A${i + 1}`,
+              companionCount: 1,
+            };
+          }
+        }
+
+        return {
+          ...elem,
+          seats: currentSeats,
         };
       });
     });
+
+    // Actualizar mesa asignada en WeddingContext
+    try {
+      await updateGuest(mainGuest.id, { assignedTable: targetElem.name });
+    } catch (err) {
+      console.warn('Error al actualizar mesa de invitado:', err);
+    }
+
+    const companionCount = groupInfo.requiredSeats - 1;
+    setAssignmentNotice(
+      companionCount > 0
+        ? `¡"${guest.fullName}" y ${companionCount === 1 ? 'su acompañante' : `${companionCount} acompañantes`} ubicados en "${targetElem.name}"!`
+        : `¡"${guest.fullName}" ubicado en "${targetElem.name}"!`
+    );
+    setTimeout(() => setAssignmentNotice(null), 3500);
   };
 
   // Unassign guest from seat
@@ -910,6 +1074,9 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     if (!activeWeddingId) return;
     setIsSaving(true);
 
+    const sanitizedElements = ensureUniqueTableIdentities(elements, tables);
+    setElements(sanitizedElements);
+
     const planPayload: WeddingFloorPlan = {
       id: activeWeddingId,
       weddingId: activeWeddingId,
@@ -917,7 +1084,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       backgroundFileName,
       backgroundOpacity,
       scale: scaleCalibration,
-      elements,
+      elements: sanitizedElements,
       gridSnap,
       gridSize,
       canvasWidth,
@@ -1240,7 +1407,47 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         </div>
       )}
 
-      {/* 2b. SYNC SUCCESS BANNER */}
+      {/* 2a. CAPACITY WARNING BANNER */}
+      {capacityWarning && (
+        <div className="px-6 py-3 bg-rose-50 border-b-2 border-rose-400 text-rose-950 text-xs flex items-center justify-between animate-in fade-in slide-in-from-top-2 shadow-md z-30">
+          <div className="flex items-center space-x-2.5 min-w-0">
+            <div className="w-6 h-6 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center shrink-0 text-rose-600">
+              <AlertCircle className="w-4 h-4" />
+            </div>
+            <div className="font-medium text-rose-900 leading-snug">
+              <span className="font-bold uppercase tracking-wider text-[11px] bg-rose-200 text-rose-900 px-1.5 py-0.5 rounded-md mr-1.5">
+                Capacidad Excedida
+              </span>
+              <span>{capacityWarning}</span>
+            </div>
+          </div>
+          <button
+            onClick={() => setCapacityWarning(null)}
+            className="font-bold text-rose-700 hover:text-rose-950 ml-4 px-2 py-1 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer shrink-0"
+            title="Cerrar aviso"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* 2b. ASSIGNMENT NOTICE BANNER */}
+      {assignmentNotice && (
+        <div className="px-6 py-2.5 bg-emerald-50 border-b border-emerald-200 text-emerald-900 text-xs flex items-center justify-between animate-in fade-in z-30">
+          <div className="flex items-center space-x-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="font-semibold">{assignmentNotice}</span>
+          </div>
+          <button
+            onClick={() => setAssignmentNotice(null)}
+            className="font-bold text-emerald-700 hover:text-emerald-900 ml-4 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* 2c. SYNC SUCCESS BANNER */}
       {syncSuccessNotice && (
         <div className="px-6 py-2 bg-emerald-50 border-b border-emerald-200 text-emerald-900 text-xs flex items-center justify-between animate-in fade-in">
           <div className="flex items-center space-x-2">
@@ -1378,6 +1585,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             canvasWidth={canvasWidth}
             canvasHeight={canvasHeight}
             draggedGuest={draggedGuest}
+            guests={guests}
             onSeatClick={(elemId, seat, pos) => {
               setActiveSeatPicker({ elementId: elemId, seat, screenPos: pos });
             }}

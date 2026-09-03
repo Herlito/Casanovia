@@ -4,6 +4,7 @@ import { Guest, WeddingTable, GUEST_ROLES_CONFIG, ProtocolCategory, RsvpStatus }
 import { TableModal } from './TableModal';
 import { TableSeatingPrintModal } from './TableSeatingPrintModal';
 import { formatAltibajas } from '../../lib/formatUtils';
+import { getGuestGroupInfo, checkTableCapacityForGroup } from '../floorplan/floorPlanSyncUtils';
 import { 
   UtensilsCrossed, 
   Users, 
@@ -16,6 +17,7 @@ import {
   Clock, 
   XCircle, 
   AlertCircle, 
+  AlertTriangle,
   ArrowRight, 
   MapPin, 
   Layers, 
@@ -100,11 +102,11 @@ export const TableAssignmentModule: React.FC = () => {
   // Drag and Drop & Toast states
   const [draggedGuestId, setDraggedGuestId] = useState<string | null>(null);
   const [dragOverTableId, setDragOverTableId] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type?: 'error' | 'success' | 'warning' | 'info' } | null>(null);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+  const showToast = (msg: string, type: 'error' | 'success' | 'warning' | 'info' = 'info') => {
+    setToastMessage({ text: msg, type });
+    setTimeout(() => setToastMessage(null), 4500);
   };
 
   // Modals
@@ -241,10 +243,33 @@ export const TableAssignmentModule: React.FC = () => {
   const handleAssignSingleGuest = async (guestId: string, tableName: string) => {
     if (!tableName) return;
     const target = guests.find((g) => g.id === guestId);
-    if (target && target.rsvpStatus !== 'confirmed') {
-      alert(`Solo se puede asignar mesa a invitados confirmados. Por favor confirma la asistencia de "${target.fullName}" primero.`);
+    if (!target) return;
+
+    if (target.rsvpStatus !== 'confirmed') {
+      showToast(`Solo se puede asignar mesa a invitados confirmados. Por favor confirma la asistencia de "${target.fullName}" primero.`, 'warning');
       return;
     }
+
+    if (tableName && tableName !== 'Mesa por asignar') {
+      const targetTable = tables.find(
+        (t) => (t?.name || '').trim().toLowerCase() === tableName.trim().toLowerCase()
+      );
+      if (targetTable) {
+        const occData = tableOccupancyMap.get(tableName.trim().toLowerCase()) || { guests: [], totalPasses: 0 };
+        const capacityCheck = checkTableCapacityForGroup(
+          targetTable.name,
+          targetTable.capacity || 10,
+          occData.totalPasses,
+          target,
+          guests
+        );
+        if (!capacityCheck.canFit) {
+          showToast(capacityCheck.warningMessage || 'La mesa sobrepasa su capacidad.', 'error');
+          return;
+        }
+      }
+    }
+
     await updateGuest(guestId, { assignedTable: tableName });
   };
 
@@ -253,7 +278,7 @@ export const TableAssignmentModule: React.FC = () => {
     const target = guests.find((g) => g.id === guestId);
     await updateGuest(guestId, { assignedTable: 'Mesa por asignar' });
     if (target) {
-      showToast(`"${formatAltibajas(target.fullName)}" desasignado(a) de la mesa.`);
+      showToast(`"${formatAltibajas(target.fullName)}" desasignado(a) de la mesa.`, 'info');
     }
   };
 
@@ -281,28 +306,48 @@ export const TableAssignmentModule: React.FC = () => {
 
     // Validar confirmación de asistencia
     if (draggedGuest.rsvpStatus !== 'confirmed') {
-      showToast(`Solo se puede asignar mesa a invitados confirmados. Por favor confirma a "${formatAltibajas(draggedGuest.fullName)}" primero.`);
+      showToast(`Solo se puede asignar mesa a invitados confirmados. Por favor confirma a "${formatAltibajas(draggedGuest.fullName)}" primero.`, 'warning');
       setDraggedGuestId(null);
       return;
     }
 
-    // Identificar el grupo (titular + acompañantes)
-    let groupToMove: Guest[] = [];
-    if (draggedGuest.mainGuestId) {
-      const main = guests.find((g) => g.id === draggedGuest.mainGuestId);
-      if (main) {
-        groupToMove = [main, ...guests.filter((g) => g.mainGuestId === main.id)];
-      } else {
-        groupToMove = [draggedGuest];
+    // Verificar si la mesa destino existe y tiene capacidad para el invitado y su(s) acompañante(s)
+    const targetTable = tables.find(
+      (t) => (t?.name || '').trim().toLowerCase() === targetTableName.trim().toLowerCase()
+    );
+
+    if (targetTable) {
+      const occData = tableOccupancyMap.get(targetTableName.trim().toLowerCase()) || { guests: [], totalPasses: 0 };
+      const currentOccupied = occData.totalPasses;
+      const capacityCheck = checkTableCapacityForGroup(
+        targetTable.name,
+        targetTable.capacity || 10,
+        currentOccupied,
+        draggedGuest,
+        guests
+      );
+
+      // Si no cabe el invitado con su(s) acompañante(s), no permitir la asignación y avisar
+      if (!capacityCheck.canFit) {
+        showToast(
+          capacityCheck.warningMessage || `La mesa "${targetTable.name}" sobrepasa su capacidad.`,
+          'error'
+        );
+        setDraggedGuestId(null);
+        return;
       }
-    } else {
-      groupToMove = [draggedGuest, ...guests.filter((g) => g.mainGuestId === draggedGuest.id)];
     }
 
+    // Identificar el grupo completo (titular + acompañantes)
+    const groupInfo = getGuestGroupInfo(draggedGuest, guests);
     await updateGuest(draggedGuest.id, { assignedTable: targetTableName });
     
-    const count = groupToMove.length;
-    showToast(`¡"${formatAltibajas(draggedGuest.fullName)}"${count > 1 ? ` y ${count - 1} acompañante(s)` : ''} asignado(s) a "${targetTableName}"!`);
+    const count = groupInfo.requiredSeats;
+    const companionCount = count - 1;
+    showToast(
+      `¡"${formatAltibajas(draggedGuest.fullName)}"${companionCount > 0 ? ` y ${companionCount === 1 ? 'su acompañante' : `${companionCount} acompañantes`}` : ''} asignado(s) a "${targetTableName}"!`,
+      'success'
+    );
     setDraggedGuestId(null);
   };
 
@@ -1055,6 +1100,10 @@ export const TableAssignmentModule: React.FC = () => {
               const fillPct = table.capacity > 0 ? Math.min(100, Math.round((totalSeatedPasses / table.capacity) * 100)) : 0;
               const isDragOver = dragOverTableId === table.id;
 
+              const draggedGuestObj = draggedGuestId ? guests.find((g) => g.id === draggedGuestId) : null;
+              const draggedGroupInfo = draggedGuestObj ? getGuestGroupInfo(draggedGuestObj, guests) : null;
+              const isOverCapacityForDragged = draggedGroupInfo ? draggedGroupInfo.requiredSeats > availableSeats : false;
+
               return (
                 <div
                   key={table.id}
@@ -1068,12 +1117,29 @@ export const TableAssignmentModule: React.FC = () => {
                   onDrop={(e) => handleDropOnTable(e, table.name)}
                   className={`bg-[#EBEBEB] rounded-3xl p-4 border shadow-xs space-y-2.5 transition-all flex flex-col justify-between ${
                     isDragOver
-                      ? 'border-transparent ring-2 ring-[#d1d1d1]/40 bg-[#FFF8F9] shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] scale-[1.01]'
+                      ? isOverCapacityForDragged
+                        ? 'border-rose-400 ring-2 ring-rose-300 bg-rose-50/70 shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] scale-[1.01]'
+                        : 'border-emerald-400 ring-2 ring-emerald-300 bg-emerald-50/60 shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] scale-[1.01]'
                       : 'border-transparent hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]'
                   }`}
                 >
                   {/* Top Bar: Table Info & Actions */}
                   <div className="space-y-1.5">
+                    {/* Visual drag-over capacity feedback banner */}
+                    {isDragOver && (
+                      isOverCapacityForDragged ? (
+                        <div className="bg-rose-100 border border-rose-300 text-rose-900 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 animate-pulse">
+                          <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                          <span>Mesa sobrepasa su capacidad ({availableSeats} libres / {draggedGroupInfo?.requiredSeats} necesarios)</span>
+                        </div>
+                      ) : (
+                        <div className="bg-emerald-100 border border-emerald-300 text-emerald-900 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 animate-pulse">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Soltar para asignar ({draggedGroupInfo?.requiredSeats} lugar{draggedGroupInfo?.requiredSeats === 1 ? '' : 'es'})</span>
+                        </div>
+                      )
+                    )}
+
                     <h3 className="font-serif-display font-bold text-base text-[#2D2A26] leading-snug break-words">
                       {table.name}
                     </h3>
@@ -1314,9 +1380,33 @@ export const TableAssignmentModule: React.FC = () => {
 
       {/* Floating Instant Feedback Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#2D2A26] text-[#2D3748] text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-xl border border-transparent animate-bounce flex items-center space-x-2">
-          <Sparkles className="w-4 h-4 text-[#D4AF37] shrink-0" />
-          <span>{toastMessage}</span>
+        <div
+          className={`fixed bottom-6 right-6 z-50 text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl border flex items-center space-x-2.5 transition-all max-w-md animate-in fade-in slide-in-from-bottom-3 ${
+            toastMessage.type === 'error'
+              ? 'bg-rose-50 border-rose-300 text-rose-900 shadow-rose-900/10'
+              : toastMessage.type === 'warning'
+              ? 'bg-amber-50 border-amber-300 text-amber-900 shadow-amber-900/10'
+              : toastMessage.type === 'success'
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-emerald-900/10'
+              : 'bg-[#2D2A26] border-neutral-700 text-white shadow-black/20'
+          }`}
+        >
+          {toastMessage.type === 'error' ? (
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          ) : toastMessage.type === 'warning' ? (
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+          ) : toastMessage.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          ) : (
+            <Sparkles className="w-4 h-4 text-[#D4AF37] shrink-0" />
+          )}
+          <span className="leading-snug">{toastMessage.text}</span>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="ml-2 text-current opacity-60 hover:opacity-100 p-0.5 cursor-pointer"
+          >
+            ✕
+          </button>
         </div>
       )}
 

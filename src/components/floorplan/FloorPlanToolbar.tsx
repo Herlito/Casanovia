@@ -33,7 +33,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { FloorPlanElement, FloorPlanElementType, FloorPlanSeat, WeddingTable, Guest } from '../../types';
-import { extractTableNumber, isGuestAssignedToTable } from './floorPlanSyncUtils';
+import { extractTableNumber, isGuestAssignedToTable, normalizeTableText } from './floorPlanSyncUtils';
 
 interface FloorPlanToolbarProps {
   selectedElement: FloorPlanElement | null;
@@ -121,6 +121,29 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
     });
     return set;
   }, [elements, tables]);
+
+  const isSelectedTable = selectedElement?.type === 'round_table' || selectedElement?.type === 'rectangular_table';
+
+  const isDuplicateName = useMemo(() => {
+    if (!selectedElement || !isSelectedTable || !selectedElement.name) return false;
+    const currentNorm = normalizeTableText(selectedElement.name);
+    return (elements || []).some(
+      (e) =>
+        e.id !== selectedElement.id &&
+        (e.type === 'round_table' || e.type === 'rectangular_table') &&
+        normalizeTableText(e.name) === currentNorm
+    );
+  }, [selectedElement, isSelectedTable, elements]);
+
+  const isDuplicateNumber = useMemo(() => {
+    if (!selectedElement || !isSelectedTable || selectedElement.tableNumber === undefined) return false;
+    return (elements || []).some(
+      (e) =>
+        e.id !== selectedElement.id &&
+        (e.type === 'round_table' || e.type === 'rectangular_table') &&
+        (e.tableNumber === selectedElement.tableNumber || extractTableNumber(e.name) === selectedElement.tableNumber)
+    );
+  }, [selectedElement, isSelectedTable, elements]);
 
   // Filter wedding tables
   const filteredWeddingTables = useMemo(() => {
@@ -647,7 +670,9 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   type="text"
                   value={selectedElement.name}
                   onChange={(e) => onUpdateElement(selectedElement.id, { name: e.target.value })}
-                  className="w-full px-2.5 py-1.5 bg-[#FAF8F5] border border-[#D9CEBF] rounded-lg text-xs font-semibold focus:outline-hidden focus:border-transparent"
+                  className={`w-full px-2.5 py-1.5 bg-[#FAF8F5] border rounded-lg text-xs font-semibold focus:outline-hidden ${
+                    isDuplicateName ? 'border-rose-500 bg-rose-50/30 text-rose-900' : 'border-[#D9CEBF] focus:border-transparent'
+                  }`}
                 />
                 <div className="relative shrink-0" title="Color del texto">
                   <input
@@ -662,6 +687,12 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   />
                 </div>
               </div>
+              {isDuplicateName && (
+                <div className="text-[10px] text-rose-600 font-semibold mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>Nombre duplicado: no se permiten nombres repetidos.</span>
+                </div>
+              )}
             </div>
 
 
@@ -676,13 +707,22 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   min="1"
                   max="99"
                   value={selectedElement.tableNumber || ''}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const parsed = parseInt(e.target.value, 10);
                     onUpdateElement(selectedElement.id, {
-                      tableNumber: parseInt(e.target.value) || 1,
-                    })
-                  }
-                  className="w-full px-2.5 py-1.5 bg-[#FAF8F5] border border-[#D9CEBF] rounded-lg text-xs font-semibold focus:outline-hidden focus:border-transparent"
+                      tableNumber: isNaN(parsed) ? undefined : parsed,
+                    });
+                  }}
+                  className={`w-full px-2.5 py-1.5 bg-[#FAF8F5] border rounded-lg text-xs font-semibold focus:outline-hidden ${
+                    isDuplicateNumber ? 'border-rose-500 bg-rose-50/30 text-rose-900' : 'border-[#D9CEBF] focus:border-transparent'
+                  }`}
                 />
+                {isDuplicateNumber && (
+                  <div className="text-[10px] text-rose-600 font-semibold mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>Número {selectedElement.tableNumber} ya está en uso por otra mesa.</span>
+                  </div>
+                )}
               </div>
             )}
             {/* Slider de Asientos para Mesa Redonda */}

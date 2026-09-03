@@ -40,28 +40,143 @@ export function isGuestAssignedToTable(
 
   const gNorm = normalizeTableText(guestTable);
   const tNorm = normalizeTableText(targetTableName);
+  if (!gNorm || !tNorm) return false;
 
   // Direct normalized exact match
   if (gNorm === tNorm) return true;
 
   // Number based match if both have identifiable numbers
   const gNum = extractTableNumber(guestTable);
-  const tNum = targetTableNumber ?? extractTableNumber(targetTableName);
-  if (gNum !== null && tNum !== null && gNum === tNum) {
-    return true;
-  }
+  const tNum = targetTableNumber !== undefined && targetTableNumber !== null ? targetTableNumber : extractTableNumber(targetTableName);
 
-  // Prefix match (e.g. "Mesa 1" matches "Mesa 1 (Mesa de Honor)" or vice versa)
-  if (gNorm.startsWith(tNorm) || tNorm.startsWith(gNorm)) {
-    return true;
+  // If BOTH have numbers: they MUST match exactly
+  if (gNum !== null && tNum !== null) {
+    return gNum === tNum;
   }
 
   // Check if principal / honor table
   const isGHonor = gNorm.includes('honor') || gNorm.includes('principal') || gNorm.includes('novios');
   const isTHonor = tNorm.includes('honor') || tNorm.includes('principal') || tNorm.includes('novios');
-  if (isGHonor && isTHonor) return true;
+  if (isGHonor && isTHonor) {
+    if (gNum !== null && gNum !== 1) return false;
+    if (tNum !== null && tNum !== 1) return false;
+    return true;
+  }
 
-  return false;
+  // If one has a table number and the other does not, they cannot match
+  if ((gNum !== null && tNum === null) || (gNum === null && tNum !== null)) {
+    return false;
+  }
+
+  // Disallow generic single-word names like "mesa", "table" from matching everything
+  if (tNorm === 'mesa' || tNorm === 'table' || gNorm === 'mesa' || gNorm === 'table') {
+    return false;
+  }
+
+  // Named tables without numbers must match exactly
+  return gNorm === tNorm;
+}
+
+/**
+ * Ensures all table elements in a floor plan have strictly unique names and table numbers.
+ * No table names and no table numbers are allowed to repeat.
+ * Any duplicate tables automatically receive a new unique table number and name.
+ */
+export function ensureUniqueTableIdentities(
+  elements: FloorPlanElement[],
+  registeredTables: WeddingTable[] = []
+): FloorPlanElement[] {
+  if (!elements || elements.length === 0) return [];
+
+  const usedNumbers = new Set<number>();
+  const usedNormalizedNames = new Set<string>();
+
+  // 1. Gather all numbers and normalized names from registered wedding tables
+  registeredTables.forEach((t) => {
+    if (t.name) {
+      usedNormalizedNames.add(normalizeTableText(t.name));
+      const extracted = extractTableNumber(t.name);
+      if (extracted !== null) {
+        usedNumbers.add(extracted);
+      }
+    }
+  });
+
+  const seenElementIds = new Set<string>();
+  const seenTableNumbers = new Set<number>();
+  const seenTableNames = new Set<string>();
+
+  return elements.map((elem) => {
+    let elemId = elem.id;
+    if (seenElementIds.has(elemId)) {
+      elemId = `${elem.id}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    }
+    seenElementIds.add(elemId);
+
+    const isTable = elem.type === 'round_table' || elem.type === 'rectangular_table';
+
+    if (!isTable) {
+      let name = elem.name || 'Elemento';
+      let normName = normalizeTableText(name);
+      if (seenTableNames.has(normName)) {
+        const baseName = name.replace(/\s*\(Copia(\s+\d+)?\)$/i, '').trim();
+        let copyNum = 2;
+        let candidate = `${baseName} (Copia)`;
+        while (seenTableNames.has(normalizeTableText(candidate))) {
+          candidate = `${baseName} (Copia ${copyNum})`;
+          copyNum++;
+        }
+        name = candidate;
+        normName = normalizeTableText(name);
+      }
+      seenTableNames.add(normName);
+      return { ...elem, id: elemId, name };
+    }
+
+    // Table element
+    let tableNum = elem.tableNumber ?? extractTableNumber(elem.name);
+    let tableName = elem.name ? elem.name.trim() : '';
+    let normName = normalizeTableText(tableName);
+
+    const isGenericMesa = !tableName || normName === 'mesa' || normName === 'table';
+    const isNumberDuplicate = tableNum === null || tableNum === undefined || seenTableNumbers.has(tableNum);
+    const isNameDuplicate = isGenericMesa || seenTableNames.has(normName);
+
+    if (isNumberDuplicate || isNameDuplicate) {
+      // Calculate next available unique table number
+      let candidateNum = Math.max(0, ...Array.from(usedNumbers), ...Array.from(seenTableNumbers)) + 1;
+      while (
+        usedNumbers.has(candidateNum) ||
+        seenTableNumbers.has(candidateNum) ||
+        usedNormalizedNames.has(`mesa ${candidateNum}`) ||
+        seenTableNames.has(`mesa ${candidateNum}`)
+      ) {
+        candidateNum++;
+      }
+
+      tableNum = candidateNum;
+      tableName = `Mesa ${tableNum}`;
+      normName = normalizeTableText(tableName);
+    }
+
+    seenTableNumbers.add(tableNum);
+    seenTableNames.add(normName);
+
+    // Ensure seat IDs are consistent
+    const updatedSeats = (elem.seats || []).map((s, idx) => ({
+      ...s,
+      id: `seat_${elemId}_${s.seatNumber || idx + 1}`,
+      seatNumber: s.seatNumber || idx + 1,
+    }));
+
+    return {
+      ...elem,
+      id: elemId,
+      name: tableName,
+      tableNumber: tableNum,
+      seats: updatedSeats,
+    };
+  });
 }
 
 /**
@@ -182,11 +297,12 @@ export function buildFloorPlanFromWedding(
 
     // 1. Update existing table elements with fresh seat assignments
     existingTableElements.forEach((elem, idx) => {
-      // Find corresponding wedding table
+      // Find corresponding wedding table that has NOT already been claimed by another element
       const matchedTable = tables.find(
         (t) =>
-          t.id === elem.id.replace('elem_table_', '') ||
-          isGuestAssignedToTable(t.name, elem.name, elem.tableNumber)
+          !processedWeddingTableIds.has(t.id) &&
+          (t.id === elem.id.replace('elem_table_', '') ||
+            isGuestAssignedToTable(t.name, elem.name, elem.tableNumber))
       );
 
       const tableCap = matchedTable?.capacity || elem.seatCount || elem.seats?.length || 8;
@@ -261,7 +377,7 @@ export function buildFloorPlanFromWedding(
       });
     }
 
-    return updatedElements;
+    return ensureUniqueTableIdentities(updatedElements, tables);
   }
 
   // If no existing elements, generate a fresh, balanced layout from wedding tables and guests
@@ -500,4 +616,158 @@ export function buildFloorPlanFromWedding(
   });
 
   return elements;
+}
+
+export interface GuestGroupInfo {
+  mainGuest: Guest;
+  registeredCompanions: Guest[];
+  allGroupGuests: Guest[];
+  requiredSeats: number;
+  hasCompanion: boolean;
+}
+
+/**
+ * Returns comprehensive group information for a guest (including primary guest, companions, and required seat count)
+ */
+export function getGuestGroupInfo(guest: Guest, allGuests: Guest[]): GuestGroupInfo {
+  // 1. Identify primary guest
+  const mainGuest = guest.mainGuestId
+    ? allGuests.find((g) => g.id === guest.mainGuestId) || guest
+    : guest;
+
+  // 2. Identify companions explicitly registered in the database linked to this primary guest
+  const registeredCompanions = allGuests.filter(
+    (g) => g.mainGuestId === mainGuest.id && g.id !== mainGuest.id
+  );
+
+  const allGroupGuests = [mainGuest, ...registeredCompanions];
+
+  // 3. Determine how many seats/passes are needed:
+  // Can be from explicitly registered companions (1 + registeredCompanions.length),
+  // or indicated by confirmedPasses / totalPasses on the main guest or the dragged guest.
+  const requiredSeats = Math.max(
+    allGroupGuests.length,
+    mainGuest.confirmedPasses || 0,
+    mainGuest.totalPasses || 1,
+    guest.confirmedPasses || 0,
+    guest.totalPasses || 1
+  );
+
+  const hasCompanion =
+    requiredSeats > 1 ||
+    Boolean(guest.mainGuestId) ||
+    registeredCompanions.length > 0;
+
+  return {
+    mainGuest,
+    registeredCompanions,
+    allGroupGuests,
+    requiredSeats,
+    hasCompanion,
+  };
+}
+
+export interface TableCapacityCheck {
+  canFit: boolean;
+  maxCapacity: number;
+  occupiedSeats: number;
+  availableSeats: number;
+  requiredSeats: number;
+  hasCompanion: boolean;
+  exceededBy: number;
+  warningMessage?: string;
+}
+
+/**
+ * Checks if a wedding table has enough capacity for a guest and their companion(s)
+ */
+export function checkTableCapacityForGroup(
+  tableName: string,
+  tableCapacity: number,
+  currentlyOccupiedPasses: number,
+  guest: Guest,
+  allGuests: Guest[]
+): TableCapacityCheck {
+  const group = getGuestGroupInfo(guest, allGuests);
+  const availableSeats = Math.max(0, tableCapacity - currentlyOccupiedPasses);
+  const canFit = availableSeats >= group.requiredSeats;
+  const exceededBy = canFit ? 0 : group.requiredSeats - availableSeats;
+
+  let warningMessage: string | undefined = undefined;
+  if (!canFit) {
+    const companionLabel =
+      group.requiredSeats === 2
+        ? 'su acompañante'
+        : `sus ${group.requiredSeats - 1} acompañantes`;
+
+    if (group.hasCompanion) {
+      warningMessage = `No es posible ubicar a "${guest.fullName}" y ${companionLabel} en la "${tableName}": la mesa sobrepasa su capacidad. Lugares disponibles: ${availableSeats}, requeridos: ${group.requiredSeats} (sobrepasada por ${exceededBy}).`;
+    } else {
+      warningMessage = `No es posible ubicar a "${guest.fullName}" en la "${tableName}": la mesa sobrepasa su capacidad (${tableCapacity}/${tableCapacity} asientos ocupados).`;
+    }
+  }
+
+  return {
+    canFit,
+    maxCapacity: tableCapacity,
+    occupiedSeats: currentlyOccupiedPasses,
+    availableSeats,
+    requiredSeats: group.requiredSeats,
+    hasCompanion: group.hasCompanion,
+    exceededBy,
+    warningMessage,
+  };
+}
+
+/**
+ * Checks if a Floor Plan table element has enough physical chair capacity for a guest and their companion(s)
+ */
+export function checkFloorPlanElementCapacityForGroup(
+  elem: FloorPlanElement,
+  guest: Guest,
+  allGuests: Guest[]
+): TableCapacityCheck {
+  const group = getGuestGroupInfo(guest, allGuests);
+  const totalSeats = (elem.seats || []).length;
+
+  const groupIds = new Set(group.allGroupGuests.map((g) => g.id));
+
+  // Seats on this table that are free or already occupied by a member of this group
+  const freeSeats = (elem.seats || []).filter(
+    (s) =>
+      !s.guestId ||
+      s.guestId.trim() === '' ||
+      groupIds.has(s.guestId) ||
+      s.guestId.startsWith(`companion_${group.mainGuest.id}_`) ||
+      s.guestId.startsWith(`companion_${guest.id}_`)
+  );
+
+  const availableSeats = freeSeats.length;
+  const canFit = availableSeats >= group.requiredSeats;
+  const exceededBy = canFit ? 0 : group.requiredSeats - availableSeats;
+
+  let warningMessage: string | undefined = undefined;
+  if (!canFit) {
+    const companionLabel =
+      group.requiredSeats === 2
+        ? 'su acompañante'
+        : `sus ${group.requiredSeats - 1} acompañantes`;
+
+    if (group.hasCompanion) {
+      warningMessage = `No es posible ubicar a "${guest.fullName}" y ${companionLabel} en la "${elem.name}": la mesa sobrepasa su capacidad física. Lugares libres: ${availableSeats}, requeridos: ${group.requiredSeats} (sobrepasada por ${exceededBy}).`;
+    } else {
+      warningMessage = `No es posible ubicar a "${guest.fullName}" en la "${elem.name}": la mesa ya no tiene asientos libres (${totalSeats}/${totalSeats} ocupados).`;
+    }
+  }
+
+  return {
+    canFit,
+    maxCapacity: totalSeats,
+    occupiedSeats: totalSeats - availableSeats,
+    availableSeats,
+    requiredSeats: group.requiredSeats,
+    hasCompanion: group.hasCompanion,
+    exceededBy,
+    warningMessage,
+  };
 }

@@ -6,6 +6,7 @@ import {
   Guest,
   FloorPlanScaleCalibration
 } from '../../types';
+import { checkFloorPlanElementCapacityForGroup } from './floorPlanSyncUtils';
 
 interface FloorPlanCanvasProps {
   elements: FloorPlanElement[];
@@ -30,6 +31,7 @@ interface FloorPlanCanvasProps {
   canvasHeight: number;
   canvasRotation?: number;
   draggedGuest: Guest | null;
+  guests?: Guest[];
   onSeatClick?: (elementId: string, seat: FloorPlanSeat, screenPos: { x: number; y: number }) => void;
 }
 
@@ -53,6 +55,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
   backgroundImageUrl,
   backgroundOpacity = 0.85,
   draggedGuest,
+  guests,
   onSeatClick,
   canvasRotation = 0
 }) => {
@@ -743,7 +746,11 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
           // Glowing ring if dragging a guest and hovered
           if (draggedGuest && isSeatHovered) {
-            ctx.strokeStyle = '#22C55E';
+            const capacityCheck = guests
+              ? checkFloorPlanElementCapacityForGroup(elem, draggedGuest, guests)
+              : { canFit: true };
+
+            ctx.strokeStyle = capacityCheck.canFit ? '#22C55E' : '#EF4444';
             ctx.lineWidth = 3.5;
             ctx.beginPath();
             ctx.arc(0, 0, chairRadius + 4, 0, 2 * Math.PI);
@@ -1195,12 +1202,41 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
       const guest: Guest = JSON.parse(guestDataStr);
       const world = screenToWorld(e.clientX, e.clientY);
 
+      // 1. Check if dropped directly on a chair
       for (const elem of elements) {
         if (elem.type === 'round_table' || elem.type === 'rectangular_table') {
           const chairs = getChairPositions(elem);
           for (const { seat, x, y } of chairs) {
             if (Math.hypot(world.x - x, world.y - y) <= 24) {
               onAssignGuestToSeat(elem.id, seat.id, guest);
+              setHoveredSeat(null);
+              return;
+            }
+          }
+        }
+      }
+
+      // 2. Check if dropped on the table body itself
+      for (const elem of elements) {
+        if (elem.type === 'round_table') {
+          const r = (elem.radius || 40) + 20;
+          if (Math.hypot(world.x - elem.x, world.y - elem.y) <= r) {
+            const seats = elem.seats || [];
+            const targetSeat = seats.find((s) => !s.guestId) || seats[0];
+            if (targetSeat) {
+              onAssignGuestToSeat(elem.id, targetSeat.id, guest);
+              setHoveredSeat(null);
+              return;
+            }
+          }
+        } else if (elem.type === 'rectangular_table') {
+          const halfW = (elem.width || 120) / 2 + 20;
+          const halfH = (elem.height || 60) / 2 + 20;
+          if (Math.abs(world.x - elem.x) <= halfW && Math.abs(world.y - elem.y) <= halfH) {
+            const seats = elem.seats || [];
+            const targetSeat = seats.find((s) => !s.guestId) || seats[0];
+            if (targetSeat) {
+              onAssignGuestToSeat(elem.id, targetSeat.id, guest);
               setHoveredSeat(null);
               return;
             }
