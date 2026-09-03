@@ -257,8 +257,9 @@ export const Navbar: React.FC = () => {
                 </div>
               )}
 
-              {/* Sandwich Menu Trigger Button (Icon only) - Always available, direct login when unauthenticated */}
-              <div className="relative" ref={sandwichMenuRef}>
+              {/* Sandwich Menu Trigger Button (Icon only) - Only when not in isPublicHomeLanding mode */}
+              {!isPublicHomeLanding && (
+                <div className="relative" ref={sandwichMenuRef}>
                 <button
                   type="button"
                   id="btn-sandwich-menu"
@@ -563,6 +564,7 @@ export const Navbar: React.FC = () => {
                       </>
                     )}
                   </div>
+                )}
 
             </div>
           </div>
