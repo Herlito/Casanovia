@@ -86,7 +86,9 @@ export const TableAssignmentModule: React.FC = () => {
     deleteTable, 
     batchAssignGuestsToTable,
     setShowFloorPlanModal,
-    settings 
+    settings,
+    canEditActiveWedding,
+    canPrint
   } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic';
 
@@ -551,24 +553,28 @@ export const TableAssignmentModule: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2.5 shrink-0">
-          <button
-            type="button"
-            onClick={handleSmartAutoAssign}
-            className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-semibold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
-            title="Asigna automáticamente invitados sin mesa a los lugares libres"
-          >
-            <Wand2 className="w-4 h-4 text-gray-800" />
-            <span className="hidden sm:inline">Auto-Distribuir</span>
-          </button>
+          {canEditActiveWedding && (
+            <button
+              type="button"
+              onClick={handleSmartAutoAssign}
+              className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-semibold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
+              title="Asigna automáticamente invitados sin mesa a los lugares libres"
+            >
+              <Wand2 className="w-4 h-4 text-gray-800" />
+              <span className="hidden sm:inline">Auto-Distribuir</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setIsPrintModalOpen(true)}
-            className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-semibold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
-          >
-            <Printer className="w-4 h-4" />
-            <span className="hidden sm:inline">Imprimir</span>
-          </button>
+          {canPrint && (
+            <button
+              type="button"
+              onClick={() => setIsPrintModalOpen(true)}
+              className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-semibold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <Printer className="w-4 h-4" />
+              <span className="hidden sm:inline">Imprimir</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -580,17 +586,19 @@ export const TableAssignmentModule: React.FC = () => {
             <span className="hidden sm:inline">Plano Local</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setTableToEdit(null);
-              setIsTableModalOpen(true);
-            }}
-            className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-bold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nueva Mesa</span>
-          </button>
+          {canEditActiveWedding && (
+            <button
+              type="button"
+              onClick={() => {
+                setTableToEdit(null);
+                setIsTableModalOpen(true);
+              }}
+              className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-bold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Nueva Mesa</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -821,7 +829,7 @@ export const TableAssignmentModule: React.FC = () => {
           </div>
 
           {/* Floating / Sticky Batch Assignment Action Bar */}
-          {selectedGuestIds.length > 0 && (
+          {canEditActiveWedding && selectedGuestIds.length > 0 && (
             <div className="p-3 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] rounded-2xl space-y-2 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] animate-fadeIn">
               <div className="flex items-center justify-between text-xs font-semibold">
                 <span className="flex items-center gap-1.5">
@@ -890,7 +898,7 @@ export const TableAssignmentModule: React.FC = () => {
                 const isCompanion = Boolean(guest.mainGuestId);
                 const mainGuest = isCompanion ? guests.find((g) => g.id === guest.mainGuestId) : null;
 
-                const isDraggable = guest.rsvpStatus === 'confirmed';
+                const isDraggable = canEditActiveWedding && guest.rsvpStatus === 'confirmed';
 
                 return (
                   <div
@@ -919,13 +927,15 @@ export const TableAssignmentModule: React.FC = () => {
                         {isDraggable && (
                           <GripVertical className="w-3.5 h-3.5 text-stone-300 hover:text-stone-500 shrink-0" />
                         )}
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleSelectGuest(guest.id)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-4 h-4 rounded text-[#2D3748] focus:ring-[#d1d1d1] border-[#D9CEBF] cursor-pointer"
-                        />
+                        {canEditActiveWedding && (
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectGuest(guest.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-4 h-4 rounded text-[#2D3748] focus:ring-[#d1d1d1] border-[#D9CEBF] cursor-pointer"
+                          />
+                        )}
                         <div className="min-w-0">
                           <h4 className="font-semibold text-xs text-[#2D2A26] truncate">
                             {formatAltibajas(guest.fullName)}
@@ -971,7 +981,7 @@ export const TableAssignmentModule: React.FC = () => {
                     )}
 
                     {/* Assignment Action Row */}
-                    {isSelected && (
+                    {isSelected && canEditActiveWedding && (
                     <div className="flex items-center justify-between pt-1 border-t border-[#F0EAE1] gap-2">
                       {isAssigned ? (
                         <div className="flex items-center justify-between w-full">
@@ -1108,13 +1118,18 @@ export const TableAssignmentModule: React.FC = () => {
                 <div
                   key={table.id}
                   onDragOver={(e) => {
+                    if (!canEditActiveWedding) return;
                     e.preventDefault();
                     setDragOverTableId(table.id);
                   }}
                   onDragLeave={() => {
+                    if (!canEditActiveWedding) return;
                     setDragOverTableId((prev) => (prev === table.id ? null : prev));
                   }}
-                  onDrop={(e) => handleDropOnTable(e, table.name)}
+                  onDrop={(e) => {
+                    if (!canEditActiveWedding) return;
+                    handleDropOnTable(e, table.name);
+                  }}
                   className={`bg-[#EBEBEB] rounded-3xl p-4 border shadow-xs space-y-2.5 transition-all flex flex-col justify-between ${
                     isDragOver
                       ? isOverCapacityForDragged
@@ -1211,8 +1226,9 @@ export const TableAssignmentModule: React.FC = () => {
                           return (
                             <li 
                               key={guest.id} 
-                              draggable={true}
+                              draggable={canEditActiveWedding}
                               onDragStart={(e) => {
+                                if (!canEditActiveWedding) return;
                                 e.dataTransfer.setData('text/plain', guest.id);
                                 setDraggedGuestId(guest.id);
                               }}
@@ -1223,24 +1239,28 @@ export const TableAssignmentModule: React.FC = () => {
                               className="py-0.5 px-1 rounded-md flex items-center justify-between text-[11px] gap-1 group hover:bg-[#FAF6F0] transition-colors cursor-grab active:cursor-grabbing border border-transparent hover:border-transparent/60 leading-tight"
                             >
                               <div className="min-w-0 flex-1 flex items-center space-x-1.5 flex-nowrap">
-                                <GripVertical className="w-3 h-3 text-stone-300 group-hover:text-stone-500 shrink-0 -ml-0.5" />
+                                {canEditActiveWedding && (
+                                  <GripVertical className="w-3 h-3 text-stone-300 group-hover:text-stone-500 shrink-0 -ml-0.5" />
+                                )}
                                 <span className="text-[9px] font-bold text-[#8C8276] w-3.5 shrink-0">{idx + 1}.</span>
                                 <span className="font-medium text-[#2D2A26] truncate text-[11px]">
                                   {formatAltibajas(guest.fullName)}
                                 </span>
 
                                 {/* Botón 'quitar mesa' SOLO ÍCONO al final del nombre */}
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleUnassignGuest(guest.id);
-                                  }}
-                                  className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-600 hover:text-[#2D3748] hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded transition-all cursor-pointer inline-flex items-center justify-center shrink-0 shadow-2xs"
-                                  title="Quitar de esta mesa"
-                                >
-                                  <UserMinus className="w-2.5 h-2.5" />
-                                </button>
+                                {canEditActiveWedding && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleUnassignGuest(guest.id);
+                                    }}
+                                    className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-600 hover:text-[#2D3748] hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded transition-all cursor-pointer inline-flex items-center justify-center shrink-0 shadow-2xs"
+                                    title="Quitar de esta mesa"
+                                  >
+                                    <UserMinus className="w-2.5 h-2.5" />
+                                  </button>
+                                )}
 
                                 {/* Número de pases / Acompañante sin titular+acom */}
                                 {isCompanion ? (
@@ -1274,19 +1294,21 @@ export const TableAssignmentModule: React.FC = () => {
                   {/* Table Footer Controls */}
                   <div className="pt-2 border-t border-[#F0EAE1] flex items-center justify-between text-xs">
                     <div className="flex items-center space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setTableToEdit(table);
-                          setIsTableModalOpen(true);
-                        }}
-                        className="text-[#7A7268] hover:text-[#2D2A26] font-semibold flex items-center space-x-1 cursor-pointer"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                        <span>Editar</span>
-                      </button>
+                      {canEditActiveWedding && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTableToEdit(table);
+                            setIsTableModalOpen(true);
+                          }}
+                          className="text-[#7A7268] hover:text-[#2D2A26] font-semibold flex items-center space-x-1 cursor-pointer"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>Editar</span>
+                        </button>
+                      )}
 
-                      {seatedGuests.length > 0 && (
+                      {canEditActiveWedding && seatedGuests.length > 0 && (
                         <button
                           type="button"
                           onClick={() => handleClearTable(table.name)}
@@ -1326,17 +1348,19 @@ export const TableAssignmentModule: React.FC = () => {
               <p className="text-xs text-[#7A7268] max-w-md mx-auto">
                 Crea tu primera mesa de banquete o genera un lote automático con las herramientas rápidas.
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setTableToEdit(null);
-                  setIsTableModalOpen(true);
-                }}
-                className="px-4 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold rounded-xl hover:bg-[#EBEBEB] transition-all cursor-pointer inline-flex items-center space-x-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Crear Primera Mesa</span>
-              </button>
+              {canEditActiveWedding && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTableToEdit(null);
+                    setIsTableModalOpen(true);
+                  }}
+                  className="px-4 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold rounded-xl hover:bg-[#EBEBEB] transition-all cursor-pointer inline-flex items-center space-x-1.5"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Crear Primera Mesa</span>
+                </button>
+              )}
             </div>
           )}
 

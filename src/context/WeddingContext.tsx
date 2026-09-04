@@ -70,6 +70,14 @@ export const LEVEL_2_DEMO_USER = {
   assignedWeddingIds: ['boda-zenaida-ronny', 'boda-zenaida-ronald'],
 };
 
+export const LEVEL_5_DEMO_USER = {
+  username: 'Observador Invitado',
+  clave: '55555555',
+  level: 5 as const,
+  roleTitle: 'Observador (Nivel 5 - Solo Lectura)',
+  assignedWeddingIds: ['boda-sofia-alejandro', 'boda-valentina-mateo', 'boda-zenaida-ronny'],
+};
+
 const DEFAULT_ANONYMOUS_USER: AuthUser = {
   username: 'Invitado',
   level: 0,
@@ -93,6 +101,8 @@ interface WeddingContextType {
   isLevel1Admin: boolean;
   isHostUser: boolean;
   isLevel3Planner: boolean;
+  isLevel5Observer: boolean;
+  canPrint: boolean;
   isPlannerOrAdmin: boolean;
   canCreateWedding: boolean;
   canManageUsers: boolean;
@@ -562,6 +572,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const isLevel1Admin = currentUser.isAuthenticated && currentUser.level === 1;
   const isHostUser = currentUser.isAuthenticated && currentUser.level === 2;
   const isLevel3Planner = currentUser.isAuthenticated && currentUser.level === 3;
+  const isLevel5Observer = currentUser.isAuthenticated && currentUser.level === 5;
+  const canPrint = !isLevel5Observer;
   const canCreateWedding = currentUser.isAuthenticated && (currentUser.level === 1 || currentUser.level === 3);
   const canManageUsers = currentUser.isAuthenticated && (currentUser.level === 1 || currentUser.level === 3);
 
@@ -797,12 +809,20 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         } else {
           setActiveWeddingId('');
         }
+      } else if (foundUser.level === 5) {
+        if (assigned.length > 0) {
+          const target = weddings.find(w => assigned.includes(w.id));
+          if (target) {
+            setActiveWeddingId(target.id);
+          }
+        }
       }
       
       let welcomeRole = 'Invitado';
       if (foundUser.level === 1) welcomeRole = 'Nivel 1 (Super Administrador)';
       else if (foundUser.level === 3) welcomeRole = 'Nivel 3 (Wedding Planner)';
       else if (foundUser.level === 2) welcomeRole = 'Nivel 2 (Anfitrión)';
+      else if (foundUser.level === 5) welcomeRole = 'Nivel 5 (Observador)';
 
       return {
         success: true,
@@ -898,6 +918,38 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return {
         success: true,
         message: `¡Bienvenida ${LEVEL_2_DEMO_USER.username}! Acceso concedido como Anfitriona de Boda (Zenaida & Ronny).`,
+      };
+    }
+
+    if (
+      (trimmedUser === LEVEL_5_DEMO_USER.username.toLowerCase() || trimmedUser.includes('observador')) &&
+      trimmedClave === LEVEL_5_DEMO_USER.clave
+    ) {
+      const authObj: AuthUser = {
+        id: 'user-observador',
+        username: LEVEL_5_DEMO_USER.username,
+        level: 5,
+        roleTitle: LEVEL_5_DEMO_USER.roleTitle,
+        isAuthenticated: true,
+        assignedWeddingIds: LEVEL_5_DEMO_USER.assignedWeddingIds,
+      };
+      setCurrentUser(authObj);
+      try {
+        sessionStorage.setItem('wedding_hub_auth', JSON.stringify(authObj));
+      } catch {
+        // ignore
+      }
+      setShowAuthModal(false);
+      setViewModeState('private');
+
+      const firstAccessible = weddings.find(w => LEVEL_5_DEMO_USER.assignedWeddingIds.includes(w.id)) || weddings[0];
+      if (firstAccessible) {
+        setActiveWeddingId(firstAccessible.id);
+      }
+
+      return {
+        success: true,
+        message: `¡Bienvenido(a) ${LEVEL_5_DEMO_USER.username}! Acceso concedido como Observador (Nivel 5 - Solo Lectura).`,
       };
     }
 
@@ -1190,6 +1242,15 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (currentUser.level === 3) {
       return userCreatedWeddings;
     }
+
+    // Level 5: Observador has view access to assigned weddings (or all weddings if none specified)
+    if (currentUser.level === 5) {
+      const assignedIds = currentUser.assignedWeddingIds || [];
+      if (assignedIds.length > 0) {
+        return weddings.filter((w) => assignedIds.includes(w.id));
+      }
+      return weddings;
+    }
     
     // Level 2: Anfitrión has access to their assigned wedding(s)
     if (currentUser.level === 2) {
@@ -1211,6 +1272,12 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (currentUser.isAuthenticated && currentUser.level === 3) {
       if (userCreatedWeddings.length === 0) return null;
       return userCreatedWeddings.find((w) => w.id === activeWeddingId) || userCreatedWeddings[0];
+    }
+
+    // If Level 5 Observador: MUST be one of accessible weddings
+    if (currentUser.isAuthenticated && currentUser.level === 5) {
+      if (accessibleWeddings.length === 0) return null;
+      return accessibleWeddings.find((w) => w.id === activeWeddingId) || accessibleWeddings[0];
     }
 
     // If Level 2 Host: MUST be one of their assigned weddings
@@ -1252,10 +1319,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Auto-align activeWeddingId when user logs in or accessibleWeddings changes
   useEffect(() => {
-    if (currentUser.isAuthenticated && currentUser.level === 3) {
-      if (userCreatedWeddings.length > 0) {
-        if (!userCreatedWeddings.some(w => w.id === activeWeddingId)) {
-          setActiveWeddingId(userCreatedWeddings[0].id);
+    if (currentUser.isAuthenticated && (currentUser.level === 3 || currentUser.level === 5)) {
+      if (accessibleWeddings.length > 0) {
+        if (!accessibleWeddings.some(w => w.id === activeWeddingId)) {
+          setActiveWeddingId(accessibleWeddings[0].id);
         }
       } else {
         if (activeWeddingId !== '') {
@@ -1263,11 +1330,15 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
     }
-  }, [currentUser, userCreatedWeddings, activeWeddingId]);
+  }, [currentUser, accessibleWeddings, activeWeddingId]);
 
   // Compute permission to edit active wedding
   const canEditActiveWedding = React.useMemo(() => {
     if (!currentUser.isAuthenticated || !activeWedding) return false;
+
+    // Level 5: Observador has strictly read-only access (NO edit permissions)
+    if (currentUser.level === 5) return false;
+
     if (currentUser.level === 1) return true; // Super Admin has full edit permissions
     
     // Level 3: Wedding Planner has edit permissions ONLY for weddings created by them
@@ -1328,6 +1399,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Helper to persist changes to active wedding in Firestore
   const updateActiveWeddingDoc = async (partialWedding: Partial<Wedding>) => {
     if (!activeWeddingId) return;
+    if (currentUser.level === 5) {
+      console.warn('[WeddingContext] Nivel 5 Observador tiene acceso de solo lectura. Modificación cancelada.');
+      return;
+    }
     try {
       const updatedData = cleanFirestoreData({
         ...partialWedding,
@@ -1358,8 +1433,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const selectWedding = (weddingId: string) => {
     persistIndicatedWeddingId(weddingId);
 
-    // If Level 3 planner, only allow selecting among accessible (created) weddings
-    if (currentUser.isAuthenticated && currentUser.level === 3) {
+    // If Level 3 planner or Level 5 observer, allow selecting among accessible weddings
+    if (currentUser.isAuthenticated && (currentUser.level === 3 || currentUser.level === 5)) {
       if (accessibleWeddings.some((w) => w.id === weddingId)) {
         setActiveWeddingId(weddingId);
         setSelectedGuestForGuide(null);
@@ -2283,6 +2358,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const importDataJson = async (jsonString: string): Promise<boolean> => {
+    if (currentUser.level === 5) return false;
     try {
       const parsed = JSON.parse(jsonString);
       if (parsed.wedding && parsed.wedding.settings) {
@@ -2307,6 +2383,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const resetToDemoData = async () => {
+    if (currentUser.level === 5) return;
     try {
       await updateActiveWeddingDoc({
         settings: initialWeddingSettings,
@@ -2336,6 +2413,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isLevel1Admin,
         isHostUser,
         isLevel3Planner,
+        isLevel5Observer,
+        canPrint,
         isPlannerOrAdmin,
         canCreateWedding,
         canManageUsers,

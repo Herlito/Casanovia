@@ -1,6 +1,6 @@
 {
   "name": "Casanovia",
-  "description": "Plataforma multieventos y gestión nupcial para bodas con web interactiva para invitados, confirmación RSVP, pases digitales y panel privado de organización, tareas y página de precios y planes.",
+  "description": "Sistema de gestión de eventos sociales premium",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -69,7 +69,17 @@ type SortDirection = 'asc' | 'desc';
 
 export const GuestManagement: React.FC = () => {
   const {
-    appTheme, guests, addGuest, updateGuest, deleteGuest, reorderGuests, importGuests, settings } = useWedding();
+    appTheme, 
+    guests, 
+    addGuest, 
+    updateGuest, 
+    deleteGuest, 
+    reorderGuests, 
+    importGuests, 
+    settings,
+    canEditActiveWedding,
+    canPrint
+  } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic';
 
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -377,35 +387,41 @@ export const GuestManagement: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={handleExportExcel}
-            className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#FAF8F5] text-[#524B42] text-xs font-bold shadow-2xs transition-all cursor-pointer"
-            title="Exportar base de datos a Excel (.xlsx)"
-          >
-            <Download className="w-3.5 h-3.5 text-emerald-700" />
-            <span className="hidden sm:inline">Excel</span>
-          </button>
+          {canPrint && (
+            <button
+              type="button"
+              onClick={handleExportExcel}
+              className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#FAF8F5] text-[#524B42] text-xs font-bold shadow-2xs transition-all cursor-pointer"
+              title="Exportar base de datos a Excel (.xlsx)"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-700" />
+              <span className="hidden sm:inline">Excel</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#FAF8F5] text-[#524B42] text-xs font-bold shadow-2xs transition-all cursor-pointer"
-            title="Importar invitados desde Excel o CSV"
-          >
-            <Upload className="w-3.5 h-3.5 text-[#2D3748]" />
-            <span className="hidden sm:inline">Importar</span>
-          </button>
+          {canEditActiveWedding && (
+            <>
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#FAF8F5] text-[#524B42] text-xs font-bold shadow-2xs transition-all cursor-pointer"
+                title="Importar invitados desde Excel o CSV"
+              >
+                <Upload className="w-3.5 h-3.5 text-[#2D3748]" />
+                <span className="hidden sm:inline">Importar</span>
+              </button>
 
-          <button
-            type="button"
-            id="btn-add-guest"
-            onClick={handleOpenAddModal}
-            className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold shadow-xs hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nuevo Invitado</span>
-          </button>
+              <button
+                type="button"
+                id="btn-add-guest"
+                onClick={handleOpenAddModal}
+                className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold shadow-xs hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Nuevo Invitado</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -821,12 +837,12 @@ export const GuestManagement: React.FC = () => {
                   return (
                     <tr
                       key={guest.id}
-                      draggable={true}
-                      onDragStart={(e) => handleDragStart(e, guest)}
-                      onDragOver={(e) => handleDragOver(e, guest)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, guest)}
-                      className={`transition-colors cursor-move ${
+                      draggable={canEditActiveWedding}
+                      onDragStart={(e) => canEditActiveWedding && handleDragStart(e, guest)}
+                      onDragOver={(e) => canEditActiveWedding && handleDragOver(e, guest)}
+                      onDragLeave={canEditActiveWedding ? handleDragLeave : undefined}
+                      onDrop={(e) => canEditActiveWedding && handleDrop(e, guest)}
+                      className={`transition-colors ${canEditActiveWedding ? 'cursor-move' : ''} ${
                         isBeingDragged
                           ? 'opacity-40 bg-[#F5EBE6]'
                           : isDragTarget
@@ -835,7 +851,7 @@ export const GuestManagement: React.FC = () => {
                       }`}
                     >
                       {/* Drag Handle */}
-                      <td className="py-3 px-2 text-center align-middle text-stone-300 hover:text-[#2D3748] cursor-grab active:cursor-grabbing">
+                      <td className={`py-3 px-2 text-center align-middle text-stone-300 ${canEditActiveWedding ? 'hover:text-[#2D3748] cursor-grab active:cursor-grabbing' : 'opacity-30 cursor-default'}`}>
                         <GripVertical className="w-4 h-4 mx-auto" />
                       </td>
                       
@@ -968,14 +984,18 @@ export const GuestManagement: React.FC = () => {
                           {/* Confirmar */}
                           <button
                             type="button"
+                            disabled={!canEditActiveWedding}
                             onClick={() => {
+                              if (!canEditActiveWedding) return;
                               updateGuest(guest.id, {
                                 rsvpStatus: 'confirmed',
                                 confirmedPasses: guest.confirmedPasses || guest.totalPasses || 1,
                               });
                             }}
-                            title="Confirmado (Asiste)"
-                            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                            title={canEditActiveWedding ? "Confirmado (Asiste)" : "Estado: Confirmado"}
+                            className={`p-1.5 rounded-lg transition-all ${
+                              canEditActiveWedding ? 'cursor-pointer' : 'cursor-default'
+                            } ${
                               guest.rsvpStatus === 'confirmed'
                                 ? 'bg-emerald-600 text-[#2D3748] shadow-xs scale-105'
                                 : 'text-stone-400 hover:text-emerald-700 hover:bg-emerald-50'
@@ -987,14 +1007,18 @@ export const GuestManagement: React.FC = () => {
                           {/* Pendiente */}
                           <button
                             type="button"
+                            disabled={!canEditActiveWedding}
                             onClick={() => {
+                              if (!canEditActiveWedding) return;
                               updateGuest(guest.id, {
                                 rsvpStatus: 'pending',
                                 confirmedPasses: 0,
                               });
                             }}
-                            title="Pendiente"
-                            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                            title={canEditActiveWedding ? "Pendiente" : "Estado: Pendiente"}
+                            className={`p-1.5 rounded-lg transition-all ${
+                              canEditActiveWedding ? 'cursor-pointer' : 'cursor-default'
+                            } ${
                               guest.rsvpStatus === 'pending'
                                 ? 'bg-amber-500 text-[#2D3748] shadow-xs scale-105'
                                 : 'text-stone-400 hover:text-amber-700 hover:bg-amber-50'
@@ -1006,14 +1030,18 @@ export const GuestManagement: React.FC = () => {
                           {/* Declinado */}
                           <button
                             type="button"
+                            disabled={!canEditActiveWedding}
                             onClick={() => {
+                              if (!canEditActiveWedding) return;
                               updateGuest(guest.id, {
                                 rsvpStatus: 'declined',
                                 confirmedPasses: 0,
                               });
                             }}
-                            title="Declinado (No asiste)"
-                            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                            title={canEditActiveWedding ? "Declinado (No asiste)" : "Estado: Declinado"}
+                            className={`p-1.5 rounded-lg transition-all ${
+                              canEditActiveWedding ? 'cursor-pointer' : 'cursor-default'
+                            } ${
                               guest.rsvpStatus === 'declined'
                                 ? 'bg-rose-600 text-[#2D3748] shadow-xs scale-105'
                                 : 'text-stone-400 hover:text-rose-700 hover:bg-rose-50'
@@ -1029,14 +1057,16 @@ export const GuestManagement: React.FC = () => {
                         <div className="flex items-center justify-end space-x-1">
                           
                           {/* Botón Editar Invitado (Icon only) */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(guest)}
-                            className="p-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-[#524B42] hover:text-[#2D3748] border border-[#D9CEBF] hover:border-transparent transition-all cursor-pointer shadow-2xs"
-                            title="Editar invitado / Asignar acompañante"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
+                          {canEditActiveWedding && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditModal(guest)}
+                              className="p-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-[#524B42] hover:text-[#2D3748] border border-[#D9CEBF] hover:border-transparent transition-all cursor-pointer shadow-2xs"
+                              title="Editar invitado / Asignar acompañante"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          )}
 
                           {/* WhatsApp / Compartir */}
                           <button
@@ -1049,14 +1079,16 @@ export const GuestManagement: React.FC = () => {
                           </button>
 
                           {/* Eliminar */}
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteGuest(guest.id, guest.fullName)}
-                            className="p-1.5 rounded-lg text-[#8C8276] hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                            title="Eliminar invitado"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {canEditActiveWedding && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteGuest(guest.id, guest.fullName)}
+                              className="p-1.5 rounded-lg text-[#8C8276] hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                              title="Eliminar invitado"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
 
                         </div>
                       </td>
@@ -1072,43 +1104,49 @@ export const GuestManagement: React.FC = () => {
       </div>
 
       {/* Bottom Actions: Exportar Excel & Importar Datos */}
-      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-transparent p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4" : "bg-[#EBEBEB] rounded-2xl border border-transparent p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4"}>
-        <div className="space-y-1">
-          <h3 className="text-sm font-bold text-[#2D2A26] flex items-center space-x-2">
-            <FileSpreadsheet className="w-4 h-4 text-[#2D3748]" />
-            <span>Herramientas de Exportación e Importación de Datos</span>
-          </h3>
-          <p className="text-xs text-[#7A7268]">
-            Descarga la base de datos completa de invitados con sus códigos de pase, mesas y roles, o carga un archivo masivo en formato Excel (.xlsx) o CSV.
-          </p>
-        </div>
+      {(canPrint || canEditActiveWedding) && (
+        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-transparent p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4" : "bg-[#EBEBEB] rounded-2xl border border-transparent p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4"}>
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-[#2D2A26] flex items-center space-x-2">
+              <FileSpreadsheet className="w-4 h-4 text-[#2D3748]" />
+              <span>Herramientas de Exportación e Importación de Datos</span>
+            </h3>
+            <p className="text-xs text-[#7A7268]">
+              Descarga la base de datos completa de invitados con sus códigos de pase, mesas y roles, o carga un archivo masivo en formato Excel (.xlsx) o CSV.
+            </p>
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-          {/* Botón Exportar a Excel */}
-          <button
-            type="button"
-            id="btn-export-excel"
-            onClick={handleExportExcel}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#FAF8F5] hover:bg-emerald-50 text-[#2D2A26] hover:text-emerald-900 border border-[#D9CEBF] hover:border-emerald-300 text-xs font-bold shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-            title="Descargar lista completa en formato Excel (.xlsx)"
-          >
-            <Download className="w-4 h-4 text-emerald-700" />
-            <span>Exportar Excel</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {/* Botón Exportar a Excel */}
+            {canPrint && (
+              <button
+                type="button"
+                id="btn-export-excel"
+                onClick={handleExportExcel}
+                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#FAF8F5] hover:bg-emerald-50 text-[#2D2A26] hover:text-emerald-900 border border-[#D9CEBF] hover:border-emerald-300 text-xs font-bold shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                title="Descargar lista completa en formato Excel (.xlsx)"
+              >
+                <Download className="w-4 h-4 text-emerald-700" />
+                <span>Exportar Excel</span>
+              </button>
+            )}
 
-          {/* Botón Importar Datos Excel/CSV */}
-          <button
-            type="button"
-            id="btn-import-excel"
-            onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#FAF8F5] hover:bg-blue-50 text-[#2D2A26] hover:text-blue-900 border border-[#D9CEBF] hover:border-blue-300 text-xs font-bold shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-            title="Cargar invitados masivamente desde archivo Excel o CSV"
-          >
-            <Upload className="w-4 h-4 text-blue-700" />
-            <span>Importar Datos</span>
-          </button>
+            {/* Botón Importar Datos Excel/CSV */}
+            {canEditActiveWedding && (
+              <button
+                type="button"
+                id="btn-import-excel"
+                onClick={() => setIsImportModalOpen(true)}
+                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#FAF8F5] hover:bg-blue-50 text-[#2D2A26] hover:text-blue-900 border border-[#D9CEBF] hover:border-blue-300 text-xs font-bold shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                title="Cargar invitados masivamente desde archivo Excel o CSV"
+              >
+                <Upload className="w-4 h-4 text-blue-700" />
+                <span>Importar Datos</span>
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Guest Edit/Add Modal */}
       <GuestModal

@@ -380,8 +380,8 @@ export interface SystemUser {
   id: string;
   username: string; // e.g. "Herly Lizarazo", "Mariana Flores", "Zenaida Anahua"
   clave: string;    // e.g. "00448157", "88442200", "70242438"
-  level: number;    // 1 = Super Admin (Todas las bodas, Crear bodas, Administrar usuarios), 2 = Anfitrión (Solo editar bodas donde su rol sea Anfitrión), 3 = Wedding Planner (Gestionar/editar bodas creadas como usuario activo y asignar anfitriones)
-  roleTitle: string; // e.g. "Director General & Protocolo (Nivel 1)", "Wedding Planner Certificada (Nivel 3)", "Anfitriona de Boda (Nivel 2)"
+  level: number;    // 1 = Super Admin, 2 = Anfitrión, 3 = Wedding Planner, 5 = Observador (Solo lectura, sin edición ni impresión)
+  roleTitle: string; // e.g. "Director General & Protocolo (Nivel 1)", "Wedding Planner Certificada (Nivel 3)", "Anfitriona de Boda (Nivel 2)", "Observador de Eventos (Nivel 5)"
   assignedWeddingIds?: string[]; // IDs de bodas donde este usuario tiene rol de Anfitrión o Planner asignado
   createdWeddingIds?: string[];  // IDs de bodas creadas por este usuario mientras ha sido el usuario activo
   isSystemDefault?: boolean;
@@ -392,7 +392,7 @@ export interface SystemUser {
 export interface AuthUser {
   id?: string;
   username: string;
-  level: number; // 1 = Super Admin, 2 = Anfitrión, 3 = Wedding Planner, 0 = Invitado / Público
+  level: number; // 1 = Super Admin, 2 = Anfitrión, 3 = Wedding Planner, 5 = Observador (Solo Lectura), 0 = Invitado / Público
   roleTitle: string;
   isAuthenticated: boolean;
   assignedWeddingIds?: string[];

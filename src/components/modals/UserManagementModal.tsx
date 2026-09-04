@@ -289,6 +289,8 @@ export const UserManagementModal: React.FC = () => {
                           setRoleTitle('Director General & Protocolo (Nivel 1 - Super Admin)');
                         } else if (newLvl === 3) {
                           setRoleTitle('Wedding Planner Senior (Nivel 3 - Wedding Planner)');
+                        } else if (newLvl === 5) {
+                          setRoleTitle('Observador de Evento (Nivel 5 - Solo Lectura)');
                         } else {
                           setRoleTitle('Anfitriona de Boda (Nivel 2 - Anfitrión)');
                         }
@@ -302,6 +304,7 @@ export const UserManagementModal: React.FC = () => {
                         <option value={3}>Nivel 3: Wedding Planner (Gestión de bodas y asignación de Anfitriones)</option>
                       )}
                       <option value={2}>Nivel 2: Anfitrión (Permisos de edición exclusivos en bodas asignadas)</option>
+                      <option value={5}>Nivel 5: Observador (Solo Lectura, sin cambios ni impresión)</option>
                     </select>
                   </div>
 
@@ -319,13 +322,15 @@ export const UserManagementModal: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Assigned Weddings Selector for Level 2 Anfitrion or Level 3 Planner */}
-                {(level === 2 || level === 3) && (
+                {/* Assigned Weddings Selector for Level 2 Anfitrion, Level 3 Planner, or Level 5 Observador */}
+                {(level === 2 || level === 3 || level === 5) && (
                   <div className="pt-2 border-t border-[#F0EAE1]">
                     <label className="block text-xs font-semibold text-[#524B42] mb-2 flex items-center space-x-1.5">
                       <HeartHandshake className="w-3.5 h-3.5 text-[#2D3748]" />
                       <span>
-                        {level === 2 
+                        {level === 5
+                          ? 'Asignar Bodas con Permiso de Observación (Solo Lectura):'
+                          : level === 2 
                           ? 'Asignar Permisos como "Anfitrión" a las siguientes Bodas:' 
                           : 'Asignar Bodas Gestionadas para este Wedding Planner:'}
                       </span>
@@ -442,6 +447,10 @@ export const UserManagementModal: React.FC = () => {
                 badgeStyle = 'bg-teal-100 text-teal-900 border-teal-300';
                 badgeText = 'Nivel 3: Wedding Planner';
                 iconBoxStyle = 'bg-teal-100 text-teal-800 border-teal-300';
+              } else if (user.level === 5) {
+                badgeStyle = 'bg-blue-100 text-blue-900 border-blue-300';
+                badgeText = 'Nivel 5: Observador';
+                iconBoxStyle = 'bg-blue-100 text-blue-800 border-blue-300';
               }
 
               return (
@@ -452,6 +461,8 @@ export const UserManagementModal: React.FC = () => {
                       ? 'border-emerald-200 bg-linear-to-r from-white to-emerald-50/30' 
                       : user.level === 3
                       ? 'border-teal-200 bg-linear-to-r from-white to-teal-50/30'
+                      : user.level === 5
+                      ? 'border-blue-200 bg-linear-to-r from-white to-blue-50/30'
                       : 'border-transparent'
                   }`}
                 >
@@ -464,6 +475,8 @@ export const UserManagementModal: React.FC = () => {
                           <ShieldCheck className="w-5 h-5" />
                         ) : user.level === 3 ? (
                           <Briefcase className="w-5 h-5" />
+                        ) : user.level === 5 ? (
+                          <Eye className="w-5 h-5" />
                         ) : (
                           <Sparkles className="w-5 h-5" />
                         )}
@@ -491,7 +504,7 @@ export const UserManagementModal: React.FC = () => {
                           {user.roleTitle}
                         </p>
 
-                        {/* Assigned Weddings for Anfitrion or Planner */}
+                        {/* Assigned Weddings for Anfitrion, Planner, or Observador */}
                         {user.level === 2 && (
                           <div className="mt-2 text-[11px] text-[#524B42]">
                             <span className="font-semibold text-[#2D3748]">Bodas con permiso de Anfitrión: </span>
@@ -504,6 +517,22 @@ export const UserManagementModal: React.FC = () => {
                               </span>
                             ) : (
                               <span className="italic text-stone-400">Bodas donde esté registrado como Anfitrión</span>
+                            )}
+                          </div>
+                        )}
+
+                        {user.level === 5 && (
+                          <div className="mt-2 text-[11px] text-[#524B42]">
+                            <span className="font-semibold text-blue-800">Bodas asignadas para Observación (Solo Lectura): </span>
+                            {user.assignedWeddingIds && user.assignedWeddingIds.length > 0 ? (
+                              <span className="text-stone-600 font-medium">
+                                {user.assignedWeddingIds.map(wId => {
+                                  const wed = weddings.find(w => w.id === wId);
+                                  return wed ? wed.coupleNames : wId;
+                                }).join(', ')}
+                              </span>
+                            ) : (
+                              <span className="italic text-stone-400">Todas las bodas del sistema (Solo Lectura)</span>
                             )}
                           </div>
                         )}

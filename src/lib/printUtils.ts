@@ -74,7 +74,7 @@ export const printElementById = (elementId: string, docTitle: string = 'Document
               margin: 0 !important;
               padding: 0 !important;
               background-color: #ffffff !important;
-              color: #111827 !important;
+              color: #000000 !important;
               width: 100% !important;
               min-width: 100% !important;
               height: auto !important;
@@ -88,6 +88,8 @@ export const printElementById = (elementId: string, docTitle: string = 'Document
               padding: 0 !important;
               display: block !important;
               position: static !important;
+              background-color: #ffffff !important;
+              color: #000000 !important;
             }
             .no-print, [data-no-print="true"] {
               display: none !important;

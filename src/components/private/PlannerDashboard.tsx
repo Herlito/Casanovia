@@ -37,7 +37,8 @@ import {
   ChevronDown,
   Share2,
   Palette,
-  Map
+  Map,
+  Eye
 } from 'lucide-react';
 
 export type PlannerDashboardTab = 'panel' | 'guests' | 'seating' | 'vendors' | 'budget' | 'timeline' | 'checklist' | 'settings';
@@ -52,6 +53,8 @@ export const PlannerDashboard: React.FC = () => {
     setViewMode,
     isLevel1Admin,
     isLevel3Planner,
+    isLevel5Observer,
+    canPrint,
     isPlannerOrAdmin,
     canCreateWedding,
     canEditActiveWedding,
@@ -254,6 +257,20 @@ export const PlannerDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#EBEBEB] text-gray-800 flex flex-col">
 
+      {/* Observer Mode Banner */}
+      {isLevel5Observer && (
+        <div className="bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] px-4 py-2 flex items-center justify-between text-xs text-gray-800 border-b border-gray-300">
+          <div className="flex items-center space-x-2">
+            <Eye className="w-4 h-4 text-blue-600 shrink-0" />
+            <span className="font-bold text-gray-900">Modo Observador (Nivel 5 - Solo Lectura)</span>
+            <span className="hidden md:inline text-gray-600">• Misma visibilidad que Wedding Planner sin permisos para realizar cambios ni imprimir</span>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#EBEBEB] shadow-[2px_2px_5px_#d1d1d1,-2px_-2px_5px_#ffffff] text-blue-700">
+            Solo Consulta
+          </span>
+        </div>
+      )}
+
       {/* ========================================================
           TOP NAVIGATION BAR (Matching screenshot wine burgundy theme)
           - Left / Center: Wedding Selector Dropdown (Centered on mobile)
@@ -266,7 +283,7 @@ export const PlannerDashboard: React.FC = () => {
             
             {/* Wedding Selector Dropdown (Centered on mobile) */}
             <div className="w-full sm:w-auto flex justify-center sm:justify-start">
-              {currentUser.isAuthenticated && isPlannerOrAdmin ? (
+              {currentUser.isAuthenticated && (isPlannerOrAdmin || isLevel5Observer) ? (
                 isLevel3Planner && accessibleWeddings.length === 0 ? (
                   <button
                     type="button"
@@ -278,9 +295,11 @@ export const PlannerDashboard: React.FC = () => {
                     <span className="hidden sm:inline">Nuevo Evento</span>
                   </button>
                 ) : (
-                  <div className="relative shrink-0">
-                    <div
-                      className={isNeumorphic ? "flex items-center space-x-2.5 text-left bg-[#EBEBEB] rounded-2xl px-3.5 py-1.5 shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff]" : "flex items-center space-x-2.5 text-left bg-[#EBEBEB]/90 border border-transparent rounded-2xl px-3.5 py-1.5 shadow-xs"}
+                  <div className="relative shrink-0" ref={weddingDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => accessibleWeddings.length > 1 && setWeddingDropdownOpen(!weddingDropdownOpen)}
+                      className={isNeumorphic ? "flex items-center space-x-2.5 text-left bg-[#EBEBEB] rounded-2xl px-3.5 py-1.5 shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] cursor-pointer" : "flex items-center space-x-2.5 text-left bg-[#EBEBEB]/90 border border-transparent rounded-2xl px-3.5 py-1.5 shadow-xs cursor-pointer"}
                     >
                       <div className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] text-gray-800 flex items-center justify-center font-serif-display font-bold text-xs shrink-0">
                         {coupleInitials}
@@ -289,10 +308,38 @@ export const PlannerDashboard: React.FC = () => {
                         <span className={`font-serif-display font-bold text-sm sm:text-base tracking-wide truncate max-w-[160px] sm:max-w-[220px] ${isNeumorphic ? "text-gray-900" : "text-[#2D3748]"}`}>
                           {activeWedding?.coupleNames || settings.coupleNames}
                         </span>
+                        {accessibleWeddings.length > 1 && (
+                          <ChevronDown className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                        )}
                       </div>
-                    </div>
-                  </div>
+                    </button>
 
+                    {weddingDropdownOpen && accessibleWeddings.length > 1 && (
+                      <div className="absolute top-full left-0 mt-2 w-64 bg-[#EBEBEB] rounded-2xl shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] z-50 overflow-hidden py-1 border border-stone-200">
+                        <div className="px-3 py-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                          Seleccionar Evento
+                        </div>
+                        {accessibleWeddings.map((w) => (
+                          <button
+                            key={w.id}
+                            type="button"
+                            onClick={() => {
+                              selectWedding(w.id);
+                              setWeddingDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition-colors ${
+                              w.id === activeWeddingId
+                                ? 'bg-gray-200 text-gray-900 font-bold'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <span className="truncate">{w.coupleNames}</span>
+                            {w.id === activeWeddingId && <span className="text-emerald-600 font-bold ml-1">✓</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )
               ) : (
                 <div className="flex items-center space-x-2.5 bg-[#EBEBEB] shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] rounded-2xl px-3.5 py-1.5 shrink-0 border-none">
@@ -439,10 +486,12 @@ export const PlannerDashboard: React.FC = () => {
       </div>
 
       {/* Protocol Print Sheet Modal */}
-      <ProtocolPrintModal
-        isOpen={isPrintModalOpen}
-        onClose={() => setIsPrintModalOpen(false)}
-      />
+      {!isLevel5Observer && (
+        <ProtocolPrintModal
+          isOpen={isPrintModalOpen}
+          onClose={() => setIsPrintModalOpen(false)}
+        />
+      )}
 
     </div>
   );

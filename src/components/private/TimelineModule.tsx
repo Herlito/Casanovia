@@ -126,7 +126,15 @@ const TimingIcons = {
 
 export const TimelineModule: React.FC = () => {
   const {
-    appTheme, timeline, settings, addMilestone, updateMilestone, deleteMilestone } = useWedding();
+    appTheme, 
+    timeline, 
+    settings, 
+    addMilestone, 
+    updateMilestone, 
+    deleteMilestone,
+    canEditActiveWedding,
+    canPrint
+  } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic';
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -296,26 +304,30 @@ export const TimelineModule: React.FC = () => {
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsPrintModalOpen(true)}
-            id="btn-export-protocol-sheet"
-            className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#EBEBEB] text-[#524B42] border border-[#D9CEBF] text-xs font-semibold hover:bg-[#EBEBEB] hover:text-[#2D3748] transition-all shadow-2xs flex items-center space-x-1.5 cursor-pointer"
-          >
-            <Printer className="w-4 h-4 text-[#2D3748]" />
-            <span className="hidden sm:inline">Exportar Cronograma (PDF)</span>
-            <span className="sm:hidden">PDF</span>
-          </button>
+          {canPrint && (
+            <button
+              type="button"
+              onClick={() => setIsPrintModalOpen(true)}
+              id="btn-export-protocol-sheet"
+              className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#EBEBEB] text-[#524B42] border border-[#D9CEBF] text-xs font-semibold hover:bg-[#EBEBEB] hover:text-[#2D3748] transition-all shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+            >
+              <Printer className="w-4 h-4 text-[#2D3748]" />
+              <span className="hidden sm:inline">Exportar Cronograma (PDF)</span>
+              <span className="sm:hidden">PDF</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={handleOpenAdd}
-            id="btn-add-milestone"
-            className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Añadir Hito</span>
-          </button>
+          {canEditActiveWedding && (
+            <button
+              type="button"
+              onClick={handleOpenAdd}
+              id="btn-add-milestone"
+              className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Añadir Hito</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -417,38 +429,40 @@ export const TimelineModule: React.FC = () => {
                       </div>
 
                       {/* Botones de Editar y Borrar Hito DEBAJO de la hora (visibles al pasar el mouse o al hacer click) */}
-                      <div 
-                        className={`mt-1.5 flex items-center justify-end space-x-1 transition-all duration-200 ${
-                          activeMilestoneId === item.id
-                            ? 'opacity-100 translate-y-0 pointer-events-auto'
-                            : 'opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto'
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenEdit(item);
-                          }}
-                          className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#EBEBEB] border border-transparent text-[#6B6358] hover:text-[#2D3748] hover:bg-[#FAF8F5] text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
-                          title="Editar Hito"
+                      {canEditActiveWedding && (
+                        <div 
+                          className={`mt-1.5 flex items-center justify-end space-x-1 transition-all duration-200 ${
+                            activeMilestoneId === item.id
+                              ? 'opacity-100 translate-y-0 pointer-events-auto'
+                              : 'opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto'
+                          }`}
                         >
-                          <Edit className="w-2.5 h-2.5" />
-                          <span className="hidden sm:inline">Editar</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(item.id, item.title);
-                          }}
-                          className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#EBEBEB] border border-rose-200 text-rose-600 hover:text-[#2D3748] hover:bg-rose-600 text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
-                          title="Borrar Hito"
-                        >
-                          <Trash2 className="w-2.5 h-2.5" />
-                          <span className="hidden sm:inline">Borrar</span>
-                        </button>
-                      </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenEdit(item);
+                            }}
+                            className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#EBEBEB] border border-transparent text-[#6B6358] hover:text-[#2D3748] hover:bg-[#FAF8F5] text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
+                            title="Editar Hito"
+                          >
+                            <Edit className="w-2.5 h-2.5" />
+                            <span className="hidden sm:inline">Editar</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(item.id, item.title);
+                            }}
+                            className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#EBEBEB] border border-rose-200 text-rose-600 hover:text-[#2D3748] hover:bg-rose-600 text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
+                            title="Borrar Hito"
+                          >
+                            <Trash2 className="w-2.5 h-2.5" />
+                            <span className="hidden sm:inline">Borrar</span>
+                          </button>
+                        </div>
+                      )}
 
                     </div>
 
@@ -577,24 +591,26 @@ export const TimelineModule: React.FC = () => {
                   )}
                   
                   {/* Action Buttons (Show on hover) */}
-                  <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 no-print">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEdit(item)}
-                      className="p-1.5 bg-[#EBEBEB] border border-gray-200 hover:bg-gray-100 rounded text-gray-600 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] cursor-pointer"
-                      title="Editar Hito"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(item.id, item.title)}
-                      className="p-1.5 bg-[#EBEBEB] border border-red-200 hover:bg-red-50 rounded text-red-600 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] cursor-pointer"
-                      title="Eliminar Hito"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  {canEditActiveWedding && (
+                    <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 no-print">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(item)}
+                        className="p-1.5 bg-[#EBEBEB] border border-gray-200 hover:bg-gray-100 rounded text-gray-600 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] cursor-pointer"
+                        title="Editar Hito"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(item.id, item.title)}
+                        className="p-1.5 bg-[#EBEBEB] border border-red-200 hover:bg-red-50 rounded text-red-600 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] cursor-pointer"
+                        title="Eliminar Hito"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -629,17 +645,19 @@ export const TimelineModule: React.FC = () => {
       />
 
       {/* Floating Action Button (FAB) at the bottom of the page */}
-      <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40">
-        <button
-          type="button"
-          onClick={handleOpenAdd}
-          id="fab-add-milestone"
-          className="group flex items-center space-x-2.5 px-5 py-3.5 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-sm font-semibold shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] hover:shadow-xl shadow-[#d1d1d1]/30 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer border border-transparent backdrop-blur-xs"
-        >
-          <Plus className="w-5 h-5 transition-transform group-hover:rotate-90 duration-200" />
-          <span className="tracking-wide">Añadir Hito</span>
-        </button>
-      </div>
+      {canEditActiveWedding && (
+        <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40">
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            id="fab-add-milestone"
+            className="group flex items-center space-x-2.5 px-5 py-3.5 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-sm font-semibold shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] hover:shadow-xl shadow-[#d1d1d1]/30 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer border border-transparent backdrop-blur-xs"
+          >
+            <Plus className="w-5 h-5 transition-transform group-hover:rotate-90 duration-200" />
+            <span className="tracking-wide">Añadir Hito</span>
+          </button>
+        </div>
+      )}
 
     </div>
   );

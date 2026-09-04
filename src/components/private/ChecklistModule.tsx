@@ -87,7 +87,8 @@ export const ChecklistModule: React.FC = () => {
     toggleAllTasks, 
     deleteAllTasks, 
     deleteTask, 
-    resetTasksToMaster 
+    resetTasksToMaster,
+    canEditActiveWedding
   } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic';
 
@@ -145,58 +146,62 @@ export const ChecklistModule: React.FC = () => {
 
         {/* Progress & Quick Bulk Actions */}
         <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-          {/* Marcar todas */}
-          <button
-            type="button"
-            onClick={() => toggleAllTasks(true)}
-            title="Marcar todas las tareas como completadas"
-            className="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 text-xs font-bold transition-colors flex items-center space-x-1 cursor-pointer"
-          >
-            <CheckSquare className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="hidden sm:inline">Marcar todas</span>
-          </button>
+          {canEditActiveWedding && (
+            <>
+              {/* Marcar todas */}
+              <button
+                type="button"
+                onClick={() => toggleAllTasks(true)}
+                title="Marcar todas las tareas como completadas"
+                className="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 text-xs font-bold transition-colors flex items-center space-x-1 cursor-pointer"
+              >
+                <CheckSquare className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="hidden sm:inline">Marcar todas</span>
+              </button>
 
-          {/* Desmarcar todas */}
-          <button
-            type="button"
-            onClick={() => toggleAllTasks(false)}
-            title="Desmarcar todas las tareas"
-            className="px-3 py-2 rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-300 text-xs font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
-          >
-            <Square className="w-3.5 h-3.5 text-stone-500" />
-            <span className="hidden sm:inline">Desmarcar</span>
-          </button>
+              {/* Desmarcar todas */}
+              <button
+                type="button"
+                onClick={() => toggleAllTasks(false)}
+                title="Desmarcar todas las tareas"
+                className="px-3 py-2 rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-300 text-xs font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
+              >
+                <Square className="w-3.5 h-3.5 text-stone-500" />
+                <span className="hidden sm:inline">Desmarcar</span>
+              </button>
 
-          {/* Borrar todas */}
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm('¿Estás seguro de que deseas borrar TODAS las tareas de esta boda?')) {
-                deleteAllTasks();
-              }
-            }}
-            title="Borrar todas las tareas de la boda"
-            className="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
-          >
-            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-            <span className="hidden sm:inline">Borrar todas</span>
-          </button>
+              {/* Borrar todas */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('¿Estás seguro de que deseas borrar TODAS las tareas de esta boda?')) {
+                    deleteAllTasks();
+                  }
+                }}
+                title="Borrar todas las tareas de la boda"
+                className="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <span className="hidden sm:inline">Borrar todas</span>
+              </button>
 
-          {/* Restaurar Lista Maestra */}
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm('¿Deseas restaurar la lista maestra completa de 6 fases predeterminada para esta boda?')) {
-                resetTasksToMaster();
-              }
-            }}
-            title="Restablecer a la lista maestra oficial"
-            className="px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] text-xs font-semibold text-[#524B42] hover:bg-[#FAF8F5] hover:text-[#2D3748] transition-colors flex items-center space-x-1.5 shadow-2xs"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Restablecer Maestra</span>
-            <span className="sm:hidden">Reset</span>
-          </button>
+              {/* Restaurar Lista Maestra */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('¿Deseas restaurar la lista maestra completa de 6 fases predeterminada para esta boda?')) {
+                    resetTasksToMaster();
+                  }
+                }}
+                title="Restablecer a la lista maestra oficial"
+                className="px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#EBEBEB] text-xs font-semibold text-[#524B42] hover:bg-[#FAF8F5] hover:text-[#2D3748] transition-colors flex items-center space-x-1.5 shadow-2xs"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Restablecer Maestra</span>
+                <span className="sm:hidden">Reset</span>
+              </button>
+            </>
+          )}
 
           <div className="bg-[#EBEBEB] px-3.5 py-2 rounded-2xl border border-transparent shadow-2xs flex items-center space-x-2.5">
             <div className="text-right">
@@ -211,13 +216,14 @@ export const ChecklistModule: React.FC = () => {
       </div>
 
       {/* Quick Add Task Form */}
-      <div className="bg-[#EBEBEB] p-4 sm:p-5 rounded-2xl border border-transparent shadow-2xs">
-        <h3 className="font-serif-display text-sm font-bold text-[#2D2A26] mb-3 flex items-center space-x-2">
-          <Plus className="w-4 h-4 text-[#2D3748]" />
-          <span>Agregar Tarea Personalizada a una Fase</span>
-        </h3>
+      {canEditActiveWedding && (
+        <div className="bg-[#EBEBEB] p-4 sm:p-5 rounded-2xl border border-transparent shadow-2xs">
+          <h3 className="font-serif-display text-sm font-bold text-[#2D2A26] mb-3 flex items-center space-x-2">
+            <Plus className="w-4 h-4 text-[#2D3748]" />
+            <span>Agregar Tarea Personalizada a una Fase</span>
+          </h3>
 
-        <form onSubmit={handleAddTask} className="flex flex-col md:flex-row gap-3">
+          <form onSubmit={handleAddTask} className="flex flex-col md:flex-row gap-3">
           <div className="flex-1">
             <input
               type="text"
@@ -271,6 +277,7 @@ export const ChecklistModule: React.FC = () => {
           </div>
         </form>
       </div>
+      )}
 
       {/* Phase Filter Tabs */}
       <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
@@ -377,8 +384,11 @@ export const ChecklistModule: React.FC = () => {
                         <div className="flex items-start space-x-3 min-w-0 flex-1">
                           <button
                             type="button"
-                            onClick={() => toggleTask(task.id)}
-                            className="mt-0.5 text-[#2D3748] hover:scale-110 transition-transform cursor-pointer shrink-0"
+                            disabled={!canEditActiveWedding}
+                            onClick={() => canEditActiveWedding && toggleTask(task.id)}
+                            className={`mt-0.5 text-[#2D3748] transition-transform shrink-0 ${
+                              canEditActiveWedding ? 'hover:scale-110 cursor-pointer' : 'cursor-default'
+                            }`}
                           >
                             {task.isCompleted ? (
                               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -417,14 +427,16 @@ export const ChecklistModule: React.FC = () => {
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => deleteTask(task.id)}
-                          title="Eliminar tarea"
-                          className="text-[#B3A89B] hover:text-rose-600 p-1 rounded-md transition-colors shrink-0"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {canEditActiveWedding && (
+                          <button
+                            type="button"
+                            onClick={() => deleteTask(task.id)}
+                            title="Eliminar tarea"
+                            className="text-[#B3A89B] hover:text-rose-600 p-1 rounded-md transition-colors shrink-0 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     ))
                   )}

@@ -12,9 +12,9 @@ interface ProtocolPrintModalProps {
 }
 
 export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, onClose }) => {
-  const { settings, timeline, guests, activeWedding } = useWedding();
+  const { settings, timeline, guests, activeWedding, isLevel5Observer } = useWedding();
 
-  if (!isOpen) return null;
+  if (!isOpen || isLevel5Observer) return null;
 
   const coupleNamesDisplay = activeWedding?.coupleNames || settings.coupleNames || (settings.brideName && settings.groomName ? `${settings.brideName} & ${settings.groomName}` : 'Nuestra Boda');
   const weddingDateDisplay = formatWeddingDateCustom(activeWedding?.weddingDate || settings.weddingDate);

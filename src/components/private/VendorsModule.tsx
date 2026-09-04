@@ -34,6 +34,7 @@ export const VendorsModule: React.FC = () => {
     isLevel1Admin,
     isLevel3Planner,
     isPlannerOrAdmin,
+    isLevel5Observer,
     currentUser
   } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic';
@@ -44,9 +45,9 @@ export const VendorsModule: React.FC = () => {
   const [vendorToEdit, setVendorToEdit] = useState<VendorItem | null>(null);
   const [vendorToDelete, setVendorToDelete] = useState<VendorItem | null>(null);
 
-  // Enabled for Super Admin, Wedding Planner, and authorized active hosts
+  // Enabled for Super Admin, Wedding Planner, and authorized active hosts (never for Level 5 Observer)
   const canManageVendors = Boolean(
-    currentUser.isAuthenticated && (canEditActiveWedding || isLevel1Admin || isLevel3Planner || isPlannerOrAdmin)
+    currentUser.isAuthenticated && !isLevel5Observer && canEditActiveWedding
   );
 
   // Filter vendors

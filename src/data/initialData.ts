@@ -1195,6 +1195,16 @@ export const INITIAL_SYSTEM_USERS: SystemUser[] = [
     isSystemDefault: true,
     createdAt: '2026-08-17T00:00:00Z',
   },
+  {
+    id: 'user-observador',
+    username: 'Observador Invitado',
+    clave: '55555555',
+    level: 5,
+    roleTitle: 'Observador Protocolar (Nivel 5 - Solo Lectura)',
+    assignedWeddingIds: ['boda-sofia-alejandro', 'boda-valentina-mateo', 'boda-zenaida-ronny'],
+    isSystemDefault: true,
+    createdAt: '2026-09-01T00:00:00Z',
+  },
 ];
 
 export const INITIAL_TOKENS_PAYMENT_CONFIG: TokensPaymentConfig = {

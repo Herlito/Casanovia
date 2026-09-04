@@ -53,6 +53,7 @@ export const Navbar: React.FC = () => {
     isLevel3Planner,
     isHostUser, 
     isPlannerOrAdmin, 
+    isLevel5Observer,
     canCreateWedding,
     canManageUsers,
     canEditActiveWedding, 
@@ -321,7 +322,7 @@ export const Navbar: React.FC = () => {
                             </div>
                             <div className="text-[11px] text-[#7A7268] flex items-center justify-between mt-1 pt-1 border-t border-black/5">
                               <span className="font-semibold text-[#2D3748]">
-                                {`${currentUser.username} (${isLevel1Admin ? 'Nivel 1 Super Admin' : isLevel3Planner ? 'Nivel 3 Planner' : 'Nivel 2 Anfitrión'})`}
+                                {`${currentUser.username} (${isLevel1Admin ? 'Nivel 1 Super Admin' : isLevel3Planner ? 'Nivel 3 Planner' : isLevel5Observer ? 'Nivel 5 Observador' : 'Nivel 2 Anfitrión'})`}
                               </span>
                             </div>
                           </div>
@@ -431,35 +432,33 @@ export const Navbar: React.FC = () => {
 
                             </>)}
 
-                            {/* 2. Nueva Boda */}
-                            <button
-                              type="button"
-                              id="sandwich-btn-new-wedding"
-                              onClick={() => {
-                                setSandwichMenuOpen(false);
-                                if (canCreateWedding) {
+                            {/* 2. Nueva Boda (Solo Administrador y Planner) */}
+                            {canCreateWedding && (
+                              <button
+                                type="button"
+                                id="sandwich-btn-new-wedding"
+                                onClick={() => {
+                                  setSandwichMenuOpen(false);
                                   setShowNewWeddingModal(true);
-                                } else {
-                                  setShowAuthModal(true);
-                                }
-                              }}
-                              className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
-                            >
-                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center shrink-0 transition-transform text-[#2D3748]">
-                                <PlusCircle className="w-4 h-4" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="font-bold flex items-center justify-between">
-                                  <span>Crear Evento</span>
-                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-rose-100 text-[#2D3748]">
-                                    Crear
-                                  </span>
+                                }}
+                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
+                              >
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center shrink-0 transition-transform text-[#2D3748]">
+                                  <PlusCircle className="w-4 h-4" />
                                 </div>
-                                <p className="text-[10px] text-[#8C8276] truncate font-normal">
-                                  Crear evento y generar lista de tareas
-                                </p>
-                              </div>
-                            </button>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-bold flex items-center justify-between">
+                                    <span>Crear Evento</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-rose-100 text-[#2D3748]">
+                                      Crear
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-[#8C8276] truncate font-normal">
+                                    Crear evento y generar lista de tareas
+                                  </p>
+                                </div>
+                              </button>
+                            )}
 
 
 

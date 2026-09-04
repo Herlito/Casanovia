@@ -30,10 +30,10 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
   tables,
   guests,
 }) => {
-  const { settings, activeWedding } = useWedding();
+  const { settings, activeWedding, isLevel5Observer } = useWedding();
   const printRef = useRef<HTMLDivElement>(null);
 
-  if (!isOpen) return null;
+  if (!isOpen || isLevel5Observer) return null;
 
   const coupleNamesDisplay = activeWedding?.coupleNames || settings.coupleNames || 'Nuestra Boda';
 
@@ -130,130 +130,105 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
         <div 
           id="print-area" 
           ref={printRef} 
-          className="print-container flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 bg-[#EBEBEB] font-sans text-[#2D2A26]"
+          className="print-container flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 bg-white font-sans text-black w-full"
         >
-          
+          <style>{`
+            @media print {
+              @page {
+                size: A4 portrait;
+                margin: 8mm 8mm 8mm 8mm;
+              }
+              html, body, #print-area, #print-area * {
+                background-color: #ffffff !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                border-color: #000000 !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+              }
+              .print-a4-full {
+                width: 100% !important;
+                max-width: 100% !important;
+              }
+            }
+          `}</style>
+
           {/* Document Header */}
-          <div className="item-listado print-avoid-break border-b-2 border-transparent pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div className="item-listado print-avoid-break border-b-2 border-black pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#2D3748] block mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-black block mb-1">
                 Wedding Protocol & Banquet Logistics
               </span>
-              <h1 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
+              <h1 className="text-2xl sm:text-3xl font-bold text-black uppercase tracking-tight">
                 Plano de Mesas & Directorio de Invitados
               </h1>
-              <p className="text-sm font-serif-display italic text-[#7A7268] mt-1">
+              <p className="text-sm italic text-black mt-1">
                 Boda de {coupleNamesDisplay}
               </p>
             </div>
 
-            <div className="text-xs text-[#524B42] space-y-1 sm:text-right bg-[#FAF8F5] p-3 rounded-xl border border-transparent sm:bg-transparent sm:p-0 sm:border-none">
-              <div className="font-semibold text-[#2D2A26]">
+            <div className="text-xs text-black space-y-0.5 sm:text-right">
+              <div className="font-semibold text-black">
                 Fecha: {activeWedding?.weddingDate?.split('T')[0] || settings.weddingDate?.split('T')[0] || '2026-10-24'}
               </div>
-              <div className="text-[#7A7268]">
+              <div className="text-black">
                 Recepción: {settings.receptionVenue?.name || 'Salón Principal'}
               </div>
-              <div className="text-[#7A7268]">
+              <div className="text-black font-medium">
                 Total Mesas: {tables.length} • Total Invitados: {guests.length}
               </div>
             </div>
           </div>
 
           {/* Section 1: Seating Tables Breakdown */}
-          <div className="space-y-4">
-            <div className="item-listado print-avoid-break flex items-center justify-between pb-1 border-b border-transparent">
-              <h3 className="font-serif-display text-lg font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-2">
-                <UtensilsCrossed className="w-4 h-4 text-[#2D3748]" />
-                <span>1. Distribución Detallada por Mesa</span>
+          <div className="space-y-3 w-full print-a4-full">
+            <div className="item-listado print-avoid-break flex items-center justify-between pb-1 border-b border-black">
+              <h3 className="text-sm font-bold text-black uppercase tracking-wider">
+                1. Distribución Detallada por Mesa
               </h3>
-              <span className="text-xs text-[#7A7268]">
+              <span className="text-xs text-black font-medium">
                 {tables.length} mesas configuradas
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-2">
-              {guestsByTable.map(({ table, guests: seatedGuests, totalPasses }) => (
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 print:grid-cols-2 print:gap-3 print-a4-full">
+              {guestsByTable.map(({ table, guests: seatedGuests }) => (
                 <div
                   key={table.id}
-                  className="item-listado print-avoid-break bg-[#FAF8F5] rounded-2xl p-4 border border-transparent space-y-3 print:bg-[#EBEBEB] print:border-stone-300"
+                  className="item-listado print-avoid-break bg-white p-3 border border-black space-y-1.5 w-full"
                   style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
                 >
-                  <div className="flex items-start justify-between border-b border-transparent pb-2">
-                    <div>
-                      <h4 className="font-bold text-sm text-[#2D2A26] flex items-center space-x-1.5">
-                        <span>{table.name}</span>
-                      </h4>
-                      {table.zone && (
-                        <p className="text-[11px] text-[#8C8276] flex items-center space-x-1 mt-0.5">
-                          <MapPin className="w-3 h-3" />
-                          <span>{table.zone}</span>
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="text-right">
-                      <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                        totalPasses > table.capacity
-                          ? 'bg-rose-100 text-rose-800'
-                          : totalPasses === table.capacity
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-emerald-100 text-emerald-800'
-                      }`}>
-                        {totalPasses} / {table.capacity} lugares
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between border-b border-black pb-1">
+                    <h4 className="font-bold text-xs uppercase text-black tracking-wide">
+                      {table.name} {table.zone ? `• ${table.zone}` : ''}
+                    </h4>
+                    <span className="text-[11px] font-semibold text-black">
+                      Capacidad: {table.capacity}
+                    </span>
                   </div>
 
-                  {/* Seated Guests List */}
+                  {/* Seated Guests List: Número de asiento y solo nombre de invitados */}
                   {seatedGuests.length === 0 ? (
-                    <p className="text-xs text-[#8C8276] italic py-2">
+                    <p className="text-xs text-black italic py-1">
                       Mesa disponible (sin comensales asignados).
                     </p>
                   ) : (
-                    <ul className="space-y-1.5 text-xs divide-y divide-[#F0EAE1]">
-                      {seatedGuests.map((guest, idx) => {
-                        const isCompanion = Boolean(guest.mainGuestId);
-                        const mainGuest = isCompanion ? guests.find((g) => g.id === guest.mainGuestId) : null;
-                        const companionsInTable = !isCompanion ? seatedGuests.filter((c) => c.mainGuestId === guest.id) : [];
-
-                        return (
-                          <li key={guest.id} className="item-listado pt-1.5 flex items-start justify-between gap-2" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-medium text-[#2D2A26] flex items-center space-x-1.5">
-                                <span className="text-[#8C8276] text-[10px] w-4">{idx + 1}.</span>
-                                <span className="truncate">{guest.fullName}</span>
-                                {isCompanion ? (
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 shrink-0 font-medium">
-                                    Acompañante{mainGuest ? ` de ${mainGuest.fullName.split(' ')[0]}` : ''}
-                                  </span>
-                                ) : (
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#EBEBEB] border border-[#D9CEBF] text-[#7A7268] shrink-0 font-normal">
-                                    {getRoleLabel(guest.category)}
-                                  </span>
-                                )}
-                              </div>
-                              {guest.dietaryRestrictions && guest.dietaryRestrictions !== 'Ninguna' && (
-                                <p className="text-[10px] text-amber-800 pl-5 font-semibold">
-                                  Dieta: {guest.dietaryRestrictions}
-                                </p>
-                              )}
-                            </div>
-                            <span className="text-[11px] font-semibold text-[#524B42] shrink-0">
-                              {isCompanion ? (
-                                <span className="text-[#8C8276] font-normal italic text-[10px]">(Incluido con titular)</span>
-                              ) : (
-                                `${guest.confirmedPasses || guest.totalPasses || 1} ${((guest.confirmedPasses || guest.totalPasses || 1) === 1) ? 'pase' : 'pases'}`
-                              )}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                    <ol className="text-xs text-black space-y-0.5 list-none p-0 m-0">
+                      {seatedGuests.map((guest, idx) => (
+                        <li 
+                          key={guest.id} 
+                          className="flex items-center text-black leading-tight"
+                          style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+                        >
+                          <span className="w-6 font-bold text-black shrink-0">{idx + 1}.</span>
+                          <span className="text-black truncate font-normal">{guest.fullName}</span>
+                        </li>
+                      ))}
+                    </ol>
                   )}
 
                   {table.notes && (
-                    <div className="pt-2 text-[10px] text-[#7A7268] border-t border-[#F0EAE1] italic">
+                    <div className="pt-1 text-[10px] text-black border-t border-black/30 italic">
                       Nota: {table.notes}
                     </div>
                   )}
@@ -265,17 +240,16 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
           {/* Section 2: Unassigned Guests if any */}
           {unassignedGuests.length > 0 && (
             <div 
-              className="item-listado print-avoid-break p-4 rounded-2xl bg-amber-50 border border-amber-200"
+              className="item-listado print-avoid-break p-3 border border-black bg-white text-black w-full"
               style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
             >
-              <h3 className="font-serif-display text-sm font-bold text-amber-900 mb-2 flex items-center space-x-1.5">
-                <AlertCircle className="w-4 h-4 text-amber-700" />
-                <span>Invitados Pendientes de Asignar Mesa ({unassignedGuests.length})</span>
+              <h3 className="text-xs font-bold text-black uppercase mb-1">
+                Invitados Pendientes de Asignar Mesa ({unassignedGuests.length})
               </h3>
-              <div className="flex flex-wrap gap-2">
-                {unassignedGuests.map((g) => (
-                  <span key={g.id} className="text-xs px-2.5 py-1 rounded-lg bg-[#EBEBEB] border border-amber-300 text-amber-950 font-medium">
-                    {g.fullName} ({g.totalPasses} p)
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-black">
+                {unassignedGuests.map((g, idx) => (
+                  <span key={g.id} className="text-black">
+                    {idx + 1}. {g.fullName} ({g.totalPasses || 1} pases)
                   </span>
                 ))}
               </div>
@@ -283,65 +257,60 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
           )}
 
           {/* Section 3: Alphabetical Seating Directory (A-Z) */}
-          <div className="space-y-4 pt-4 border-t-2 border-transparent break-before-page">
-            <div className="item-listado print-avoid-break flex items-center justify-between pb-1 border-b border-transparent">
-              <h3 className="font-serif-display text-lg font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-2">
-                <Users className="w-4 h-4 text-[#2D3748]" />
-                <span>2. Directorio Alfabético de Invitados (A-Z)</span>
+          <div className="space-y-3 pt-4 border-t-2 border-black break-before-page w-full print-a4-full">
+            <div className="item-listado print-avoid-break flex items-center justify-between pb-1 border-b border-black">
+              <h3 className="text-sm font-bold text-black uppercase tracking-wider">
+                2. Directorio Alfabético de Invitados (A-Z)
               </h3>
-              <span className="text-xs text-[#7A7268]">
-                Control de Recepción & Hostess
+              <span className="text-xs text-black font-medium">
+                Control de Recepción & Hostess ({sortedAlphabeticalGuests.length} invitados)
               </span>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="w-full overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="table-header-group">
-                  <tr className="bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]">
-                    <th className="py-2.5 px-3 font-semibold rounded-l-lg">Invitado (Nombre Completo)</th>
-                    <th className="py-2.5 px-3 font-semibold">Rol Protocolar</th>
-                    <th className="py-2.5 px-3 font-semibold">Mesa Asignada</th>
-                    <th className="py-2.5 px-3 font-semibold text-center">Pases</th>
-                    <th className="py-2.5 px-3 font-semibold">Restricción Dietética</th>
-                    <th className="py-2.5 px-3 font-semibold text-center rounded-r-lg">RSVP</th>
+                  <tr className="border-b-2 border-black text-black bg-white">
+                    <th className="py-1 px-2 font-bold text-black text-left">#</th>
+                    <th className="py-1 px-2 font-bold text-black text-left">Invitado (Nombre Completo)</th>
+                    <th className="py-1 px-2 font-bold text-black text-left">Rol Protocolar</th>
+                    <th className="py-1 px-2 font-bold text-black text-left">Mesa Asignada</th>
+                    <th className="py-1 px-2 font-bold text-black text-center">Pases</th>
+                    <th className="py-1 px-2 font-bold text-black text-left">Restricción Dietética</th>
+                    <th className="py-1 px-2 font-bold text-black text-center">RSVP</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F0EAE1]">
+                <tbody className="divide-y divide-black/20">
                   {sortedAlphabeticalGuests.map((guest, idx) => (
                     <tr 
                       key={guest.id}
-                      className={`item-listado print-avoid-break ${idx % 2 === 0 ? 'bg-[#EBEBEB]' : 'bg-[#FAF8F5]'}`}
+                      className="item-listado print-avoid-break bg-white text-black"
                       style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
                     >
-                      <td className="py-2 px-3 font-medium text-[#2D2A26]">
+                      <td className="py-0.5 px-2 font-semibold text-black text-[11px] leading-tight">
+                        {idx + 1}
+                      </td>
+                      <td className="py-0.5 px-2 font-medium text-black text-[11px] leading-tight">
                         {guest.fullName}
                       </td>
-                      <td className="py-2 px-3 text-[#7A7268]">
+                      <td className="py-0.5 px-2 text-black text-[11px] leading-tight">
                         {getRoleLabel(guest.category)}
                       </td>
-                      <td className="py-2 px-3 font-bold text-[#2D3748]">
+                      <td className="py-0.5 px-2 font-bold text-black text-[11px] leading-tight">
                         {guest.assignedTable && guest.assignedTable.trim() !== '' && !guest.assignedTable.toLowerCase().includes('por asignar')
                           ? guest.assignedTable
-                          : '⚠️ Sin asignar'}
+                          : 'Sin asignar'}
                       </td>
-                      <td className="py-2 px-3 text-center font-semibold text-[#2D2A26]">
-                        {guest.confirmedPasses || guest.totalPasses}
+                      <td className="py-0.5 px-2 text-center text-black text-[11px] leading-tight">
+                        {guest.confirmedPasses || guest.totalPasses || 1}
                       </td>
-                      <td className="py-2 px-3 text-[#7A7268] text-[11px]">
+                      <td className="py-0.5 px-2 text-black text-[11px] leading-tight">
                         {guest.dietaryRestrictions && guest.dietaryRestrictions !== 'Ninguna'
-                          ? <span className="text-amber-800 font-medium">{guest.dietaryRestrictions}</span>
+                          ? guest.dietaryRestrictions
                           : '—'}
                       </td>
-                      <td className="py-2 px-3 text-center">
-                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
-                          guest.rsvpStatus === 'confirmed'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : guest.rsvpStatus === 'declined'
-                            ? 'bg-rose-100 text-rose-800'
-                            : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {guest.rsvpStatus === 'confirmed' ? 'Confirmado' : guest.rsvpStatus === 'declined' ? 'Declinado' : 'Pendiente'}
-                        </span>
+                      <td className="py-0.5 px-2 text-center text-black text-[11px] leading-tight">
+                        {guest.rsvpStatus === 'confirmed' ? 'Confirmado' : guest.rsvpStatus === 'declined' ? 'Declinado' : 'Pendiente'}
                       </td>
                     </tr>
                   ))}
@@ -351,10 +320,10 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
           </div>
 
           {/* Footer Note */}
-          <div className="item-listado print-avoid-break pt-6 border-t border-transparent text-center text-[11px] text-[#8C8276] space-y-1">
+          <div className="item-listado print-avoid-break pt-4 border-t border-black text-center text-[11px] text-black space-y-0.5">
             <p>Generado automáticamente desde el Sistema de Gestión de Protocolo Nupcial.</p>
-            <p className="font-serif-display italic font-medium text-[#524B42]">
-              {coupleNamesDisplay} • ¡Gracias por celebrar este día inolvidable con nosotros!
+            <p className="font-semibold text-black">
+              {coupleNamesDisplay}
             </p>
           </div>
 

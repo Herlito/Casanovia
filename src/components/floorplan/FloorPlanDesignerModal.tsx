@@ -234,6 +234,22 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   const [isProcessingPdf, setIsProcessingPdf] = useState<boolean>(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [showExportMenu, setShowExportMenu] = useState<boolean>(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+    if (showExportMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showExportMenu]);
 
   // Seat Click Picker popup
   const [activeSeatPicker, setActiveSeatPicker] = useState<{
@@ -1164,7 +1180,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     <div className="fixed inset-0 z-50 flex flex-col bg-[#FAF8F5] select-none animate-in fade-in duration-200">
       
       {/* 1. TOP MASTER HEADER BAR */}
-      <div className={`relative flex flex-col md:flex-row md:items-center justify-between border-b border-transparent bg-[#EBEBEB] shadow-2xs z-30 transition-all duration-300 ${showMobileTopBar ? 'h-auto pb-3 md:pb-0' : 'h-14 overflow-hidden md:overflow-visible'}`}>
+      <div className={`relative flex flex-col md:flex-row md:items-center justify-between border-b border-transparent bg-[#EBEBEB] shadow-2xs z-[70] transition-all duration-300 ${showMobileTopBar || showExportMenu ? 'h-auto pb-3 md:pb-0 overflow-visible' : 'h-14 overflow-hidden md:overflow-visible'}`}>
         
         {/* Mobile Header Row */}
         <div className="flex items-center justify-between h-14 px-4 sm:px-6 w-full md:w-auto shrink-0">
@@ -1343,26 +1359,51 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           )}
 
                     {/* Export PDF */}
-          <div className="relative">
+          <div className="relative" ref={exportMenuRef}>
             <button
+              id="btn-export-floorplan"
               onClick={() => setShowExportMenu(!showExportMenu)}
               className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors shadow-2xs cursor-pointer"
-              title="Exportar documento PDF de alta calidad para montaje"
+              title="Exportar plano y distribución de invitados"
             >
               <FileDown className="w-3.5 h-3.5 text-[#2D3748]" />
-              <span className="hidden sm:inline">Exportar PDF</span>
+              <span className="hidden sm:inline">Exportar plano</span>
             </button>
             {showExportMenu && (
-              <div className="absolute top-full right-0 mt-2 w-56 bg-[#EBEBEB] border border-transparent rounded-xl shadow-xl z-50 overflow-hidden">
-                <div className="p-1.5 flex flex-col">
-                  <button onClick={() => handleExportPdf('all')} className="text-left px-3 py-2 text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#2D3748] rounded-lg transition-colors cursor-pointer">
-                    📄 Todo (Plano + Lista)
+              <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-stone-300 rounded-xl shadow-2xl z-[100] overflow-hidden animate-in fade-in slide-in-from-top-1">
+                <div className="p-1.5 flex flex-col space-y-1">
+                  <button 
+                    id="btn-export-plan-only"
+                    onClick={() => { setShowExportMenu(false); handleExportPdf('plan_only'); }} 
+                    className="text-left px-3 py-2 text-xs font-semibold text-stone-800 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer flex items-center space-x-2"
+                  >
+                    <span className="text-base">🖼️</span>
+                    <div>
+                      <div className="font-bold">Solo plano de Distribución</div>
+                      <div className="text-[10px] text-stone-500 font-normal">Ajustado 100% en A4 horizontal, fondo blanco</div>
+                    </div>
                   </button>
-                  <button onClick={() => handleExportPdf('plan_only')} className="text-left px-3 py-2 text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#2D3748] rounded-lg transition-colors cursor-pointer">
-                    🖼️ Solo Plano de Distribución
+                  <button 
+                    id="btn-export-list-only"
+                    onClick={() => { setShowExportMenu(false); handleExportPdf('list_only'); }} 
+                    className="text-left px-3 py-2 text-xs font-semibold text-stone-800 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer flex items-center space-x-2"
+                  >
+                    <span className="text-base">👥</span>
+                    <div>
+                      <div className="font-bold">Solo Lista de Invitados</div>
+                      <div className="text-[10px] text-stone-500 font-normal">Mesas y asientos detallados</div>
+                    </div>
                   </button>
-                  <button onClick={() => handleExportPdf('list_only')} className="text-left px-3 py-2 text-xs font-semibold text-[#2D2A26] hover:bg-[#FAF8F5] hover:text-[#2D3748] rounded-lg transition-colors cursor-pointer">
-                    👥 Solo Lista de Invitados
+                  <button 
+                    id="btn-export-all"
+                    onClick={() => { setShowExportMenu(false); handleExportPdf('all'); }} 
+                    className="text-left px-3 py-2 text-xs font-semibold text-stone-800 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer flex items-center space-x-2 border-t border-stone-200 pt-1.5"
+                  >
+                    <span className="text-base">📄</span>
+                    <div>
+                      <div className="font-bold">Todo (Plano + Lista)</div>
+                      <div className="text-[10px] text-stone-500 font-normal">Documento completo de montaje</div>
+                    </div>
                   </button>
                 </div>
               </div>

@@ -140,30 +140,32 @@ export const BudgetModule: React.FC = () => {
           </h2>
         </div>
 
-        <div className="flex items-center flex-wrap gap-2.5 self-start sm:self-auto">
-          {/* Sync Button */}
-          <button
-            type="button"
-            onClick={handleSyncWithVendors}
-            disabled={isSyncing}
-            id="btn-sync-budget-vendors"
-            className="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold transition-all shadow-2xs flex items-center space-x-2 cursor-pointer disabled:opacity-50"
-            title="Sincronizar todos los datos de Gestión de Proveedores & Servicios con este Presupuesto"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Sincronizar Proveedores</span>
-          </button>
+        {canEditActiveWedding && (
+          <div className="flex items-center flex-wrap gap-2.5 self-start sm:self-auto">
+            {/* Sync Button */}
+            <button
+              type="button"
+              onClick={handleSyncWithVendors}
+              disabled={isSyncing}
+              id="btn-sync-budget-vendors"
+              className="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold transition-all shadow-2xs flex items-center space-x-2 cursor-pointer disabled:opacity-50"
+              title="Sincronizar todos los datos de Gestión de Proveedores & Servicios con este Presupuesto"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Sincronizar Proveedores</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={handleOpenAdd}
-            id="btn-add-budget"
-            className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nuevo Concepto</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={handleOpenAdd}
+              id="btn-add-budget"
+              className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Nuevo Concepto</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Sync Success Feedback Banner */}
@@ -365,13 +367,12 @@ export const BudgetModule: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-[#EBEBEB] text-[#7A7268] border-b border-transparent uppercase tracking-wider font-semibold">
               <tr>
-                <th className="px-4 py-1.5">Concepto & Proveedor</th>
-                <th className="px-4 py-1.5">Categoría</th>
-                <th className="px-4 py-1.5 text-right">Estimado</th>
+                <th className="px-4 py-1.5">Concepto</th>
                 <th className="px-4 py-1.5 text-right">Costo Real</th>
                 <th className="px-4 py-1.5 text-right">Pagado / Anticipo</th>
                 <th className="px-4 py-1.5 text-right">Saldo Pendiente</th>
-                
+                <th className="px-4 py-1.5 text-center">Estado</th>
+                {canEditActiveWedding && <th className="px-4 py-1.5 text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F2ECE3] text-[#2D2A26]">
@@ -412,24 +413,26 @@ export const BudgetModule: React.FC = () => {
                       </span>
                     </td>
 
-                    <td className="px-4 py-1.5 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end space-x-1">
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-[#7A7268] hover:text-[#2D3748] hover:bg-[#F2ECE3] rounded-lg transition-colors cursor-pointer"
-                          title="Editar Gasto"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id, item.concept)}
-                          className="p-1.5 text-[#7A7268] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                          title="Eliminar Gasto"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+                    {canEditActiveWedding && (
+                      <td className="px-4 py-1.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end space-x-1">
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-1.5 text-[#7A7268] hover:text-[#2D3748] hover:bg-[#F2ECE3] rounded-lg transition-colors cursor-pointer"
+                            title="Editar Gasto"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id, item.concept)}
+                            className="p-1.5 text-[#7A7268] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            title="Eliminar Gasto"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
 
                   </tr>
                 );
