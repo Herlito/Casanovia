@@ -18,6 +18,18 @@
   .font-script {
     font-family: 'Great Vibes', cursive;
   }
+
+  .font-aboreto {
+    font-family: 'Aboreto', cursive, serif;
+  }
+
+  .font-arapey {
+    font-family: 'Arapey', serif;
+  }
+
+  .font-work-sans {
+    font-family: 'Work Sans', sans-serif;
+  }
 }
 
 @keyframes floatSlow {

@@ -407,19 +407,19 @@ export const TimelineModule: React.FC = () => {
 
       {/* 1. EDITORIAL TIMMING VIEW (Inspired by timming.jfif aesthetic with site colors) */}
       {viewMode === 'editorial' && filteredTimeline.length > 0 && (
-        <div className="relative bg-gradient-to-b from-[#FDFBF7] via-[#FAF7F2] to-[#F5EFE6] rounded-3xl p-6 sm:p-10 lg:p-14 border border-transparent shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] overflow-hidden">
+        <div className="relative bg-gradient-to-b from-[#FDFBF7] via-[#FAF7F2] to-[#F5EFE6] rounded-3xl px-5 sm:px-10 lg:px-12 pt-3 sm:pt-4 pb-6 sm:pb-8 border border-transparent shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] overflow-hidden">
           
           {/* Top Decorative Ribbon / Bow Illustration */}
-          <div className="absolute top-2 right-2 sm:top-5 sm:right-6 pointer-events-none opacity-85">
+          <div className="absolute top-1.5 right-2 sm:top-2.5 sm:right-5 pointer-events-none opacity-85">
             <TimingIcons.RibbonBow />
           </div>
 
-          {/* Editorial Script Header */}
-          <div className="relative z-10 mb-8 sm:mb-12 text-left pr-16 sm:pr-24">
+          {/* Editorial Script Header: Reduced vertical space above and below, font of title preserved */}
+          <div className="relative z-10 mb-3 sm:mb-4 text-left pr-16 sm:pr-24">
             <h3 className="font-script text-3xl sm:text-4xl md:text-5xl text-[#2D3748] tracking-wide drop-shadow-2xs">
               Timing de Zenaida & Ronny
             </h3>
-            <p className="text-[11px] sm:text-xs text-[#7A7268] mt-1 font-serif italic">
+            <p className="text-xs sm:text-sm text-[#7A7268] mt-0.5 font-arapey italic">
               Programa Oficial Minuto a Minuto
             </p>
           </div>
@@ -430,7 +430,7 @@ export const TimelineModule: React.FC = () => {
             {/* The Continuous Vertical Connecting Axis */}
             <div className="absolute left-[88px] sm:left-[145px] md:left-[165px] top-3 bottom-6 w-[2px] bg-gradient-to-b from-[#D4AF37]/80 via-[#2D3748]/50 to-[#D4AF37]/80" />
 
-            <div className="space-y-6 sm:space-y-8">
+            <div className="space-y-2 sm:space-y-2.5">
               {filteredTimeline.map((item, idx) => {
                 const nextItem = filteredTimeline[idx + 1];
                 let durationText: string | null = null;
@@ -447,28 +447,28 @@ export const TimelineModule: React.FC = () => {
                   <div
                     key={item.id}
                     onClick={() => setActiveMilestoneId(activeMilestoneId === item.id ? null : item.id)}
-                    className="group relative flex items-start transition-all cursor-pointer rounded-2xl p-1.5 -m-1.5 hover:bg-[#FAF6F0]/60"
+                    className="group relative flex items-start transition-colors duration-200 cursor-pointer rounded-xl py-1 px-2 -mx-2 hover:bg-white"
                   >
                     
                     {/* Left Column: Icon + Time + Action buttons underneath */}
-                    <div className="w-[100px] sm:w-[155px] md:w-[175px] pr-3 sm:pr-6 shrink-0 flex flex-col items-end pt-0.5">
+                    <div className="w-[95px] sm:w-[150px] md:w-[170px] pr-2.5 sm:pr-5 shrink-0 flex flex-col items-end pt-0.5">
                       
-                      <div className="flex items-center justify-end space-x-2 sm:space-x-3.5">
+                      <div className="flex items-center justify-end space-x-1.5 sm:space-x-2.5">
                         {/* Delicate Line-Art Icon */}
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#EBEBEB]/80 border border-transparent shadow-2xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:border-transparent transition-transform">
+                        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#EBEBEB]/80 border border-transparent shadow-2xs flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                           {resolveMilestoneIcon(item)}
                         </div>
 
-                        {/* Time Label */}
-                        <span className="font-serif font-bold text-xs sm:text-base text-[#2D2A26] tracking-tight whitespace-nowrap">
-                          {item.time} hs
+                        {/* Time Label: Aboreto uppercase style with Work Sans units */}
+                        <span className="font-aboreto text-xs sm:text-sm text-[#2D2A26] tracking-wider whitespace-nowrap font-normal">
+                          {item.time} <span className="font-work-sans text-[10px] sm:text-[11px] font-normal tracking-wide lowercase">hs</span>
                         </span>
                       </div>
 
                       {/* Botones de Editar y Borrar Hito DEBAJO de la hora (visibles al pasar el mouse o al hacer click) */}
                       {canEditActiveWedding && (
                         <div 
-                          className={`mt-1.5 flex items-center justify-end space-x-1 transition-all duration-200 ${
+                          className={`mt-0.5 flex items-center justify-end space-x-1 transition-all duration-200 font-work-sans ${
                             activeMilestoneId === item.id
                               ? 'opacity-100 translate-y-0 pointer-events-auto'
                               : 'opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto'
@@ -480,7 +480,7 @@ export const TimelineModule: React.FC = () => {
                               e.stopPropagation();
                               handleOpenEdit(item);
                             }}
-                            className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#EBEBEB] border border-transparent text-[#6B6358] hover:text-[#2D3748] hover:bg-[#FAF8F5] text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
+                            className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#EBEBEB] border border-transparent text-[#6B6358] hover:text-[#2D3748] hover:bg-[#FAF8F5] text-[9px] font-semibold shadow-2xs transition-all cursor-pointer tracking-wider uppercase"
                             title="Editar Hito"
                           >
                             <Edit className="w-2.5 h-2.5" />
@@ -492,7 +492,7 @@ export const TimelineModule: React.FC = () => {
                               e.stopPropagation();
                               handleDelete(item.id, item.title);
                             }}
-                            className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#EBEBEB] border border-rose-200 text-rose-600 hover:text-[#2D3748] hover:bg-rose-600 text-[10px] font-semibold shadow-2xs transition-all cursor-pointer"
+                            className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#EBEBEB] border border-rose-200 text-rose-600 hover:text-[#2D3748] hover:bg-rose-600 text-[9px] font-semibold shadow-2xs transition-all cursor-pointer tracking-wider uppercase"
                             title="Borrar Hito"
                           >
                             <Trash2 className="w-2.5 h-2.5" />
@@ -504,74 +504,77 @@ export const TimelineModule: React.FC = () => {
                     </div>
 
                     {/* Center Horizontal Cross-Tick Marker */}
-                    <div className="relative flex items-center justify-center shrink-0 w-0 z-10 pt-2 sm:pt-2.5">
-                      <div className="w-5 sm:w-7 h-[2px] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] group-hover:bg-[#D4AF37] transition-colors -ml-[10px] sm:-ml-[14px] shadow-2xs" />
+                    <div className="relative flex items-center justify-center shrink-0 w-0 z-10 pt-1.5 sm:pt-2">
+                      <div className="w-4 sm:w-6 h-[2px] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] group-hover:bg-[#D4AF37] transition-colors -ml-[8px] sm:-ml-[12px] shadow-2xs" />
                     </div>
 
                     {/* Right Column: Title, Description, Responsible Person & Meta */}
-                    <div className="pl-4 sm:pl-7 flex-1 min-w-0">
+                    <div className="pl-3.5 sm:pl-6 flex-1 min-w-0">
                       
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-2">
                         <div>
-                          <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-                            <h4 className="font-serif-display text-sm sm:text-base md:text-lg font-bold text-[#2D2A26] leading-snug group-hover:text-[#2D3748] transition-colors">
+                          <div className="flex items-center space-x-2 flex-wrap gap-y-0.5">
+                            {/* Moment Title in ABORETO - reduced 1 point */}
+                            <h4 className="font-aboreto text-xs sm:text-sm md:text-[15px] text-[#2D2A26] uppercase tracking-wider leading-tight group-hover:text-[#2D3748] transition-colors font-normal">
                               {item.title}
                             </h4>
 
                             {durationText && (
-                              <span className="text-[11px] sm:text-xs font-semibold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 px-2 py-0.5 rounded-md font-mono">
+                              <span className="font-work-sans text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#2D2A26] bg-[#EDE8E1] border border-[#C8BFAF] px-1.5 py-0.5 rounded-md shadow-2xs">
                                 {durationText}
                               </span>
                             )}
 
                             {item.isProtocolCrucial && (
-                              <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#D4AF37]/20 text-[#8B6B23] text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
+                              <span className="font-work-sans inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-md bg-[#D4AF37]/20 text-[#8B6B23] text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider">
                                 <Star className="w-2.5 h-2.5 fill-[#D4AF37] text-[#D4AF37]" />
                                 <span>Crucial</span>
                               </span>
                             )}
                           </div>
 
-                          {/* Responsible Person / "A cargo de..." Highlight (in Altibajas) */}
+                          {/* Responsible Person / "A cargo de..." in Arapey Italic with tight interlinear space */}
                           {item.responsiblePerson && (
-                            <p className="text-xs sm:text-sm text-[#524B42] mt-0.5 font-sans">
+                            <p className="text-xs sm:text-[13px] text-[#524B42] mt-0.5 font-arapey italic leading-tight">
                               <span className="text-[#7A7268]">A cargo de </span>
-                              <strong className="font-semibold text-[#2D2A26] group-hover:text-[#2D3748] transition-colors">
+                              <strong className="font-medium text-[#2D2A26] group-hover:text-[#2D3748] transition-colors not-italic font-arapey text-xs sm:text-sm">
                                 {formatAltibajas(extractContactPersonOnly(item.responsiblePerson))}
                               </strong>
                             </p>
                           )}
                         </div>
 
-                        {/* Category Badge */}
-                        <div className="flex items-center space-x-2 shrink-0 self-start sm:self-center mt-1 sm:mt-0">
+                        {/* Category Badge in Work Sans */}
+                        <div className="font-work-sans flex items-center space-x-2 shrink-0 self-start sm:self-center tracking-wide">
                           {getCategoryBadge(item.category)}
                         </div>
                       </div>
 
-                    {/* Description */}
+                    {/* Description in Arapey Italic with tight interlinear space and line height */}
                     {item.description && (
-                      <p className="text-xs sm:text-sm text-[#5C554B] mt-1.5 leading-relaxed font-sans">
+                      <p className="text-xs sm:text-[13px] text-[#5C554B] mt-0.5 leading-tight font-arapey italic">
                         {renderDescriptionWithMentions(item.description)}
                       </p>
                     )}
 
-                    {/* Location & Dress/Items Badges */}
-                    <div className="flex flex-wrap items-center gap-2 mt-2 pt-1.5 border-t border-transparent/40 text-[11px] sm:text-xs">
-                      {item.location && (
-                        <span className="inline-flex items-center space-x-1 text-[#6B6358] bg-[#EBEBEB]/60 px-2 py-0.5 rounded-md border border-transparent/60">
-                          <MapPin className="w-3 h-3 text-[#8A9A86] shrink-0" />
-                          <span className="font-medium truncate max-w-[240px] sm:max-w-none">{item.location}</span>
-                        </span>
-                      )}
+                    {/* Location & Dress/Items Badges in Work Sans & Arapey (rendered only if present) */}
+                    {(item.location || item.dressOrItemsRequired) && (
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1 pt-0.5 border-t border-[#EAE3D9]/60 text-[10px] sm:text-[11px] font-work-sans">
+                        {item.location && (
+                          <span className="inline-flex items-center space-x-1 text-[#6B6358] bg-[#EBEBEB]/80 px-1.5 py-0.5 rounded-md border border-[#D9CEBF] tracking-wide uppercase text-[9px] sm:text-[10px]">
+                            <MapPin className="w-2.5 h-2.5 text-[#8A9A86] shrink-0" />
+                            <span className="font-medium truncate max-w-[240px] sm:max-w-none">{item.location}</span>
+                          </span>
+                        )}
 
-                      {item.dressOrItemsRequired && (
-                        <span className="inline-flex items-center space-x-1 text-[#8B6B23] bg-[#FFFDF5] px-2 py-0.5 rounded-md border border-[#D4AF37]/30">
-                          <Sparkles className="w-3 h-3 text-[#D4AF37] shrink-0" />
-                          <span className="truncate max-w-[240px] sm:max-w-none">{item.dressOrItemsRequired}</span>
-                        </span>
-                      )}
-                    </div>
+                        {item.dressOrItemsRequired && (
+                          <span className="inline-flex items-center space-x-1 text-[#8B6B23] bg-[#FFFDF5] px-1.5 py-0.5 rounded-md border border-[#D4AF37]/40 font-arapey italic text-[11px] sm:text-xs">
+                            <Sparkles className="w-2.5 h-2.5 text-[#D4AF37] shrink-0" />
+                            <span className="truncate max-w-[240px] sm:max-w-none">{item.dressOrItemsRequired}</span>
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                   </div>
                 </div>
@@ -579,12 +582,9 @@ export const TimelineModule: React.FC = () => {
             })}
           </div>
 
-            {/* Bottom Cursive Signature */}
-            <div className="pt-10 sm:pt-14 mt-8 border-t border-transparent/60 flex items-center justify-between">
-              <span className="font-script text-2xl sm:text-3xl md:text-4xl text-[#2D3748]/85">
-                Wedding Timing
-              </span>
-              <span className="text-[10px] sm:text-xs text-[#8C8276] font-serif italic">
+            {/* Bottom Footer (Wedding Timing label removed) */}
+            <div className="pt-4 sm:pt-6 mt-6 border-t border-transparent/60 flex items-center justify-end">
+              <span className="text-xs sm:text-sm text-[#8C8276] font-arapey italic">
                 {filteredTimeline.length} momentos programados
               </span>
             </div>
