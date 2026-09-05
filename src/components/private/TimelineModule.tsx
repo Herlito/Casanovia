@@ -15,7 +15,8 @@ import {
   Trash2, 
   Star,
   LayoutList,
-  Columns
+  Columns,
+  BookmarkCheck
 } from 'lucide-react';
 
 // Delicate line-art vector icons inspired directly by timming.jfif
@@ -141,17 +142,19 @@ export const TimelineModule: React.FC = () => {
   const [editingMilestone, setEditingMilestone] = useState<TimelineMilestone | null>(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'editorial' | 'cards'>('editorial');
+  const [viewMode, setViewMode] = useState<'editorial' | 'cards' | 'protocol'>('editorial');
   const [activeMilestoneId, setActiveMilestoneId] = useState<string | null>(null);
 
   const filteredTimeline = useMemo(() => {
-    return sortTimelineMilestones(
-      timeline.filter((m) => {
-        if (categoryFilter === 'all') return true;
-        return m.category === categoryFilter;
-      })
-    );
-  }, [timeline, categoryFilter]);
+    let list = timeline;
+    if (viewMode === 'protocol') {
+      list = list.filter((m) => Boolean(m.isProtocolCrucial));
+    }
+    if (categoryFilter !== 'all') {
+      list = list.filter((m) => m.category === categoryFilter);
+    }
+    return sortTimelineMilestones(list);
+  }, [timeline, categoryFilter, viewMode]);
 
   const handleOpenAdd = () => {
     setEditingMilestone(null);
@@ -302,6 +305,20 @@ export const TimelineModule: React.FC = () => {
               <Columns className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Texto</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode('protocol')}
+              title="Vista Protocolo (Hitos marcados para el protocolo)"
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
+                viewMode === 'protocol'
+                  ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-2xs font-bold'
+                  : 'text-[#524B42] hover:text-[#2D3748]'
+              }`}
+            >
+              <BookmarkCheck className="w-3.5 h-3.5 text-[#2D3748]" />
+              <span>Protocolo</span>
+            </button>
           </div>
 
           {canPrint && (
@@ -353,10 +370,12 @@ export const TimelineModule: React.FC = () => {
         <div className={isNeumorphic ? "text-center py-16 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-dashed border-[#D9CEBF] p-6" : "text-center py-16 bg-[#EBEBEB] rounded-3xl border border-dashed border-[#D9CEBF] p-6"}>
           <Sparkles className="w-10 h-10 text-[#2D3748]/40 mx-auto mb-3" />
           <h3 className="font-serif-display text-lg font-bold text-[#2D2A26]">
-            No hay hitos en esta categoría
+            {viewMode === 'protocol' ? 'No hay hitos en el subgrupo de protocolo' : 'No hay hitos en esta categoría'}
           </h3>
           <p className="text-xs text-[#7A7268] mt-1 mb-4">
-            Selecciona otra categoría o añade un nuevo momento para tu cronograma.
+            {viewMode === 'protocol'
+              ? 'Edita un hito y activa la casilla "Hito de Protocolo" para incluirlo en este subgrupo.'
+              : 'Selecciona otra categoría o añade un nuevo momento para tu cronograma.'}
           </p>
           <button
             type="button"
@@ -556,14 +575,21 @@ export const TimelineModule: React.FC = () => {
         </div>
       )}
 
-      {/* 2. DETAILED CARD VIEW (Alternative Toggle) */}
-      {viewMode === 'cards' && filteredTimeline.length > 0 && (
+      {/* 2. DETAILED CARD / PROTOCOLO VIEW (Alternative Toggle) */}
+      {(viewMode === 'cards' || viewMode === 'protocol') && filteredTimeline.length > 0 && (
         <div className="bg-[#EBEBEB] print:bg-white text-black w-full overflow-hidden">
           {/* Header with gray bg */}
-          <div className="bg-[#f0f0f0] print:bg-white px-3 py-1.5 border-b border-black">
+          <div className="bg-[#f0f0f0] print:bg-white px-3 py-1.5 border-b border-black flex items-center justify-between">
             <span className="font-['Raleway',sans-serif] text-[17px] font-normal text-black tracking-wide uppercase">
-              {categoriesFilterList.find(c => c.id === categoryFilter)?.label || 'Preparación'}
+              {viewMode === 'protocol'
+                ? `Protocolo de Boda (${filteredTimeline.length} hitos)`
+                : (categoriesFilterList.find(c => c.id === categoryFilter)?.label || 'Preparación')}
             </span>
+            {viewMode === 'protocol' && (
+              <span className="text-xs text-gray-700 font-sans">
+                Subgrupo de hitos de protocolo
+              </span>
+            )}
           </div>
 
           {/* Timeline Items */}

@@ -45,6 +45,39 @@ export const formatAltibajas = (str?: string): string => {
 };
 
 /**
+ * Splits participants by '&' or ',' that are OUTSIDE brackets [...] and parentheses (...).
+ * Avoids splitting internal phrases like "[Fotografía & Video]" or "(Novio & Novia)".
+ */
+export const splitParticipants = (str?: string): string[] => {
+  if (!str || !str.trim()) return [];
+  const results: string[] = [];
+  let current = '';
+  let inBracket = 0;
+  let inParen = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    if (char === '[') inBracket++;
+    else if (char === ']') inBracket = Math.max(0, inBracket - 1);
+    else if (char === '(') inParen++;
+    else if (char === ')') inParen = Math.max(0, inParen - 1);
+
+    if (inBracket === 0 && inParen === 0 && (char === '&' || char === ',')) {
+      const trimmed = current.trim();
+      if (trimmed) results.push(trimmed);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+
+  const lastTrimmed = current.trim();
+  if (lastTrimmed) results.push(lastTrimmed);
+
+  return results;
+};
+
+/**
  * Extracts only the contact person / advisor name, stripping supplier company or role details.
  * E.g. "Fernando (video Herly Lizarazo) [fotografía & Video] & ..." -> "Fernando"
  * E.g. "Mariana Flores (Wedding Planner)" -> "Mariana Flores"
@@ -53,22 +86,19 @@ export const formatAltibajas = (str?: string): string => {
 export const extractContactPersonOnly = (str?: string): string => {
   if (!str) return '';
   
-  // If there are multiple people joined by "&" or ",", clean each part
-  const parts = str.split(/(\s*&\s*|\s*,\s*)/);
-  
-  const cleanedParts = parts.map((part) => {
-    // If it's a delimiter, keep it
-    if (/^\s*(&|,)\s*$/.test(part)) return part;
-    
+  const participants = splitParticipants(str);
+  if (participants.length === 0) return formatAltibajas(str);
+
+  const cleanedParts = participants.map((part) => {
     let cleaned = part.trim();
     // Remove bracket annotations: [fotografía & video]
     cleaned = cleaned.replace(/\[.*?\]/g, '').trim();
     // Remove parentheses if they indicate supplier/role, e.g., (video Herly Lizarazo), (Novia), (Wedding Planner)
     cleaned = cleaned.replace(/\(.*?\)/g, '').trim();
     
-    return formatAltibajas(cleaned);
+    return formatAltibajas(cleaned) || formatAltibajas(part);
   });
 
-  const result = cleanedParts.join(' ').replace(/\s{2,}/g, ' ').trim();
-  return result || formatAltibajas(str);
+  return cleanedParts.filter(Boolean).join(' & ') || formatAltibajas(str);
 };
+

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { TimelineMilestone } from '../../types';
 import { useWedding } from '../../context/WeddingContext';
-import { formatAltibajas } from '../../lib/formatUtils';
+import { formatAltibajas, splitParticipants } from '../../lib/formatUtils';
 import { 
   X, 
   Clock, 
@@ -88,12 +88,13 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
     description: '',
     category: 'protocolo',
     responsiblePerson: '',
-    isProtocolCrucial: true,
+    isProtocolCrucial: false,
     dressOrItemsRequired: '',
   });
 
   const [showSuggestionsDropdown, setShowSuggestionsDropdown] = useState(false);
-  const [selectedSuggestionTab, setSelectedSuggestionTab] = useState<'all' | 'planner_novios' | 'vendors' | 'guests'>('all');
+  const [selectedSuggestionTab, setSelectedSuggestionTab] = useState<'all' | 'planner_novios' | 'vendors' | 'guests'>('vendors');
+  const [suggestionSearch, setSuggestionSearch] = useState('');
   const suggestionsContainerRef = useRef<HTMLDivElement>(null);
 
   // New location inline adder state
@@ -107,6 +108,7 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
       setFormData({
         ...milestoneToEdit,
         location: milestoneToEdit.location || '',
+        isProtocolCrucial: Boolean(milestoneToEdit.isProtocolCrucial),
       });
     } else {
       const defaultVenue = settings.ceremonyVenue?.name || settings.receptionVenue?.name || settings.additionalVenues?.[0]?.name || availableVenues[0]?.name || '';
@@ -117,11 +119,13 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
         description: '',
         category: 'protocolo',
         responsiblePerson: '',
-        isProtocolCrucial: true,
+        isProtocolCrucial: false,
         dressOrItemsRequired: '',
       });
     }
     setShowSuggestionsDropdown(false);
+    setSelectedSuggestionTab('vendors');
+    setSuggestionSearch('');
     setShowAddLocationModal(false);
     setNewLocationName('');
   }, [milestoneToEdit, isOpen, settings]);
@@ -232,20 +236,22 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
     });
 
     // 2. Proveedores (Vendors)
-    // Rule: When selecting vendor, ONLY insert the "Persona de Contacto / Asesor" without supplier company name
     vendors.forEach((v) => {
       if (v.name || v.contactPerson) {
         const contactName = v.contactPerson?.trim() ? formatAltibajas(v.contactPerson.trim()) : formatAltibajas(v.name.trim());
+        const companyName = v.name?.trim() ? formatAltibajas(v.name.trim()) : '';
         const roleCategory = v.category?.trim() || 'Proveedor';
         
+        const formattedFull = v.contactPerson?.trim() && companyName && v.contactPerson.trim().toLowerCase() !== companyName.toLowerCase()
+          ? `${contactName} (${companyName}) [${roleCategory}]`
+          : (companyName ? `${companyName} [${roleCategory}]` : contactName);
+
         list.push({
           id: `sug-vendor-${v.id}`,
           name: contactName,
-          role: `${roleCategory} (${v.name})`,
+          role: `${roleCategory}${companyName && companyName !== contactName ? ` • ${companyName}` : ''}`,
           type: 'vendor',
-          // Primary insert value: ONLY the Contact Person / Advisor
-          formatted: contactName,
-          // Role insert value: Category / Role of provider
+          formatted: formattedFull,
           roleFormatted: roleCategory,
           contactNameOnly: contactName,
         });
@@ -272,12 +278,9 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
     return list;
   }, [guests, vendors, settings, activeWedding, currentUser]);
 
-  // Filter suggestions based on typed input
+  // Filter suggestions based on selected tab and search input
   const filteredSuggestions = useMemo(() => {
-    const rawInput = (formData.responsiblePerson || '').trim().toLowerCase();
-    
-    // If the input has commas or "&", match with the last segment
-    const lastTerm = rawInput.split(/[,&]/).pop()?.trim().toLowerCase() || '';
+    const search = suggestionSearch.trim().toLowerCase();
 
     return allSuggestions.filter((item) => {
       // Filter by category tab
@@ -286,55 +289,72 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
       if (selectedSuggestionTab === 'guests' && item.type !== 'guest') return false;
 
       // Filter by search text
-      if (!lastTerm) return true;
+      if (!search) return true;
       return (
-        item.name.toLowerCase().includes(lastTerm) ||
-        item.role.toLowerCase().includes(lastTerm) ||
-        item.formatted.toLowerCase().includes(lastTerm) ||
-        (item.roleFormatted && item.roleFormatted.toLowerCase().includes(lastTerm))
+        item.name.toLowerCase().includes(search) ||
+        item.role.toLowerCase().includes(search) ||
+        item.formatted.toLowerCase().includes(search) ||
+        (item.roleFormatted && item.roleFormatted.toLowerCase().includes(search))
       );
     });
-  }, [allSuggestions, formData.responsiblePerson, selectedSuggestionTab]);
+  }, [allSuggestions, selectedSuggestionTab, suggestionSearch]);
 
-  const handleSelectSuggestion = (suggestion: SuggestionOption, appendMode: boolean = false, byRole: boolean = false) => {
-    const textToInsert = byRole && suggestion.roleFormatted ? suggestion.roleFormatted : suggestion.formatted;
-    const current = (formData.responsiblePerson || '').trim();
-    
-    if (!current || !appendMode) {
-      setFormData({ ...formData, responsiblePerson: textToInsert });
-    } else {
-      // Check if user is typing after a comma or ampersand
-      const hasTrailingSeparator = /[,&]\s*$/.test(current);
-      const newText = hasTrailingSeparator 
-        ? `${current} ${textToInsert}`
-        : `${current} & ${textToInsert}`;
-      setFormData({ ...formData, responsiblePerson: newText });
-    }
-    setShowSuggestionsDropdown(false);
+  // Split multiple participants by '&' or ',' outside brackets/parens
+  const currentParticipants = useMemo(() => {
+    return splitParticipants(formData.responsiblePerson || '');
+  }, [formData.responsiblePerson]);
+
+  const isParticipantAdded = (suggestion: SuggestionOption) => {
+    const sName = suggestion.name.toLowerCase();
+    const sFormatted = suggestion.formatted.toLowerCase();
+    const sContact = (suggestion.contactNameOnly || '').toLowerCase();
+    return currentParticipants.some((p) => {
+      const pLower = p.toLowerCase();
+      return pLower === sFormatted || pLower === sName || (sContact && pLower === sContact) || pLower.includes(sName);
+    });
   };
 
-  // Split multiple participants by '&' or ',' for removable chip buttons
-  const currentParticipants = useMemo(() => {
-    if (!formData.responsiblePerson || !formData.responsiblePerson.trim()) return [];
-    return formData.responsiblePerson
-      .split(/[,&]+/)
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0);
-  }, [formData.responsiblePerson]);
+  const handleSelectSuggestion = (suggestion: SuggestionOption, customText?: string) => {
+    const textToInsert = customText || suggestion.formatted;
+    const currentList = splitParticipants(formData.responsiblePerson || '');
+
+    // Check if participant is already present
+    const existingIndex = currentList.findIndex(
+      (p) => p.toLowerCase() === textToInsert.toLowerCase() ||
+             p.toLowerCase() === suggestion.name.toLowerCase() ||
+             (suggestion.contactNameOnly && p.toLowerCase() === suggestion.contactNameOnly.toLowerCase())
+    );
+
+    if (existingIndex >= 0) {
+      // Toggle off if already in list
+      const updated = currentList.filter((_, idx) => idx !== existingIndex);
+      setFormData((prev) => ({
+        ...prev,
+        responsiblePerson: updated.join(' & '),
+      }));
+    } else {
+      // Add maintaining all previous ones
+      const updated = [...currentList, textToInsert];
+      setFormData((prev) => ({
+        ...prev,
+        responsiblePerson: updated.join(' & '),
+      }));
+    }
+  };
 
   const handleRemoveParticipant = (indexToRemove: number) => {
     const updated = currentParticipants.filter((_, idx) => idx !== indexToRemove);
-    setFormData({
-      ...formData,
-      responsiblePerson: updated.join(' & ')
-    });
+    setFormData((prev) => ({
+      ...prev,
+      responsiblePerson: updated.join(' & '),
+    }));
   };
 
   const handleClearAllParticipants = () => {
-    setFormData({
-      ...formData,
-      responsiblePerson: ''
-    });
+    setFormData((prev) => ({
+      ...prev,
+      responsiblePerson: '',
+    }));
   };
 
   if (!isOpen) return null;
@@ -508,13 +528,19 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                 type="text"
                 list="responsible-persons-list"
                 value={formData.responsiblePerson || ''}
-                onFocus={() => setShowSuggestionsDropdown(true)}
-                onChange={(e) => {
-                  setFormData({ ...formData, responsiblePerson: e.target.value });
+                onFocus={() => {
+                  setSelectedSuggestionTab('vendors');
                   setShowSuggestionsDropdown(true);
                 }}
+                onClick={() => {
+                  setSelectedSuggestionTab('vendors');
+                  setShowSuggestionsDropdown(true);
+                }}
+                onChange={(e) => {
+                  setFormData({ ...formData, responsiblePerson: e.target.value });
+                }}
                 placeholder="Ej. Carlos Mendoza (Padrino), Lumière Studio (Fotografía), Wedding Planner..."
-                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:border-transparent focus:ring-1 focus:ring-[#d1d1d1] focus:outline-none pr-14"
+                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:border-transparent focus:ring-1 focus:ring-[#d1d1d1] focus:outline-none pr-14 cursor-pointer"
               />
               {formData.responsiblePerson && (
                 <button
@@ -528,9 +554,14 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
               )}
               <button
                 type="button"
-                onClick={() => setShowSuggestionsDropdown(!showSuggestionsDropdown)}
+                onClick={() => {
+                  if (!showSuggestionsDropdown) {
+                    setSelectedSuggestionTab('vendors');
+                  }
+                  setShowSuggestionsDropdown(!showSuggestionsDropdown);
+                }}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-[#8C8276] hover:text-[#2D3748] cursor-pointer"
-                title="Ver sugerencias de responsables"
+                title="Ver proveedores y responsables"
               >
                 <Search className="w-4 h-4" />
               </button>
@@ -544,7 +575,7 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                     key={`${person}-${idx}`}
                     type="button"
                     onClick={() => handleRemoveParticipant(idx)}
-                    className="text-[10px] px-2 py-0.5 rounded-md border bg-[#EBEBEB] border-transparent text-[#524B42] hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition-all cursor-pointer inline-flex items-center gap-1 group max-w-[220px]"
+                    className="text-[10px] px-2 py-0.5 rounded-md border bg-[#EBEBEB] border-transparent text-[#524B42] hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition-all cursor-pointer inline-flex items-center gap-1 group max-w-[260px]"
                     title={`Clic para quitar a "${person}"`}
                   >
                     <span className="truncate">👤 {person}</span>
@@ -575,38 +606,29 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
 
             {/* Interactive Suggestions Popover Panel */}
             {showSuggestionsDropdown && (
-              <div className="absolute z-20 left-0 right-0 mt-1 bg-[#EBEBEB] rounded-xl shadow-xl border border-[#D9CEBF] p-3 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
-                {/* Category Filter Tabs */}
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-[#EBEBEB] rounded-xl shadow-xl border border-[#D9CEBF] p-3 max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+                {/* Header with Done button */}
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#F0EAE1]">
+                  <span className="text-[11px] font-semibold text-[#524B42]">
+                    Selecciona para agregar uno o más responsables:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowSuggestionsDropdown(false)}
+                    className="px-2.5 py-1 rounded-md bg-[#2D3748] text-white text-[11px] font-semibold hover:bg-[#1A202C] transition-colors cursor-pointer"
+                  >
+                    Listo (Cerrar)
+                  </button>
+                </div>
+
+                {/* Category Filter Tabs - Default to Proveedores */}
                 <div className="flex items-center gap-1.5 pb-2 mb-2 border-b border-[#F0EAE1] overflow-x-auto text-[11px]">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedSuggestionTab('all')}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-all shrink-0 cursor-pointer ${
-                      selectedSuggestionTab === 'all'
-                        ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]'
-                        : 'bg-[#F4EFEA] text-[#524B42] hover:bg-[#EAE2D8]'
-                    }`}
-                  >
-                    Todos ({allSuggestions.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedSuggestionTab('planner_novios')}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-all shrink-0 flex items-center space-x-1 cursor-pointer ${
-                      selectedSuggestionTab === 'planner_novios'
-                        ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]'
-                        : 'bg-[#F4EFEA] text-[#524B42] hover:bg-[#EAE2D8]'
-                    }`}
-                  >
-                    <Crown className="w-3 h-3" />
-                    <span>Planner & Novios</span>
-                  </button>
                   <button
                     type="button"
                     onClick={() => setSelectedSuggestionTab('vendors')}
                     className={`px-2.5 py-1 rounded-md font-medium transition-all shrink-0 flex items-center space-x-1 cursor-pointer ${
                       selectedSuggestionTab === 'vendors'
-                        ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]'
+                        ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] font-bold'
                         : 'bg-[#F4EFEA] text-[#524B42] hover:bg-[#EAE2D8]'
                     }`}
                   >
@@ -615,108 +637,161 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                   </button>
                   <button
                     type="button"
+                    onClick={() => setSelectedSuggestionTab('planner_novios')}
+                    className={`px-2.5 py-1 rounded-md font-medium transition-all shrink-0 flex items-center space-x-1 cursor-pointer ${
+                      selectedSuggestionTab === 'planner_novios'
+                        ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] font-bold'
+                        : 'bg-[#F4EFEA] text-[#524B42] hover:bg-[#EAE2D8]'
+                    }`}
+                  >
+                    <Crown className="w-3 h-3" />
+                    <span>Planner & Novios</span>
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setSelectedSuggestionTab('guests')}
                     className={`px-2.5 py-1 rounded-md font-medium transition-all shrink-0 flex items-center space-x-1 cursor-pointer ${
                       selectedSuggestionTab === 'guests'
-                        ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]'
+                        ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] font-bold'
                         : 'bg-[#F4EFEA] text-[#524B42] hover:bg-[#EAE2D8]'
                     }`}
                   >
                     <Users className="w-3 h-3" />
-                    <span>Invitados & Cortejo ({guests.length})</span>
+                    <span>Invitados ({guests.length})</span>
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSuggestionTab('all')}
+                    className={`px-2.5 py-1 rounded-md font-medium transition-all shrink-0 cursor-pointer ${
+                      selectedSuggestionTab === 'all'
+                        ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] font-bold'
+                        : 'bg-[#F4EFEA] text-[#524B42] hover:bg-[#EAE2D8]'
+                    }`}
+                  >
+                    Todos ({allSuggestions.length})
+                  </button>
+                </div>
+
+                {/* Search Bar inside popover */}
+                <div className="relative mb-2">
+                  <Search className="w-3.5 h-3.5 text-[#8C8276] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={suggestionSearch}
+                    onChange={(e) => setSuggestionSearch(e.target.value)}
+                    placeholder={
+                      selectedSuggestionTab === 'vendors'
+                        ? 'Filtrar proveedores por nombre o rubro (foto, video, dj)...'
+                        : 'Buscar en la lista...'
+                    }
+                    className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:outline-none focus:ring-1 focus:ring-[#d1d1d1]"
+                  />
+                  {suggestionSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setSuggestionSearch('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
 
                 {/* Suggestions List */}
                 <div className="space-y-1">
                   {filteredSuggestions.length === 0 ? (
                     <div className="py-4 text-center text-xs text-[#8C8276] italic">
-                      No se encontraron coincidencias. Puedes escribir el nombre manualmente.
+                      No se encontraron coincidencias. Puedes escribir el nombre manualmente en el casillero.
                     </div>
                   ) : (
-                    filteredSuggestions.slice(0, 15).map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between p-2 rounded-lg hover:bg-[#EBEBEB] transition-colors group cursor-pointer"
-                        onClick={() => handleSelectSuggestion(item, false)}
-                      >
-                        <div className="flex items-center space-x-2.5 min-w-0">
-                          {item.type === 'planner' && (
-                            <span className="w-6 h-6 rounded-md bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] flex items-center justify-center shrink-0">
-                              <Crown className="w-3.5 h-3.5" />
-                            </span>
-                          )}
-                          {item.type === 'novios' && (
-                            <span className="w-6 h-6 rounded-md bg-rose-100 text-rose-800 flex items-center justify-center shrink-0">
-                              <HeartHandshake className="w-3.5 h-3.5" />
-                            </span>
-                          )}
-                          {item.type === 'vendor' && (
-                            <span className="w-6 h-6 rounded-md bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                              <Building2 className="w-3.5 h-3.5" />
-                            </span>
-                          )}
-                          {item.type === 'guest' && (
-                            <span className="w-6 h-6 rounded-md bg-indigo-100 text-indigo-800 flex items-center justify-center shrink-0">
-                              <User className="w-3.5 h-3.5" />
-                            </span>
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold text-[#2D2A26] truncate">
-                              {item.name}
-                            </p>
-                            <span className="text-[10px] text-[#7A7268] block truncate">
-                              {item.role}
-                            </span>
+                    filteredSuggestions.slice(0, 30).map((item) => {
+                      const added = isParticipantAdded(item);
+                      return (
+                        <div
+                          key={item.id}
+                          className={`flex items-center justify-between p-2 rounded-lg transition-colors group cursor-pointer ${
+                            added ? 'bg-amber-50/80 border border-amber-300' : 'hover:bg-[#FAF8F5]'
+                          }`}
+                          onClick={() => handleSelectSuggestion(item)}
+                        >
+                          <div className="flex items-center space-x-2.5 min-w-0 pr-2">
+                            {item.type === 'planner' && (
+                              <span className="w-6 h-6 rounded-md bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] flex items-center justify-center shrink-0">
+                                <Crown className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                            {item.type === 'novios' && (
+                              <span className="w-6 h-6 rounded-md bg-rose-100 text-rose-800 flex items-center justify-center shrink-0">
+                                <HeartHandshake className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                            {item.type === 'vendor' && (
+                              <span className="w-6 h-6 rounded-md bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                                <Building2 className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                            {item.type === 'guest' && (
+                              <span className="w-6 h-6 rounded-md bg-indigo-100 text-indigo-800 flex items-center justify-center shrink-0">
+                                <User className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-[#2D2A26] truncate">
+                                {item.name}
+                              </p>
+                              <span className="text-[10px] text-[#7A7268] block truncate">
+                                {item.role}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-1.5 shrink-0">
+                            {added ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectSuggestion(item);
+                                }}
+                                className="px-2 py-1 bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-md text-[10px] font-semibold flex items-center gap-1 hover:bg-rose-100 hover:border-rose-300 hover:text-rose-700 transition-colors"
+                                title="Clic para quitar de la lista"
+                              >
+                                <Check className="w-3 h-3 text-emerald-700" />
+                                <span>Agregado</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectSuggestion(item);
+                                }}
+                                className="px-2 py-1 bg-[#FAF8F5] border border-[#D9CEBF] text-[#2D3748] hover:bg-[#2D3748] hover:text-white rounded-md text-[10px] font-semibold transition-colors flex items-center gap-0.5"
+                                title="Añadir a la lista manteniendo los anteriores"
+                              >
+                                <Plus className="w-3 h-3" />
+                                <span>Agregar</span>
+                              </button>
+                            )}
+
+                            {/* Solo Nombre option if has contactNameOnly */}
+                            {item.contactNameOnly && item.formatted !== item.contactNameOnly && !added && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectSuggestion(item, item.contactNameOnly);
+                                }}
+                                className="px-1.5 py-1 bg-[#EBEBEB] border border-gray-200 text-gray-600 hover:bg-gray-100 rounded-md text-[9px] font-medium transition-colors"
+                                title={`Añadir solo nombre: ${item.contactNameOnly}`}
+                              >
+                                Solo nombre
+                              </button>
+                            )}
                           </div>
                         </div>
-
-                        <div className="flex items-center space-x-1 shrink-0 opacity-80 group-hover:opacity-100">
-                          {/* Seleccionar por Nombre */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSelectSuggestion(item, false, false);
-                            }}
-                            className="px-2 py-1 bg-[#EBEBEB] border border-[#D9CEBF] text-[#524B42] hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] rounded-md text-[10px] font-medium transition-colors"
-                            title={`Seleccionar por Nombre: ${item.formatted}`}
-                          >
-                            Por Nombre
-                          </button>
-                          
-                          {/* Seleccionar por Rol si tiene rol específico */}
-                          {item.roleFormatted && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSelectSuggestion(item, false, true);
-                              }}
-                              className="px-2 py-1 bg-[#EBEBEB] border border-[#D9CEBF] text-[#2D3748] hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] rounded-md text-[10px] font-medium transition-colors"
-                              title={`Seleccionar por Rol: ${item.roleFormatted}`}
-                            >
-                              Por Rol
-                            </button>
-                          )}
-
-                          {formData.responsiblePerson && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSelectSuggestion(item, true, false);
-                              }}
-                              className="px-2 py-1 bg-[#FAF8F5] border border-[#D9CEBF] text-[#2D3748] hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] rounded-md text-[10px] font-medium transition-colors flex items-center gap-0.5"
-                              title="Añadir a la lista de responsables actuales"
-                            >
-                              <Plus className="w-3 h-3" />
-                              <span>Añadir</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -749,16 +824,17 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
             />
           </div>
 
-          <div className="p-3 bg-[#EBEBEB] rounded-xl border border-transparent flex items-center space-x-2">
+          <div className="p-3 bg-[#EBEBEB] rounded-xl border border-transparent flex items-center space-x-2.5">
             <input
               type="checkbox"
               id="check-is-protocol"
-              checked={formData.isProtocolCrucial ?? true}
+              checked={Boolean(formData.isProtocolCrucial)}
               onChange={(e) => setFormData({ ...formData, isProtocolCrucial: e.target.checked })}
               className="w-4 h-4 rounded-sm text-[#2D3748] accent-[#2D3748] cursor-pointer"
             />
-            <label htmlFor="check-is-protocol" className="text-xs text-[#2D2A26] font-medium cursor-pointer">
-              Marcar como <span className="font-bold text-[#2D3748]">Hito Protocolar Clave</span> (Aparece destacado en la Hoja Protocolar del Wedding Planner)
+            <label htmlFor="check-is-protocol" className="text-xs text-[#2D2A26] font-semibold cursor-pointer select-none flex items-center gap-1.5">
+              <span>Hito de Protocolo</span>
+              <span className="text-[11px] text-[#7A7268] font-normal">(Incluir en el subgrupo de protocolo)</span>
             </label>
           </div>
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { TimelineMilestone } from '../../types';
 import { formatWeddingDateCustom, sortTimelineMilestones, parseMilestoneTimeToMinutes } from '../../lib/dateUtils';
-import { formatAltibajas } from '../../lib/formatUtils';
+import { formatAltibajas, extractContactPersonOnly } from '../../lib/formatUtils';
 import { printElementById } from '../../lib/printUtils';
 import { X, Printer, Download, MapPin, User, Sparkles, Star } from 'lucide-react';
 
@@ -247,7 +247,7 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
                       </div>
                       <div className="pt-0.5 pb-2 pl-3 pr-2 flex flex-col justify-start items-start">
                         <span className="font-['Raleway',sans-serif] text-[14px] font-normal text-black leading-tight">
-                          {item.responsiblePerson ? (item.responsiblePerson) : 'Novios + Coordinación'}
+                          {item.responsiblePerson ? extractContactPersonOnly(item.responsiblePerson) : 'Novios + Coordinación'}
                         </span>
                       </div>
                     </div>
