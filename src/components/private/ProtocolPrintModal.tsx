@@ -127,7 +127,7 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
         </div>
 
         {/* PRINTABLE DEDICATED DOCUMENT CONTAINER */}
-        <div id="print-area" className="print-container w-full bg-[#EBEBEB] text-black font-sans">
+        <div id="print-area" className="print-container w-full bg-white text-black font-sans p-4 sm:p-6 rounded-xl border border-gray-200 print:border-none print:p-0">
           
           {/* DOCUMENT HEADER */}
           <div className="item-listado print-avoid-break text-center border-b-2 border-black/80 pb-4 pt-1 mb-6">
@@ -209,9 +209,9 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
               </span>
             </div>
 
-            <div className="bg-[#EBEBEB] font-['Nunito',sans-serif] text-black w-full overflow-hidden border border-black rounded-lg">
+            <div className="bg-white text-black w-full overflow-hidden border border-black rounded-lg">
               {sortedTimeline.length === 0 ? (
-                <div className="item-listado print-avoid-break p-4 text-center text-xs text-neutral-500 italic">
+                <div className="item-listado print-avoid-break p-4 text-center text-xs text-neutral-500 italic font-['Abel',sans-serif]">
                   No se han registrado hitos en el cronograma de esta boda aún.
                 </div>
               ) : (
@@ -220,20 +220,20 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
                     
                     {/* Event Block Main */}
                     <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] border-b border-black">
-                      <div className="pt-3 pb-1 pr-3 border-r border-black flex flex-col justify-start items-end">
-                        <span className="text-[17px] font-bold text-black text-right whitespace-nowrap">{item.time} hrs</span>
+                      <div className="pt-2.5 pb-1 pr-3 border-r border-black flex flex-col justify-start items-end">
+                        <span className="font-['Raleway',sans-serif] text-[16px] font-normal text-black text-right whitespace-nowrap leading-tight">{item.time} hrs</span>
                       </div>
-                      <div className="pt-3 pb-1 pl-3 pr-12 flex flex-col justify-start items-start relative">
-                        <h3 className="text-[19px] font-bold text-black leading-snug w-full break-words">{item.title}</h3>
+                      <div className="pt-2.5 pb-1 pl-3 pr-12 flex flex-col justify-start items-start relative">
+                        <h3 className="font-['Raleway',sans-serif] text-[17px] font-normal text-black leading-tight w-full break-words uppercase tracking-wide">{item.title}</h3>
                         
                         {item.description && (
-                          <div className="text-[15px] text-black leading-snug mt-1 w-full break-words whitespace-pre-wrap">
+                          <div className="font-['Abel',sans-serif] text-[15px] font-normal text-black leading-tight mt-1 w-full break-words whitespace-pre-wrap">
                             {item.description}
                           </div>
                         )}
                         
                         {item.dressOrItemsRequired && (
-                          <div className="text-[15px] font-bold italic text-black leading-snug mt-1 w-full break-words whitespace-pre-wrap">
+                          <div className="font-['Abel',sans-serif] text-[14px] font-normal italic text-black leading-tight mt-1 w-full break-words whitespace-pre-wrap">
                             {item.dressOrItemsRequired}
                           </div>
                         )}
@@ -243,10 +243,10 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
                     {/* Event Block Sub */}
                     <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] border-b border-black">
                       <div className="pt-0.5 pb-2 pr-3 flex flex-col justify-start items-end">
-                        <span className="text-[14px] text-black text-right">{item.location || ''}</span>
+                        <span className="font-['Raleway',sans-serif] text-[14px] font-normal text-black text-right leading-tight">{item.location || ''}</span>
                       </div>
                       <div className="pt-0.5 pb-2 pl-3 pr-2 flex flex-col justify-start items-start">
-                        <span className="text-[15px] font-bold text-black">
+                        <span className="font-['Raleway',sans-serif] text-[14px] font-normal text-black leading-tight">
                           {item.responsiblePerson ? (item.responsiblePerson) : 'Novios + Coordinación'}
                         </span>
                       </div>

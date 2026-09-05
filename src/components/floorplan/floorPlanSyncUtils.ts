@@ -1,6 +1,8 @@
 import { WeddingTable, Guest, FloorPlanElement, FloorPlanSeat, FloorPlanElementType } from '../../types';
 import { sortGuestsWithCompanions } from '../private/TableAssignmentModule';
 
+export { sortGuestsWithCompanions };
+
 /**
  * Normalizes string for matching table names and numbers
  */
@@ -221,7 +223,7 @@ export function buildTableSeats(
       .substring(0, 2)
       .toUpperCase() || 'IN';
 
-    // Add main seat for this guest
+    // Add seat for this actual registered guest
     seats.push({
       id: `seat_${elementId}_${seatNumberCounter}`,
       seatNumber: seatNumberCounter,
@@ -230,33 +232,9 @@ export function buildTableSeats(
       guestInitials: initials,
       guestPhone: guest.phone,
       dietaryRequirement: guest.dietaryRestrictions,
-      companionCount: guest.confirmedPasses || guest.totalPasses || 1,
+      companionCount: 1,
     });
     seatNumberCounter++;
-
-    // If primary guest has multiple passes (e.g. 2 or 3) and companions are NOT already separate guest records
-    if (!isExplicitCompanion) {
-      const extraPasses = (guest.confirmedPasses || guest.totalPasses || 1) - 1;
-      const explicitCompanionsForThisGuest = allGuests.filter(
-        (g) => g.mainGuestId === guest.id && matchingGuests.some((mg) => mg.id === g.id)
-      ).length;
-
-      const unrepresentedPasses = Math.max(0, extraPasses - explicitCompanionsForThisGuest);
-
-      for (let p = 1; p <= unrepresentedPasses; p++) {
-        seats.push({
-          id: `seat_${elementId}_${seatNumberCounter}`,
-          seatNumber: seatNumberCounter,
-          guestId: `${guest.id}_comp_${p}`,
-          guestName: `Acompañante (${guest.fullName})`,
-          guestInitials: 'AC',
-          guestPhone: guest.phone,
-          dietaryRequirement: guest.dietaryRestrictions,
-          companionCount: 1,
-        });
-        seatNumberCounter++;
-      }
-    }
   });
 
   // 4. Fill remaining empty seats up to the table capacity
@@ -295,8 +273,8 @@ export function buildFloorPlanFromWedding(
     const updatedElements: FloorPlanElement[] = [...nonTableElements];
     const processedWeddingTableIds = new Set<string>();
 
-    // 1. Update existing table elements with fresh seat assignments
-    existingTableElements.forEach((elem, idx) => {
+    // 1. Update existing table elements with fresh seat assignments - strictly matching registered wedding tables
+    existingTableElements.forEach((elem) => {
       // Find corresponding wedding table that has NOT already been claimed by another element
       const matchedTable = tables.find(
         (t) =>
@@ -305,16 +283,17 @@ export function buildFloorPlanFromWedding(
             isGuestAssignedToTable(t.name, elem.name, elem.tableNumber))
       );
 
-      const tableCap = matchedTable?.capacity || elem.seatCount || elem.seats?.length || 8;
-      const tName = matchedTable?.name || elem.name || `Mesa ${elem.tableNumber || idx + 1}`;
-      const tNum = matchedTable ? (extractTableNumber(matchedTable.name) ?? elem.tableNumber ?? (idx + 1)) : (elem.tableNumber ?? (idx + 1));
-      const isRect = matchedTable 
-        ? (matchedTable.shape === 'rectangular' || matchedTable.shape === 'imperial' || matchedTable.shape === 'square')
-        : (elem.type === 'rectangular_table');
-
-      if (matchedTable) {
-        processedWeddingTableIds.add(matchedTable.id);
+      // Strictly only keep tables that coincide with registered wedding tables in "Asignación de mesas"
+      if (!matchedTable) {
+        return;
       }
+
+      processedWeddingTableIds.add(matchedTable.id);
+
+      const tableCap = matchedTable.capacity || 10;
+      const tName = matchedTable.name;
+      const tNum = extractTableNumber(matchedTable.name) ?? (elem.tableNumber || 1);
+      const isRect = matchedTable.shape === 'rectangular' || matchedTable.shape === 'imperial' || matchedTable.shape === 'square';
 
       const { seats, seatCount } = buildTableSeats(
         elem.id,

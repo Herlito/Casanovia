@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
-import { WeddingFloorPlan, WeddingSettings, FloorPlanElement, FloorPlanSeat } from '../../types';
+import { WeddingFloorPlan, WeddingSettings, FloorPlanElement, FloorPlanSeat, WeddingTable, Guest } from '../../types';
+import { isGuestAssignedToTable, sortGuestsWithCompanions, extractTableNumber } from './floorPlanSyncUtils';
 
 export type PdfExportMode = 'all' | 'plan_only' | 'list_only';
 
@@ -9,6 +10,44 @@ interface ExportPdfOptions {
   canvasElement: HTMLCanvasElement | null;
   weddingTitle: string;
   exportMode?: PdfExportMode;
+  registeredTables?: WeddingTable[];
+  guests?: Guest[];
+}
+
+// Load Montserrat font into jsPDF instance
+async function loadMontserratFont(doc: jsPDF): Promise<boolean> {
+  try {
+    const [regRes, boldRes] = await Promise.all([
+      fetch('/fonts/Montserrat-Regular.ttf'),
+      fetch('/fonts/Montserrat-Bold.ttf'),
+    ]);
+
+    if (regRes.ok && boldRes.ok) {
+      const regBuf = await regRes.arrayBuffer();
+      const boldBuf = await boldRes.arrayBuffer();
+
+      const arrayBufferToBinaryString = (buffer: ArrayBuffer): string => {
+        const bytes = new Uint8Array(buffer);
+        const chunkSize = 8192;
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+          binary += String.fromCharCode.apply(null, chunk as unknown as number[]);
+        }
+        return binary;
+      };
+
+      doc.addFileToVFS('Montserrat-Regular.ttf', arrayBufferToBinaryString(regBuf));
+      doc.addFont('Montserrat-Regular.ttf', 'Montserrat', 'normal');
+
+      doc.addFileToVFS('Montserrat-Bold.ttf', arrayBufferToBinaryString(boldBuf));
+      doc.addFont('Montserrat-Bold.ttf', 'Montserrat', 'bold');
+      return true;
+    }
+  } catch (err) {
+    console.warn('Montserrat font could not be loaded into jsPDF, falling back to helvetica', err);
+  }
+  return false;
 }
 
 // Calculate chair world positions for a table
@@ -116,9 +155,15 @@ function drawSafeRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, 
 }
 
 // Render clean, professional black & white line-art canvas adjusted 100% to A4 horizontal ratio
-function renderCleanFloorPlanCanvas(plan: WeddingFloorPlan, weddingTitle: string): HTMLCanvasElement {
+function renderCleanFloorPlanCanvas(
+  plan: WeddingFloorPlan,
+  weddingTitle: string,
+  registeredTables?: WeddingTable[],
+  guests?: Guest[]
+): HTMLCanvasElement {
   const exportW = 2970;
   const exportH = 2100;
+
   const canvas = document.createElement('canvas');
   canvas.width = exportW;
   canvas.height = exportH;
@@ -129,16 +174,25 @@ function renderCleanFloorPlanCanvas(plan: WeddingFloorPlan, weddingTitle: string
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, exportW, exportH);
 
-  // Stats calculation
-  const tablesCount = plan.elements.filter(
-    (e) => e.type === 'round_table' || e.type === 'rectangular_table'
-  ).length;
-  const totalSeats = plan.elements
-    .filter((e) => e.type === 'round_table' || e.type === 'rectangular_table')
-    .reduce((acc, e) => acc + (e.seats?.length || e.seatCount || 0), 0);
-  const assignedSeats = plan.elements
-    .filter((e) => e.type === 'round_table' || e.type === 'rectangular_table')
-    .reduce((acc, e) => acc + (e.seats?.filter((s) => s.guestId)?.length || 0), 0);
+  // Stats calculation matching registered tables strictly from "Asignación de mesas"
+  const matchingTableElements = (registeredTables && registeredTables.length > 0)
+    ? plan.elements.filter(
+        (e) => (e.type === 'round_table' || e.type === 'rectangular_table') &&
+               registeredTables.some(rt => rt.id === e.id.replace('elem_table_', '') || isGuestAssignedToTable(rt.name, e.name, e.tableNumber))
+      )
+    : plan.elements.filter((e) => e.type === 'round_table' || e.type === 'rectangular_table');
+
+  const tablesCount = matchingTableElements.length;
+  const totalSeats = registeredTables && registeredTables.length > 0
+    ? matchingTableElements.reduce((acc, e) => {
+        const matchedT = registeredTables.find(rt => rt.id === e.id.replace('elem_table_', '') || isGuestAssignedToTable(rt.name, e.name, e.tableNumber));
+        return acc + (matchedT?.capacity || e.seats?.length || e.seatCount || 0);
+      }, 0)
+    : matchingTableElements.reduce((acc, e) => acc + (e.seats?.length || e.seatCount || 0), 0);
+
+  const assignedSeats = guests && guests.length > 0
+    ? guests.filter(g => g && g.assignedTable && g.assignedTable.trim() !== '' && !g.assignedTable.toLowerCase().includes('por asignar')).length
+    : matchingTableElements.reduce((acc, e) => acc + (e.seats?.filter((s) => s.guestId)?.length || 0), 0);
 
   // 2. Minimalist Header Text (pure black / gray, no colored bands)
   ctx.fillStyle = '#000000';
@@ -402,24 +456,50 @@ function renderCleanFloorPlanCanvas(plan: WeddingFloorPlan, weddingTitle: string
   return canvas;
 }
 
+function drawGuestListHeader(doc: jsPDF, weddingTitle: string, fontName: string) {
+  const portWidth = 210;
+  const margin = 15;
+
+  // Pure white page background
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, portWidth, 297, 'F');
+
+  // Header Title
+  doc.setTextColor(0, 0, 0);
+  doc.setFont(fontName, 'bold');
+  doc.setFontSize(11);
+  doc.text('LISTA DE INVITADOS POR MESA', margin, 14);
+
+  // Wedding Title on right
+  doc.setFont(fontName, 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text(weddingTitle, portWidth - margin, 14, { align: 'right' });
+
+  // Clean solid separator line
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.line(margin, 17, portWidth - margin, 17);
+}
+
 export async function exportFloorPlanToPdf({
   plan,
   settings,
   weddingTitle,
   exportMode = 'all',
+  registeredTables,
+  guests,
 }: ExportPdfOptions): Promise<void> {
-  const margin = 14;
-
-  // Generate high-resolution, black-and-white line-art canvas adjusted 100% to A4 horizontal sheet
-  const cleanCanvas = renderCleanFloorPlanCanvas(plan, weddingTitle);
-  const cleanCanvasDataUrl = cleanCanvas.toDataURL('image/png', 1.0);
-
   // If we ONLY want the guest list, start directly in portrait
   const doc = new jsPDF({
     orientation: exportMode === 'list_only' ? 'portrait' : 'landscape',
     unit: 'mm',
     format: 'a4',
   });
+
+  // Load Montserrat font into the jsPDF instance
+  const hasMontserrat = await loadMontserratFont(doc);
+  const fontName = hasMontserrat ? 'Montserrat' : 'helvetica';
 
   if (exportMode === 'all' || exportMode === 'plan_only') {
     // ----------------------------------------------------
@@ -432,124 +512,147 @@ export async function exportFloorPlanToPdf({
     doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
+    // Generate high-resolution line-art canvas adjusted 100% to A4 horizontal sheet
+    const cleanCanvas = renderCleanFloorPlanCanvas(plan, weddingTitle, registeredTables, guests);
+    const cleanCanvasDataUrl = cleanCanvas.toDataURL('image/png', 1.0);
+
     // Add canvas image filling 100% of the horizontal A4 sheet
     doc.addImage(cleanCanvasDataUrl, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
   }
 
   if (exportMode === 'all' || exportMode === 'list_only') {
     // ==========================================
-    // PAGE 2+: DETAILED SEATING BREAKDOWN (CLEAN BLACK AND WHITE)
+    // GUEST LIST: TWO COLUMNS PER A4 SHEET (MONTSEERAT, WHITE BG, PURE BLACK TEXT)
     // ==========================================
-    const tableElements = plan.elements.filter(
-      (e) => e.type === 'round_table' || e.type === 'rectangular_table'
-    );
+    // Precedence: Strictly registered tables from "Asignación de mesas" that coincide with the floor plan
+    const activeTables: { id: string; name: string; capacity: number }[] =
+      registeredTables && registeredTables.length > 0
+        ? registeredTables
+            .filter((rt) =>
+              plan.elements.some(
+                (elem) =>
+                  (elem.type === 'round_table' || elem.type === 'rectangular_table') &&
+                  (elem.id.replace('elem_table_', '') === rt.id ||
+                    isGuestAssignedToTable(rt.name, elem.name, elem.tableNumber))
+              )
+            )
+            .map((rt) => ({
+              id: rt.id,
+              name: rt.name,
+              capacity: rt.capacity || 10,
+            }))
+        : plan.elements
+            .filter((e) => e.type === 'round_table' || e.type === 'rectangular_table')
+            .map((elem, idx) => ({
+              id: elem.id.replace('elem_table_', ''),
+              name: elem.name || `Mesa ${elem.tableNumber || idx + 1}`,
+              capacity: elem.seats?.length || elem.seatCount || 10,
+            }));
 
-    if (tableElements.length > 0) {
+    // Sort tables by natural table number
+    activeTables.sort((a, b) => {
+      const numA = extractTableNumber(a.name) ?? 999;
+      const numB = extractTableNumber(b.name) ?? 999;
+      if (numA !== numB) return numA - numB;
+      return a.name.localeCompare(b.name);
+    });
+
+    if (activeTables.length > 0) {
       if (exportMode === 'all') {
         doc.addPage('a4', 'portrait');
       }
+
       const portWidth = 210;
-      const portHeight = 297;
+      const margin = 15;
+      const colGap = 12;
+      const colWidth = (portWidth - margin * 2 - colGap) / 2; // 84mm
+      const colX = [margin, margin + colWidth + colGap]; // [15, 111]
 
-      // Pure White Background
-      doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, portWidth, portHeight, 'F');
+      const startY = 24;
+      const maxBottomY = 282;
 
-      // Minimalist Header in Pure Black / Gray
-      doc.setTextColor(0, 0, 0);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.text('LISTADO DETALLADO DE MESAS Y ASIENTOS', margin, 14);
+      let currentColumn: 0 | 1 = 0;
+      let currentY = startY;
 
-      doc.setFontSize(8.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(80, 80, 80);
-      doc.text(`${weddingTitle} • Montaje y Catering`, portWidth - margin - 55, 14);
+      drawGuestListHeader(doc, weddingTitle, fontName);
 
-      doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(0.5);
-      doc.line(margin, 18, portWidth - margin, 18);
-
-      let currentY = 26;
-
-      tableElements.forEach((table, tableIdx) => {
-        // Check page overflow
-        if (currentY > portHeight - 45) {
-          doc.addPage('a4', 'portrait');
-          doc.setFillColor(255, 255, 255);
-          doc.rect(0, 0, portWidth, portHeight, 'F');
-          currentY = 20;
+      activeTables.forEach((table) => {
+        // Source of truth for guests: "Asignación de mesas"
+        let assignedGuests: { fullName: string }[] = [];
+        if (guests && guests.length > 0) {
+          const matchingGuests = guests.filter(
+            (g) =>
+              g &&
+              g.assignedTable &&
+              isGuestAssignedToTable(g.assignedTable, table.name, extractTableNumber(table.name))
+          );
+          assignedGuests = sortGuestsWithCompanions(matchingGuests);
+        } else {
+          const matchingElem = plan.elements.find(
+            (e) =>
+              (e.type === 'round_table' || e.type === 'rectangular_table') &&
+              (e.id.replace('elem_table_', '') === table.id ||
+                isGuestAssignedToTable(table.name, e.name, e.tableNumber))
+          );
+          assignedGuests = (matchingElem?.seats || [])
+            .filter((s) => s.guestName && s.guestId)
+            .map((s) => ({ fullName: s.guestName! }));
         }
 
-        // Table Header Card: White background, simple black border
-        const assignedInTable = table.seats.filter((s) => s.guestId);
-        doc.setFillColor(255, 255, 255);
-        doc.roundedRect(margin, currentY, portWidth - margin * 2, 8, 1, 1, 'F');
-        doc.setDrawColor(0, 0, 0);
-        doc.setLineWidth(0.5);
-        doc.roundedRect(margin, currentY, portWidth - margin * 2, 8, 1, 1, 'S');
+        const count = assignedGuests.length;
+        const lineSpacing = 4.4;
+        const headerHeight = 5.0;
+        const bottomMargin = 5.5;
+        const blockHeight = headerHeight + (count > 0 ? count * lineSpacing : lineSpacing) + bottomMargin;
 
-        doc.setTextColor(0, 0, 0);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9.5);
-        const shapeText = table.type === 'round_table' ? 'Mesa Redonda' : 'Mesa Rectangular/Imperial';
-        doc.text(
-          `Mesa: ${table.name || `Mesa ${table.tableNumber || tableIdx + 1}`} (${shapeText})`,
-          margin + 4,
-          currentY + 5.5
-        );
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8.5);
-        doc.setTextColor(60, 60, 60);
-        doc.text(
-          `Capacidad: ${table.seats.length} asientos | Ocupados: ${assignedInTable.length}`,
-          portWidth - margin - 65,
-          currentY + 5.5
-        );
-
-        currentY += 11;
-
-        // Table Seats Details
-        table.seats.forEach((seat) => {
-          if (currentY > portHeight - 20) {
-            doc.addPage('a4', 'portrait');
-            doc.setFillColor(255, 255, 255);
-            doc.rect(0, 0, portWidth, portHeight, 'F');
-            currentY = 20;
-          }
-
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(0, 0, 0);
-          doc.text(`Asiento #${seat.seatNumber}:`, margin + 6, currentY);
-
-          doc.setFont('helvetica', 'normal');
-          if (seat.guestId && seat.guestName) {
-            doc.setTextColor(0, 0, 0);
-            let guestLabel = seat.guestName;
-            if (seat.companionCount && seat.companionCount > 1) {
-              guestLabel += ` (+${seat.companionCount - 1} pases)`;
-            }
-            if (seat.dietaryRequirement) {
-              guestLabel += ` [Dieta: ${seat.dietaryRequirement}]`;
-            }
-            doc.text(guestLabel, margin + 28, currentY);
+        // Check if table block fits in the current column
+        if (currentY + blockHeight > maxBottomY) {
+          if (currentColumn === 0) {
+            currentColumn = 1;
+            currentY = startY;
           } else {
-            doc.setTextColor(120, 120, 120);
-            doc.text('— Asiento Disponible / Vacío —', margin + 28, currentY);
+            doc.addPage('a4', 'portrait');
+            drawGuestListHeader(doc, weddingTitle, fontName);
+            currentColumn = 0;
+            currentY = startY;
           }
+        }
 
-          // Dotted divider line
-          doc.setDrawColor(200, 200, 200);
-          doc.setLineDashPattern([1, 1], 0);
-          doc.line(margin + 4, currentY + 2, portWidth - margin - 4, currentY + 2);
-          doc.setLineDashPattern([], 0);
+        const leftX = colX[currentColumn];
+        const rightX = leftX + colWidth;
 
-          currentY += 5.5;
-        });
+        // Table Header: Table Name on left, capacity/occupied "10/10" on right
+        doc.setFont(fontName, 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
 
-        currentY += 5;
+        // Right-aligned capacity / occupied format "10/10"
+        const capacityStr = `${count}/${table.capacity || 10}`;
+        doc.text(capacityStr, rightX, currentY, { align: 'right' });
+
+        // Left-aligned table identifier
+        doc.text(table.name, leftX, currentY);
+
+        currentY += 4.5;
+
+        // Guests underneath: Seat number and guest name only
+        if (count === 0) {
+          doc.setFont(fontName, 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(0, 0, 0);
+          doc.text('(Sin invitados asignados)', leftX, currentY);
+          currentY += lineSpacing;
+        } else {
+          assignedGuests.forEach((g, gIdx) => {
+            doc.setFont(fontName, 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`${gIdx + 1}.  ${g.fullName}`, leftX, currentY);
+            currentY += lineSpacing;
+          });
+        }
+
+        currentY += bottomMargin;
       });
     }
   }

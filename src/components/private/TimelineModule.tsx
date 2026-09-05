@@ -380,10 +380,10 @@ export const TimelineModule: React.FC = () => {
           {/* Editorial Script Header */}
           <div className="relative z-10 mb-8 sm:mb-12 text-left pr-16 sm:pr-24">
             <h3 className="font-script text-3xl sm:text-4xl md:text-5xl text-[#2D3748] tracking-wide drop-shadow-2xs">
-              {timingHeaderTitle}
+              Timing de Zenaida & Ronny
             </h3>
             <p className="text-[11px] sm:text-xs text-[#7A7268] mt-1 font-serif italic">
-              {settings.coupleNames || 'Zenaida & Ronny'} • Programa Oficial Minuto a Minuto
+              Programa Oficial Minuto a Minuto
             </p>
           </div>
 
@@ -558,10 +558,10 @@ export const TimelineModule: React.FC = () => {
 
       {/* 2. DETAILED CARD VIEW (Alternative Toggle) */}
       {viewMode === 'cards' && filteredTimeline.length > 0 && (
-        <div className="bg-[#EBEBEB] font-['Nunito',sans-serif] text-black w-full overflow-hidden">
+        <div className="bg-[#EBEBEB] print:bg-white text-black w-full overflow-hidden">
           {/* Header with gray bg */}
-          <div className="bg-[#f0f0f0] px-3 py-1.5 border-b border-black">
-            <span className="text-[19px] text-black">
+          <div className="bg-[#f0f0f0] print:bg-white px-3 py-1.5 border-b border-black">
+            <span className="font-['Raleway',sans-serif] text-[17px] font-normal text-black tracking-wide uppercase">
               {categoriesFilterList.find(c => c.id === categoryFilter)?.label || 'Preparación'}
             </span>
           </div>
@@ -572,20 +572,20 @@ export const TimelineModule: React.FC = () => {
               
               {/* Event Block Main */}
               <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] border-b border-black">
-                <div className="pt-3 pb-1 pr-3 border-r border-black flex flex-col justify-start items-end">
-                  <span className="text-[17px] font-bold text-black text-right whitespace-nowrap">{item.time} hrs</span>
+                <div className="pt-2.5 pb-1 pr-3 border-r border-black flex flex-col justify-start items-end">
+                  <span className="font-['Raleway',sans-serif] text-[16px] font-normal text-black text-right whitespace-nowrap leading-tight">{item.time} hrs</span>
                 </div>
-                <div className="pt-3 pb-1 pl-3 pr-12 flex flex-col justify-start items-start relative">
-                  <h3 className="text-[19px] font-bold text-black leading-snug w-full break-words">{item.title}</h3>
+                <div className="pt-2.5 pb-1 pl-3 pr-12 flex flex-col justify-start items-start relative">
+                  <h3 className="font-['Raleway',sans-serif] text-[17px] font-normal text-black leading-tight w-full break-words uppercase tracking-wide">{item.title}</h3>
                   
                   {item.description && (
-                    <div className="text-[15px] text-black leading-snug mt-1 w-full break-words whitespace-pre-wrap">
+                    <div className="font-['Abel',sans-serif] text-[15px] font-normal text-black leading-tight mt-1 w-full break-words whitespace-pre-wrap">
                       {item.description}
                     </div>
                   )}
                   
                   {item.dressOrItemsRequired && (
-                    <div className="text-[15px] font-bold italic text-black leading-snug mt-1 w-full break-words whitespace-pre-wrap">
+                    <div className="font-['Abel',sans-serif] text-[14px] font-normal italic text-black leading-tight mt-1 w-full break-words whitespace-pre-wrap">
                       {item.dressOrItemsRequired}
                     </div>
                   )}
@@ -617,10 +617,10 @@ export const TimelineModule: React.FC = () => {
               {/* Event Block Sub */}
               <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] border-b border-black">
                 <div className="pt-0.5 pb-2 pr-3 flex flex-col justify-start items-end">
-                  <span className="text-[14px] text-black text-right">{item.location || ''}</span>
+                  <span className="font-['Raleway',sans-serif] text-[14px] font-normal text-black text-right leading-tight">{item.location || ''}</span>
                 </div>
                 <div className="pt-0.5 pb-2 pl-3 pr-2 flex flex-col justify-start items-start">
-                  <span className="text-[15px] font-bold text-black">
+                  <span className="font-['Raleway',sans-serif] text-[14px] font-normal text-black leading-tight">
                     {item.responsiblePerson ? extractContactPersonOnly(item.responsiblePerson) : 'Novios + Coordinación'}
                   </span>
                 </div>

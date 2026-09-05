@@ -296,12 +296,8 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
       if (isMounted) {
         if (loadedElements) {
-          // We have a saved plan
-          if (autoSync) {
-            setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests, loadedElements), tables));
-          } else {
-            setElements(ensureUniqueTableIdentities(loadedElements, tables));
-          }
+          // We have a saved plan: always reconcile with registered tables and guests to ensure consistency with "Asignación de Mesas"
+          setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests, loadedElements), tables));
           if (loadedData.backgroundImageUrl) setBackgroundImageUrl(loadedData.backgroundImageUrl);
           if (loadedData.backgroundFileName) setBackgroundFileName(loadedData.backgroundFileName);
           if (loadedData.backgroundOpacity !== undefined) setBackgroundOpacity(loadedData.backgroundOpacity);
@@ -312,11 +308,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           if (loadedData.canvasHeight) setCanvasHeight(loadedData.canvasHeight);
         } else {
           // NO saved plan
-          if (autoSync) {
-            setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
-          } else {
-            setElements([]);
-          }
+          setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
         }
       }
     };
@@ -1156,6 +1148,8 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         canvasElement: canvas,
         weddingTitle,
         exportMode: mode,
+        registeredTables: tables,
+        guests: guests,
       });
     } catch (err) {
       console.error('Error exportando PDF:', err);
