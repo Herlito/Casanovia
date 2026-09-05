@@ -147,44 +147,40 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
             className="item-listado print-avoid-break mb-6"
             style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
           >
-            <h2 className="text-xs font-bold uppercase tracking-wider bg-neutral-100 px-2.5 py-1.5 border-l-4 border-black mb-2.5">
+            <h2 className="text-xs font-normal uppercase tracking-wider bg-neutral-100 px-2.5 py-1.5 border-l-4 border-black mb-2.5">
               1. Directorio del Cortejo de Honor & Participantes Clave ({protocolGuests.length})
             </h2>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-0 border-none border-collapse">
-                <thead className="text-[11px] font-bold text-neutral-900 border-0 border-none">
+              <table className="w-full text-left text-xs border-0 border-none border-collapse" style={{ lineHeight: 1.2 }}>
+                <thead className="text-[11px] font-normal text-neutral-900 border-0 border-none">
                   <tr className="border-0 border-none bg-neutral-50/60">
-                    <th className="py-1.5 px-2 border-0 border-none font-bold">Nombre</th>
-                    <th className="py-1.5 px-2 border-0 border-none font-bold">Rol Protocolar Asignado</th>
-                    <th className="py-1.5 px-2 border-0 border-none font-bold">Hora Llegada / Ensayo</th>
-                    <th className="py-1.5 px-2 border-0 border-none font-bold">Distintivo / Boutonniere</th>
-                    <th className="py-1.5 px-2 border-0 border-none font-bold">Contacto / Mesa</th>
+                    <th className="py-1 px-2 border-0 border-none font-normal">Nombre</th>
+                    <th className="py-1 px-2 border-0 border-none font-normal">Rol Protocolar Asignado</th>
+                    <th className="py-1 px-2 border-0 border-none font-normal">Hora Llegada / Ensayo</th>
+                    <th className="py-1 px-2 border-0 border-none font-normal">Contacto / Mesa</th>
                   </tr>
                 </thead>
-                <tbody className="border-0 border-none">
+                <tbody className="border-0 border-none" style={{ lineHeight: 1.2 }}>
                   {protocolGuests.length === 0 ? (
                     <tr className="border-0 border-none">
-                      <td colSpan={5} className="py-2.5 px-2 text-center text-neutral-500 italic border-0 border-none">
+                      <td colSpan={4} className="py-2.5 px-2 text-center text-neutral-500 italic border-0 border-none font-normal">
                         No hay integrantes asignados al cortejo protocolar con pase activo aún.
                       </td>
                     </tr>
                   ) : (
                     protocolGuests.map((g) => (
-                      <tr key={g.id} className="item-listado print-avoid-break align-baseline leading-snug border-b border-neutral-100 hover:bg-neutral-50/50">
-                        <td className="py-1.5 px-2 font-bold text-neutral-900 border-0 border-none whitespace-nowrap">
+                      <tr key={g.id} className="item-listado print-avoid-break align-baseline border-b border-neutral-100 hover:bg-neutral-50/50" style={{ lineHeight: 1.2 }}>
+                        <td className="py-1 px-2 font-normal text-neutral-900 border-0 border-none whitespace-nowrap">
                           {formatAltibajas(g.fullName)}
                         </td>
-                        <td className="py-1.5 px-2 font-medium text-neutral-800 border-0 border-none whitespace-nowrap">
+                        <td className="py-1 px-2 font-normal text-neutral-800 border-0 border-none whitespace-nowrap">
                           {formatAltibajas(g.protocolRoleTitle) || 'Cortejo'}
                         </td>
-                        <td className="py-1.5 px-2 text-neutral-700 border-0 border-none whitespace-nowrap">
+                        <td className="py-1 px-2 font-normal text-neutral-700 border-0 border-none whitespace-nowrap">
                           {g.specialArrivalTime || '15:30 hrs'}
                         </td>
-                        <td className="py-1.5 px-2 text-neutral-700 border-0 border-none">
-                          {g.accessoryAssigned || g.dressCodeNote || 'Etiqueta de gala'}
-                        </td>
-                        <td className="py-1.5 px-2 text-neutral-700 border-0 border-none whitespace-nowrap">
+                        <td className="py-1 px-2 font-normal text-neutral-700 border-0 border-none whitespace-nowrap">
                           <span>{g.phone || 'N/A'}</span>
                           {g.assignedTable && (
                             <span className="text-[10px] text-neutral-500 font-mono ml-1.5">({g.assignedTable})</span>
@@ -293,7 +289,7 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
 
           {/* Footer of Protocol Sheet */}
           <div className="item-listado print-avoid-break text-center text-[10px] text-neutral-500 border-t border-neutral-200 pt-4">
-            Wedding Hub & Protocol Management System • Generado automáticamente para uso del staff y cortejo oficial.
+            Generado automáticamente para uso del staff y cortejo oficial.
           </div>
 
         </div>
