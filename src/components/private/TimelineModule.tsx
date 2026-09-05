@@ -125,6 +125,24 @@ const TimingIcons = {
   ),
 };
 
+const renderDescriptionWithMentions = (text?: string) => {
+  if (!text) return null;
+  const parts = text.split(/(@[\wÀ-ÿ&.'-]+(?:\s+[\wÀ-ÿ&.'-]+)*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('@')) {
+      return (
+        <span
+          key={i}
+          className="font-semibold text-[#2D3748] bg-amber-50/90 px-1.5 py-0.5 rounded border border-amber-200/80 text-[11px] sm:text-xs inline-block my-0.5 mx-0.5"
+        >
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+};
+
 export const TimelineModule: React.FC = () => {
   const {
     appTheme, 
@@ -519,7 +537,7 @@ export const TimelineModule: React.FC = () => {
                             <p className="text-xs sm:text-sm text-[#524B42] mt-0.5 font-sans">
                               <span className="text-[#7A7268]">A cargo de </span>
                               <strong className="font-semibold text-[#2D2A26] group-hover:text-[#2D3748] transition-colors">
-                                {formatAltibajas(item.responsiblePerson)}
+                                {formatAltibajas(extractContactPersonOnly(item.responsiblePerson))}
                               </strong>
                             </p>
                           )}
@@ -534,7 +552,7 @@ export const TimelineModule: React.FC = () => {
                     {/* Description */}
                     {item.description && (
                       <p className="text-xs sm:text-sm text-[#5C554B] mt-1.5 leading-relaxed font-sans">
-                        {item.description}
+                        {renderDescriptionWithMentions(item.description)}
                       </p>
                     )}
 

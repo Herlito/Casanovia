@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { TimelineMilestone } from '../../types';
 import { useWedding } from '../../context/WeddingContext';
-import { formatAltibajas, splitParticipants } from '../../lib/formatUtils';
+import { formatAltibajas, splitParticipants, extractContactPersonOnly } from '../../lib/formatUtils';
 import { 
   X, 
   Clock, 
@@ -18,7 +18,9 @@ import {
   Check, 
   HeartHandshake,
   MapPinned,
-  Briefcase 
+  Briefcase,
+  AtSign,
+  BookmarkCheck
 } from 'lucide-react';
 
 interface MilestoneModalProps {
@@ -36,6 +38,14 @@ interface SuggestionOption {
   formatted: string;
   roleFormatted?: string;
   contactNameOnly?: string;
+}
+
+interface MentionOption {
+  id: string;
+  name: string;
+  role: string;
+  type: 'planner' | 'novios' | 'vendor' | 'guest' | 'role';
+  mentionText: string;
 }
 
 export const MilestoneModal: React.FC<MilestoneModalProps> = ({
@@ -97,6 +107,14 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
   const [suggestionSearch, setSuggestionSearch] = useState('');
   const suggestionsContainerRef = useRef<HTMLDivElement>(null);
 
+  // @ Mention state for Descripción Detallada / Indicaciones
+  const [showMentionDropdown, setShowMentionDropdown] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionStartIndex, setMentionStartIndex] = useState<number>(-1);
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const mentionContainerRef = useRef<HTMLDivElement>(null);
+
   // New location inline adder state
   const [showAddLocationModal, setShowAddLocationModal] = useState(false);
   const [newLocationName, setNewLocationName] = useState('');
@@ -108,6 +126,9 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
       setFormData({
         ...milestoneToEdit,
         location: milestoneToEdit.location || '',
+        responsiblePerson: milestoneToEdit.responsiblePerson
+          ? extractContactPersonOnly(milestoneToEdit.responsiblePerson)
+          : '',
         isProtocolCrucial: Boolean(milestoneToEdit.isProtocolCrucial),
       });
     } else {
@@ -126,6 +147,10 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
     setShowSuggestionsDropdown(false);
     setSelectedSuggestionTab('vendors');
     setSuggestionSearch('');
+    setShowMentionDropdown(false);
+    setMentionQuery('');
+    setMentionStartIndex(-1);
+    setSelectedMentionIndex(0);
     setShowAddLocationModal(false);
     setNewLocationName('');
   }, [milestoneToEdit, isOpen, settings]);
@@ -160,6 +185,12 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
         !suggestionsContainerRef.current.contains(event.target as Node)
       ) {
         setShowSuggestionsDropdown(false);
+      }
+      if (
+        mentionContainerRef.current &&
+        !mentionContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowMentionDropdown(false);
       }
     };
 
@@ -235,25 +266,22 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
       contactNameOnly: `${brideName} & ${groomName}`,
     });
 
-    // 2. Proveedores (Vendors)
+    // 2. Proveedores (Vendors) - En el caso de proveedores, solo mostrar el nombre "Persona de Contacto"
     vendors.forEach((v) => {
       if (v.name || v.contactPerson) {
-        const contactName = v.contactPerson?.trim() ? formatAltibajas(v.contactPerson.trim()) : formatAltibajas(v.name.trim());
+        const contactPersonName = v.contactPerson?.trim() ? formatAltibajas(v.contactPerson.trim()) : '';
         const companyName = v.name?.trim() ? formatAltibajas(v.name.trim()) : '';
+        const displayName = contactPersonName || companyName;
         const roleCategory = v.category?.trim() || 'Proveedor';
-        
-        const formattedFull = v.contactPerson?.trim() && companyName && v.contactPerson.trim().toLowerCase() !== companyName.toLowerCase()
-          ? `${contactName} (${companyName}) [${roleCategory}]`
-          : (companyName ? `${companyName} [${roleCategory}]` : contactName);
 
         list.push({
           id: `sug-vendor-${v.id}`,
-          name: contactName,
-          role: `${roleCategory}${companyName && companyName !== contactName ? ` • ${companyName}` : ''}`,
+          name: displayName,
+          role: `${roleCategory}${companyName && contactPersonName && companyName.toLowerCase() !== contactPersonName.toLowerCase() ? ` • ${companyName}` : ''}`,
           type: 'vendor',
-          formatted: formattedFull,
+          formatted: displayName,
           roleFormatted: roleCategory,
-          contactNameOnly: contactName,
+          contactNameOnly: displayName,
         });
       }
     });
@@ -310,7 +338,16 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
     const sContact = (suggestion.contactNameOnly || '').toLowerCase();
     return currentParticipants.some((p) => {
       const pLower = p.toLowerCase();
-      return pLower === sFormatted || pLower === sName || (sContact && pLower === sContact) || pLower.includes(sName);
+      const pClean = extractContactPersonOnly(p).toLowerCase();
+      return (
+        pLower === sFormatted ||
+        pLower === sName ||
+        (sContact && pLower === sContact) ||
+        pClean === sFormatted ||
+        pClean === sName ||
+        (sContact && pClean === sContact) ||
+        pLower.includes(sName)
+      );
     });
   };
 
@@ -319,11 +356,22 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
     const currentList = splitParticipants(formData.responsiblePerson || '');
 
     // Check if participant is already present
-    const existingIndex = currentList.findIndex(
-      (p) => p.toLowerCase() === textToInsert.toLowerCase() ||
-             p.toLowerCase() === suggestion.name.toLowerCase() ||
-             (suggestion.contactNameOnly && p.toLowerCase() === suggestion.contactNameOnly.toLowerCase())
-    );
+    const existingIndex = currentList.findIndex((p) => {
+      const pLower = p.toLowerCase();
+      const pClean = extractContactPersonOnly(p).toLowerCase();
+      const tLower = textToInsert.toLowerCase();
+      const sName = suggestion.name.toLowerCase();
+      const sContact = (suggestion.contactNameOnly || '').toLowerCase();
+
+      return (
+        pLower === tLower ||
+        pLower === sName ||
+        (sContact && pLower === sContact) ||
+        pClean === tLower ||
+        pClean === sName ||
+        (sContact && pClean === sContact)
+      );
+    });
 
     if (existingIndex >= 0) {
       // Toggle off if already in list
@@ -355,6 +403,234 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
       ...prev,
       responsiblePerson: '',
     }));
+  };
+
+  // Build @ mentions list (Invitados, Proveedores, Roles de cortejo y novios/coordinación)
+  const allMentionsList = useMemo<MentionOption[]>(() => {
+    const list: MentionOption[] = [];
+
+    // 1. Novios & Coordinación
+    const brideName = formatAltibajas(settings.brideName || 'Novia');
+    const groomName = formatAltibajas(settings.groomName || 'Novio');
+    const realPlanner = activeWedding?.plannerName?.trim() || 
+                        activeWedding?.createdByUserName?.trim() || 
+                        (currentUser?.level === 3 ? currentUser.roleTitle || currentUser.username : '');
+    const plannerName = realPlanner ? formatAltibajas(realPlanner) : 'Wedding Planner';
+
+    list.push({
+      id: 'm-bride',
+      name: brideName,
+      role: 'Novia',
+      type: 'novios',
+      mentionText: brideName,
+    });
+
+    list.push({
+      id: 'm-groom',
+      name: groomName,
+      role: 'Novio',
+      type: 'novios',
+      mentionText: groomName,
+    });
+
+    list.push({
+      id: 'm-couple',
+      name: `${brideName} & ${groomName}`,
+      role: 'Novios (Ambos)',
+      type: 'novios',
+      mentionText: `${brideName} & ${groomName}`,
+    });
+
+    list.push({
+      id: 'm-wp',
+      name: plannerName,
+      role: 'Wedding Planner / Coordinación',
+      type: 'planner',
+      mentionText: plannerName,
+    });
+
+    // 2. Roles o Cortejo Frecuentes
+    const defaultRoles = [
+      { id: 'm-role-padres-novia', name: 'Padres de la Novia', role: 'Cortejo de Honor' },
+      { id: 'm-role-padres-novio', name: 'Padres del Novio', role: 'Cortejo de Honor' },
+      { id: 'm-role-padrinos', name: 'Padrinos de Boda', role: 'Protocolo y Brindis' },
+      { id: 'm-role-damas', name: 'Damas de Honor', role: 'Cortejo de Honor' },
+      { id: 'm-role-bestmen', name: 'Best Men / Testigos', role: 'Cortejo / Ceremonia' },
+    ];
+    defaultRoles.forEach((r) => {
+      list.push({
+        id: r.id,
+        name: r.name,
+        role: r.role,
+        type: 'role',
+        mentionText: r.name,
+      });
+    });
+
+    // 3. Proveedores (Vendors: Persona de Contacto y Nombre Comercial)
+    vendors.forEach((v) => {
+      const contactName = v.contactPerson?.trim() ? formatAltibajas(v.contactPerson.trim()) : '';
+      const companyName = v.name?.trim() ? formatAltibajas(v.name.trim()) : '';
+      const category = v.category?.trim() || 'Proveedor';
+
+      if (contactName) {
+        list.push({
+          id: `m-vendor-contact-${v.id}`,
+          name: contactName,
+          role: `${category}${companyName ? ` • ${companyName}` : ''}`,
+          type: 'vendor',
+          mentionText: contactName,
+        });
+      }
+
+      if (companyName && (!contactName || companyName.toLowerCase() !== contactName.toLowerCase())) {
+        list.push({
+          id: `m-vendor-comp-${v.id}`,
+          name: companyName,
+          role: `${category}${contactName ? ` • Contacto: ${contactName}` : ''}`,
+          type: 'vendor',
+          mentionText: companyName,
+        });
+      }
+    });
+
+    // 4. Invitados & Cortejo (Guests)
+    guests.forEach((g) => {
+      const fullName = formatAltibajas(g.fullName);
+      const role = g.protocolRoleTitle || (g.category === 'cortejo_honor' ? 'Cortejo de Honor' : g.category === 'anfitrion' ? 'Anfitrión' : 'Invitado');
+      list.push({
+        id: `m-guest-${g.id}`,
+        name: fullName,
+        role: role,
+        type: 'guest',
+        mentionText: fullName,
+      });
+    });
+
+    return list;
+  }, [guests, vendors, settings, activeWedding, currentUser]);
+
+  // Filter mentions by typed query
+  const filteredMentions = useMemo(() => {
+    const raw = mentionQuery.trim();
+    if (!raw) {
+      return allMentionsList.slice(0, 30);
+    }
+
+    const clean = raw
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    return allMentionsList
+      .filter((item) => {
+        const nName = item.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const nRole = item.role.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const nMention = item.mentionText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return nName.includes(clean) || nRole.includes(clean) || nMention.includes(clean);
+      })
+      .slice(0, 30);
+  }, [allMentionsList, mentionQuery]);
+
+  // Check if cursor is right after an '@' trigger in the description textarea
+  const checkMentionTrigger = (target?: HTMLTextAreaElement) => {
+    const textarea = target || descriptionTextareaRef.current;
+    if (!textarea) return;
+
+    const cursorPos = textarea.selectionStart;
+    const text = textarea.value || '';
+    const textBeforeCursor = text.slice(0, cursorPos);
+
+    // Find the last '@' before cursor
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+    if (lastAtIndex === -1) {
+      setShowMentionDropdown(false);
+      return;
+    }
+
+    // Preceding character must be start of text, whitespace, or punctuation
+    if (lastAtIndex > 0) {
+      const charBefore = textBeforeCursor[lastAtIndex - 1];
+      if (!/[\s(\[,.:;]/.test(charBefore)) {
+        setShowMentionDropdown(false);
+        return;
+      }
+    }
+
+    const query = textBeforeCursor.slice(lastAtIndex + 1);
+
+    // If query contains newline or exceeds reasonable length, don't show mention list
+    if (query.includes('\n') || query.length > 30) {
+      setShowMentionDropdown(false);
+      return;
+    }
+
+    setMentionQuery(query);
+    setMentionStartIndex(lastAtIndex);
+    setSelectedMentionIndex(0);
+    setShowMentionDropdown(true);
+  };
+
+  // Keyboard navigation inside the mention list
+  const handleDescriptionKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!showMentionDropdown || filteredMentions.length === 0) {
+      if (e.key === 'Escape') {
+        setShowMentionDropdown(false);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedMentionIndex((prev) => (prev + 1) % filteredMentions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedMentionIndex((prev) => (prev - 1 + filteredMentions.length) % filteredMentions.length);
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault();
+      const chosen = filteredMentions[selectedMentionIndex];
+      if (chosen) {
+        insertMention(chosen);
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setShowMentionDropdown(false);
+    }
+  };
+
+  // Insert selected mention into description
+  const insertMention = (item: MentionOption) => {
+    const textarea = descriptionTextareaRef.current;
+    const currentText = formData.description || '';
+    const cursorPos = textarea ? textarea.selectionStart : currentText.length;
+    const startIndex = mentionStartIndex >= 0 ? mentionStartIndex : currentText.lastIndexOf('@');
+
+    if (startIndex === -1) {
+      setShowMentionDropdown(false);
+      return;
+    }
+
+    const beforeAt = currentText.slice(0, startIndex);
+    const afterCursor = currentText.slice(cursorPos);
+    const inserted = `@${item.mentionText} `;
+    const updatedText = beforeAt + inserted + afterCursor;
+
+    setFormData((prev) => ({
+      ...prev,
+      description: updatedText,
+    }));
+
+    setShowMentionDropdown(false);
+    setMentionQuery('');
+    setMentionStartIndex(-1);
+
+    const newPos = beforeAt.length + inserted.length;
+    setTimeout(() => {
+      if (descriptionTextareaRef.current) {
+        descriptionTextareaRef.current.focus();
+        descriptionTextareaRef.current.setSelectionRange(newPos, newPos);
+      }
+    }, 10);
   };
 
   if (!isOpen) return null;
@@ -798,17 +1074,118 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
             )}
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-[#524B42] mb-1">
-              Descripción Detallada / Indicaciones
-            </label>
+          <div ref={mentionContainerRef} className="relative">
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-[#524B42]">
+                Descripción Detallada / Indicaciones
+              </label>
+              <span className="text-[11px] text-[#8C8276] flex items-center gap-1">
+                <AtSign className="w-3 h-3 text-[#2D3748]" />
+                <span>Escribe <strong className="text-[#2D3748] font-bold">@</strong> para citar invitados, proveedores o roles</span>
+              </span>
+            </div>
             <textarea
-              rows={2}
+              ref={descriptionTextareaRef}
+              rows={3}
               value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Instrucciones precisas para DJ, fotógrafos, padrinos y coordinadores..."
+              onChange={(e) => {
+                setFormData({ ...formData, description: e.target.value });
+                checkMentionTrigger(e.target);
+              }}
+              onKeyDown={handleDescriptionKeyDown}
+              onClick={(e) => checkMentionTrigger(e.currentTarget)}
+              onKeyUp={(e) => {
+                if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Enter') {
+                  checkMentionTrigger(e.currentTarget);
+                }
+              }}
+              placeholder="Instrucciones precisas para DJ, fotógrafos, padrinos y coordinadores... (ej. Palabras del padre de la novia, Sr @Jorge Lacuta)"
               className="w-full p-2.5 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:border-transparent focus:outline-none"
             />
+
+            {/* Mention Suggestions Popover */}
+            {showMentionDropdown && (
+              <div className="absolute z-40 left-0 right-0 top-full mt-1 bg-[#EBEBEB] rounded-2xl shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-[#D9CEBF] p-2.5 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+                <div className="flex items-center justify-between px-2 py-1 mb-1.5 border-b border-[#D9CEBF]">
+                  <span className="text-[11px] font-bold text-[#524B42] flex items-center gap-1">
+                    <AtSign className="w-3 h-3 text-[#2D3748]" />
+                    <span>Mencionar en indicaciones:</span>
+                  </span>
+                  <span className="text-[10px] text-[#7A7268]">
+                    {filteredMentions.length} opción{filteredMentions.length === 1 ? '' : 'es'} • <kbd className="font-mono bg-[#FAF8F5] px-1 rounded border text-[9px]">Tab/Enter</kbd>
+                  </span>
+                </div>
+
+                {filteredMentions.length === 0 ? (
+                  <div className="py-3 px-2 text-center text-xs text-[#8C8276] italic">
+                    No se encontraron coincidencias para "@{mentionQuery}". Continúa escribiendo o presiona Esc.
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {filteredMentions.map((item, idx) => {
+                      const isSelected = idx === selectedMentionIndex;
+                      return (
+                        <div
+                          key={item.id}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            insertMention(item);
+                          }}
+                          className={`flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#FAF6F0] border border-amber-300 shadow-2xs'
+                              : 'hover:bg-[#FAF8F5]'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2.5 min-w-0 pr-2">
+                            {item.type === 'planner' && (
+                              <span className="w-6 h-6 rounded-md bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-[#2D3748] flex items-center justify-center shrink-0">
+                                <Crown className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                            {item.type === 'novios' && (
+                              <span className="w-6 h-6 rounded-md bg-rose-100 text-rose-800 flex items-center justify-center shrink-0">
+                                <HeartHandshake className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                            {item.type === 'role' && (
+                              <span className="w-6 h-6 rounded-md bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
+                                <BookmarkCheck className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                            {item.type === 'vendor' && (
+                              <span className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                                <Building2 className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                            {item.type === 'guest' && (
+                              <span className="w-6 h-6 rounded-md bg-indigo-100 text-indigo-800 flex items-center justify-center shrink-0">
+                                <User className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-[#2D2A26] truncate">
+                                {item.name}
+                              </p>
+                              <span className="text-[10px] text-[#7A7268] block truncate">
+                                {item.role}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-1 shrink-0">
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#FAF8F5] border border-[#D9CEBF] text-[#2D3748] font-mono font-medium">
+                              @{item.mentionText}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
