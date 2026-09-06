@@ -31,7 +31,8 @@ import {
   Link as LinkIcon,
   Tag,
   AlertCircle,
-  Palette
+  Palette,
+  Maximize2
 } from 'lucide-react';
 import { FloorPlanElement, FloorPlanElementType, FloorPlanSeat, WeddingTable, Guest } from '../../types';
 import { extractTableNumber, isGuestAssignedToTable, normalizeTableText, isColorDark, getContrastTextColor } from './floorPlanSyncUtils';
@@ -41,6 +42,11 @@ interface FloorPlanToolbarProps {
   tables?: WeddingTable[];
   guests?: Guest[];
   elements?: FloorPlanElement[];
+  canvasBackgroundColor?: string;
+  onChangeCanvasBackgroundColor?: (color: string) => void;
+  canvasWidth?: number;
+  canvasHeight?: number;
+  onChangeCanvasDimensions?: (width: number, height: number) => void;
   onAddElement: (type: FloorPlanElementType) => void;
   onAddTableFromWedding?: (table: WeddingTable) => void;
   onLinkTableToElement?: (elementId: string, table: WeddingTable) => void;
@@ -70,7 +76,9 @@ const PRESET_COLORS = [
   { name: 'Terracota Cálido', bg: '#C25E37', text: '#FFFFFF' },
   { name: 'Cobre Oscuro', bg: '#78350F', text: '#FFFFFF' },
 
-  // Rosas, Pasteles y Vinos
+  // Rosas, Pasteles, Rojos y Vinos
+  { name: 'Rojo Alfombra', bg: '#DC2626', text: '#FFFFFF' },
+  { name: 'Rojo Rubí', bg: '#B91C1C', text: '#FFFFFF' },
   { name: 'Rosa Nude', bg: '#FDF2F4', text: '#881337' },
   { name: 'Rosa Blush', bg: '#FCE7F3', text: '#831843' },
   { name: 'Rosa Palo', bg: '#F472B6', text: '#FFFFFF' },
@@ -104,6 +112,11 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
   tables = [],
   guests = [],
   elements = [],
+  canvasBackgroundColor = '#EBEBEB',
+  onChangeCanvasBackgroundColor,
+  canvasWidth,
+  canvasHeight,
+  onChangeCanvasDimensions,
   onAddElement,
   onAddTableFromWedding,
   onLinkTableToElement,
@@ -635,6 +648,22 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                     <Type className="w-3.5 h-3.5" />
                   </div>
                   <span className="font-bold text-[11px] truncate text-gray-800">Texto / Zona</span>
+                </button>
+
+                <button
+                  type="button"
+                  id="btn-add-rug"
+                  onClick={() => onAddElement('rug')}
+                  className="flex items-center space-x-2 p-2 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-left transition-all group cursor-pointer border-none"
+                  title="Agregar Alfombra rectangular (roja por defecto)"
+                >
+                  <div className="w-7 h-7 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-rose-600 flex items-center justify-center shrink-0">
+                    <span className="w-4 h-2.5 rounded-xs bg-red-600 border border-red-700/60 shadow-xs inline-block" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="font-bold text-[11px] truncate text-gray-800 block">Alfombra</span>
+                    <span className="text-[9px] text-red-600 font-semibold block">Roja (rectang.)</span>
+                  </div>
                 </button>
               </div>
             </div>
@@ -1272,8 +1301,117 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             </div>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500 text-xs">
-            Selecciona un elemento en el lienzo para editar sus propiedades.
+          <div className="space-y-4 pt-1">
+            {/* Propiedades del Lienzo */}
+            <div className="p-3.5 bg-[#EBEBEB] rounded-2xl shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] space-y-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-7 h-7 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] flex items-center justify-center text-gray-700 shrink-0">
+                  <Palette className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-gray-800">Color del Lienzo</h4>
+                  <span className="text-[10px] text-gray-500">Color de fondo del espacio de trabajo</span>
+                </div>
+              </div>
+
+              {/* Color Swatch & Custom Hex Input */}
+              <div className="flex items-center space-x-3">
+                <label className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] cursor-pointer hover:scale-105 transition-transform overflow-hidden border border-gray-300/40 shrink-0">
+                  <span
+                    className="w-7 h-7 rounded-xl shadow-[inset_1px_1px_3px_rgba(0,0,0,0.2)]"
+                    style={{ backgroundColor: canvasBackgroundColor }}
+                  />
+                  <input
+                    type="color"
+                    value={canvasBackgroundColor}
+                    onChange={(e) => onChangeCanvasBackgroundColor?.(e.target.value)}
+                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                    title="Elegir color personalizado para el lienzo"
+                  />
+                </label>
+                <div className="flex-1">
+                  <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">Código Hex</span>
+                  <input
+                    type="text"
+                    value={canvasBackgroundColor}
+                    onChange={(e) => onChangeCanvasBackgroundColor?.(e.target.value)}
+                    className="w-full text-xs font-mono font-bold text-gray-800 bg-[#EBEBEB] rounded-xl px-2.5 py-1.5 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] border-none focus:outline-hidden"
+                    placeholder="#EBEBEB"
+                  />
+                </div>
+              </div>
+
+              {/* Paleta rápida de colores para el lienzo */}
+              <div>
+                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Colores Sugeridos</span>
+                <div className="grid grid-cols-6 gap-2">
+                  {[
+                    { color: '#EBEBEB', label: 'Gris Neumórfico' },
+                    { color: '#FFFFFF', label: 'Blanco Puro' },
+                    { color: '#FAF8F5', label: 'Marfil Suave' },
+                    { color: '#F3F4F6', label: 'Perla / Lino' },
+                    { color: '#E5E0D8', label: 'Arena / Avena' },
+                    { color: '#FEF3C7', label: 'Champán Cálido' },
+                    { color: '#DC2626', label: 'Rojo Alfombra' },
+                    { color: '#B91C1C', label: 'Rojo Carmesí' },
+                    { color: '#1E293B', label: 'Pizarra Oscura' },
+                    { color: '#1F2937', label: 'Gris Grafito' },
+                    { color: '#0F172A', label: 'Azul Noche' },
+                    { color: '#111827', label: 'Negro Ébano' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.color}
+                      type="button"
+                      onClick={() => onChangeCanvasBackgroundColor?.(preset.color)}
+                      className={`w-7 h-7 rounded-xl transition-all flex items-center justify-center cursor-pointer border-none ${
+                        canvasBackgroundColor.toLowerCase() === preset.color.toLowerCase()
+                          ? 'shadow-[inset_2px_2px_4px_rgba(0,0,0,0.35)] ring-2 ring-gray-800 scale-105'
+                          : 'shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: preset.color }}
+                      title={preset.label}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Dimensiones del Lienzo */}
+            {canvasWidth && canvasHeight && onChangeCanvasDimensions && (
+              <div className="p-3.5 bg-[#EBEBEB] rounded-2xl shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] space-y-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-7 h-7 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] flex items-center justify-center text-gray-700 shrink-0">
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </div>
+                  <h4 className="text-xs font-bold text-gray-800">Tamaño del Lienzo</h4>
+                </div>
+                <div className="flex items-center space-x-2 pt-1">
+                  <div className="flex-1">
+                    <span className="text-[9px] text-gray-500 font-semibold block mb-0.5">Ancho (px)</span>
+                    <input
+                      type="number"
+                      value={canvasWidth}
+                      onChange={(e) => onChangeCanvasDimensions(Number(e.target.value) || 1600, canvasHeight)}
+                      className="w-full text-xs font-bold text-gray-800 bg-[#EBEBEB] rounded-xl px-2 py-1.5 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] border-none focus:outline-hidden text-center"
+                    />
+                  </div>
+                  <span className="text-gray-400 font-bold pt-3.5">×</span>
+                  <div className="flex-1">
+                    <span className="text-[9px] text-gray-500 font-semibold block mb-0.5">Alto (px)</span>
+                    <input
+                      type="number"
+                      value={canvasHeight}
+                      onChange={(e) => onChangeCanvasDimensions(canvasWidth, Number(e.target.value) || 1200)}
+                      className="w-full text-xs font-bold text-gray-800 bg-[#EBEBEB] rounded-xl px-2 py-1.5 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] border-none focus:outline-hidden text-center"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="text-center py-4 px-2 text-gray-500 text-xs">
+              Selecciona una mesa u objeto en el plano para editar sus medidas, rotación, bloqueo o color.
+            </div>
           </div>
         )}
       </div>

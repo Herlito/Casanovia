@@ -356,7 +356,8 @@ function renderCleanFloorPlanCanvas(
       case 'chair_row':
       case 'armchair_luis_xv':
       case 'sofa_1_seat':
-      case 'sofa_2_seat': {
+      case 'sofa_2_seat':
+      case 'rug': {
         ctx.save();
         ctx.translate(elem.x, elem.y);
         ctx.rotate((elem.rotation * Math.PI) / 180);
@@ -385,6 +386,7 @@ function renderCleanFloorPlanCanvas(
         else if (elem.type === 'cake_table') defaultLabel = 'MESA DE TARTA';
         else if (elem.type === 'lounge') defaultLabel = 'ZONA LOUNGE';
         else if (elem.type === 'photo_booth') defaultLabel = 'FOTOMATÓN';
+        else if (elem.type === 'rug') defaultLabel = 'ALFOMBRA';
         else if (elem.type.includes('sofa') || elem.type.includes('armchair')) defaultLabel = 'SILLÓN';
 
         ctx.fillStyle = '#000000';

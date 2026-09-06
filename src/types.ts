@@ -452,7 +452,8 @@ export type FloorPlanElementType =
   | 'chair_row'
   | 'armchair_luis_xv'
   | 'sofa_1_seat'
-  | 'sofa_2_seat';
+  | 'sofa_2_seat'
+  | 'rug';
 
 export interface FloorPlanSeat {
   id: string;
@@ -509,6 +510,7 @@ export interface WeddingFloorPlan {
   gridSize: number;
   canvasWidth: number;
   canvasHeight: number;
+  canvasBackgroundColor?: string;
   notes?: string;
   updatedAt: string;
   updatedBy?: string;

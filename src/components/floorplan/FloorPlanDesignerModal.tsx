@@ -27,7 +27,8 @@ import {
   Users,
   Redo2,
   AlertCircle,
-  AlertTriangle
+  AlertTriangle,
+  Palette
 } from 'lucide-react';
 import { useWedding } from '../../context/WeddingContext';
 import {
@@ -93,6 +94,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   const [gridSize, setGridSize] = useState<number>(30);
   const [canvasWidth, setCanvasWidth] = useState<number>(1600);
   const [canvasHeight, setCanvasHeight] = useState<number>(1200);
+  const [canvasBackgroundColor, setCanvasBackgroundColor] = useState<string>('#EBEBEB');
 
   // Mobile sidebar toggles
   const [showLeftSidebar, setShowLeftSidebar] = useState<boolean>(window.innerWidth > 768);
@@ -288,6 +290,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           if (loadedData.gridSize) setGridSize(loadedData.gridSize);
           if (loadedData.canvasWidth) setCanvasWidth(loadedData.canvasWidth);
           if (loadedData.canvasHeight) setCanvasHeight(loadedData.canvasHeight);
+          if (loadedData.canvasBackgroundColor) setCanvasBackgroundColor(loadedData.canvasBackgroundColor);
         } else {
           // NO saved plan
           setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
@@ -606,6 +609,22 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           color: '#FFFFFF',
           textColor: '#2D2A26',
           zIndex: 6,
+        };
+        break;
+      case 'rug':
+        newElem = {
+          id: newId,
+          type: 'rug',
+          name: 'Alfombra',
+          x: spawnX,
+          y: spawnY,
+          width: 220,
+          height: 120,
+          rotation: 0,
+          seats: [],
+          color: '#DC2626', // Red by default as requested
+          textColor: '#FFFFFF',
+          zIndex: 1,
         };
         break;
       default:
@@ -1199,6 +1218,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       gridSize,
       canvasWidth,
       canvasHeight,
+      canvasBackgroundColor,
       updatedAt: new Date().toISOString(),
     };
 
@@ -1240,6 +1260,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       gridSize,
       canvasWidth,
       canvasHeight,
+      canvasBackgroundColor,
       updatedAt: new Date().toISOString(),
     };
 
@@ -1321,6 +1342,28 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
                 className="w-14 h-6 px-1 text-xs bg-[#EBEBEB] rounded-lg shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800 focus:outline-hidden text-center border-none"
                 title="Alto del lienzo (px)"
               />
+            </div>
+
+            {/* Canvas Background Color Editor */}
+            <div 
+              className="hidden md:flex items-center space-x-1.5 bg-[#EBEBEB] px-2.5 py-1 rounded-2xl shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]"
+              title="Color de fondo del lienzo"
+            >
+              <Palette className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+              <span className="text-[10px] font-bold text-gray-500 uppercase">Fondo</span>
+              <label className="relative flex items-center justify-center w-5 h-5 rounded-full cursor-pointer hover:scale-110 transition-transform shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] overflow-hidden border border-gray-300 shrink-0">
+                <span
+                  className="w-full h-full block"
+                  style={{ backgroundColor: canvasBackgroundColor }}
+                />
+                <input
+                  type="color"
+                  value={canvasBackgroundColor}
+                  onChange={(e) => setCanvasBackgroundColor(e.target.value)}
+                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                  title="Seleccionar color de fondo del lienzo"
+                />
+              </label>
             </div>
           </div>
         </div>
@@ -1692,6 +1735,23 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           >
             <Magnet className="w-4 h-4" />
           </button>
+          <div className="w-px h-5 bg-gray-300 mx-1" />
+          <label
+            className="p-2 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all flex items-center justify-center cursor-pointer relative"
+            title="Cambiar color del lienzo"
+          >
+            <span
+              className="w-4 h-4 rounded-full border border-gray-400/60 shadow-xs"
+              style={{ backgroundColor: canvasBackgroundColor }}
+            />
+            <input
+              type="color"
+              value={canvasBackgroundColor}
+              onChange={(e) => setCanvasBackgroundColor(e.target.value)}
+              className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+              title="Color de fondo del lienzo"
+            />
+          </label>
         </div>
 
         {/* Left Sidebar: Furniture & Properties */}
@@ -1701,6 +1761,14 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           tables={tables}
           guests={guests}
           elements={elements}
+          canvasBackgroundColor={canvasBackgroundColor}
+          onChangeCanvasBackgroundColor={setCanvasBackgroundColor}
+          canvasWidth={canvasWidth}
+          canvasHeight={canvasHeight}
+          onChangeCanvasDimensions={(w, h) => {
+            setCanvasWidth(w);
+            setCanvasHeight(h);
+          }}
           onAddElement={handleAddElement}
           onAddTableFromWedding={handleAddTableFromWedding}
           onLinkTableToElement={handleLinkTableToElement}
@@ -1766,6 +1834,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             setPan={setPan}
             canvasWidth={canvasWidth}
             canvasHeight={canvasHeight}
+            canvasBackgroundColor={canvasBackgroundColor}
             draggedGuest={draggedGuest}
             guests={guests}
             onSeatClick={(elemId, seat, pos) => {

@@ -30,6 +30,7 @@ interface FloorPlanCanvasProps {
   setPan: (p: { x: number; y: number } | ((prev: { x: number; y: number }) => { x: number; y: number })) => void;
   canvasWidth: number;
   canvasHeight: number;
+  canvasBackgroundColor?: string;
   canvasRotation?: number;
   draggedGuest: Guest | null;
   guests?: Guest[];
@@ -53,6 +54,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
   setPan,
   canvasWidth,
   canvasHeight,
+  canvasBackgroundColor = '#EBEBEB',
   backgroundImageUrl,
   backgroundOpacity = 0.85,
   draggedGuest,
@@ -268,26 +270,32 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     ctx.translate(-width / 2, -height / 2);
     ctx.scale(zoom, zoom);
 
-    // 1. Draw PDF Background / Blueprint image
+    // 1. Draw Canvas Work Area Surface & Background
+    const bgColor = canvasBackgroundColor || '#EBEBEB';
+    const isDarkBg = isColorDark(bgColor);
+
+    // Canvas work area surface:
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // Outline around the canvas sheet
+    ctx.strokeStyle = isDarkBg ? 'rgba(255, 255, 255, 0.3)' : '#D1D1D1';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+
+    // Draw PDF Background / Blueprint image if present
     if (bgImageRef.current) {
       ctx.save();
       ctx.globalAlpha = backgroundOpacity;
       ctx.drawImage(bgImageRef.current, 0, 0, canvasWidth, canvasHeight);
       ctx.restore();
-    } else {
-      // Draw canvas bounds
-      ctx.fillStyle = '#EBEBEB';
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-      ctx.strokeStyle = '#D1D1D1';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
     }
 
     // 2. Draw Grid Lines
     const step = gridSize || 40;
     ctx.save();
     ctx.lineWidth = 0.5;
-    ctx.strokeStyle = 'rgba(180, 180, 180, 0.25)';
+    ctx.strokeStyle = isDarkBg ? 'rgba(255, 255, 255, 0.18)' : 'rgba(180, 180, 180, 0.25)';
     for (let x = 0; x <= canvasWidth; x += step) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
@@ -794,6 +802,74 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(`📸 ${elem.name || 'CABINA'}`, 0, 0);
+          break;
+        }
+
+        case 'rug': {
+          const w = elem.width;
+          const h = elem.height;
+          const rugColor = elem.color || '#DC2626';
+
+          // 1. Soft Shadow
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 3;
+          ctx.shadowOffsetY = 3;
+          ctx.shadowBlur = 8;
+          ctx.fillStyle = rugColor;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 6);
+          ctx.fill();
+          ctx.restore();
+
+          // 2. Decorative carpet inner border (stitching / frame)
+          ctx.save();
+          ctx.strokeStyle = isColorDark(rugColor) ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.25)';
+          ctx.lineWidth = 1.2;
+          ctx.setLineDash([5, 4]);
+          const inset = 7;
+          if (w > inset * 2 && h > inset * 2) {
+            ctx.beginPath();
+            ctx.roundRect(-w / 2 + inset, -h / 2 + inset, w - inset * 2, h - inset * 2, 3);
+            ctx.stroke();
+          }
+          ctx.restore();
+
+          // 3. Fringe detail at the ends (fringes / flecos de alfombra)
+          ctx.save();
+          ctx.strokeStyle = isColorDark(rugColor) ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.35)';
+          ctx.lineWidth = 1;
+          const fringeCount = Math.min(12, Math.floor(h / 6));
+          const stepY = h / (fringeCount + 1);
+          for (let i = 1; i <= fringeCount; i++) {
+            const fy = -h / 2 + i * stepY;
+            // Left fringe
+            ctx.beginPath();
+            ctx.moveTo(-w / 2, fy);
+            ctx.lineTo(-w / 2 - 3.5, fy);
+            ctx.stroke();
+            // Right fringe
+            ctx.beginPath();
+            ctx.moveTo(w / 2, fy);
+            ctx.lineTo(w / 2 + 3.5, fy);
+            ctx.stroke();
+          }
+          ctx.restore();
+
+          // 4. Outer border (highlighted if selected)
+          ctx.strokeStyle = isSelected ? '#1F2937' : 'rgba(0, 0, 0, 0.2)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 6);
+          ctx.stroke();
+
+          // 5. Name Label
+          const effectiveTextColor = elem.textColor || (isColorDark(rugColor) ? '#FFFFFF' : '#1F2937');
+          ctx.fillStyle = effectiveTextColor;
+          ctx.font = 'bold 11px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(elem.name || 'ALFOMBRA', 0, 0);
           break;
         }
 
