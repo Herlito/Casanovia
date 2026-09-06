@@ -722,13 +722,20 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
   const handleUpdateElement = (id: string, updates: Partial<FloorPlanElement>) => {
     setElements((prev) =>
-      prev.map((elem) => (elem.id === id ? { ...elem, ...updates } : elem))
+      prev.map((elem) => {
+        if (elem.id !== id) return elem;
+        // Si el objeto está bloqueado, rechazar cualquier cambio salvo conmutar el bloqueo (isLocked)
+        if (elem.isLocked && updates.isLocked === undefined) {
+          return elem;
+        }
+        return { ...elem, ...updates };
+      })
     );
   };
 
   const handleDuplicateElement = (id: string) => {
     const elem = elements.find((e) => e.id === id);
-    if (!elem) return;
+    if (!elem || elem.isLocked) return;
 
     const newId = `elem_${elem.type}_${Date.now()}`;
     const isTable = elem.type === 'round_table' || elem.type === 'rectangular_table';
@@ -791,6 +798,8 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   };
 
   const handleDeleteElement = (id: string) => {
+    const elem = elements.find((e) => e.id === id);
+    if (elem?.isLocked) return;
     setElements((prev) => prev.filter((e) => e.id !== id));
     if (selectedElementId === id) {
       setSelectedElementId(null);
@@ -798,11 +807,15 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   };
 
   const handleBringToFront = (id: string) => {
+    const elem = elements.find((e) => e.id === id);
+    if (elem?.isLocked) return;
     const maxZ = Math.max(...elements.map((e) => e.zIndex || 0), 0);
     handleUpdateElement(id, { zIndex: maxZ + 1 });
   };
 
   const handleSendToBack = (id: string) => {
+    const elem = elements.find((e) => e.id === id);
+    if (elem?.isLocked) return;
     const minZ = Math.min(...elements.map((e) => e.zIndex || 0), 0);
     handleUpdateElement(id, { zIndex: minZ - 1 });
   };
@@ -887,9 +900,20 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
         // Duplicar con Ctrl+D / Cmd+D
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
-          e.preventDefault();
-          handleDuplicateElement(selectedElementId);
-          return;
+          if (selectedObj && !selectedObj.isLocked) {
+            e.preventDefault();
+            handleDuplicateElement(selectedElementId);
+            return;
+          }
+        }
+
+        // Bloquear / Desbloquear con tecla L
+        if (e.key.toLowerCase() === 'l' && !e.ctrlKey && !e.metaKey) {
+          if (selectedObj) {
+            e.preventDefault();
+            handleUpdateElement(selectedElementId, { isLocked: !selectedObj.isLocked });
+            return;
+          }
         }
 
         // Deseleccionar con Escape

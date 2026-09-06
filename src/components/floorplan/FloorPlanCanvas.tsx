@@ -7,6 +7,7 @@ import {
   FloorPlanScaleCalibration
 } from '../../types';
 import { checkFloorPlanElementCapacityForGroup, isColorDark, getContrastTextColor } from './floorPlanSyncUtils';
+import { Lock, Unlock } from 'lucide-react';
 
 interface FloorPlanCanvasProps {
   elements: FloorPlanElement[];
@@ -1020,7 +1021,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
       }
 
       // 5. Draw Selection Handles & Rotation Anchor if Selected
-      if (isSelected && !elem.isLocked) {
+      if (isSelected) {
         ctx.save();
         ctx.translate(elem.x, elem.y);
         ctx.rotate((elem.rotation * Math.PI) / 180);
@@ -1028,45 +1029,110 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         const boundW = elem.type === 'round_table' ? (elem.radius || 60) * 2 + 50 : elem.width + 45;
         const boundH = elem.type === 'round_table' ? (elem.radius || 60) * 2 + 50 : elem.height + 45;
 
-        // Bounding dash box
-        ctx.strokeStyle = '#2D3748';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
-        ctx.strokeRect(-boundW / 2, -boundH / 2, boundW, boundH);
-        ctx.setLineDash([]);
+        if (elem.isLocked) {
+          // Bounding dash box in amber for locked item
+          ctx.strokeStyle = '#D97706';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          ctx.strokeRect(-boundW / 2, -boundH / 2, boundW, boundH);
+          ctx.setLineDash([]);
 
-        // Rotation Handle (top)
-        const rotHandleY = -boundH / 2 - 25;
-        ctx.beginPath();
-        ctx.moveTo(0, -boundH / 2);
-        ctx.lineTo(0, rotHandleY);
-        ctx.strokeStyle = '#2D3748';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+          // Lock badge in top-right corner of selection box
+          const badgeX = boundW / 2;
+          const badgeY = -boundH / 2;
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,0.2)';
+          ctx.shadowBlur = 4;
+          ctx.fillStyle = '#FEF3C7';
+          ctx.strokeStyle = '#D97706';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(badgeX, badgeY, 11, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
 
-        ctx.fillStyle = '#2D3748';
-        ctx.beginPath();
-        ctx.arc(0, rotHandleY, 6, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+          // Padlock body
+          ctx.fillStyle = '#B45309';
+          ctx.beginPath();
+          ctx.rect(badgeX - 4, badgeY - 1, 8, 7);
+          ctx.fill();
 
-        // Corner Resize Handles
-        const handles = [
-          { x: -boundW / 2, y: -boundH / 2 },
-          { x: boundW / 2, y: -boundH / 2 },
-          { x: boundW / 2, y: boundH / 2 },
-          { x: -boundW / 2, y: boundH / 2 },
-        ];
+          // Padlock shackle
+          ctx.strokeStyle = '#B45309';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(badgeX, badgeY - 2, 3, Math.PI, 0);
+          ctx.stroke();
+        } else {
+          // Normal bounding dash box
+          ctx.strokeStyle = '#2D3748';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.strokeRect(-boundW / 2, -boundH / 2, boundW, boundH);
+          ctx.setLineDash([]);
 
-        handles.forEach((h) => {
-          ctx.fillStyle = '#FFFFFF';
+          // Rotation Handle (top)
+          const rotHandleY = -boundH / 2 - 25;
+          ctx.beginPath();
+          ctx.moveTo(0, -boundH / 2);
+          ctx.lineTo(0, rotHandleY);
           ctx.strokeStyle = '#2D3748';
           ctx.lineWidth = 1.5;
-          ctx.fillRect(h.x - 4, h.y - 4, 8, 8);
-          ctx.strokeRect(h.x - 4, h.y - 4, 8, 8);
-        });
+          ctx.stroke();
+
+          ctx.fillStyle = '#2D3748';
+          ctx.beginPath();
+          ctx.arc(0, rotHandleY, 6, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Corner Resize Handles
+          const handles = [
+            { x: -boundW / 2, y: -boundH / 2 },
+            { x: boundW / 2, y: -boundH / 2 },
+            { x: boundW / 2, y: boundH / 2 },
+            { x: -boundW / 2, y: boundH / 2 },
+          ];
+
+          handles.forEach((h) => {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.strokeStyle = '#2D3748';
+            ctx.lineWidth = 1.5;
+            ctx.fillRect(h.x - 4, h.y - 4, 8, 8);
+            ctx.strokeRect(h.x - 4, h.y - 4, 8, 8);
+          });
+        }
+
+        ctx.restore();
+      } else if (elem.isLocked) {
+        // Even when unselected, display a small lock badge in upper-right
+        ctx.save();
+        ctx.translate(elem.x, elem.y);
+        ctx.rotate((elem.rotation * Math.PI) / 180);
+
+        const boundW = elem.type === 'round_table' ? (elem.radius || 60) * 2 : elem.width;
+        const boundH = elem.type === 'round_table' ? (elem.radius || 60) * 2 : elem.height;
+        const badgeX = boundW / 2;
+        const badgeY = -boundH / 2;
+
+        ctx.fillStyle = '#FEF3C7';
+        ctx.strokeStyle = '#D97706';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(badgeX, badgeY, 8, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#B45309';
+        ctx.fillRect(badgeX - 3, badgeY - 1, 6, 5);
+        ctx.strokeStyle = '#B45309';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(badgeX, badgeY - 1.5, 2.2, Math.PI, 0);
+        ctx.stroke();
 
         ctx.restore();
       }
@@ -1498,6 +1564,8 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
   // Tooltip screen position for hovered chair
   const hoveredSeatScreenPos = hoveredSeat ? worldToScreen(hoveredSeat.x, hoveredSeat.y) : null;
+  const selectedElem = elements.find((el) => el.id === selectedElementId);
+  const selectedElemScreenPos = selectedElem ? worldToScreen(selectedElem.x, selectedElem.y) : null;
 
   return (
     <div
@@ -1551,6 +1619,54 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
               </p>
             </>
           )}
+        </div>
+      )}
+
+      {/* Interactive Quick-Action Lock/Unlock Pill directly on Canvas when an element is selected */}
+      {selectedElem && selectedElemScreenPos && (
+        <div
+          style={{
+            left: `${selectedElemScreenPos.x}px`,
+            top: `${
+              selectedElemScreenPos.y -
+              (selectedElem.type === 'round_table'
+                ? ((selectedElem.radius || 60) + 36) * zoom
+                : (selectedElem.height / 2 + 36) * zoom)
+            }px`,
+            transform: 'translate(-50%, -100%)',
+          }}
+          className="absolute z-30 pointer-events-auto flex items-center space-x-1 p-1 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-xs transition-all select-none"
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpdateElement(selectedElem.id, { isLocked: !selectedElem.isLocked });
+            }}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border-none cursor-pointer ${
+              selectedElem.isLocked
+                ? 'bg-[#EBEBEB] text-amber-800 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] hover:bg-amber-100/50'
+                : 'bg-[#EBEBEB] text-gray-700 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+            }`}
+            title={
+              selectedElem.isLocked
+                ? 'Objeto bloqueado. Haz clic para desbloquearlo y poder moverlo o editarlo'
+                : 'Haz clic para bloquear el objeto y evitar que se mueva o cambie de propiedades'
+            }
+          >
+            {selectedElem.isLocked ? (
+              <>
+                <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>Bloqueado</span>
+                <span className="text-[10px] text-amber-700 font-normal pl-0.5">(clic para liberar)</span>
+              </>
+            ) : (
+              <>
+                <Unlock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                <span>Bloquear</span>
+              </>
+            )}
+          </button>
         </div>
       )}
 

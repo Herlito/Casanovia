@@ -653,9 +653,88 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
 
         {selectedElement ? (
           <div className="space-y-3">
+            {/* Bloqueo / Desbloqueo del Objeto */}
+            <div
+              id="element-lock-control"
+              className={`p-3 rounded-2xl transition-all ${
+                selectedElement.isLocked
+                  ? 'bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] border border-amber-300/80'
+                  : 'bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center space-x-2 min-w-0">
+                  <div
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                      selectedElement.isLocked
+                        ? 'bg-amber-500 text-white shadow-[2px_2px_5px_#d97706]'
+                        : 'bg-[#EBEBEB] text-gray-600 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff]'
+                    }`}
+                  >
+                    {selectedElement.isLocked ? (
+                      <Lock className="w-4 h-4" />
+                    ) : (
+                      <Unlock className="w-4 h-4" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[11px] font-bold text-gray-800 leading-tight truncate">
+                      {selectedElement.isLocked ? 'Objeto Bloqueado' : 'Objeto Desbloqueado'}
+                    </span>
+                    <span className="block text-[9px] text-gray-500 truncate">
+                      {selectedElement.isLocked
+                        ? 'Inmóvil y protegido de cambios'
+                        : 'Permite mover y modificar'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  id="btn-toggle-element-lock"
+                  onClick={() =>
+                    onUpdateElement(selectedElement.id, {
+                      isLocked: !selectedElement.isLocked,
+                    })
+                  }
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border-none shrink-0 ${
+                    selectedElement.isLocked
+                      ? 'bg-[#EBEBEB] text-amber-900 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                      : 'bg-[#EBEBEB] text-gray-700 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                  }`}
+                  title={
+                    selectedElement.isLocked
+                      ? 'Desbloquear objeto para moverlo y cambiar sus propiedades'
+                      : 'Bloquear objeto para fijar su posición y evitar cambios'
+                  }
+                >
+                  {selectedElement.isLocked ? (
+                    <>
+                      <Unlock className="w-3.5 h-3.5 text-amber-700" />
+                      <span>Desbloquear</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-3.5 h-3.5 text-gray-600" />
+                      <span>Bloquear</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {selectedElement.isLocked && (
+                <div className="mt-2.5 pt-2 border-t border-amber-300/60 flex items-start space-x-1.5 text-[10px] text-amber-900 leading-snug">
+                  <Lock className="w-3 h-3 shrink-0 mt-0.5 text-amber-700" />
+                  <span>
+                    Este objeto está bloqueado: no se puede mover de su lugar ni modificar sus propiedades mientras permanezca con candado.
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Quick Link to Registered Table (MESAS) */}
             {(selectedElement.type === 'round_table' || selectedElement.type === 'rectangular_table') && (
-              <div className="p-3 rounded-2xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] space-y-1.5">
+              <div className={`p-3 rounded-2xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] space-y-1.5 ${selectedElement.isLocked ? 'opacity-60' : ''}`}>
                 <label className="block text-[10px] font-bold text-gray-500 uppercase flex items-center justify-between">
                   <span className="flex items-center space-x-1">
                     <LinkIcon className="w-3 h-3 text-gray-700" />
@@ -665,6 +744,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 </label>
 
                 <select
+                  disabled={selectedElement.isLocked}
                   value={
                     tables.find(
                       (t) =>
@@ -678,7 +758,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       onLinkTableToElement(selectedElement.id, targetTable);
                     }
                   }}
-                  className="w-full px-3 py-2 bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-2xl text-xs font-semibold text-gray-800 border-none focus:outline-hidden cursor-pointer"
+                  className="w-full px-3 py-2 bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-2xl text-xs font-semibold text-gray-800 border-none focus:outline-hidden cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <option value="">Seleccionar mesa de la boda... ▼</option>
                   {tables.map((t) => (
@@ -691,7 +771,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             )}
 
             {/* Nombre */}
-            <div>
+            <div className={selectedElement.isLocked ? 'opacity-60' : ''}>
               <div className="flex justify-between items-center mb-1">
                 <label className="block text-[10px] font-bold text-gray-500 uppercase">
                   Nombre / Identificador
@@ -701,13 +781,14 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   <div className="relative">
                     <input
                       type="color"
+                      disabled={selectedElement.isLocked}
                       value={selectedElement.textColor || (isColorDark(selectedElement.color) ? '#FFFFFF' : '#1F2937')}
                       onChange={(e) => onUpdateElement(selectedElement.id, { textColor: e.target.value })}
-                      className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                      className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10 disabled:cursor-not-allowed"
                     />
                     <div 
                       style={{ backgroundColor: selectedElement.textColor || (isColorDark(selectedElement.color) ? '#FFFFFF' : '#1F2937') }}
-                      className="w-5 h-5 rounded-lg shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] border border-gray-300 hover:scale-110 transition-transform cursor-pointer"
+                      className={`w-5 h-5 rounded-lg shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] border border-gray-300 transition-transform ${selectedElement.isLocked ? 'cursor-not-allowed' : 'hover:scale-110 cursor-pointer'}`}
                     />
                   </div>
                 </div>
@@ -715,9 +796,10 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
               <div className="flex space-x-2">
                 <input
                   type="text"
+                  disabled={selectedElement.isLocked}
                   value={selectedElement.name}
                   onChange={(e) => onUpdateElement(selectedElement.id, { name: e.target.value })}
-                  className={`w-full px-3 py-2 bg-[#EBEBEB] rounded-2xl text-xs font-semibold focus:outline-hidden ${
+                  className={`w-full px-3 py-2 bg-[#EBEBEB] rounded-2xl text-xs font-semibold focus:outline-hidden disabled:cursor-not-allowed ${
                     isDuplicateName
                       ? 'shadow-[inset_3px_3px_6px_#fca5a5,inset_-3px_-3px_6px_#ffffff] text-rose-900 border border-rose-400'
                       : 'shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-800 border-none'
@@ -738,10 +820,13 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   <button
                     key={tc.color}
                     type="button"
+                    disabled={selectedElement.isLocked}
                     title={`Texto ${tc.name}`}
                     onClick={() => onUpdateElement(selectedElement.id, { textColor: tc.color })}
                     style={{ backgroundColor: tc.color }}
-                    className={`w-4 h-4 rounded-full border border-gray-300 shadow-[1px_1px_2px_#d1d1d1,-1px_-1px_2px_#ffffff] hover:scale-125 transition-transform cursor-pointer ${
+                    className={`w-4 h-4 rounded-full border border-gray-300 shadow-[1px_1px_2px_#d1d1d1,-1px_-1px_2px_#ffffff] transition-transform disabled:cursor-not-allowed ${
+                      !selectedElement.isLocked ? 'hover:scale-125 cursor-pointer' : ''
+                    } ${
                       (selectedElement.textColor === tc.color || (!selectedElement.textColor && tc.color === (isColorDark(selectedElement.color) ? '#FFFFFF' : '#1F2937')))
                         ? 'ring-2 ring-gray-700 ring-offset-1 ring-offset-[#EBEBEB]'
                         : ''
@@ -757,15 +842,15 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
               )}
             </div>
 
-
             {/* Número de Mesa si aplica */}
             {(selectedElement.type === 'round_table' || selectedElement.type === 'rectangular_table') && (
-              <div>
+              <div className={selectedElement.isLocked ? 'opacity-60' : ''}>
                 <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">
                   Número de Mesa
                 </label>
                 <input
                   type="number"
+                  disabled={selectedElement.isLocked}
                   min="1"
                   max="99"
                   value={selectedElement.tableNumber || ''}
@@ -775,7 +860,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       tableNumber: isNaN(parsed) ? undefined : parsed,
                     });
                   }}
-                  className={`w-full px-3 py-2 bg-[#EBEBEB] rounded-2xl text-xs font-semibold focus:outline-hidden ${
+                  className={`w-full px-3 py-2 bg-[#EBEBEB] rounded-2xl text-xs font-semibold focus:outline-hidden disabled:cursor-not-allowed ${
                     isDuplicateNumber
                       ? 'shadow-[inset_3px_3px_6px_#fca5a5,inset_-3px_-3px_6px_#ffffff] text-rose-900 border border-rose-400'
                       : 'shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-800 border-none'
@@ -791,7 +876,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             )}
             {/* Slider de Asientos para Mesa Redonda */}
             {selectedElement.type === 'round_table' && (
-              <div>
+              <div className={selectedElement.isLocked ? 'opacity-60' : ''}>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-[10px] font-bold text-gray-500 uppercase">
                     Número de Asientos
@@ -802,12 +887,13 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 </div>
                 <input
                   type="range"
+                  disabled={selectedElement.isLocked}
                   min="2"
                   max="12"
                   step="1"
                   value={selectedElement.seats.length}
                   onChange={(e) => handleSeatCountChange(parseInt(e.target.value))}
-                  className="w-full accent-gray-700 cursor-pointer"
+                  className="w-full accent-gray-700 cursor-pointer disabled:cursor-not-allowed"
                 />
                 <div className="flex justify-between text-[9px] text-gray-500 px-1">
                   <span>2</span>
@@ -821,7 +907,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             )}
             {/* Configuración de Asientos para Mesa Rectangular */}
             {selectedElement.type === 'rectangular_table' && (
-              <div className="space-y-3">
+              <div className={`space-y-3 ${selectedElement.isLocked ? 'opacity-60' : ''}`}>
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="text-[10px] font-bold text-gray-500 uppercase">
@@ -835,6 +921,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   </div>
                   <input
                     type="range"
+                    disabled={selectedElement.isLocked}
                     min="0"
                     max="8"
                     step="1"
@@ -847,15 +934,18 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                         selectedElement.seatsHead !== undefined ? selectedElement.seatsHead : 1
                       );
                     }}
-                    className="w-full accent-gray-700 cursor-pointer mb-2"
+                    className="w-full accent-gray-700 cursor-pointer mb-2 disabled:cursor-not-allowed"
                   />
                   <div className="grid grid-cols-2 gap-2">
                     {[-1, -2].map((longSide) => (
                       <button
                         key={longSide}
                         type="button"
+                        disabled={selectedElement.isLocked}
                         onClick={() => handleRectSeatsChange(longSide, 0)}
-                        className={`py-1.5 rounded-xl text-[10px] font-semibold cursor-pointer border-none transition-all ${
+                        className={`py-1.5 rounded-xl text-[10px] font-semibold border-none transition-all disabled:cursor-not-allowed ${
+                          !selectedElement.isLocked ? 'cursor-pointer' : ''
+                        } ${
                           selectedElement.seatsLongSide === longSide
                             ? 'bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900 font-bold'
                             : 'bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] text-gray-700'
@@ -882,11 +972,14 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       <button
                         key={head}
                         type="button"
+                        disabled={selectedElement.isLocked}
                         onClick={() => {
                           const currentLong = selectedElement.seatsLongSide !== undefined ? selectedElement.seatsLongSide : 3;
                           handleRectSeatsChange(currentLong === 0 && head === 0 ? 1 : currentLong, head);
                         }}
-                        className={`py-1.5 rounded-xl text-[10px] font-semibold cursor-pointer border-none transition-all ${
+                        className={`py-1.5 rounded-xl text-[10px] font-semibold border-none transition-all disabled:cursor-not-allowed ${
+                          !selectedElement.isLocked ? 'cursor-pointer' : ''
+                        } ${
                           (selectedElement.seatsHead !== undefined ? selectedElement.seatsHead : 1) === head
                             ? 'bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900 font-bold'
                             : 'bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] text-gray-700'
@@ -901,7 +994,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             )}
             {/* Diámetro / Dimensiones */}
             {selectedElement.type === 'round_table' || selectedElement.type === 'cake_table' ? (
-              <div>
+              <div className={selectedElement.isLocked ? 'opacity-60' : ''}>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-[10px] font-bold text-gray-500 uppercase">
                     Diámetro (px)
@@ -912,6 +1005,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 </div>
                 <input
                   type="range"
+                  disabled={selectedElement.isLocked}
                   min="60"
                   max="240"
                   step="5"
@@ -921,17 +1015,18 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       radius: parseInt(e.target.value) / 2,
                     })
                   }
-                  className="w-full accent-gray-700 cursor-pointer"
+                  className="w-full accent-gray-700 cursor-pointer disabled:cursor-not-allowed"
                 />
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
+              <div className={`grid grid-cols-2 gap-2 ${selectedElement.isLocked ? 'opacity-60' : ''}`}>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">
                     Ancho (px)
                   </label>
                   <input
                     type="number"
+                    disabled={selectedElement.isLocked}
                     min="30"
                     max="600"
                     value={selectedElement.width}
@@ -940,7 +1035,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                         width: parseInt(e.target.value) || 50,
                       })
                     }
-                    className="w-full px-3 py-2 bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-2xl text-xs font-mono text-gray-800 border-none focus:outline-hidden"
+                    className="w-full px-3 py-2 bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-2xl text-xs font-mono text-gray-800 border-none focus:outline-hidden disabled:cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -949,6 +1044,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   </label>
                   <input
                     type="number"
+                    disabled={selectedElement.isLocked}
                     min="30"
                     max="600"
                     value={selectedElement.height}
@@ -957,18 +1053,19 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                         height: parseInt(e.target.value) || 50,
                       })
                     }
-                    className="w-full px-3 py-2 bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-2xl text-xs font-mono text-gray-800 border-none focus:outline-hidden"
+                    className="w-full px-3 py-2 bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-2xl text-xs font-mono text-gray-800 border-none focus:outline-hidden disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
             )}
             {(selectedElement.type === 'chair_row' || selectedElement.type === 'armchair_luis_xv' || selectedElement.type === 'sofa_1_seat' || selectedElement.type === 'sofa_2_seat') && (
-              <div>
+              <div className={selectedElement.isLocked ? 'opacity-60' : ''}>
                 <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">
                   Cantidad de Asientos
                 </label>
                 <input
                   type="number"
+                  disabled={selectedElement.isLocked}
                   min="1"
                   max="20"
                   value={selectedElement.chairCount || 1}
@@ -986,12 +1083,12 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       width: baseW * val
                     });
                   }}
-                  className="w-full px-3 py-2 bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-2xl text-xs font-mono text-gray-800 border-none focus:outline-hidden"
+                  className="w-full px-3 py-2 bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-2xl text-xs font-mono text-gray-800 border-none focus:outline-hidden disabled:cursor-not-allowed"
                 />
               </div>
             )}
             {/* Rotación */}
-            <div>
+            <div className={selectedElement.isLocked ? 'opacity-60' : ''}>
               <div className="flex justify-between items-center mb-1">
                 <label className="text-[10px] font-bold text-gray-500 uppercase">
                   Rotación
@@ -1003,6 +1100,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
               <div className="flex items-center space-x-2">
                 <input
                   type="range"
+                  disabled={selectedElement.isLocked}
                   min="0"
                   max="359"
                   value={selectedElement.rotation || 0}
@@ -1011,16 +1109,17 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                       rotation: parseInt(e.target.value),
                     })
                   }
-                  className="flex-1 accent-gray-700 cursor-pointer"
+                  className="flex-1 accent-gray-700 cursor-pointer disabled:cursor-not-allowed"
                 />
                 <button
                   type="button"
+                  disabled={selectedElement.isLocked}
                   onClick={() =>
                     onUpdateElement(selectedElement.id, {
                       rotation: ((selectedElement.rotation || 0) + 45) % 360,
                     })
                   }
-                  className="p-2 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-xl cursor-pointer text-gray-700 border-none"
+                  className={`p-2 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-xl text-gray-700 border-none disabled:cursor-not-allowed ${!selectedElement.isLocked ? 'cursor-pointer' : ''}`}
                   title="Girar +45°"
                 >
                   <RotateCw className="w-3.5 h-3.5" />
@@ -1028,7 +1127,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
               </div>
             </div>
             {/* Color del Elemento */}
-            <div>
+            <div className={selectedElement.isLocked ? 'opacity-60' : ''}>
               <div className="flex justify-between items-center mb-1.5">
                 <label className="block text-[10px] font-bold text-gray-500 uppercase">
                   Color de Superficie
@@ -1042,6 +1141,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   <button
                     key={idx}
                     type="button"
+                    disabled={selectedElement.isLocked}
                     onClick={() =>
                       onUpdateElement(selectedElement.id, {
                         color: col.bg,
@@ -1050,7 +1150,9 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                     }
                     style={{ backgroundColor: col.bg }}
                     title={col.name}
-                    className={`w-6 h-6 rounded-full shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] transition-transform hover:scale-110 cursor-pointer border border-gray-200/50 ${
+                    className={`w-6 h-6 rounded-full shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] transition-transform border border-gray-200/50 disabled:cursor-not-allowed ${
+                      !selectedElement.isLocked ? 'hover:scale-110 cursor-pointer' : ''
+                    } ${
                       selectedElement.color?.toLowerCase() === col.bg.toLowerCase()
                         ? 'ring-2 ring-gray-700 ring-offset-2 ring-offset-[#EBEBEB] scale-110'
                         : ''
@@ -1071,6 +1173,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                   <div className="relative shrink-0" title="Seleccionar cualquier color en la paleta">
                     <input
                       type="color"
+                      disabled={selectedElement.isLocked}
                       value={selectedElement.color?.startsWith('#') ? selectedElement.color : '#FFFFFF'}
                       onChange={(e) => {
                         const newColor = e.target.value;
@@ -1080,15 +1183,16 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                           textColor: dark ? '#FFFFFF' : '#1F2937',
                         });
                       }}
-                      className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                      className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10 disabled:cursor-not-allowed"
                     />
                     <div
                       style={{ backgroundColor: selectedElement.color || '#FFFFFF' }}
-                      className="w-7 h-7 rounded-xl shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] border border-gray-300 hover:scale-110 transition-transform cursor-pointer"
+                      className={`w-7 h-7 rounded-xl shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] border border-gray-300 transition-transform ${!selectedElement.isLocked ? 'hover:scale-110 cursor-pointer' : 'cursor-not-allowed'}`}
                     />
                   </div>
                   <input
                     type="text"
+                    disabled={selectedElement.isLocked}
                     value={selectedElement.color || '#FFFFFF'}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -1100,7 +1204,7 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                     }}
                     placeholder="#FFFFFF"
                     maxLength={9}
-                    className="w-20 px-2 py-1 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-xl text-[11px] font-mono font-bold text-gray-800 border-none uppercase focus:outline-hidden"
+                    className="w-20 px-2 py-1 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-xl text-[11px] font-mono font-bold text-gray-800 border-none uppercase focus:outline-hidden disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -1109,16 +1213,28 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             <div className="pt-4 flex space-x-2">
               <button
                 type="button"
+                disabled={selectedElement.isLocked}
                 onClick={() => onDuplicateElement(selectedElement.id)}
-                className="flex-1 py-2.5 bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800 rounded-2xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer border-none"
+                className={`flex-1 py-2.5 bg-[#EBEBEB] text-gray-800 rounded-2xl text-xs font-bold transition-all flex items-center justify-center border-none ${
+                  selectedElement.isLocked
+                    ? 'opacity-50 cursor-not-allowed shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                    : 'shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] cursor-pointer'
+                }`}
+                title={selectedElement.isLocked ? 'Desbloquea el objeto para duplicarlo' : 'Duplicar objeto'}
               >
                 <Copy className="w-3.5 h-3.5 mr-1.5" />
                 Duplicar
               </button>
               <button
                 type="button"
+                disabled={selectedElement.isLocked}
                 onClick={() => onDeleteElement(selectedElement.id)}
-                className="flex-1 py-2.5 bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-rose-600 rounded-2xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer border-none"
+                className={`flex-1 py-2.5 bg-[#EBEBEB] text-rose-600 rounded-2xl text-xs font-bold transition-all flex items-center justify-center border-none ${
+                  selectedElement.isLocked
+                    ? 'opacity-50 cursor-not-allowed shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                    : 'shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] cursor-pointer'
+                }`}
+                title={selectedElement.isLocked ? 'Desbloquea el objeto para eliminarlo' : 'Eliminar objeto'}
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                 Eliminar
@@ -1127,18 +1243,28 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
             <div className="flex space-x-2 pt-1">
               <button
                 type="button"
+                disabled={selectedElement.isLocked}
                 onClick={() => onBringToFront(selectedElement.id)}
-                className="flex-1 py-2 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-700 rounded-xl text-[10px] font-bold transition-all flex items-center justify-center cursor-pointer border-none"
-                title="Traer al Frente"
+                className={`flex-1 py-2 bg-[#EBEBEB] text-gray-700 rounded-xl text-[10px] font-bold transition-all flex items-center justify-center border-none ${
+                  selectedElement.isLocked
+                    ? 'opacity-50 cursor-not-allowed shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                    : 'shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] cursor-pointer'
+                }`}
+                title={selectedElement.isLocked ? 'Desbloquea el objeto para cambiar orden' : 'Traer al Frente'}
               >
                 <ArrowUpToLine className="w-3.5 h-3.5 mr-1" />
                 Frente
               </button>
               <button
                 type="button"
+                disabled={selectedElement.isLocked}
                 onClick={() => onSendToBack(selectedElement.id)}
-                className="flex-1 py-2 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-700 rounded-xl text-[10px] font-bold transition-all flex items-center justify-center cursor-pointer border-none"
-                title="Enviar al Fondo"
+                className={`flex-1 py-2 bg-[#EBEBEB] text-gray-700 rounded-xl text-[10px] font-bold transition-all flex items-center justify-center border-none ${
+                  selectedElement.isLocked
+                    ? 'opacity-50 cursor-not-allowed shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                    : 'shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] cursor-pointer'
+                }`}
+                title={selectedElement.isLocked ? 'Desbloquea el objeto para cambiar orden' : 'Enviar al Fondo'}
               >
                 <ArrowDownToLine className="w-3.5 h-3.5 mr-1" />
                 Fondo
