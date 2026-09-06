@@ -158,24 +158,6 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   };
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-        if (e.shiftKey) {
-          handleRedo();
-        } else {
-          handleUndo();
-        }
-      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
-        handleRedo();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  useEffect(() => {
     if (isUndoRedo.current) {
       isUndoRedo.current = false;
       return;
@@ -323,8 +305,6 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     () => elements.find((e) => e.id === selectedElementId) || null,
     [elements, selectedElementId]
   );
-
-  if (!isOpen) return null;
 
   const weddingTitle =
     activeWedding?.coupleNames ||
@@ -827,6 +807,104 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     handleUpdateElement(id, { zIndex: minZ - 1 });
   };
 
+  // Atajos de teclado: Suprimir/Delete para borrar, Flechas de dirección para mover, Ctrl+Z/Y, Ctrl+D duplicar, Escape deseleccionar
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignorar si el usuario está escribiendo en algún campo de formulario
+      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      const isInput =
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        targetTag === 'input' ||
+        targetTag === 'textarea' ||
+        targetTag === 'select' ||
+        (e.target as HTMLElement)?.isContentEditable;
+
+      if (isInput) return;
+
+      // 1. Deshacer (Ctrl+Z / Cmd+Z) y Rehacer (Ctrl+Shift+Z, Ctrl+Y)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
+
+      // 2. Acciones sobre el objeto seleccionado
+      if (selectedElementId) {
+        const selectedObj = elements.find((elem) => elem.id === selectedElementId);
+
+        // Borrar con Suprimir (Delete / Del / Backspace)
+        if (e.key === 'Delete' || e.key === 'Backspace' || e.key === 'Del') {
+          if (selectedObj && !selectedObj.isLocked) {
+            e.preventDefault();
+            handleDeleteElement(selectedElementId);
+            return;
+          }
+        }
+
+        // Mover con las flechas de dirección (ArrowUp, ArrowDown, ArrowLeft, ArrowRight)
+        if (
+          e.key === 'ArrowUp' ||
+          e.key === 'ArrowDown' ||
+          e.key === 'ArrowLeft' ||
+          e.key === 'ArrowRight'
+        ) {
+          if (selectedObj && !selectedObj.isLocked) {
+            e.preventDefault();
+            // Desplazamiento: 20px con Shift, 5px normal, 1px con Alt para micro-ajuste
+            const step = e.shiftKey ? 20 : e.altKey ? 1 : 5;
+            let dx = 0;
+            let dy = 0;
+            if (e.key === 'ArrowLeft') dx = -step;
+            else if (e.key === 'ArrowRight') dx = step;
+            else if (e.key === 'ArrowUp') dy = -step;
+            else if (e.key === 'ArrowDown') dy = step;
+
+            setElements((prev) =>
+              prev.map((el) => {
+                if (el.id !== selectedElementId || el.isLocked) return el;
+                return {
+                  ...el,
+                  x: Math.round(el.x + dx),
+                  y: Math.round(el.y + dy),
+                };
+              })
+            );
+            return;
+          }
+        }
+
+        // Duplicar con Ctrl+D / Cmd+D
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+          e.preventDefault();
+          handleDuplicateElement(selectedElementId);
+          return;
+        }
+
+        // Deseleccionar con Escape
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          setSelectedElementId(null);
+          return;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, selectedElementId, elements]);
+
   // Assign guest to specific seat
   const handleAssignGuestToSeat = async (elementId: string, seatId: string, guest: Guest) => {
     const targetElem = elements.find((e) => e.id === elementId);
@@ -1170,27 +1248,29 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     document.body.removeChild(link);
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#FAF8F5] select-none animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#EBEBEB] select-none animate-in fade-in duration-200">
       
       {/* 1. TOP MASTER HEADER BAR */}
-      <div className={`relative flex flex-col md:flex-row md:items-center justify-between border-b border-transparent bg-[#EBEBEB] shadow-2xs z-[70] transition-all duration-300 ${showMobileTopBar || showExportMenu ? 'h-auto pb-3 md:pb-0 overflow-visible' : 'h-14 overflow-hidden md:overflow-visible'}`}>
+      <div className={`relative flex flex-col md:flex-row md:items-center justify-between bg-[#EBEBEB] z-[70] transition-all duration-300 ${showMobileTopBar || showExportMenu ? 'h-auto pb-3 md:pb-0 overflow-visible' : 'h-14 overflow-hidden md:overflow-visible'}`}>
         
         {/* Mobile Header Row */}
         <div className="flex items-center justify-between h-14 px-4 sm:px-6 w-full md:w-auto shrink-0">
           {/* Left: Brand & Wedding Selector */}
           <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#2D3748] border border-rose-200 flex items-center justify-center font-serif font-bold text-sm shadow-2xs">
+          <div className="w-9 h-9 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-800 flex items-center justify-center font-serif font-bold text-sm">
             {weddingTitle.charAt(0).toUpperCase()}
           </div>
           <div className="flex items-center space-x-4">
             <div>
               <div className="flex items-center space-x-2">
-                <h1 className="font-bold text-xs sm:text-sm text-[#2D2A26] font-serif">
+                <h1 className="font-bold text-xs sm:text-sm text-gray-800 font-serif">
                   {weddingTitle}
                 </h1>
               </div>
-              <div className="flex items-center space-x-2 text-[11px] text-[#8C8276]">
+              <div className="flex items-center space-x-2 text-[11px] text-gray-500">
                 {scaleCalibration.isCalibrated && (
                   <span className="text-emerald-700 font-semibold hidden sm:inline">
                     📏 1m = {scaleCalibration.pixelsPerMeter.toFixed(1)}px
@@ -1200,21 +1280,21 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             </div>
 
             {/* Canvas Dimensions Editor */}
-            <div className="hidden md:flex items-center space-x-2 bg-blue-50 p-1.5 rounded-lg border border-blue-200">
-              <span className="text-[10px] font-bold text-blue-800 uppercase">Lienzo</span>
+            <div className="hidden md:flex items-center space-x-1.5 bg-[#EBEBEB] px-2.5 py-1 rounded-2xl shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]">
+              <span className="text-[10px] font-bold text-gray-500 uppercase">Lienzo</span>
               <input 
                 type="number" 
                 value={canvasWidth}
                 onChange={(e) => setCanvasWidth(Number(e.target.value) || 1600)}
-                className="w-16 h-6 px-1 text-xs border border-blue-300 rounded focus:outline-hidden text-center"
+                className="w-14 h-6 px-1 text-xs bg-[#EBEBEB] rounded-lg shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800 focus:outline-hidden text-center border-none"
                 title="Ancho del lienzo (px)"
               />
-              <span className="text-xs text-blue-500 font-bold">x</span>
+              <span className="text-xs text-gray-400 font-bold">x</span>
               <input 
                 type="number" 
                 value={canvasHeight}
                 onChange={(e) => setCanvasHeight(Number(e.target.value) || 1200)}
-                className="w-16 h-6 px-1 text-xs border border-blue-300 rounded focus:outline-hidden text-center"
+                className="w-14 h-6 px-1 text-xs bg-[#EBEBEB] rounded-lg shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800 focus:outline-hidden text-center border-none"
                 title="Alto del lienzo (px)"
               />
             </div>
@@ -1222,16 +1302,16 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         </div>
         
         {/* Mobile Handle & Close */}
-        <div className="flex items-center space-x-1 md:hidden">
+        <div className="flex items-center space-x-2 md:hidden">
           <button
             onClick={() => setShowMobileTopBar(!showMobileTopBar)}
-            className="p-2 text-[#2D3748] bg-rose-50 rounded-xl transition-colors"
+            className="p-2 text-gray-700 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-2xl transition-all"
           >
             {showMobileTopBar ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
           <button
             onClick={onClose}
-            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-xl transition-colors cursor-pointer"
+            className="p-2 text-gray-600 hover:text-gray-900 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-2xl transition-all cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -1249,7 +1329,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             <button
               onClick={handleUndo}
               disabled={history.past.length <= 1}
-              className="p-1.5 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-[#D9CEBF] text-[#2D2A26] transition-colors shadow-2xs disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+              className="p-1.5 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-700 transition-all disabled:opacity-40 disabled:shadow-none cursor-pointer disabled:cursor-not-allowed border-none"
               title="Deshacer (Ctrl+Z)"
             >
               <Undo2 className="w-4 h-4" />
@@ -1257,7 +1337,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             <button
               onClick={handleRedo}
               disabled={history.future.length === 0}
-              className="p-1.5 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-[#D9CEBF] text-[#2D2A26] transition-colors shadow-2xs disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+              className="p-1.5 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-700 transition-all disabled:opacity-40 disabled:shadow-none cursor-pointer disabled:cursor-not-allowed border-none"
               title="Rehacer (Ctrl+Y)"
             >
               <Redo2 className="w-4 h-4" />
@@ -1265,23 +1345,23 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           </div>
 
           {/* Sync Tables & Guests button */}
-          <div className="flex items-center bg-[#EBEBEB] border border-rose-200 rounded-xl shadow-2xs overflow-hidden">
+          <div className="flex items-center bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] p-0.5 border-none">
             <button
               onClick={() => setSyncConfirmAction('manual')}
-              className={`flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                 syncSuccessNotice
-                  ? 'bg-emerald-50 text-emerald-800'
-                  : 'hover:bg-rose-50 text-[#2D3748]'
+                  ? 'bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-emerald-600'
+                  : 'hover:text-gray-900 active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-700'
               }`}
               title="Sincronizar mesas y asientos con la distribución actual de invitados y acompañantes"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-[#2D3748] ${syncSuccessNotice ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 text-gray-700 ${syncSuccessNotice ? 'animate-spin text-emerald-600' : ''}`} />
               <span className="font-bold">
                 {syncSuccessNotice ? '¡Sincronizado!' : 'Sincronizar Mesas'}
               </span>
             </button>
-            <div className="w-px h-5 bg-rose-100"></div>
-            <label className="flex items-center space-x-1 px-2 py-1.5 cursor-pointer hover:bg-rose-50 transition-colors" title="Sincronización Automática al cargar">
+            <div className="w-px h-5 bg-gray-300"></div>
+            <label className="flex items-center space-x-1 px-2 py-1.5 cursor-pointer rounded-xl transition-colors hover:text-gray-900" title="Sincronización Automática al cargar">
               <input 
                 type="checkbox" 
                 checked={autoSync}
@@ -1292,9 +1372,9 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
                     setAutoSync(false);
                   }
                 }}
-                className="w-3 h-3 text-[#2D3748] border-rose-200 rounded focus:ring-[#d1d1d1]"
+                className="w-3 h-3 text-gray-800 rounded focus:ring-0 cursor-pointer"
               />
-              <span className="text-[10px] font-bold text-[#8C8276]">Auto</span>
+              <span className="text-[10px] font-bold text-gray-500">Auto</span>
             </label>
           </div>
 
@@ -1315,13 +1395,13 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
               }
             }}
             disabled={isProcessingPdf}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-xs font-semibold text-gray-700 border-none transition-all cursor-pointer disabled:opacity-50"
             title="Importar plano de local desde PDF o Imagen"
           >
             {isProcessingPdf ? (
-              <Loader2 className="w-3.5 h-3.5 text-[#2D3748] animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 text-gray-700 animate-spin" />
             ) : (
-              <Upload className="w-3.5 h-3.5 text-[#2D3748]" />
+              <Upload className="w-3.5 h-3.5 text-gray-700" />
             )}
             <span className="hidden sm:inline">Importar Plano (PDF)</span>
           </button>
@@ -1329,14 +1409,14 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           {/* Calibrate Scale button */}
           <button
             onClick={() => setIsCalibratingScale((c) => !c)}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-colors shadow-2xs cursor-pointer ${
+            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-2xl bg-[#EBEBEB] text-xs font-semibold text-gray-700 border-none transition-all cursor-pointer ${
               isCalibratingScale
-                ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-transparent ring-2 ring-rose-300'
-                : 'bg-[#EBEBEB] text-[#2D2A26] border-[#D9CEBF] hover:bg-[#F3EFEA]'
+                ? 'shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-amber-800'
+                : 'shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]'
             }`}
             title="Trazar una línea de referencia para calibrar escala en metros"
           >
-            <Ruler className="w-3.5 h-3.5 text-[#E5B869]" />
+            <Ruler className="w-3.5 h-3.5 text-amber-600" />
             <span className="hidden md:inline">Calibrar Escala</span>
           </button>
 
@@ -1344,7 +1424,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           {isLevel1Admin && (
             <button
               onClick={() => setShowPhpSqlModal(true)}
-              className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-semibold transition-colors cursor-pointer"
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-700 text-xs font-semibold border-none transition-all cursor-pointer"
               title="Ver endpoints PHP y SQL"
             >
               <Server className="w-3.5 h-3.5 text-amber-700" />
@@ -1352,51 +1432,71 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             </button>
           )}
 
-                    {/* Export PDF */}
+          {/* Toggle Guest List Sidebar */}
+          <button
+            onClick={() => {
+              setShowRightSidebar((s) => {
+                const next = !s;
+                if (next && window.innerWidth <= 768) setShowLeftSidebar(false);
+                return next;
+              });
+            }}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-2xl text-xs font-semibold border-none transition-all cursor-pointer ${
+              showRightSidebar
+                ? 'bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-amber-800'
+                : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-700'
+            }`}
+            title={showRightSidebar ? "Ocultar panel de invitados" : "Ver lista de invitados y mesas"}
+          >
+            <Users className="w-3.5 h-3.5 text-gray-700" />
+            <span className="hidden sm:inline">Invitados</span>
+          </button>
+
+          {/* Export PDF */}
           <div className="relative" ref={exportMenuRef}>
             <button
               id="btn-export-floorplan"
               onClick={() => setShowExportMenu(!showExportMenu)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-xs font-semibold text-gray-700 border-none transition-all cursor-pointer"
               title="Exportar plano y distribución de invitados"
             >
-              <FileDown className="w-3.5 h-3.5 text-[#2D3748]" />
+              <FileDown className="w-3.5 h-3.5 text-gray-700" />
               <span className="hidden sm:inline">Exportar plano</span>
             </button>
             {showExportMenu && (
-              <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-stone-300 rounded-xl shadow-2xl z-[100] overflow-hidden animate-in fade-in slide-in-from-top-1">
-                <div className="p-1.5 flex flex-col space-y-1">
+              <div className="absolute top-full right-0 mt-2 w-64 bg-[#EBEBEB] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] rounded-2xl z-[100] overflow-hidden animate-in fade-in slide-in-from-top-1 border-none p-1.5">
+                <div className="flex flex-col space-y-1">
                   <button 
                     id="btn-export-plan-only"
                     onClick={() => { setShowExportMenu(false); handleExportPdf('plan_only'); }} 
-                    className="text-left px-3 py-2 text-xs font-semibold text-stone-800 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer flex items-center space-x-2"
+                    className="text-left px-3 py-2 text-xs font-semibold text-gray-800 hover:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-xl transition-all cursor-pointer flex items-center space-x-2"
                   >
                     <span className="text-base">🖼️</span>
                     <div>
                       <div className="font-bold">Solo plano de Distribución</div>
-                      <div className="text-[10px] text-stone-500 font-normal">Ajustado 100% en A4 horizontal, fondo blanco</div>
+                      <div className="text-[10px] text-gray-500 font-normal">Ajustado 100% en A4 horizontal, fondo blanco</div>
                     </div>
                   </button>
                   <button 
                     id="btn-export-list-only"
                     onClick={() => { setShowExportMenu(false); handleExportPdf('list_only'); }} 
-                    className="text-left px-3 py-2 text-xs font-semibold text-stone-800 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer flex items-center space-x-2"
+                    className="text-left px-3 py-2 text-xs font-semibold text-gray-800 hover:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-xl transition-all cursor-pointer flex items-center space-x-2"
                   >
                     <span className="text-base">👥</span>
                     <div>
                       <div className="font-bold">Solo Lista de Invitados</div>
-                      <div className="text-[10px] text-stone-500 font-normal">Mesas y asientos detallados</div>
+                      <div className="text-[10px] text-gray-500 font-normal">Mesas y asientos detallados</div>
                     </div>
                   </button>
                   <button 
                     id="btn-export-all"
                     onClick={() => { setShowExportMenu(false); handleExportPdf('all'); }} 
-                    className="text-left px-3 py-2 text-xs font-semibold text-stone-800 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer flex items-center space-x-2 border-t border-stone-200 pt-1.5"
+                    className="text-left px-3 py-2 text-xs font-semibold text-gray-800 hover:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] rounded-xl transition-all cursor-pointer flex items-center space-x-2 pt-1.5"
                   >
                     <span className="text-base">📄</span>
                     <div>
                       <div className="font-bold">Todo (Plano + Lista)</div>
-                      <div className="text-[10px] text-stone-500 font-normal">Documento completo de montaje</div>
+                      <div className="text-[10px] text-gray-500 font-normal">Documento completo de montaje</div>
                     </div>
                   </button>
                 </div>
@@ -1408,14 +1508,14 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           <button
             onClick={handleSavePlan}
             disabled={isSaving}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#722F3D] text-[#2D3748] text-xs font-bold transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] cursor-pointer disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-4 py-1.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-900 text-xs font-bold transition-all cursor-pointer disabled:opacity-50 border-none"
           >
             {isSaving ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : saveSuccessNotice ? (
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
             ) : (
-              <Save className="w-3.5 h-3.5 text-amber-300" />
+              <Save className="w-3.5 h-3.5 text-amber-600" />
             )}
             <span className="hidden sm:inline">{saveSuccessNotice ? '¡Guardado!' : 'Guardar Plano'}</span>
           </button>
@@ -1423,7 +1523,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           {/* Close modal */}
           <button
             onClick={onClose}
-            className="hidden md:flex p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-xl transition-colors cursor-pointer ml-1"
+            className="hidden md:flex p-2 text-gray-600 hover:text-gray-900 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-2xl transition-all cursor-pointer ml-1 border-none"
           >
             <X className="w-5 h-5" />
           </button>
@@ -1504,20 +1604,20 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       <div className="flex-1 flex overflow-hidden relative">
         
         {/* Universal Zoom Controls (Footer) */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-1.5 bg-[#EBEBEB]/90 backdrop-blur-sm p-1.5 rounded-2xl border border-transparent shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-1.5 bg-[#EBEBEB] p-2 rounded-full shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border-none">
           <button
             onClick={() => setZoom((z) => Math.min(z * 1.15, 3.5))}
-            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#FAF8F5] rounded-xl transition-colors shadow-[inset_5px_5px_10px_transparent,inset_-5px_-5px_10px_transparent] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]"
+            className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer"
             title="Acercar (Zoom In)"
           >
             <ZoomIn className="w-4 h-4" />
           </button>
-          <span className="text-xs font-mono font-bold text-[#2D2A26] px-1">
+          <span className="text-xs font-mono font-bold text-gray-800 px-1">
             {Math.round(zoom * 100)}%
           </span>
           <button
             onClick={() => setZoom((z) => Math.max(z * 0.85, 0.25))}
-            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#FAF8F5] rounded-xl transition-colors shadow-[inset_5px_5px_10px_transparent,inset_-5px_-5px_10px_transparent] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]"
+            className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer"
             title="Alejar (Zoom Out)"
           >
             <ZoomOut className="w-4 h-4" />
@@ -1533,15 +1633,15 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
               setZoom(Math.max(0.1, newZoom - 0.05));
               setPan({ x: 50, y: 50 });
             }}
-            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#FAF8F5] rounded-xl transition-colors shadow-[inset_5px_5px_10px_transparent,inset_-5px_-5px_10px_transparent] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]"
+            className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer"
             title="Restablecer vista"
           >
             <Maximize2 className="w-4 h-4" />
           </button>
-          <div className="w-px h-5 bg-[#D9CEBF] mx-1" />
+          <div className="w-px h-5 bg-gray-300 mx-1" />
           <button
             onClick={() => setCanvasRotation((r) => (r + 90) % 360)}
-            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#FAF8F5] rounded-xl transition-colors flex items-center shadow-[inset_5px_5px_10px_transparent,inset_-5px_-5px_10px_transparent] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]"
+            className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all flex items-center border-none cursor-pointer"
             title="Girar Plano 90°"
           >
             <RotateCcw className="w-4 h-4" />
@@ -1551,16 +1651,18 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
               type="number"
               value={canvasRotation}
               onChange={(e) => setCanvasRotation(Number(e.target.value))}
-              className="w-12 h-8 bg-transparent text-xs font-mono font-bold text-[#2D2A26] text-center focus:outline-hidden focus:ring-1 focus:ring-[#8C8276] rounded-md"
+              className="w-10 h-7 bg-[#EBEBEB] text-xs font-mono font-bold text-gray-800 text-center rounded-lg shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] border-none focus:outline-hidden"
               title="Giro del plano (grados)"
             />
-            <span className="absolute right-1 text-[10px] font-bold text-[#2D2A26] pointer-events-none">°</span>
+            <span className="absolute right-1 text-[10px] font-bold text-gray-500 pointer-events-none">°</span>
           </div>
-          <div className="w-px h-5 bg-[#D9CEBF] mx-1" />
+          <div className="w-px h-5 bg-gray-300 mx-1" />
           <button
             onClick={() => setGridSnap((s) => !s)}
-            className={`p-2 rounded-xl transition-colors flex items-center justify-center ${
-              gridSnap ? 'bg-[#EBEBEB] text-[#2D3748] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]' : 'text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#FAF8F5] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]'
+            className={`p-2 rounded-full transition-all flex items-center justify-center border-none cursor-pointer ${
+              gridSnap
+                ? 'bg-[#EBEBEB] text-gray-900 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]'
+                : 'bg-[#EBEBEB] text-gray-500 shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
             }`}
             title="Ajustar a la cuadrícula"
           >
@@ -1584,17 +1686,38 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           onBringToFront={handleBringToFront}
           onSendToBack={handleSendToBack}
         />
-          {/* Collapse/Expand Handle Left */}
-          <button
-            onClick={() => { setShowLeftSidebar(!showLeftSidebar); if (window.innerWidth <= 768) setShowRightSidebar(false); }}
-            className="absolute -right-8 bottom-4 w-8 h-16 bg-[#EBEBEB] border border-l-0 border-[#D9CEBF] rounded-r-xl flex items-center justify-center shadow-[4px_0_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer z-50"
-          >
-            {showLeftSidebar ? <ChevronLeft className="w-5 h-5 text-[#2D3748]" /> : <ChevronRight className="w-5 h-5 text-[#2D3748]" />}
-          </button>
+          {/* Collapse Handle Left (when open) */}
+          {showLeftSidebar && (
+            <button
+              id="btn-collapse-left-sidebar"
+              onClick={() => {
+                setShowLeftSidebar(false);
+              }}
+              className="absolute -right-9 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-r-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center cursor-pointer z-50 border-none transition-all group"
+              title="Contraer panel de herramientas"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-700 group-hover:scale-110 transition-transform" />
+            </button>
+          )}
         </div>
 
+        {/* Floating Expand Left Sidebar Handle (when collapsed, at footer height) */}
+        {!showLeftSidebar && (
+          <button
+            id="btn-expand-left-sidebar"
+            onClick={() => {
+              setShowLeftSidebar(true);
+              if (window.innerWidth <= 768) setShowRightSidebar(false);
+            }}
+            className="absolute left-0 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-r-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center cursor-pointer z-50 border-none transition-all group"
+            title="Expandir catálogo y propiedades"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-700 group-hover:scale-110 transition-transform" />
+          </button>
+        )}
+
         {/* Center: Interactive Canvas */}
-        <div className="flex-1 h-full relative">
+        <div className="flex-1 min-w-0 h-full relative">
 
 
           <FloorPlanCanvas
@@ -1628,7 +1751,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
           {/* Background Image Opacity Slider Control (if background loaded) */}
           {backgroundImageUrl && (
-            <div className="absolute bottom-4 right-4 z-20 bg-[#EBEBEB]/95 backdrop-blur-xs p-2 rounded-xl shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] border border-transparent flex items-center space-x-2 text-xs">
+            <div className="absolute bottom-4 right-14 z-20 bg-[#EBEBEB]/95 backdrop-blur-xs p-2 rounded-xl shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] border border-transparent flex items-center space-x-2 text-xs">
               <ImageIcon className="w-3.5 h-3.5 text-[#2D3748]" />
               <span className="text-[10px] font-semibold text-[#8C8276]">Fondo:</span>
               <input
@@ -1655,15 +1778,36 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           )}
         </div>
 
-        {/* Right Sidebar: Seating Guest List */}
-        <div className={`absolute right-0 md:relative z-50 h-full transition-all duration-300 flex shadow-2xl md:shadow-none ${showRightSidebar ? 'translate-x-0 md:mr-0' : 'translate-x-full md:translate-x-0 md:-mr-80'}`}>
-          {/* Collapse/Expand Handle Right */}
+        {/* Floating Expand Right Sidebar Handle (when collapsed, at footer height) */}
+        {!showRightSidebar && (
           <button
-            onClick={() => { setShowRightSidebar(!showRightSidebar); if (window.innerWidth <= 768) setShowLeftSidebar(false); }}
-            className="absolute -left-8 bottom-4 w-8 h-16 bg-[#EBEBEB] border border-r-0 border-[#D9CEBF] rounded-l-xl flex items-center justify-center shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer z-50"
+            id="btn-expand-right-sidebar"
+            onClick={() => {
+              setShowRightSidebar(true);
+              if (window.innerWidth <= 768) setShowLeftSidebar(false);
+            }}
+            className="absolute right-0 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-l-2xl shadow-[-6px_6px_12px_#d1d1d1,6px_-6px_12px_#ffffff] hover:shadow-[-10px_10px_20px_#c8c8c8,10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center cursor-pointer z-50 border-none transition-all group"
+            title="Expandir lista de invitados y mesas"
           >
-            {showRightSidebar ? <ChevronRight className="w-5 h-5 text-[#2D3748]" /> : <ChevronLeft className="w-5 h-5 text-[#2D3748]" />}
+            <ChevronLeft className="w-5 h-5 text-gray-700 group-hover:scale-110 transition-transform" />
           </button>
+        )}
+
+        {/* Right Sidebar: Seating Guest List */}
+        <div className={`absolute right-0 md:relative z-50 h-full transition-all duration-300 flex shadow-2xl md:shadow-none ${showRightSidebar ? 'translate-x-0 md:mr-0 pointer-events-auto' : 'translate-x-full md:translate-x-0 md:-mr-80 pointer-events-none'}`}>
+          {/* Collapse Handle Right (when open) */}
+          {showRightSidebar && (
+            <button
+              id="btn-collapse-right-sidebar"
+              onClick={() => {
+                setShowRightSidebar(false);
+              }}
+              className="absolute -left-9 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-l-2xl shadow-[-6px_6px_12px_#d1d1d1,6px_-6px_12px_#ffffff] hover:shadow-[-10px_10px_20px_#c8c8c8,10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center cursor-pointer z-50 border-none transition-all group"
+              title="Contraer lista de invitados"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-700 group-hover:scale-110 transition-transform" />
+            </button>
+          )}
           <FloorPlanGuestSidebar
           guests={guests}
           elements={elements}
@@ -1687,22 +1831,22 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
       {/* 4. MODAL: Scale Calibration Distance Input */}
       {showCalibrationPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-[#EBEBEB] w-full max-w-md rounded-2xl p-5 shadow-2xl border border-transparent space-y-4 text-[#2D2A26]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-[#EBEBEB] w-full max-w-md rounded-3xl p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border-none space-y-4 text-gray-800">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-[#2D3748] border border-amber-200 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-amber-600 flex items-center justify-center">
                 <Ruler className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-base font-serif">Calibrar Escala del Plano</h3>
-                <p className="text-xs text-[#8C8276]">
-                  Línea trazada: <strong className="text-[#2D2A26]">{tempDrawnPixelDist.toFixed(0)} píxeles</strong>
+                <h3 className="font-bold text-base font-serif text-gray-800">Calibrar Escala del Plano</h3>
+                <p className="text-xs text-gray-500">
+                  Línea trazada: <strong className="text-gray-800">{tempDrawnPixelDist.toFixed(0)} píxeles</strong>
                 </p>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-[#8C8276] uppercase">
+              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                 Distancia Real de esta pared / objeto (Metros)
               </label>
               <div className="relative">
@@ -1712,28 +1856,28 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
                   min="0.1"
                   value={calibrationRealMetersInput}
                   onChange={(e) => setCalibrationRealMetersInput(e.target.value)}
-                  className="w-full pl-3 pr-10 py-2 bg-[#FAF8F5] border border-[#D9CEBF] rounded-xl text-sm font-bold focus:outline-hidden focus:border-transparent"
+                  className="w-full pl-4 pr-16 py-2.5 bg-[#EBEBEB] shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] focus:shadow-[inset_6px_6px_12px_#c8c8c8,inset_-6px_-6px_12px_#ffffff] rounded-2xl border-none text-sm font-bold text-gray-800 focus:outline-hidden"
                   autoFocus
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#8C8276]">
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500">
                   metros
                 </span>
               </div>
-              <p className="text-[11px] text-[#8C8276]">
+              <p className="text-[11px] text-gray-500">
                 Resultado: 1 metro equivaldrá a {(tempDrawnPixelDist / (parseFloat(calibrationRealMetersInput) || 1)).toFixed(1)} px.
               </p>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-2 border-t border-transparent">
+            <div className="flex justify-end space-x-3 pt-2">
               <button
                 onClick={() => setShowCalibrationPrompt(false)}
-                className="px-4 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#E8DCCF] text-xs font-semibold text-[#2D2A26] transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-semibold text-gray-700 transition-all border-none cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 onClick={applyCalibrationScale}
-                className="px-5 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#722F3D] text-[#2D3748] text-xs font-bold transition-colors cursor-pointer shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]"
+                className="px-5 py-2 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-900 text-xs font-bold transition-all border-none cursor-pointer"
               >
                 Aplicar Escala
               </button>
@@ -1745,41 +1889,41 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       {/* 5. MODAL: Seat Click Quick Guest Picker */}
       {activeSeatPicker && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-[#EBEBEB] w-full max-w-sm rounded-2xl p-4 shadow-2xl border border-transparent space-y-3 text-[#2D2A26] max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between border-b border-transparent pb-2">
-              <div className="font-bold text-sm">
+          <div className="bg-[#EBEBEB] w-full max-w-sm rounded-3xl p-5 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border-none space-y-3 text-gray-800 max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between pb-1">
+              <div className="font-bold text-sm text-gray-800">
                 <span>Asiento #{activeSeatPicker.seat.seatNumber}</span>
               </div>
               <button
                 onClick={() => setActiveSeatPicker(null)}
-                className="text-[#8C8276] hover:text-[#2D2A26] p-1 rounded-lg"
+                className="p-1.5 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-600 hover:text-gray-900 border-none transition-all cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {activeSeatPicker.seat.guestId ? (
-              <div className="p-3 bg-rose-50/70 border border-rose-200 rounded-xl space-y-2">
+              <div className="p-3 bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-2xl space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#2D3748]">Invitado Asignado:</span>
-                  <span className="text-[10px] text-[#8C8276]">Ocupado</span>
+                  <span className="text-xs font-bold text-gray-700">Invitado Asignado:</span>
+                  <span className="text-[10px] text-gray-500">Ocupado</span>
                 </div>
-                <p className="font-bold text-sm text-[#2D2A26]">{activeSeatPicker.seat.guestName}</p>
+                <p className="font-bold text-sm text-gray-900">{activeSeatPicker.seat.guestName}</p>
                 <button
                   onClick={() => {
                     handleUnassignGuestFromSeat(activeSeatPicker.elementId, activeSeatPicker.seat.id);
                     setActiveSeatPicker(null);
                   }}
-                  className="w-full py-1.5 rounded-lg bg-[#EBEBEB] hover:bg-rose-100 border border-rose-300 text-rose-700 font-bold text-xs transition-colors cursor-pointer"
+                  className="w-full py-1.5 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-rose-600 font-bold text-xs transition-all cursor-pointer border-none"
                 >
                   Desasignar Asiento
                 </button>
               </div>
             ) : (
-              <p className="text-xs text-[#8C8276]">Selecciona un invitado disponible para este asiento:</p>
+              <p className="text-xs text-gray-500">Selecciona un invitado disponible para este asiento:</p>
             )}
 
-            <div className="flex-1 overflow-y-auto space-y-1 max-h-60 pr-1">
+            <div className="flex-1 overflow-y-auto space-y-1.5 max-h-60 pr-1">
               {guests.map((g) => (
                 <button
                   key={g.id}
@@ -1787,19 +1931,19 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
                     handleAssignGuestToSeat(activeSeatPicker.elementId, activeSeatPicker.seat.id, g);
                     setActiveSeatPicker(null);
                   }}
-                  className="w-full text-left p-2 rounded-lg hover:bg-[#FAF8F5] border border-transparent hover:border-[#D9CEBF] transition-colors flex items-center justify-between text-xs cursor-pointer group"
+                  className="w-full text-left p-2.5 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transition-all flex items-center justify-between text-xs cursor-pointer group border-none"
                 >
                   <div className="min-w-0 pr-2">
-                    <div className="font-semibold text-[#2D2A26] group-hover:text-[#2D3748] truncate">
+                    <div className="font-semibold text-gray-800 group-hover:text-gray-900 truncate">
                       {g.fullName}
                     </div>
                     {g.assignedTable && (
-                      <div className="text-[10px] text-[#2D3748] truncate">
+                      <div className="text-[10px] text-gray-500 truncate">
                         {g.assignedTable}
                       </div>
                     )}
                   </div>
-                  <span className="text-[10px] text-[#8C8276] shrink-0">
+                  <span className="text-[10px] text-gray-500 shrink-0">
                     {g.confirmedPasses || g.totalPasses ? `${g.confirmedPasses || g.totalPasses} p.` : '1 p.'}
                   </span>
                 </button>
@@ -1811,10 +1955,10 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
       {/* CONFIRM MODAL FOR SYNC */}
       {syncConfirmAction && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#2D2A26]/40 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-[#EBEBEB] p-6 rounded-2xl shadow-2xl w-80 max-w-[90vw] text-center border border-transparent">
-            <h3 className="text-lg font-bold text-[#2D2A26] mb-2 font-serif">¿Está seguro/a?</h3>
-            <p className="text-sm text-[#8C8276] mb-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-[#EBEBEB] p-6 rounded-3xl shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] w-80 max-w-[90vw] text-center border-none">
+            <h3 className="text-lg font-bold text-gray-900 mb-2 font-serif">¿Está seguro/a?</h3>
+            <p className="text-sm text-gray-600 mb-6">
               {syncConfirmAction === 'manual' 
                 ? 'Esto actualizará las mesas en el plano para que coincidan con la lista de invitados actual. Puede alterar mesas existentes.' 
                 : 'Esto habilitará la sincronización automática de mesas al cargar el plano en el futuro.'}
@@ -1822,7 +1966,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             <div className="flex items-center justify-center gap-3">
               <button 
                 onClick={() => setSyncConfirmAction(null)}
-                className="px-5 py-2.5 rounded-xl border border-transparent text-[#8C8276] font-semibold hover:bg-[#FAF8F5] transition-colors cursor-pointer"
+                className="px-5 py-2 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-700 font-semibold transition-all cursor-pointer border-none"
               >
                 NO
               </button>
@@ -1835,7 +1979,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
                   }
                   setSyncConfirmAction(null);
                 }}
-                className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] font-semibold hover:bg-[#722F3D] transition-colors cursor-pointer shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]"
+                className="px-5 py-2 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-900 font-bold transition-all cursor-pointer border-none"
               >
                 SÍ
               </button>

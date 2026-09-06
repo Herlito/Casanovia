@@ -6,7 +6,7 @@ import {
   Guest,
   FloorPlanScaleCalibration
 } from '../../types';
-import { checkFloorPlanElementCapacityForGroup } from './floorPlanSyncUtils';
+import { checkFloorPlanElementCapacityForGroup, isColorDark, getContrastTextColor } from './floorPlanSyncUtils';
 
 interface FloorPlanCanvasProps {
   elements: FloorPlanElement[];
@@ -256,15 +256,12 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     ctx.clearRect(0, 0, width, height);
 
     // Canvas Background
-    ctx.fillStyle = '#FAF8F5';
+    ctx.fillStyle = '#EBEBEB';
     ctx.fillRect(0, 0, width, height);
 
-            // Apply World Transformations
+    // Apply World Transformations
     ctx.save();
     ctx.translate(pan.x, pan.y);
-    ctx.translate(width / 2, height / 2);
-    ctx.rotate((canvasRotation || 0) * Math.PI / 180);
-    ctx.translate(-width / 2, -height / 2);
     ctx.translate(width / 2, height / 2);
     ctx.rotate((canvasRotation || 0) * Math.PI / 180);
     ctx.translate(-width / 2, -height / 2);
@@ -277,11 +274,11 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
       ctx.drawImage(bgImageRef.current, 0, 0, canvasWidth, canvasHeight);
       ctx.restore();
     } else {
-      // Draw canvas bounds border
-      ctx.fillStyle = '#FFFFFF';
+      // Draw canvas bounds
+      ctx.fillStyle = '#EBEBEB';
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-      ctx.strokeStyle = '#E8DCCF';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#D1D1D1';
+      ctx.lineWidth = 1.5;
       ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
     }
 
@@ -289,7 +286,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     const step = gridSize || 40;
     ctx.save();
     ctx.lineWidth = 0.5;
-    ctx.strokeStyle = 'rgba(217, 206, 191, 0.4)';
+    ctx.strokeStyle = 'rgba(180, 180, 180, 0.25)';
     for (let x = 0; x <= canvasWidth; x += step) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
@@ -306,7 +303,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     // 5-meter major lines if calibrated
     if (scaleCalibration.isCalibrated) {
       const majorStep = scaleCalibration.pixelsPerMeter * 5;
-      ctx.strokeStyle = 'rgba(139, 58, 74, 0.15)';
+      ctx.strokeStyle = 'rgba(120, 120, 120, 0.2)';
       ctx.lineWidth = 1.2;
       for (let x = 0; x <= canvasWidth; x += majorStep) {
         ctx.beginPath();
@@ -334,33 +331,48 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
       ctx.translate(elem.x, elem.y);
       ctx.rotate((elem.rotation * Math.PI) / 180);
 
+      const surfaceColor = elem.color === '#FFFFFF' || !elem.color ? '#EBEBEB' : elem.color;
+
       // Render by Type
       switch (elem.type) {
         case 'round_table': {
           const r = elem.radius || 60;
 
-          // Shadow for 3D realism
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
-          ctx.shadowBlur = 8;
-          ctx.shadowOffsetY = 3;
-
-          // Table Surface
-          ctx.fillStyle = elem.color || '#FFFFFF';
+          // Neumorphic double-pass shadow (raised)
+          // 1. Light shadow (top-left)
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -6;
+          ctx.shadowOffsetY = -6;
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = surfaceColor;
           ctx.beginPath();
           ctx.arc(0, 0, r, 0, 2 * Math.PI);
           ctx.fill();
+          ctx.restore();
 
-          ctx.shadowColor = 'transparent';
+          // 2. Dark shadow (bottom-right)
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 6;
+          ctx.shadowOffsetY = 6;
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = surfaceColor;
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.restore();
 
           // Table Border
-          ctx.strokeStyle = isSelected ? '#2D3748' : isHovered ? '#D4A373' : '#D9CEBF';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          ctx.strokeStyle = isSelected ? '#1F2937' : isHovered ? '#9CA3AF' : 'rgba(255, 255, 255, 0.7)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
           ctx.beginPath();
           ctx.arc(0, 0, r, 0, 2 * Math.PI);
           ctx.stroke();
 
           // Table Center Label
-          ctx.fillStyle = elem.textColor || '#2D2A26';
+          const effectiveRoundTextColor = elem.textColor || getContrastTextColor(surfaceColor);
+          ctx.fillStyle = effectiveRoundTextColor;
           ctx.font = 'bold 13px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -368,7 +380,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
           // Seat capacity badge
           const assignedCount = elem.seats.filter((s) => s.guestId).length;
-          ctx.fillStyle = '#8C8276';
+          ctx.fillStyle = isColorDark(surfaceColor) || effectiveRoundTextColor === '#FFFFFF' ? 'rgba(255, 255, 255, 0.75)' : '#6B7280';
           ctx.font = '10px system-ui, sans-serif';
           ctx.fillText(`${assignedCount}/${elem.seats.length} pers.`, 0, 10);
           break;
@@ -378,32 +390,48 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           const w = elem.width;
           const h = elem.height;
 
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
-          ctx.shadowBlur = 8;
-          ctx.shadowOffsetY = 3;
-
-          ctx.fillStyle = elem.color || '#FFFFFF';
+          // Neumorphic double-pass shadow (raised)
+          // 1. Light shadow (top-left)
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -6;
+          ctx.shadowOffsetY = -6;
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = surfaceColor;
           ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, 8);
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
           ctx.fill();
+          ctx.restore();
 
-          ctx.shadowColor = 'transparent';
-
-          ctx.strokeStyle = isSelected ? '#2D3748' : isHovered ? '#D4A373' : '#D9CEBF';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          // 2. Dark shadow (bottom-right)
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 6;
+          ctx.shadowOffsetY = 6;
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = surfaceColor;
           ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, 8);
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
+          ctx.fill();
+          ctx.restore();
+
+          // Table Border
+          ctx.strokeStyle = isSelected ? '#1F2937' : isHovered ? '#9CA3AF' : 'rgba(255, 255, 255, 0.7)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
           ctx.stroke();
 
           // Label
-          ctx.fillStyle = elem.textColor || '#2D2A26';
+          const effectiveRectTextColor = elem.textColor || getContrastTextColor(surfaceColor);
+          ctx.fillStyle = effectiveRectTextColor;
           ctx.font = 'bold 12px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(elem.name || `Mesa ${elem.tableNumber || ''}`, 0, -5);
 
           const assignedCount = elem.seats.filter((s) => s.guestId).length;
-          ctx.fillStyle = '#8C8276';
+          ctx.fillStyle = isColorDark(surfaceColor) || effectiveRectTextColor === '#FFFFFF' ? 'rgba(255, 255, 255, 0.75)' : '#6B7280';
           ctx.font = '10px system-ui, sans-serif';
           ctx.fillText(`${assignedCount}/${elem.seats.length} pers.`, 0, 10);
           break;
@@ -412,17 +440,36 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         case 'stage': {
           const w = elem.width;
           const h = elem.height;
-          ctx.fillStyle = elem.color || '#2D2A26';
-          ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, 10);
-          ctx.fill();
 
-          ctx.strokeStyle = isSelected ? '#E5B869' : '#1A1816';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -5;
+          ctx.shadowOffsetY = -5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#374151';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#374151';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.strokeStyle = isSelected ? '#FBBF24' : 'rgba(255, 255, 255, 0.2)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
           ctx.stroke();
 
-          // Stage spotlight glow
-          ctx.fillStyle = '#FFFFFF';
+          ctx.fillStyle = elem.textColor || getContrastTextColor(elem.color || '#374151');
           ctx.font = 'bold 13px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -434,17 +481,35 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           const w = elem.width;
           const h = elem.height;
 
-          // Parquet / checkered pattern
-          ctx.fillStyle = elem.color || '#F0E6D2';
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -5;
+          ctx.shadowOffsetY = -5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#E8E4DF';
           ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, 6);
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
           ctx.fill();
+          ctx.restore();
 
-          ctx.strokeStyle = isSelected ? '#2D3748' : '#D4A373';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#E8E4DF';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.strokeStyle = isSelected ? '#1F2937' : 'rgba(255, 255, 255, 0.7)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
           ctx.stroke();
 
-          ctx.fillStyle = '#5A3E2B';
+          ctx.fillStyle = elem.textColor || getContrastTextColor(elem.color || '#E8E4DF');
           ctx.font = 'bold 13px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -455,16 +520,36 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         case 'bar': {
           const w = elem.width;
           const h = elem.height;
-          ctx.fillStyle = elem.color || '#3D2B1F';
-          ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, 6);
-          ctx.fill();
 
-          ctx.strokeStyle = isSelected ? '#E5B869' : '#2A1810';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -5;
+          ctx.shadowOffsetY = -5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#4A3E3D';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#4A3E3D';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.strokeStyle = isSelected ? '#E5B869' : 'rgba(255, 255, 255, 0.2)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
           ctx.stroke();
 
-          ctx.fillStyle = '#E5B869';
+          ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#4A3E3D') ? '#FDE68A' : '#78350F');
           ctx.font = 'bold 12px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -475,16 +560,36 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         case 'dj_booth': {
           const w = elem.width;
           const h = elem.height;
-          ctx.fillStyle = elem.color || '#1A202C';
-          ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, 6);
-          ctx.fill();
 
-          ctx.strokeStyle = isSelected ? '#2D3748' : '#2D3748';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -5;
+          ctx.shadowOffsetY = -5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#1F2937';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#1F2937';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.strokeStyle = isSelected ? '#60A5FA' : 'rgba(255, 255, 255, 0.2)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
           ctx.stroke();
 
-          ctx.fillStyle = '#63B3ED';
+          ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#1F2937') ? '#93C5FD' : '#1E40AF');
           ctx.font = 'bold 11px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -495,16 +600,36 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         case 'restrooms': {
           const w = elem.width;
           const h = elem.height;
+
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -5;
+          ctx.shadowOffsetY = -5;
+          ctx.shadowBlur = 10;
           ctx.fillStyle = elem.color || '#E2E8F0';
           ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, 6);
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
           ctx.fill();
+          ctx.restore();
 
-          ctx.strokeStyle = isSelected ? '#2D3748' : '#CBD5E1';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#E2E8F0';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.strokeStyle = isSelected ? '#1F2937' : 'rgba(255, 255, 255, 0.8)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
           ctx.stroke();
 
-          ctx.fillStyle = '#334155';
+          ctx.fillStyle = elem.textColor || getContrastTextColor(elem.color || '#E2E8F0');
           ctx.font = 'bold 11px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -515,16 +640,36 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         case 'entrance': {
           const w = elem.width;
           const h = elem.height;
+
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -5;
+          ctx.shadowOffsetY = -5;
+          ctx.shadowBlur = 10;
           ctx.fillStyle = elem.color || '#FEF3C7';
           ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, 6);
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
           ctx.fill();
+          ctx.restore();
 
-          ctx.strokeStyle = isSelected ? '#2D3748' : '#F59E0B';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#FEF3C7';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.strokeStyle = isSelected ? '#1F2937' : 'rgba(255, 255, 255, 0.8)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
           ctx.stroke();
 
-          ctx.fillStyle = '#92400E';
+          ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#FEF3C7') ? '#FEF08A' : '#92400E');
           ctx.font = 'bold 11px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -534,16 +679,36 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
         case 'cake_table': {
           const r = elem.radius || 35;
-          ctx.fillStyle = elem.color || '#FFF1F2';
+
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -5;
+          ctx.shadowOffsetY = -5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#FFE4E6';
           ctx.beginPath();
           ctx.arc(0, 0, r, 0, 2 * Math.PI);
           ctx.fill();
+          ctx.restore();
 
-          ctx.strokeStyle = isSelected ? '#2D3748' : '#FDA4AF';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#FFE4E6';
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.strokeStyle = isSelected ? '#1F2937' : 'rgba(255, 255, 255, 0.8)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, 2 * Math.PI);
           ctx.stroke();
 
-          ctx.fillStyle = '#9F1239';
+          ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#FFE4E6') ? '#FECDD3' : '#9F1239');
           ctx.font = 'bold 11px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -554,16 +719,36 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         case 'lounge': {
           const w = elem.width;
           const h = elem.height;
+
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -5;
+          ctx.shadowOffsetY = -5;
+          ctx.shadowBlur = 10;
           ctx.fillStyle = elem.color || '#EDE9FE';
           ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, 8);
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
           ctx.fill();
+          ctx.restore();
 
-          ctx.strokeStyle = isSelected ? '#2D3748' : '#C4B5FD';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#EDE9FE';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.strokeStyle = isSelected ? '#1F2937' : 'rgba(255, 255, 255, 0.8)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 14);
           ctx.stroke();
 
-          ctx.fillStyle = '#5B21B6';
+          ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#EDE9FE') ? '#DDD6FE' : '#5B21B6');
           ctx.font = 'bold 11px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -574,16 +759,36 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         case 'photo_booth': {
           const w = elem.width;
           const h = elem.height;
+
+          ctx.save();
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowOffsetX = -5;
+          ctx.shadowOffsetY = -5;
+          ctx.shadowBlur = 10;
           ctx.fillStyle = elem.color || '#E0F2FE';
           ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, 6);
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
           ctx.fill();
+          ctx.restore();
 
-          ctx.strokeStyle = isSelected ? '#2D3748' : '#7DD3FC';
-          ctx.lineWidth = isSelected ? 3 : 1.5;
+          ctx.save();
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = elem.color || '#E0F2FE';
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.strokeStyle = isSelected ? '#1F2937' : 'rgba(255, 255, 255, 0.8)';
+          ctx.lineWidth = isSelected ? 2.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 12);
           ctx.stroke();
 
-          ctx.fillStyle = '#0369A1';
+          ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#E0F2FE') ? '#BAE6FD' : '#0369A1');
           ctx.font = 'bold 11px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -591,16 +796,16 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           break;
         }
 
-        
-
         case 'single_chair':
         case 'chair_row': {
           const count = elem.type === 'single_chair' ? 1 : (elem.chairCount || 4);
           const chairW = elem.width / count;
           const svgData = FurnitureSVGs.single_chair;
           
-          ctx.shadowColor = 'rgba(0,0,0,0.1)';
-          ctx.shadowBlur = 4;
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 3;
+          ctx.shadowOffsetY = 3;
+          ctx.shadowBlur = 6;
           
           for (let i = 0; i < count; i++) {
             const cx = -elem.width / 2 + (i * chairW) + (chairW / 2);
@@ -608,19 +813,17 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             const h = elem.height - 4;
             
             ctx.save();
-            ctx.translate(cx, 0); // Center of this specific chair
+            ctx.translate(cx, 0);
             
-            // The SVG draws from 0,0 to width,height. So we scale and translate.
             const scaleX = w / svgData.width;
             const scaleY = h / svgData.height;
             ctx.scale(scaleX, scaleY);
             ctx.translate(-svgData.width / 2, -svgData.height / 2);
             
             const p = new Path2D(svgData.path);
-            ctx.fillStyle = elem.color || '#FFFFFF';
+            ctx.fillStyle = surfaceColor;
             ctx.fill(p, 'evenodd');
-            ctx.strokeStyle = isSelected ? '#2D3748' : '#D9CEBF';
-            // Need to divide line width by scale so it doesn't get huge or tiny
+            ctx.strokeStyle = isSelected ? '#1F2937' : 'rgba(255, 255, 255, 0.8)';
             ctx.lineWidth = 1.5 / Math.min(scaleX, scaleY); 
             ctx.stroke(p);
             
@@ -628,7 +831,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           }
           ctx.shadowColor = 'transparent';
           
-          ctx.fillStyle = elem.textColor || '#2D2A26';
+          ctx.fillStyle = elem.textColor || getContrastTextColor(surfaceColor);
           ctx.font = 'bold 11px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -643,12 +846,14 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           const seatW = elem.width / count;
           const isLuisXV = elem.type === 'armchair_luis_xv';
           
-          ctx.shadowColor = 'rgba(0,0,0,0.15)';
+          ctx.shadowColor = '#d1d1d1';
+          ctx.shadowOffsetX = 3;
+          ctx.shadowOffsetY = 3;
           ctx.shadowBlur = 6;
           
-          ctx.fillStyle = elem.color || '#F0E6D2';
-          ctx.strokeStyle = isSelected ? '#2D3748' : '#D4A373';
-          ctx.lineWidth = 2;
+          ctx.fillStyle = elem.color || '#E5E7EB';
+          ctx.strokeStyle = isSelected ? '#1F2937' : 'rgba(255, 255, 255, 0.8)';
+          ctx.lineWidth = 1.5;
           
           for (let i = 0; i < count; i++) {
             const cx = -elem.width / 2 + (i * seatW) + (seatW / 2);
@@ -658,7 +863,6 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             const y = -elem.height / 2 + 2;
             
             if (isLuisXV) {
-              // Ornate Backrest
               ctx.beginPath();
               ctx.moveTo(x + w*0.1, y + h*0.4);
               ctx.quadraticCurveTo(x + w/2, y - h*0.2, x + w*0.9, y + h*0.4);
@@ -668,40 +872,34 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
               ctx.fill();
               ctx.stroke();
               
-              // Seat cushion
               ctx.beginPath();
               ctx.ellipse(cx, y + h*0.6, w*0.4, h*0.3, 0, 0, 2*Math.PI);
               ctx.fill();
               ctx.stroke();
               
-              // Armrests
               ctx.beginPath();
               ctx.ellipse(x + w*0.15, y + h*0.5, w*0.1, h*0.2, 0, 0, 2*Math.PI);
               ctx.ellipse(x + w*0.85, y + h*0.5, w*0.1, h*0.2, 0, 0, 2*Math.PI);
               ctx.fill();
               ctx.stroke();
             } else {
-              // Standard Sofa/Armchair
-              // Main body
               ctx.beginPath();
               ctx.roundRect(x, y, w, h, 8);
               ctx.fill();
               ctx.stroke();
               
-              // Cushion
               ctx.beginPath();
               ctx.roundRect(x + w*0.1, y + h*0.2, w*0.8, h*0.7, 4);
               ctx.fill();
               ctx.stroke();
               
-              // Armrests (only on edges if multiple seats, or both if single)
-              if (i === 0) { // Left arm
+              if (i === 0) {
                 ctx.beginPath();
                 ctx.roundRect(x, y + h*0.1, w*0.15, h*0.8, 4);
                 ctx.fill();
                 ctx.stroke();
               }
-              if (i === count - 1) { // Right arm
+              if (i === count - 1) {
                 ctx.beginPath();
                 ctx.roundRect(x + w*0.85, y + h*0.1, w*0.15, h*0.8, 4);
                 ctx.fill();
@@ -712,7 +910,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           
           ctx.shadowColor = 'transparent';
           
-          ctx.fillStyle = elem.textColor || '#5A3E2B';
+          ctx.fillStyle = elem.textColor || getContrastTextColor(elem.color || '#E5E7EB');
           ctx.font = 'bold 12px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -721,7 +919,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           break;
         }
         case 'text_label': {
-          ctx.fillStyle = elem.textColor || '#2D2A26';
+          ctx.fillStyle = elem.textColor || '#1F2937';
           ctx.font = 'bold 14px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -757,19 +955,46 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             ctx.stroke();
           }
 
-          // Chair Circle Fill
+          // Chair Neumorphic Surface & Shadow
+          ctx.save();
           if (isAssigned) {
-            ctx.fillStyle = isSeatHovered ? '#722F3D' : '#2D3748'; // Brand Burgundy for assigned
+            // Assigned chair: soft dark slate with subtle shadow
+            ctx.shadowColor = '#c0c0c0';
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.shadowBlur = 4;
+            ctx.fillStyle = isSeatHovered ? '#111827' : '#374151';
+            ctx.beginPath();
+            ctx.arc(0, 0, chairRadius, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
           } else {
-            ctx.fillStyle = isSeatHovered ? '#F3EFEA' : '#FFFFFF';
-          }
-          ctx.beginPath();
-          ctx.arc(0, 0, chairRadius, 0, 2 * Math.PI);
-          ctx.fill();
+            // Unassigned chair: raised neumorphic circle
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowOffsetX = -2;
+            ctx.shadowOffsetY = -2;
+            ctx.shadowBlur = 4;
+            ctx.fillStyle = isSeatHovered ? '#FFFFFF' : '#EBEBEB';
+            ctx.beginPath();
+            ctx.arc(0, 0, chairRadius, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
 
-          // Chair Border
-          ctx.strokeStyle = isAssigned ? '#5A202C' : '#D9CEBF';
-          ctx.lineWidth = isAssigned ? 1.5 : 1;
+            ctx.save();
+            ctx.shadowColor = '#d1d1d1';
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.shadowBlur = 4;
+            ctx.fillStyle = isSeatHovered ? '#FFFFFF' : '#EBEBEB';
+            ctx.beginPath();
+            ctx.arc(0, 0, chairRadius, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+          }
+
+          // Subtle chair border
+          ctx.strokeStyle = isAssigned ? '#1F2937' : 'rgba(255, 255, 255, 0.7)';
+          ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.arc(0, 0, chairRadius, 0, 2 * Math.PI);
           ctx.stroke();
@@ -783,7 +1008,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             const initials = seat.guestInitials || seat.guestName?.substring(0, 2).toUpperCase() || 'INV';
             ctx.fillText(initials, 0, 0);
           } else {
-            ctx.fillStyle = '#8C8276';
+            ctx.fillStyle = '#6B7280';
             ctx.font = 'bold 8.5px system-ui, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -1279,7 +1504,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
       ref={containerRef}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className="relative w-full h-full bg-[#FAF8F5] overflow-hidden select-none cursor-grab active:cursor-grabbing"
+      className="relative w-full h-full bg-[#EBEBEB] overflow-hidden select-none cursor-grab active:cursor-grabbing"
     >
       <canvas
         ref={canvasRef}
@@ -1299,29 +1524,29 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             top: `${hoveredSeatScreenPos.y - 18}px`,
             transform: 'translate(-50%, -100%)',
           }}
-          className="absolute z-30 pointer-events-none bg-[#2D2A26] text-[#2D3748] p-2.5 rounded-xl shadow-xl border border-stone-700 text-xs min-w-[170px] max-w-[240px] animate-in fade-in zoom-in-95 duration-150"
+          className="absolute z-30 pointer-events-none bg-[#EBEBEB] text-gray-800 p-3 rounded-2xl shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] text-xs min-w-[170px] max-w-[240px] animate-in fade-in zoom-in-95 duration-150"
         >
           {hoveredSeat.seat.guestId ? (
             <>
-              <div className="border-b border-stone-700/80 pb-1.5 mb-1.5">
-                <p className="font-bold text-white truncate text-[12px]">{hoveredSeat.seat.guestName}</p>
+              <div className="pb-1.5 mb-1.5 border-b border-gray-300">
+                <p className="font-bold text-gray-900 truncate text-[12px]">{hoveredSeat.seat.guestName}</p>
               </div>
               <div className="flex items-center justify-between font-bold">
-                <span className="text-amber-400">Asiento #{hoveredSeat.seat.seatNumber}</span>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-md">
+                <span className="text-gray-700">Asiento #{hoveredSeat.seat.seatNumber}</span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
                   Asignado
                 </span>
               </div>
             </>
           ) : (
             <>
-              <div className="flex items-center justify-between font-bold border-b border-stone-700/80 pb-1.5 mb-1.5">
-                <span className="text-amber-400">Asiento #{hoveredSeat.seat.seatNumber}</span>
-                <span className="text-[10px] text-stone-400">
+              <div className="flex items-center justify-between font-bold pb-1.5 mb-1.5 border-b border-gray-300">
+                <span className="text-gray-700">Asiento #{hoveredSeat.seat.seatNumber}</span>
+                <span className="text-[10px] text-gray-500 font-semibold">
                   Disponible
                 </span>
               </div>
-              <p className="text-[10px] text-stone-300">
+              <p className="text-[10px] text-gray-500">
                 Toca o haz clic en un asiento para asignar.
               </p>
             </>
@@ -1331,7 +1556,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
       {/* Scale Calibration Guide Banner */}
       {isCalibratingScale && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] px-4 py-2 rounded-full shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] border border-amber-300 flex items-center space-x-2 text-xs font-semibold animate-pulse">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-[#EBEBEB] text-gray-800 px-5 py-2.5 rounded-full shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center space-x-2 text-xs font-semibold animate-pulse">
           <span>📏 Toca o haz clic en el punto inicial y luego en el final de una pared o medida conocida</span>
         </div>
       )}

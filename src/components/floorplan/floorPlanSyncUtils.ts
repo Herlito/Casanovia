@@ -750,3 +750,39 @@ export function checkFloorPlanElementCapacityForGroup(
     warningMessage,
   };
 }
+
+/**
+ * Determines whether a color is dark based on its relative luminance
+ */
+export function isColorDark(color?: string): boolean {
+  if (!color) return false;
+  let hex = color.trim();
+  if (hex.startsWith('rgb')) {
+    const matches = hex.match(/\d+/g);
+    if (matches && matches.length >= 3) {
+      const r = parseInt(matches[0], 10);
+      const g = parseInt(matches[1], 10);
+      const b = parseInt(matches[2], 10);
+      return (0.299 * r + 0.587 * g + 0.114 * b) < 140;
+    }
+  }
+  if (!hex.startsWith('#')) return false;
+  hex = hex.replace('#', '');
+  if (hex.length === 3) {
+    hex = hex.split('').map((c) => c + c).join('');
+  }
+  if (hex.length !== 6) return false;
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+  return luminance < 140;
+}
+
+/**
+ * Returns a high-contrast text color (#FFFFFF or #1F2937) for a given surface color if not overridden
+ */
+export function getContrastTextColor(surfaceColor?: string, preferredTextColor?: string): string {
+  if (preferredTextColor) return preferredTextColor;
+  return isColorDark(surfaceColor) ? '#FFFFFF' : '#1F2937';
+}

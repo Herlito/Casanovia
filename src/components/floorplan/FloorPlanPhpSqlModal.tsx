@@ -86,41 +86,41 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-[#FAF8F5] w-full max-w-4xl rounded-2xl shadow-2xl border border-transparent flex flex-col max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-[#EBEBEB] w-full max-w-4xl rounded-3xl shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] flex flex-col max-h-[90vh] overflow-hidden">
         
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-transparent flex items-center justify-between bg-[#EBEBEB]">
+        <div className="p-4 sm:p-5 flex items-center justify-between bg-[#EBEBEB] border-b border-gray-300">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-[#2D3748] shadow-2xs">
+            <div className="w-10 h-10 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center text-gray-800">
               <Server className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-[#2D2A26] font-serif">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">
                 Endpoints PHP & Script SQL de Integración
               </h2>
-              <p className="text-xs text-[#8C8276]">
+              <p className="text-xs text-gray-500">
                 Scripts de backend para integrar el diseñador de planos con bases de datos MySQL existentes
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-[#8C8276] hover:text-[#2D2A26] hover:bg-[#F3EFEA] rounded-xl transition-colors cursor-pointer"
+            className="p-2 text-gray-500 hover:text-gray-900 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all cursor-pointer border-none"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center justify-between px-4 sm:px-6 pt-3 border-b border-transparent bg-[#FAF8F5] overflow-x-auto gap-2">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-[#EBEBEB] overflow-x-auto gap-2 border-b border-gray-300">
           <div className="flex space-x-2">
             <button
               onClick={() => setActiveTab('sql')}
-              className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer border-t border-x ${
+              className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-2xl transition-all cursor-pointer border-none ${
                 activeTab === 'sql'
-                  ? 'bg-[#EBEBEB] text-[#2D3748] border-transparent -mb-px shadow-2xs'
-                  : 'bg-transparent text-[#8C8276] border-transparent hover:text-[#2D2A26]'
+                  ? 'bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900 font-bold'
+                  : 'bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] text-gray-600 hover:text-gray-900'
               }`}
             >
               <Database className="w-3.5 h-3.5" />
@@ -128,10 +128,10 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
             </button>
             <button
               onClick={() => setActiveTab('get_invitados')}
-              className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer border-t border-x ${
+              className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-2xl transition-all cursor-pointer border-none ${
                 activeTab === 'get_invitados'
-                  ? 'bg-[#EBEBEB] text-[#2D3748] border-transparent -mb-px shadow-2xs'
-                  : 'bg-transparent text-[#8C8276] border-transparent hover:text-[#2D2A26]'
+                  ? 'bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900 font-bold'
+                  : 'bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] text-gray-600 hover:text-gray-900'
               }`}
             >
               <Code className="w-3.5 h-3.5" />
@@ -139,10 +139,10 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
             </button>
             <button
               onClick={() => setActiveTab('guardar_plano')}
-              className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer border-t border-x ${
+              className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-2xl transition-all cursor-pointer border-none ${
                 activeTab === 'guardar_plano'
-                  ? 'bg-[#EBEBEB] text-[#2D3748] border-transparent -mb-px shadow-2xs'
-                  : 'bg-transparent text-[#8C8276] border-transparent hover:text-[#2D2A26]'
+                  ? 'bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900 font-bold'
+                  : 'bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] text-gray-600 hover:text-gray-900'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
@@ -150,10 +150,10 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
             </button>
             <button
               onClick={() => setActiveTab('get_plano')}
-              className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer border-t border-x ${
+              className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-2xl transition-all cursor-pointer border-none ${
                 activeTab === 'get_plano'
-                  ? 'bg-[#EBEBEB] text-[#2D3748] border-transparent -mb-px shadow-2xs'
-                  : 'bg-transparent text-[#8C8276] border-transparent hover:text-[#2D2A26]'
+                  ? 'bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900 font-bold'
+                  : 'bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] text-gray-600 hover:text-gray-900'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
@@ -163,20 +163,20 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
 
           <button
             onClick={downloadAll}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#EBEBEB] hover:bg-[#F3EFEA] border border-[#D9CEBF] text-xs font-semibold text-[#2D2A26] rounded-lg shadow-2xs transition-colors shrink-0 mb-1 cursor-pointer"
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-semibold text-gray-800 rounded-2xl transition-all shrink-0 cursor-pointer border-none"
           >
-            <Download className="w-3.5 h-3.5 text-[#2D3748]" />
+            <Download className="w-3.5 h-3.5 text-gray-700" />
             <span>Descargar Todos (.zip / archivos)</span>
           </button>
         </div>
 
         {/* Info banner */}
-        <div className="px-6 py-2.5 bg-amber-50/70 border-b border-amber-100/80 flex items-center justify-between text-xs text-amber-900">
+        <div className="px-6 py-3 bg-[#EBEBEB] flex items-center justify-between text-xs text-gray-700 border-b border-gray-300">
           <span>{current.description}</span>
           <div className="flex items-center space-x-2 shrink-0 ml-4">
             <button
               onClick={() => handleCopy(current.code, activeTab)}
-              className="flex items-center space-x-1 px-2.5 py-1 bg-[#EBEBEB] hover:bg-amber-100/60 border border-amber-200 rounded-md font-semibold text-amber-900 transition-colors cursor-pointer"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-xl font-semibold text-gray-800 transition-all cursor-pointer border-none"
             >
               {copiedTab === activeTab ? (
                 <>
@@ -192,7 +192,7 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
             </button>
             <button
               onClick={() => handleDownload(current.filename, current.code)}
-              className="flex items-center space-x-1 px-2.5 py-1 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#722F3D] text-[#2D3748] rounded-md font-semibold transition-colors cursor-pointer"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800 rounded-xl font-semibold transition-all cursor-pointer border-none"
             >
               <Download className="w-3 h-3" />
               <span>Descargar</span>
@@ -201,20 +201,20 @@ export const FloorPlanPhpSqlModal: React.FC<FloorPlanPhpSqlModalProps> = ({ isOp
         </div>
 
         {/* Code View Area */}
-        <div className="flex-1 p-4 bg-[#1E1E1E] overflow-auto text-[#4A5568] font-mono text-xs leading-relaxed select-text">
+        <div className="flex-1 p-4 bg-[#1E1E1E] overflow-auto text-gray-300 font-mono text-xs leading-relaxed select-text shadow-[inset_4px_4px_8px_#0a0a0a]">
           <pre className="p-2">
             <code>{current.code}</code>
           </pre>
         </div>
 
         {/* Footer */}
-        <div className="p-3.5 bg-[#EBEBEB] border-t border-transparent flex items-center justify-between text-xs text-[#8C8276]">
+        <div className="p-4 bg-[#EBEBEB] border-t border-gray-300 flex items-center justify-between text-xs text-gray-500">
           <span>
-            Archivo: <strong className="text-[#2D2A26]">{current.filename}</strong> (Listo para producción en Apache / Nginx + PHP 7.4/8.x)
+            Archivo: <strong className="text-gray-900">{current.filename}</strong> (Listo para producción en Apache / Nginx + PHP 7.4/8.x)
           </span>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 bg-[#FAF8F5] hover:bg-[#E8DCCF] text-[#2D2A26] font-semibold rounded-lg border border-[#D9CEBF] transition-colors cursor-pointer"
+            className="px-5 py-2 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800 font-semibold rounded-2xl transition-all cursor-pointer border-none"
           >
             Cerrar
           </button>
