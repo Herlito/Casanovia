@@ -154,6 +154,7 @@ interface WeddingContextType {
   guests: Guest[];
   addGuest: (guest: Omit<Guest, 'id'>) => Promise<Guest>;
   updateGuest: (id: string, updates: Partial<Guest>) => Promise<void>;
+  assignCompanion: (primaryGuestId: string, companionGuestId: string, targetTable?: string) => Promise<void>;
   deleteGuest: (id: string) => Promise<void>;
   reorderGuests: (reorderedGuests: Guest[]) => Promise<void>;
   importGuests: (newGuests: Guest[], mode: 'append' | 'replace') => Promise<void>;
@@ -1875,7 +1876,30 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       code: guestData.code || `BODA-${cleanNameCode}-${Math.floor(100 + Math.random() * 900)}`,
       updatedAt: new Date().toISOString().split('T')[0],
     };
-    const updatedGuests = [...currentGuests, newGuest];
+
+    let updatedGuests: Guest[];
+    if (guestData.mainGuestId) {
+      const mainGuest = currentGuests.find((g) => g.id === guestData.mainGuestId);
+      const existingComps = currentGuests.filter((g) => g.mainGuestId === guestData.mainGuestId);
+      const neededPasses = existingComps.length + 2;
+      const shouldIncreasePasses = mainGuest && (mainGuest.totalPasses || 1) < neededPasses;
+
+      updatedGuests = currentGuests.map((g) => {
+        if (shouldIncreasePasses && g.id === guestData.mainGuestId) {
+          return {
+            ...g,
+            totalPasses: neededPasses,
+            assignedTable: tableToAssign !== 'Mesa por asignar' ? tableToAssign : g.assignedTable,
+            updatedAt: new Date().toISOString().split('T')[0],
+          };
+        }
+        return g;
+      });
+      updatedGuests.push(newGuest);
+    } else {
+      updatedGuests = [...currentGuests, newGuest];
+    }
+
     await updateActiveWeddingDoc({ guests: updatedGuests });
     return newGuest;
   };
@@ -1941,6 +1965,75 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       return g;
     });
+    await updateActiveWeddingDoc({ guests: updatedGuests });
+  };
+
+  const assignCompanion = async (primaryGuestId: string, companionGuestId: string, targetTable?: string) => {
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId);
+    const currentGuests = currentWedding?.guests || guests || [];
+
+    const primary = currentGuests.find((g) => g.id === primaryGuestId);
+    const companion = currentGuests.find((g) => g.id === companionGuestId);
+    if (!primary || !companion) return;
+
+    // Count existing companions of primary (excluding the companion being assigned)
+    const existingCompanions = currentGuests.filter(
+      (g) => g.mainGuestId === primaryGuestId && g.id !== companionGuestId
+    );
+    // Needed passes = 1 primary + existing companions + 1 new companion
+    const neededPasses = existingCompanions.length + 2;
+    const newTotalPasses = Math.max(primary.totalPasses || 1, neededPasses);
+
+    // Resolve final table
+    let finalTable = (targetTable && targetTable !== 'Mesa por asignar')
+      ? targetTable
+      : (primary.assignedTable && primary.assignedTable !== 'Mesa por asignar'
+          ? primary.assignedTable
+          : (companion.assignedTable && companion.assignedTable !== 'Mesa por asignar'
+              ? companion.assignedTable
+              : 'Mesa por asignar'));
+
+    // IDs of everyone in the group to sync table
+    const groupIdsToSync = [
+      primaryGuestId,
+      companionGuestId,
+      ...existingCompanions.map((g) => g.id),
+    ];
+
+    const updatedGuests = currentGuests.map((g) => {
+      // 1. Companion being assigned
+      if (g.id === companionGuestId) {
+        return {
+          ...g,
+          mainGuestId: primaryGuestId,
+          category: 'invitado' as const,
+          assignedTable: finalTable,
+          updatedAt: new Date().toISOString().split('T')[0],
+        };
+      }
+
+      // 2. Primary guest: update passes and table
+      if (g.id === primaryGuestId) {
+        return {
+          ...g,
+          totalPasses: newTotalPasses,
+          assignedTable: finalTable !== 'Mesa por asignar' ? finalTable : g.assignedTable,
+          updatedAt: new Date().toISOString().split('T')[0],
+        };
+      }
+
+      // 3. Existing companions of primary: sync table if specified
+      if (finalTable !== 'Mesa por asignar' && groupIdsToSync.includes(g.id)) {
+        return {
+          ...g,
+          assignedTable: finalTable,
+          updatedAt: new Date().toISOString().split('T')[0],
+        };
+      }
+
+      return g;
+    });
+
     await updateActiveWeddingDoc({ guests: updatedGuests });
   };
 
@@ -2680,6 +2773,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         guests,
         addGuest,
         updateGuest,
+        assignCompanion,
         deleteGuest,
         reorderGuests,
         importGuests,
