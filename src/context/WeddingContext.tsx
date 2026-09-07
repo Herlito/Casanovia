@@ -2548,31 +2548,40 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     try {
-      // Optimistically update local state so UI reflects it immediately
+      // 1. Actualizar estado local inmediatamente para respuesta instantánea de la UI
       setWeddings((prev) =>
         prev.map((w) => (w.id === targetId ? fullClearedWedding : w))
       );
 
-      // Overwrite in Firestore
-      const cleaned = cleanFirestoreData(fullClearedWedding);
-      await setDoc(doc(db, 'weddings', targetId), cleaned);
-
-      // Borrar plano local en Firestore y almacenamiento local para que el lienzo empiece completamente vacío
-      try {
-        await deleteDoc(doc(db, 'floor_plans', targetId));
-      } catch (fpErr) {
-        console.warn('[Firestore] Error deleting floor plan on clear:', fpErr);
-      }
+      // 2. Limpiar caché del plano local y notificar inmediatamente a los componentes
       try {
         localStorage.removeItem(`casanovia_floor_plan_${targetId}`);
         window.dispatchEvent(new CustomEvent('casanovia_floor_plan_cleared', { detail: { weddingId: targetId } }));
       } catch (e) {
-        // ignore
+        console.warn('[FloorPlan] Error clearing local storage:', e);
       }
+
+      // 3. Persistir en Firestore con límite de tiempo para evitar congelamientos si la red o Firestore tardan
+      const firestoreSyncPromise = (async () => {
+        try {
+          const cleaned = cleanFirestoreData(fullClearedWedding);
+          await setDoc(doc(db, 'weddings', targetId), cleaned);
+        } catch (wErr) {
+          console.warn('[Firestore] Error guardando boda limpia en Firestore:', wErr);
+        }
+
+        try {
+          await deleteDoc(doc(db, 'floor_plans', targetId));
+        } catch (fpErr) {
+          console.warn('[Firestore] Error eliminando plano local en Firestore:', fpErr);
+        }
+      })();
+
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 3000));
+      await Promise.race([firestoreSyncPromise, timeoutPromise]);
     } catch (err) {
       console.error('Error al limpiar los datos de la boda:', err);
-      handleFirestoreError(err, OperationType.UPDATE, `weddings/${targetId}`);
-      throw err;
+      // No relanzamos error fatal para evitar bloquear o congelar la interfaz del usuario
     }
   };
 

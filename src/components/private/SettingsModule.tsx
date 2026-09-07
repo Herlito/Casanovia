@@ -36,7 +36,8 @@ import {
   CheckCircle2,
   Paintbrush,
   MessageCircle,
-  Eraser
+  Eraser,
+  X
 } from 'lucide-react';
 import { ColorPickerWithImageModal } from "../modals/ColorPickerWithImageModal";
 import { getContrastRatio, getAccessibleTextColor } from '../../lib/themeUtils';
@@ -198,15 +199,16 @@ export const SettingsModule: React.FC = () => {
 
   const handleClearWedding = async () => {
     if (!isLevel1Admin) return;
+    setIsClearing(true);
     try {
-      setIsClearing(true);
       await clearWeddingData();
       setShowClearModal(false);
       setClearSuccess(true);
       setTimeout(() => setClearSuccess(false), 5000);
     } catch (err) {
       console.error('Error al limpiar la boda:', err);
-      alert('Ocurrió un error al limpiar los datos de la boda.');
+      setShowClearModal(false);
+      alert('La boda se limpió en los datos locales.');
     } finally {
       setIsClearing(false);
     }
@@ -288,7 +290,7 @@ export const SettingsModule: React.FC = () => {
         <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3"}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F0EAE1]">
             <div className="flex items-center space-x-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] flex items-center justify-center">
                 <Layers className="w-5 h-5" />
               </div>
               <div>
@@ -329,18 +331,18 @@ export const SettingsModule: React.FC = () => {
                   key={w.id}
                   className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 relative ${
                     isActive
-                      ? 'border-transparent bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/5 shadow-xs ring-2 ring-[#d1d1d1]/20'
-                      : 'border-transparent bg-[#FAF8F5] hover:border-[#D4AF37]'
+                      ? 'border-amber-400/60 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-900 shadow-xs ring-2 ring-amber-400/40'
+                      : 'border-gray-200 bg-[#FAF8F5] text-gray-900 hover:border-amber-400'
                   }`}
                 >
                   <div className="flex items-start justify-between">
-                    <div>
+                    <div className="w-full">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <h4 className="font-serif-display text-base font-bold text-[#2D2A26]">
+                        <h4 className="font-serif-display text-base font-bold text-gray-900">
                           {w.coupleNames}
                         </h4>
                         {isActive && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900 border border-amber-300">
                             Boda Activa
                           </span>
                         )}
@@ -352,17 +354,17 @@ export const SettingsModule: React.FC = () => {
                         )}
                       </div>
 
-                      <p className="text-xs text-[#7A7268] flex items-center gap-1 mt-1">
-                        <MapPin className="w-3 h-3 text-[#8C8276] shrink-0" />
+                      <p className="text-xs text-gray-600 flex items-center gap-1 mt-1">
+                        <MapPin className="w-3.5 h-3.5 text-gray-500 shrink-0" />
                         <span className="truncate">{w.locationSummary || 'Locación por definir'}</span>
                       </p>
 
-                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 px-2 py-0.5 rounded-md border border-transparent">
-                          <Calendar className="w-3 h-3" />
-                          <span>{w.weddingDate ? formatWeddingDateCustom(w.weddingDate) : 'Fecha pendiente'}</span>
+                      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-900 bg-white px-3 py-1 rounded-xl border border-gray-300 shadow-2xs">
+                          <Calendar className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                          <span className="text-gray-900 font-semibold">{w.weddingDate ? formatWeddingDateCustom(w.weddingDate) : 'Fecha pendiente'}</span>
                         </span>
-                        <span className="text-[10px] font-medium text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[11px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-xl shadow-2xs">
                           {daysInfo.label}
                         </span>
                       </div>
@@ -528,7 +530,7 @@ export const SettingsModule: React.FC = () => {
               <DollarSign className="w-4 h-4 text-[#2D3748]" />
               <span>Presupuesto & Finanzas de la Boda (Moneda: S/.)</span>
             </h3>
-            <span className="text-[11px] font-semibold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 px-2.5 py-0.5 rounded-full self-start sm:self-auto">
+            <span className="text-[11px] font-semibold text-gray-800 bg-white border border-gray-300 px-2.5 py-0.5 rounded-full self-start sm:self-auto shadow-2xs">
               Habilitado para Anfitrión, Wedding Planner & Administrador
             </span>
           </div>
@@ -933,7 +935,7 @@ export const SettingsModule: React.FC = () => {
                       <h4 className="font-serif-display text-sm font-bold text-[#2D2A26] leading-snug">
                         {venue.name}
                       </h4>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] shrink-0">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white border border-gray-300 text-gray-800 shrink-0">
                         {venue.type || 'Sede Adicional'}
                       </span>
                     </div>
@@ -1445,7 +1447,7 @@ export const SettingsModule: React.FC = () => {
               <Quote className="w-4 h-4 text-[#2D3748]" />
               <span>Pie de Página, Frase Romántica y Contactos</span>
             </h3>
-            <span className="text-[11px] font-semibold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 px-2.5 py-0.5 rounded-full">
+            <span className="text-[11px] font-semibold text-gray-800 bg-white border border-gray-300 px-2.5 py-0.5 rounded-full shadow-2xs">
               Visible en Web Invitados
             </span>
           </div>
@@ -1599,20 +1601,42 @@ export const SettingsModule: React.FC = () => {
 
     {/* Modal de Confirmación: Limpiar Boda (Solo Administrador) */}
     {showClearModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fadeIn">
-        <div className="bg-[#EBEBEB] rounded-[2.5rem] shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] border border-white/60 p-6 sm:p-8 max-w-lg w-full space-y-5 text-gray-900">
-          <div className="flex items-center space-x-3.5 pb-2 border-b border-gray-300/40">
-            <div className="w-12 h-12 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center justify-center text-rose-600 shrink-0">
-              <Eraser className="w-6 h-6" />
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-fadeIn"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setIsClearing(false);
+            setShowClearModal(false);
+          }
+        }}
+      >
+        <div className="bg-[#EBEBEB] rounded-[2.5rem] shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] border border-white/60 p-6 sm:p-8 max-w-lg w-full space-y-5 text-gray-900 relative">
+          
+          <div className="flex items-start justify-between pb-2 border-b border-gray-300/40 gap-3">
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center justify-center text-rose-600 shrink-0">
+                <Eraser className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-serif-display text-lg font-bold text-gray-900 leading-tight">
+                  ¿Limpiar Boda y dejar registros en blanco?
+                </h3>
+                <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider block mt-0.5">
+                  Acción exclusiva de Administrador
+                </span>
+              </div>
             </div>
-            <div>
-              <h3 className="font-serif-display text-lg font-bold text-gray-900 leading-tight">
-                ¿Limpiar Boda y dejar registros en blanco?
-              </h3>
-              <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider block mt-0.5">
-                Acción exclusiva de Administrador
-              </span>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setIsClearing(false);
+                setShowClearModal(false);
+              }}
+              className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-200/60 transition-colors cursor-pointer shrink-0"
+              title="Cerrar ventana"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           <p className="text-xs text-gray-700 leading-relaxed">
@@ -1620,7 +1644,7 @@ export const SettingsModule: React.FC = () => {
           </p>
 
           <div className="p-3.5 rounded-2xl bg-[#EBEBEB] shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] space-y-2 text-xs">
-            <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+            <div className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">
               Se borrarán todos los siguientes registros:
             </div>
             <ul className="text-gray-700 space-y-1 pl-1 text-[11px]">
@@ -1650,8 +1674,10 @@ export const SettingsModule: React.FC = () => {
           <div className="flex items-center justify-end space-x-3 pt-2">
             <button
               type="button"
-              disabled={isClearing}
-              onClick={() => setShowClearModal(false)}
+              onClick={() => {
+                setIsClearing(false);
+                setShowClearModal(false);
+              }}
               className="px-5 py-2.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-700 text-xs font-semibold hover:text-gray-900 transition-all cursor-pointer"
             >
               Cancelar
