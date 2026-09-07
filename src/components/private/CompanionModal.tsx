@@ -23,6 +23,8 @@ interface CompanionModalProps {
   onClose: () => void;
   primaryGuestName: string;
   primaryGuestId?: string;
+  initialTotalPasses?: number;
+  onPassesChange?: (newPasses: number) => void;
   currentTable: string;
   onCompanionAdded?: (companionName: string) => void;
   onTableChange?: (newTable: string) => void;
@@ -34,6 +36,8 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
   onClose,
   primaryGuestName,
   primaryGuestId,
+  initialTotalPasses,
+  onPassesChange,
   currentTable,
   onCompanionAdded,
   onTableChange,
@@ -46,6 +50,17 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
 
   const [activeTab, setActiveTab] = useState<'select' | 'new'>('select');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Local passes counter for instant reactivity
+  const [localPasses, setLocalPasses] = useState<number>(() => {
+    return initialTotalPasses || primaryGuest?.totalPasses || 1;
+  });
+
+  // Sync local passes if primaryGuest or prop updates
+  React.useEffect(() => {
+    const freshPasses = primaryGuest?.totalPasses || initialTotalPasses || 1;
+    setLocalPasses((prev) => Math.max(prev, freshPasses));
+  }, [primaryGuest?.totalPasses, initialTotalPasses]);
 
   // New guest form fields
   const [newFullName, setNewFullName] = useState('');
@@ -76,12 +91,12 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
 
   // List of companions associated with this primary guest
   const primaryCompanions = useMemo(() => {
-    if (!primaryGuest) return [];
-    return guests.filter((g) => g.mainGuestId === primaryGuest.id);
-  }, [guests, primaryGuest]);
+    if (!targetGuestId) return [];
+    return guests.filter((g) => g.mainGuestId === targetGuestId);
+  }, [guests, targetGuestId]);
 
-  // Validation: Companions count cannot exceed (totalPasses - 1)
-  const totalPasses = primaryGuest?.totalPasses || 1;
+  // Total passes & allowed companions calculation
+  const totalPasses = Math.max(localPasses, primaryGuest?.totalPasses || 1, initialTotalPasses || 1);
   const maxAllowedCompanions = Math.max(0, totalPasses - 1);
   const isPassLimitReached = primaryCompanions.length >= maxAllowedCompanions;
 
@@ -99,25 +114,31 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
     return guests.filter((g) => {
       if (targetGuestId && g.id === targetGuestId) return false;
       // Do not allow picking someone who is already a companion of this primary guest
-      if (primaryGuest && g.mainGuestId === primaryGuest.id) return false;
+      if (targetGuestId && g.mainGuestId === targetGuestId) return false;
       if (!query) return true;
       const matchName = g.fullName.toLowerCase().includes(query);
       const matchCode = g.code.toLowerCase().includes(query);
       const matchTable = g.assignedTable?.toLowerCase().includes(query) || false;
       return matchName || matchCode || matchTable;
     });
-  }, [guests, searchQuery, targetGuestId, primaryGuest]);
+  }, [guests, searchQuery, targetGuestId]);
 
   if (!isOpen) return null;
 
   // Quick action: Increase passes of primary guest by 1
   const handleIncreasePasses = async () => {
-    if (!primaryGuest) return;
     setIsSubmitting(true);
     try {
-      const newTotal = (primaryGuest.totalPasses || 1) + 1;
-      await updateGuest(primaryGuest.id, { totalPasses: newTotal });
-      setSuccessMessage(`Pases del titular ${primaryGuest.fullName} aumentados a ${newTotal}. ¡Ahora puedes asignar otro acompañante!`);
+      const current = Math.max(localPasses, primaryGuest?.totalPasses || 1);
+      const newTotal = current + 1;
+      setLocalPasses(newTotal);
+      if (targetGuestId) {
+        await updateGuest(targetGuestId, { totalPasses: newTotal });
+      }
+      if (onPassesChange) {
+        onPassesChange(newTotal);
+      }
+      setSuccessMessage(`Pases del titular aumentados a ${newTotal}. ¡Ahora puedes asignar el acompañante!`);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error increasing passes:', err);
@@ -128,10 +149,23 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
 
   // Handle assigning an existing guest as companion & synchronizing table
   const handleAssignExistingGuest = async (guest: Guest) => {
-    if (isPassLimitReached) return;
     setIsSubmitting(true);
     try {
-      // If primary guest has no assigned table or it's 'Mesa por asignar', companion must also be 'Mesa por asignar'
+      // 1. Ensure the primary guest has enough passes for this companion
+      let current = Math.max(localPasses, primaryGuest?.totalPasses || 1);
+      const neededPasses = primaryCompanions.length + 2; // 1 titular + existing companions + 1 new companion
+      if (current < neededPasses) {
+        current = neededPasses;
+        setLocalPasses(current);
+        if (targetGuestId) {
+          await updateGuest(targetGuestId, { totalPasses: current });
+        }
+        if (onPassesChange) {
+          onPassesChange(current);
+        }
+      }
+
+      // 2. Resolve final table
       let finalTable = primaryGuest?.assignedTable && primaryGuest.assignedTable !== 'Mesa por asignar'
         ? primaryGuest.assignedTable
         : (targetTable && targetTable !== 'Mesa por asignar' ? targetTable : 'Mesa por asignar');
@@ -139,13 +173,13 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
       // If user specified a real table in targetTable and primary guest was unassigned, assign both!
       if (targetTable && targetTable !== 'Mesa por asignar' && (!primaryGuest?.assignedTable || primaryGuest.assignedTable === 'Mesa por asignar')) {
         finalTable = targetTable;
-        if (primaryGuest) {
-          await updateGuest(primaryGuest.id, { assignedTable: finalTable });
+        if (targetGuestId) {
+          await updateGuest(targetGuestId, { assignedTable: finalTable });
         }
       }
 
       await updateGuest(guest.id, {
-        mainGuestId: primaryGuest?.id || undefined,
+        mainGuestId: targetGuestId,
         category: 'invitado', // El acompañante pasa a tener el rol de Invitado
         assignedTable: finalTable,
       });
@@ -154,15 +188,16 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
         onTableChange(finalTable);
       }
 
-      setSuccessMessage(`¡"${guest.fullName}" ha sido asignado(a) como acompañante de ${primaryGuestName}${finalTable !== 'Mesa por asignar' ? ` en ${finalTable}` : ' (Mesa por asignar)'}!`);
+      setSuccessMessage(`¡"${guest.fullName}" ha sido asignado(a) como acompañante de ${primaryGuestName}${finalTable !== 'Mesa por asignar' ? ` en ${finalTable}` : ''}!`);
       if (onCompanionAdded) onCompanionAdded(guest.fullName);
 
       setTimeout(() => {
         setSuccessMessage(null);
         onClose();
-      }, 1200);
+      }, 1000);
     } catch (err) {
       console.error('Error assigning companion:', err);
+      setSuccessMessage('Ocurrió un error al vincular el acompañante. Intenta nuevamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -171,19 +206,32 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
   // Handle registering a new companion directly
   const handleCreateNewCompanion = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newFullName.trim() || isPassLimitReached) return;
+    if (!newFullName.trim()) return;
 
     setIsSubmitting(true);
     try {
+      // Auto-increase passes if needed
+      let current = Math.max(localPasses, primaryGuest?.totalPasses || 1);
+      const neededPasses = primaryCompanions.length + 2;
+      if (current < neededPasses) {
+        current = neededPasses;
+        setLocalPasses(current);
+        if (targetGuestId) {
+          await updateGuest(targetGuestId, { totalPasses: current });
+        }
+        if (onPassesChange) {
+          onPassesChange(current);
+        }
+      }
+
       let finalTable = primaryGuest?.assignedTable && primaryGuest.assignedTable !== 'Mesa por asignar'
         ? primaryGuest.assignedTable
         : (targetTable && targetTable !== 'Mesa por asignar' ? targetTable : 'Mesa por asignar');
 
-      // If targetTable is set to a real table and primary guest was unassigned, assign both!
       if (targetTable && targetTable !== 'Mesa por asignar' && (!primaryGuest?.assignedTable || primaryGuest.assignedTable === 'Mesa por asignar')) {
         finalTable = targetTable;
-        if (primaryGuest) {
-          await updateGuest(primaryGuest.id, { assignedTable: finalTable });
+        if (targetGuestId) {
+          await updateGuest(targetGuestId, { assignedTable: finalTable });
         }
       }
 
@@ -191,14 +239,14 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
       const cleanPrefix = cleanName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'ACOMP';
       const generatedCode = `BODA-${cleanPrefix}-${Math.floor(100 + Math.random() * 900)}`;
 
-      await addGuest({
+      const newGuest = await addGuest({
         fullName: cleanName,
         code: generatedCode,
-        category: 'invitado', // El acompañante pasa a tener el rol de Invitado
-        mainGuestId: primaryGuest?.id || undefined,
+        category: 'invitado',
         assignedTable: finalTable,
+        mainGuestId: targetGuestId,
         totalPasses: 1,
-        confirmedPasses: 0,
+        confirmedPasses: 1,
         rsvpStatus: 'pending',
         phone: newPhone.trim() || undefined,
         email: newEmail.trim() || undefined,
@@ -210,8 +258,8 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
         onTableChange(finalTable);
       }
 
-      setSuccessMessage(`¡"${cleanName}" registrado(a) como acompañante de ${primaryGuestName}${finalTable !== 'Mesa por asignar' ? ` en ${finalTable}` : ''}!`);
-      if (onCompanionAdded) onCompanionAdded(cleanName);
+      setSuccessMessage(`¡"${newGuest.fullName}" registrado(a) y asignado(a) como acompañante de ${primaryGuestName}!`);
+      if (onCompanionAdded) onCompanionAdded(newGuest.fullName);
 
       // Reset form
       setNewFullName('');
@@ -222,7 +270,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
       setTimeout(() => {
         setSuccessMessage(null);
         onClose();
-      }, 1200);
+      }, 1000);
     } catch (err) {
       console.error('Error creating companion:', err);
     } finally {
@@ -237,7 +285,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-transparent">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-700 text-[#2D3748] flex items-center justify-center shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
               <UserPlus className="w-5 h-5" />
             </div>
             <div>
@@ -262,19 +310,19 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
         {/* Info Banner: Current Guest, Pases & Mesa Target */}
         <div className="mt-4 p-3.5 bg-[#EBEBEB] rounded-xl border border-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-2xs">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-emerald-700 flex items-center justify-center shrink-0">
               <User className="w-4 h-4" />
             </div>
             <div>
               <span className="text-[10px] uppercase font-bold tracking-wider text-[#7A7268]">Invitado Titular:</span>
               <p className="text-xs font-bold text-[#2D2A26]">{primaryGuestName || 'Invitado en edición'}</p>
               <div className="flex items-center space-x-2 text-[11px] text-[#7A7268] mt-0.5">
-                <span className="inline-flex items-center space-x-1 font-semibold text-[#2D3748]">
+                <span className="inline-flex items-center space-x-1 font-semibold text-emerald-800">
                   <Ticket className="w-3 h-3" />
                   <span>{totalPasses} {totalPasses === 1 ? 'pase total' : 'pases totales'}</span>
                 </span>
                 <span>•</span>
-                <span>{primaryCompanions.length} de {maxAllowedCompanions} acomp.</span>
+                <span className="text-stone-600 font-medium">{primaryCompanions.length} de {maxAllowedCompanions} acomp. asignados</span>
               </div>
             </div>
           </div>
@@ -303,7 +351,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
               <div className="flex-1">
                 <p className="font-bold">Límite de acompañantes alcanzado</p>
                 <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
-                  <strong>{primaryGuestName}</strong> tiene <strong>{totalPasses} {totalPasses === 1 ? 'pase' : 'pases'}</strong> (1 titular + {primaryCompanions.length} acompañante{primaryCompanions.length === 1 ? '' : 's'}). La cantidad de acompañantes no puede ser mayor a los pases asignados.
+                  <strong>{primaryGuestName}</strong> tiene <strong>{totalPasses} {totalPasses === 1 ? 'pase' : 'pases'}</strong> (1 titular + {primaryCompanions.length} acompañante{primaryCompanions.length === 1 ? '' : 's'}). Puedes aumentar los pases aquí o asignar directamente.
                 </p>
               </div>
             </div>
@@ -312,7 +360,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleIncreasePasses}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-[#2D3748] rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
+                className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Aumentar a {totalPasses + 1} pases</span>
@@ -393,7 +441,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                       setNewFullName(searchQuery.trim());
                       setActiveTab('new');
                     }}
-                    className="inline-flex items-center space-x-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-[#2D3748] rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                    className="inline-flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>Registrar "{searchQuery.trim() || 'Nuevo'}" como Acompañante</span>
@@ -433,14 +481,10 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
                       {/* Asignar Acompañante button */}
                       <button
                         type="button"
-                        disabled={isSubmitting || isPassLimitReached}
+                        disabled={isSubmitting}
                         onClick={() => handleAssignExistingGuest(guest)}
-                        className={`shrink-0 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                          isPassLimitReached
-                            ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
-                            : 'bg-emerald-700 hover:bg-emerald-800 text-[#2D3748] shadow-xs cursor-pointer active:scale-95'
-                        }`}
-                        title={isPassLimitReached ? 'Aumenta los pases del titular para asignar más acompañantes' : 'Asignar como acompañante'}
+                        className="shrink-0 inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
+                        title="Asignar como acompañante"
                       >
                         <UserPlus className="w-3.5 h-3.5" />
                         <span>Asignar Acompañante</span>
@@ -579,11 +623,11 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
 
               <button
                 type="submit"
-                disabled={!newFullName.trim() || isSubmitting || isPassLimitReached}
-                className={`inline-flex items-center space-x-1.5 px-5 py-2 rounded-xl text-xs font-bold text-[#2D3748] transition-all shadow-xs ${
-                  newFullName.trim() && !isSubmitting && !isPassLimitReached
-                    ? 'bg-emerald-700 hover:bg-emerald-800 cursor-pointer active:scale-95'
-                    : 'bg-stone-300 cursor-not-allowed'
+                disabled={!newFullName.trim() || isSubmitting}
+                className={`inline-flex items-center space-x-1.5 px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                  newFullName.trim() && !isSubmitting
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer active:scale-95'
+                    : 'bg-stone-300 text-stone-500 cursor-not-allowed'
                 }`}
               >
                 <UserPlus className="w-4 h-4" />

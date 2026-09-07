@@ -736,11 +736,11 @@ export const TableAssignmentModule: React.FC = () => {
         {filteredTables.map((table) => {
           const occData = tableOccupancyMap.get((table?.name || '').trim().toLowerCase()) || { guests: [], totalPasses: 0 };
           const seatedGuests = occData.guests;
-          const totalSeatedPasses = occData.totalPasses;
-          const isOverCapacity = totalSeatedPasses > table.capacity;
-          const isFull = totalSeatedPasses === table.capacity;
-          const availableSeats = Math.max(0, table.capacity - totalSeatedPasses);
-          const fillPct = table.capacity > 0 ? Math.min(100, Math.round((totalSeatedPasses / table.capacity) * 100)) : 0;
+          const assignedGuestCount = seatedGuests.length;
+          const isOverCapacity = assignedGuestCount > table.capacity;
+          const isFull = assignedGuestCount === table.capacity;
+          const availableSeats = Math.max(0, table.capacity - assignedGuestCount);
+          const fillPct = table.capacity > 0 ? Math.min(100, Math.round((assignedGuestCount / table.capacity) * 100)) : 0;
           const isDragOver = dragOverTableId === table.id;
 
           const draggedGuestObj = draggedGuestId ? guests.find((g) => g.id === draggedGuestId) : null;
@@ -945,7 +945,7 @@ export const TableAssignmentModule: React.FC = () => {
                       ? 'bg-amber-50 text-amber-900 border-amber-200'
                       : 'bg-[#FAF8F5] text-[#524B42] border-transparent'
                   }`}>
-                    {totalSeatedPasses} / {table.capacity} <span className="hidden sm:inline">Asientos</span>
+                    {assignedGuestCount} / {table.capacity} <span className="hidden sm:inline">Asientos</span>
                   </span>
                 </div>
               </div>

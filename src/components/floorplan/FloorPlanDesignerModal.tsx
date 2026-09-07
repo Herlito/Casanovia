@@ -78,6 +78,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     settings,
     isLevel1Admin,
     updateGuest,
+    updateTable,
   } = useWedding();
 
   // Floor plan layout state
@@ -923,6 +924,30 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         return { ...elem, ...updates };
       })
     );
+
+    // Synchronize manual element name/capacity updates to Banquet Table (Asignación de Mesas)
+    if ((updates.name !== undefined && updates.name.trim() !== '') || updates.seatCount !== undefined) {
+      const targetElem = elements.find((e) => e.id === id);
+      if (targetElem && (targetElem.type === 'round_table' || targetElem.type === 'rectangular_table')) {
+        const matchedTable = tables.find(
+          (t) =>
+            t.id === (targetElem as any).tableId ||
+            id === `elem_table_${t.id}` ||
+            id === t.id ||
+            t.name.trim().toLowerCase() === targetElem.name?.trim().toLowerCase()
+        );
+        if (matchedTable) {
+          const newName = updates.name !== undefined ? updates.name.trim() : matchedTable.name;
+          const newCap = updates.seatCount !== undefined ? updates.seatCount : matchedTable.capacity;
+          if (newName !== matchedTable.name || newCap !== matchedTable.capacity) {
+            updateTable(matchedTable.id, {
+              name: newName,
+              capacity: newCap,
+            }).catch((err) => console.warn('[FloorPlan] Sync to table error:', err));
+          }
+        }
+      }
+    }
   };
 
   const handleDuplicateElement = (id: string) => {

@@ -1170,6 +1170,10 @@ export const GuestModal: React.FC<GuestModalProps> = ({
           onClose={() => setIsCompanionModalOpen(false)}
           primaryGuestName={formData.fullName || 'Invitado'}
           primaryGuestId={guestToEdit?.id}
+          initialTotalPasses={formData.totalPasses}
+          onPassesChange={(newPasses) => {
+            setFormData((prev) => ({ ...prev, totalPasses: newPasses }));
+          }}
           currentTable={formData.assignedTable || 'Mesa 1'}
           excludeGuestId={guestToEdit?.id}
           onTableChange={(newTable) => {

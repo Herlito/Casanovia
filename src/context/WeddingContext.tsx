@@ -2360,6 +2360,46 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } else {
       await updateActiveWeddingDoc({ tables: updated });
     }
+
+    // Synchronize changes to Plano Local (Floor Plan) elements
+    try {
+      if (activeWeddingId && typeof window !== 'undefined') {
+        const storageKey = `casanovia_floor_plan_${activeWeddingId}`;
+        const localPlanRaw = localStorage.getItem(storageKey);
+        if (localPlanRaw) {
+          const localPlan = JSON.parse(localPlanRaw);
+          if (Array.isArray(localPlan.elements)) {
+            let hasPlanChanges = false;
+            const updatedPlanElements = localPlan.elements.map((el: any) => {
+              const isMatch =
+                el.id === id ||
+                el.id === `elem_table_${id}` ||
+                el.tableId === id ||
+                (oldTable && el.name?.trim().toLowerCase() === oldTable.name.trim().toLowerCase());
+              if (isMatch) {
+                hasPlanChanges = true;
+                return {
+                  ...el,
+                  name: updates.name !== undefined ? updates.name : el.name,
+                  seatCount: updates.capacity !== undefined ? updates.capacity : el.seatCount,
+                };
+              }
+              return el;
+            });
+            if (hasPlanChanges) {
+              localPlan.elements = updatedPlanElements;
+              localStorage.setItem(storageKey, JSON.stringify(localPlan));
+              const fpDocRef = doc(db, 'floor_plans', activeWeddingId);
+              setDoc(fpDocRef, { elements: updatedPlanElements }, { merge: true }).catch((err) => {
+                console.warn('[WeddingContext] Error updating floor_plans doc:', err);
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[WeddingContext] Error syncing table to floor plan:', e);
+    }
   };
 
   const deleteTable = async (id: string) => {

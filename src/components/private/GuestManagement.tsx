@@ -55,7 +55,7 @@ const ROLE_BADGES: Record<string, string> = {
   invitado: 'bg-stone-100 text-stone-700 border-stone-300',
   familia_directa: 'bg-amber-100 text-amber-900 border-amber-300',
   wedding_planner: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-  cortejo_honor: 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] border-transparent',
+  cortejo_honor: 'bg-rose-100 text-rose-800 border-rose-300',
   damita_honor: 'bg-pink-100 text-pink-800 border-pink-300',
   paje_honor: 'bg-sky-100 text-sky-800 border-sky-300',
   nino_boda: 'bg-teal-100 text-teal-800 border-teal-300',
@@ -93,6 +93,22 @@ export const GuestManagement: React.FC = () => {
   const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
   const [companionModalGuest, setCompanionModalGuest] = useState<Guest | null>(null);
   const [copiedCodeForGuest, setCopiedCodeForGuest] = useState<string | null>(null);
+
+  // Toggle visibility of invitation codes
+  const [showInviteCodes, setShowInviteCodes] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('casanovia_show_invite_codes');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
+
+  const handleToggleShowCodes = (checked: boolean) => {
+    setShowInviteCodes(checked);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('casanovia_show_invite_codes', String(checked));
+    }
+  };
 
   // Drag and Drop state
   const [draggedGuestId, setDraggedGuestId] = useState<string | null>(null);
@@ -410,13 +426,13 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'anfitrion' ? 'all' : 'anfitrion')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'anfitrion'
-              ? 'bg-purple-700 text-[#2D3748] border-purple-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              ? 'bg-purple-100 text-purple-950 border-purple-400 ring-2 ring-purple-300 shadow-[inset_2px_2px_5px_#c8c8c8,inset_-2px_-2px_5px_#ffffff]'
               : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-purple-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Anfitriones</span>
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
           </div>
           <div className="text-base font-bold font-serif-display">{countAnfitrion}</div>
           <div className="text-[9px] opacity-75 truncate">Novios / Anfitrión</div>
@@ -428,13 +444,13 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'invitado' ? 'all' : 'invitado')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'invitado'
-              ? 'bg-stone-800 text-[#2D3748] border-stone-900 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              ? 'bg-stone-200/90 text-stone-900 border-stone-400 ring-2 ring-stone-400/40 shadow-[inset_2px_2px_5px_#c8c8c8,inset_-2px_-2px_5px_#ffffff] font-bold'
               : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-stone-50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Invitados</span>
-            <User className="w-3.5 h-3.5 text-stone-400" />
+            <User className="w-3.5 h-3.5 text-stone-600" />
           </div>
           <div className="text-base font-bold font-serif-display">{countInvitados}</div>
           <div className="text-[9px] opacity-75 truncate">Amigos y asistentes</div>
@@ -446,13 +462,13 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'familia_directa' ? 'all' : 'familia_directa')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'familia_directa'
-              ? 'bg-amber-700 text-[#2D3748] border-amber-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              ? 'bg-amber-100 text-amber-950 border-amber-400 ring-2 ring-amber-300 shadow-[inset_2px_2px_5px_#c8c8c8,inset_-2px_-2px_5px_#ffffff]'
               : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-amber-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Familia</span>
-            <Heart className="w-3.5 h-3.5 text-amber-400" />
+            <Heart className="w-3.5 h-3.5 text-amber-600" />
           </div>
           <div className="text-base font-bold font-serif-display">{countFamilia}</div>
           <div className="text-[9px] opacity-75 truncate">Padres y hermanos</div>
@@ -464,13 +480,13 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'wedding_planner' ? 'all' : 'wedding_planner')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'wedding_planner'
-              ? 'bg-emerald-700 text-[#2D3748] border-emerald-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              ? 'bg-emerald-100 text-emerald-950 border-emerald-400 ring-2 ring-emerald-300 shadow-[inset_2px_2px_5px_#c8c8c8,inset_-2px_-2px_5px_#ffffff]'
               : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-emerald-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Planner</span>
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
           </div>
           <div className="text-base font-bold font-serif-display">{countPlanner}</div>
           <div className="text-[9px] opacity-75 truncate">Dirección y staff</div>
@@ -482,13 +498,13 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'cortejo_honor' ? 'all' : 'cortejo_honor')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'cortejo_honor'
-              ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-[#2D3748] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              ? 'bg-rose-100 text-rose-950 border-rose-400 ring-2 ring-rose-300 shadow-[inset_2px_2px_5px_#c8c8c8,inset_-2px_-2px_5px_#ffffff]'
               : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-rose-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Cortejo</span>
-            <Crown className="w-3.5 h-3.5 text-rose-300" />
+            <Crown className="w-3.5 h-3.5 text-rose-600" />
           </div>
           <div className="text-base font-bold font-serif-display">{countCortejo}</div>
           <div className="text-[9px] opacity-75 truncate">Padrinos y damas</div>
@@ -500,13 +516,13 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'damita_honor' ? 'all' : 'damita_honor')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'damita_honor'
-              ? 'bg-pink-700 text-[#2D3748] border-pink-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              ? 'bg-pink-100 text-pink-950 border-pink-400 ring-2 ring-pink-300 shadow-[inset_2px_2px_5px_#c8c8c8,inset_-2px_-2px_5px_#ffffff]'
               : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-pink-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Damitas</span>
-            <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+            <Sparkles className="w-3.5 h-3.5 text-pink-600" />
           </div>
           <div className="text-base font-bold font-serif-display">{countDamita}</div>
           <div className="text-[9px] opacity-75 truncate">Cortejo infantil</div>
@@ -518,13 +534,13 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'paje_honor' ? 'all' : 'paje_honor')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'paje_honor'
-              ? 'bg-sky-700 text-[#2D3748] border-sky-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              ? 'bg-sky-100 text-sky-950 border-sky-400 ring-2 ring-sky-300 shadow-[inset_2px_2px_5px_#c8c8c8,inset_-2px_-2px_5px_#ffffff]'
               : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-sky-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Pajes</span>
-            <Crown className="w-3.5 h-3.5 text-sky-400" />
+            <Crown className="w-3.5 h-3.5 text-sky-600" />
           </div>
           <div className="text-base font-bold font-serif-display">{countPaje}</div>
           <div className="text-[9px] opacity-75 truncate">Arras y anillos</div>
@@ -536,13 +552,13 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'nino_boda' ? 'all' : 'nino_boda')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'nino_boda'
-              ? 'bg-teal-700 text-[#2D3748] border-teal-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              ? 'bg-teal-100 text-teal-950 border-teal-400 ring-2 ring-teal-300 shadow-[inset_2px_2px_5px_#c8c8c8,inset_-2px_-2px_5px_#ffffff]'
               : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-teal-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Niños</span>
-            <Heart className="w-3.5 h-3.5 text-teal-400" />
+            <Heart className="w-3.5 h-3.5 text-teal-600" />
           </div>
           <div className="text-base font-bold font-serif-display">{countNino}</div>
           <div className="text-[9px] opacity-75 truncate">Menores de edad</div>
@@ -554,13 +570,13 @@ export const GuestManagement: React.FC = () => {
           onClick={() => setCategoryFilter(categoryFilter === 'proveedor' ? 'all' : 'proveedor')}
           className={`p-2.5 rounded-xl border text-left transition-all ${
             categoryFilter === 'proveedor'
-              ? 'bg-blue-700 text-[#2D3748] border-blue-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]'
+              ? 'bg-blue-100 text-blue-950 border-blue-400 ring-2 ring-blue-300 shadow-[inset_2px_2px_5px_#c8c8c8,inset_-2px_-2px_5px_#ffffff]'
               : 'bg-[#EBEBEB] text-[#2D2A26] border-transparent hover:bg-blue-50/50'
           }`}
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Proveedores</span>
-            <Briefcase className="w-3.5 h-3.5 text-blue-300" />
+            <Briefcase className="w-3.5 h-3.5 text-blue-600" />
           </div>
           <div className="text-base font-bold font-serif-display">{countProveedor}</div>
           <div className="text-[9px] opacity-75 truncate">Foto, DJ, banquetes</div>
@@ -632,6 +648,23 @@ export const GuestManagement: React.FC = () => {
             </select>
           </div>
 
+          <div className="flex items-center text-xs">
+            <label
+              htmlFor="filter-show-invite-codes"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] text-xs text-[#524B42] font-medium cursor-pointer hover:bg-white transition-colors select-none"
+              title="Mostrar u ocultar los códigos de pase de los invitados"
+            >
+              <input
+                type="checkbox"
+                id="filter-show-invite-codes"
+                checked={showInviteCodes}
+                onChange={(e) => handleToggleShowCodes(e.target.checked)}
+                className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-stone-300 cursor-pointer accent-emerald-600"
+              />
+              <span className="font-semibold">Mostrar códigos</span>
+            </label>
+          </div>
+
           {(categoryFilter !== 'all' || rsvpFilter !== 'all' || searchQuery || sortField !== 'none') && (
             <button
               type="button"
@@ -681,7 +714,21 @@ export const GuestManagement: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center space-x-2 text-xs text-[#7A7268]">
+          <div className="flex items-center space-x-3 text-xs text-[#7A7268]">
+            <label
+              htmlFor="title-show-invite-codes"
+              className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#D9CEBF] text-xs text-[#524B42] font-medium cursor-pointer hover:bg-[#FAF8F5] transition-colors select-none shadow-2xs"
+              title="Mostrar u ocultar los códigos de pase en la tabla"
+            >
+              <input
+                type="checkbox"
+                id="title-show-invite-codes"
+                checked={showInviteCodes}
+                onChange={(e) => handleToggleShowCodes(e.target.checked)}
+                className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-stone-300 cursor-pointer accent-emerald-600"
+              />
+              <span className="font-semibold text-stone-700">Mostrar códigos</span>
+            </label>
             <span className="hidden sm:inline">💡 Arrastra invitados para reordenar o cambiar de mesa • Acompañantes se trasladan automáticamente</span>
           </div>
         </div>
@@ -730,7 +777,7 @@ export const GuestManagement: React.FC = () => {
                       className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#2D3748] transition-colors cursor-pointer group select-none text-left"
                       title="Ordenar por nombre de invitado (A-Z / Z-A)"
                     >
-                      <span>Invitado & Código</span>
+                      <span>{showInviteCodes ? 'Invitado & Código' : 'Invitado'}</span>
                       <span className={`p-0.5 rounded transition-colors ${sortField === 'name' ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748]' : 'text-stone-400 group-hover:text-stone-600'}`}>
                         {sortField === 'name' ? (
                           sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
@@ -779,8 +826,8 @@ export const GuestManagement: React.FC = () => {
                     </button>
                   </th>
 
-                  {/* 4. Acompañante(s) */}
-                  <th className="py-3 px-4 font-semibold">Acompañante(s) de Mesa</th>
+                  {/* 4. Acompañante */}
+                  <th className="py-3 px-4 font-semibold">Acompañante</th>
 
                   {/* 5. RSVP */}
                   <th className="py-3 px-4 font-semibold text-center">RSVP</th>
@@ -836,30 +883,27 @@ export const GuestManagement: React.FC = () => {
                         <div className="font-bold text-sm text-[#2D2A26]">
                           {guest.fullName}
                         </div>
-                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                          <button
-                            type="button"
-                            onClick={() => copyGuestCode(guest.code)}
-                            title="Copiar código de pase"
-                            className="inline-flex items-center space-x-1 text-[11px] font-mono text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/5 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/15 px-1.5 py-0.5 rounded-md border border-transparent transition-colors cursor-pointer"
-                          >
-                            <span>{guest.code}</span>
-                            {copiedCodeForGuest === guest.code && (
-                              <span className="text-[9px] text-emerald-700 font-bold ml-1">¡Copiado!</span>
+                        {(showInviteCodes || guest.phone) && (
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            {showInviteCodes && (
+                              <button
+                                type="button"
+                                onClick={() => copyGuestCode(guest.code)}
+                                title="Copiar código de pase"
+                                className="inline-flex items-center space-x-1 text-[11px] font-mono text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/5 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/15 px-1.5 py-0.5 rounded-md border border-transparent transition-colors cursor-pointer"
+                              >
+                                <span>{guest.code}</span>
+                                {copiedCodeForGuest === guest.code && (
+                                  <span className="text-[9px] text-emerald-700 font-bold ml-1">¡Copiado!</span>
+                                )}
+                              </button>
                             )}
-                          </button>
-                          
-                          {isCompanionOfSomeone && mainGuest && (
-                            <span className="text-[10px] text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-flex items-center space-x-1 font-medium" title={`Acompañante vinculado a ${mainGuest.fullName}`}>
-                              <span>Acomp. de:</span>
-                              <strong className="truncate max-w-[110px]">{mainGuest.fullName}</strong>
-                            </span>
-                          )}
 
-                          {guest.phone && (
-                            <span className="text-[11px] text-[#7A7268]">{guest.phone}</span>
-                          )}
-                        </div>
+                            {guest.phone && (
+                              <span className="text-[11px] text-[#7A7268]">{guest.phone}</span>
+                            )}
+                          </div>
+                        )}
                       </td>
 
                       {/* 2. Rol en la Boda */}
@@ -902,7 +946,6 @@ export const GuestManagement: React.FC = () => {
                       <td className="py-3 px-4 align-top max-w-xs">
                         {isCompanionOfSomeone ? (
                           <div className="text-[11px] text-stone-600 bg-stone-50 border border-stone-200 rounded-lg p-2 space-y-0.5">
-                            <span className="font-medium text-stone-500 block text-[10px] uppercase">Acompañante Vinculado</span>
                             <div className="flex items-center space-x-1 text-emerald-800 font-semibold">
                               <User className="w-3 h-3 text-emerald-600 shrink-0" />
                               <span className="truncate">Sigue a {mainGuest?.fullName || 'su titular'}</span>
@@ -945,11 +988,11 @@ export const GuestManagement: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setCompanionModalGuest(guest)}
-                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-700 text-emerald-800 hover:text-[#2D3748] border border-emerald-300 hover:border-emerald-700 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer group active:scale-95"
-                            title={`Asignar acompañante para ${guest.fullName}`}
+                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-700 text-emerald-800 hover:text-white border border-emerald-300 hover:border-emerald-700 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer group active:scale-95"
+                            title={`Acompañante para ${guest.fullName}`}
                           >
-                            <UserPlus className="w-3.5 h-3.5 text-emerald-700 group-hover:text-[#2D3748] transition-colors" />
-                            <span>Asignar Acompañante</span>
+                            <UserPlus className="w-3.5 h-3.5 text-emerald-700 group-hover:text-white transition-colors" />
+                            <span>Acompañante</span>
                           </button>
                         )}
                       </td>
@@ -1151,12 +1194,16 @@ export const GuestManagement: React.FC = () => {
           onClose={() => setCompanionModalGuest(null)}
           primaryGuestName={companionModalGuest.fullName}
           primaryGuestId={companionModalGuest.id}
+          initialTotalPasses={companionModalGuest.totalPasses}
           currentTable={
             companionModalGuest.assignedTable && companionModalGuest.assignedTable !== 'Mesa por asignar'
               ? companionModalGuest.assignedTable
               : 'Mesa por asignar'
           }
           excludeGuestId={companionModalGuest.id}
+          onPassesChange={(newPasses) => {
+            setCompanionModalGuest((prev) => (prev ? { ...prev, totalPasses: newPasses } : null));
+          }}
           onTableChange={(newTable) => {
             if (!companionModalGuest.assignedTable || companionModalGuest.assignedTable === 'Mesa por asignar') {
               updateGuest(companionModalGuest.id, { assignedTable: newTable });
