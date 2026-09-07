@@ -1711,7 +1711,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             }px`,
             transform: 'translate(-50%, 0)',
           }}
-          className="absolute z-30 pointer-events-auto flex items-center p-1 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] transition-all select-none"
+          className="absolute z-30 pointer-events-auto flex items-center p-1 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] select-none"
         >
           <button
             id="btn-toggle-object-lock"
@@ -1720,7 +1720,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
               e.stopPropagation();
               onUpdateElement(selectedElem.id, { isLocked: !selectedElem.isLocked });
             }}
-            className={`w-8 h-8 flex items-center justify-center rounded-xl text-xs transition-all border-none cursor-pointer ${
+            className={`w-8 h-8 flex items-center justify-center rounded-xl text-xs border-none cursor-pointer ${
               selectedElem.isLocked
                 ? 'bg-[#EBEBEB] text-amber-800 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] hover:bg-amber-100/50'
                 : 'bg-[#EBEBEB] text-gray-700 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'

@@ -102,6 +102,82 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   const [showRightSidebar, setShowRightSidebar] = useState<boolean>(window.innerWidth > 768);
   const [showMobileTopBar, setShowMobileTopBar] = useState<boolean>(false);
 
+  // Canvas viewport container ref
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+
+  // Reset canvas view: dynamically scales and centers the canvas sheet so it fits completely in available screen space
+  const handleResetView = () => {
+    const container = canvasContainerRef.current;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+    // Dimensions of the overall workspace containing sidebars and canvas
+    const parentElem = container?.parentElement;
+    const workspaceWidth = parentElem?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1200);
+    const workspaceHeight = parentElem?.clientHeight || container?.clientHeight || (typeof window !== 'undefined' ? window.innerHeight - 130 : 800);
+
+    // Calculate space occupied by sidebars depending on whether they are expanded or collapsed
+    const leftSidebarWidth = showLeftSidebar ? (isMobile ? Math.min(320, workspaceWidth * 0.85) : 320) : 0;
+    const rightSidebarWidth = showRightSidebar ? (isMobile ? Math.min(320, workspaceWidth * 0.85) : 320) : 0;
+
+    // Available space unobstructed by sidebars
+    const availableWidth = Math.max(160, workspaceWidth - leftSidebarWidth - rightSidebarWidth);
+    const availableHeight = Math.max(160, workspaceHeight);
+
+    // Effective bounding box of the canvas sheet under current rotation
+    const rad = ((canvasRotation || 0) % 360) * (Math.PI / 180);
+    const cos = Math.abs(Math.cos(rad));
+    const sin = Math.abs(Math.sin(rad));
+
+    const effectiveSheetWidth = (canvasWidth || 1600) * cos + (canvasHeight || 1200) * sin;
+    const effectiveSheetHeight = (canvasWidth || 1600) * sin + (canvasHeight || 1200) * cos;
+
+    // Clean margin around canvas sheet so it fits comfortably within the view without touching borders
+    const margin = 48; // 24px each side
+    const fitWidth = Math.max(100, availableWidth - margin);
+    const fitHeight = Math.max(100, availableHeight - margin);
+
+    const zoomX = fitWidth / effectiveSheetWidth;
+    const zoomY = fitHeight / effectiveSheetHeight;
+    const newZoom = Math.min(zoomX, zoomY);
+    const clampedZoom = Math.max(0.1, Math.min(newZoom, 3.0));
+
+    // Centering calculation:
+    // FloorPlanCanvas transforms the canvas drawing context as:
+    // ctx.translate(pan.x, pan.y);
+    // ctx.translate(width / 2, height / 2);
+    // ctx.rotate(rot);
+    // ctx.translate(-width / 2, -height / 2);
+    // ctx.scale(zoom, zoom);
+    //
+    // The center of the sheet (canvasWidth / 2, canvasHeight / 2) transformed before rotation:
+    // p2.x = (canvasWidth * clampedZoom - containerW) / 2
+    // p2.y = (canvasHeight * clampedZoom - containerH) / 2
+    // Rotated by rad:
+    // p3.x = p2.x * cos(rad) - p2.y * sin(rad)
+    // p3.y = p2.x * sin(rad) + p2.y * cos(rad)
+    const containerW = container?.clientWidth || availableWidth;
+    const containerH = container?.clientHeight || availableHeight;
+
+    const p2x = ((canvasWidth || 1600) * clampedZoom - containerW) / 2;
+    const p2y = ((canvasHeight || 1200) * clampedZoom - containerH) / 2;
+    const p3x = p2x * Math.cos(rad) - p2y * Math.sin(rad);
+    const p3y = p2x * Math.sin(rad) + p2y * Math.cos(rad);
+
+    let newPanX = -p3x;
+    let newPanY = -p3y;
+
+    if (isMobile) {
+      if (showLeftSidebar) {
+        newPanX = (leftSidebarWidth / 2) - p3x;
+      } else if (showRightSidebar) {
+        newPanX = -(rightSidebarWidth / 2) - p3x;
+      }
+    }
+
+    setZoom(clampedZoom);
+    setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
+  };
+
   // Auto-show toolbar (which has properties) on mobile when element selected
   useEffect(() => {
     if (selectedElementId && window.innerWidth < 768) {
@@ -1735,16 +1811,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             <ZoomOut className="w-4 h-4" />
           </button>
           <button
-            onClick={() => {
-              const isMobile = window.innerWidth <= 768;
-              const availableWidth = window.innerWidth - (showLeftSidebar && !isMobile ? 320 : 0) - (showRightSidebar && !isMobile ? 320 : 0);
-              const availableHeight = window.innerHeight - 120;
-              const zoomX = availableWidth / canvasWidth;
-              const zoomY = availableHeight / canvasHeight;
-              const newZoom = Math.min(zoomX, zoomY, 3.5);
-              setZoom(Math.max(0.1, newZoom - 0.05));
-              setPan({ x: 50, y: 50 });
-            }}
+            onClick={handleResetView}
             className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer"
             title="Restablecer vista"
           >
@@ -1854,7 +1921,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         )}
 
         {/* Center: Interactive Canvas */}
-        <div className="flex-1 min-w-0 h-full relative">
+        <div ref={canvasContainerRef} className="flex-1 min-w-0 h-full relative">
 
 
           <FloorPlanCanvas
