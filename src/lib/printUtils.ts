@@ -80,7 +80,7 @@ export const printElementById = (elementId: string, docTitle: string = 'Document
               height: auto !important;
               min-height: 0 !important;
               overflow: visible !important;
-              font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+              font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
             }
             #isolated-print-content {
               width: 100% !important;

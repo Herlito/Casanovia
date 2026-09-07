@@ -1061,23 +1061,25 @@ export const GuestModal: React.FC<GuestModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Mesa Asignada
+                  Mesa Asignada (Nombre / Identificador)
                 </label>
-                <input
-                  type="text"
-                  list="tables-datalist"
+                <select
                   value={formData.assignedTable || ''}
                   onChange={(e) => setFormData({ ...formData, assignedTable: e.target.value })}
-                  placeholder="Ej. Mesa 1 (Mesa de Honor)"
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                />
-                <datalist id="tables-datalist">
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] text-[#2D2A26] cursor-pointer font-medium"
+                >
+                  <option value="">Mesa por asignar</option>
                   {tables?.map((t) => (
                     <option key={t.id} value={t.name}>
-                      {t.name} (Capacidad: {t.capacity})
+                      {t.name} (Capacidad: {t.capacity} pax)
                     </option>
                   ))}
-                </datalist>
+                  {formData.assignedTable &&
+                    formData.assignedTable !== 'Mesa por asignar' &&
+                    !tables?.some((t) => t.name.trim().toLowerCase() === formData.assignedTable?.trim().toLowerCase()) && (
+                      <option value={formData.assignedTable}>{formData.assignedTable}</option>
+                  )}
+                </select>
               </div>
 
               <div>

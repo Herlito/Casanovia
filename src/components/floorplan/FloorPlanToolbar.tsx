@@ -1087,6 +1087,103 @@ export const FloorPlanToolbar: React.FC<FloorPlanToolbarProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Lista de Invitados Asignados a esta Mesa */}
+            {(selectedElement.type === 'round_table' || selectedElement.type === 'rectangular_table') && (
+              <div className="pt-2 border-t border-gray-300/80 space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-gray-600" />
+                    <span>
+                      Invitados en Mesa ({selectedElement.seats?.filter((s) => Boolean(s.guestId)).length || 0} / {selectedElement.seats?.length || 0})
+                    </span>
+                  </label>
+                </div>
+                <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                  {selectedElement.seats && selectedElement.seats.length > 0 ? (
+                    selectedElement.seats.map((seat) => {
+                      const guestObj = guests?.find((g) => g.id === seat.guestId);
+                      return (
+                        <div
+                          key={seat.id}
+                          className={`px-2.5 py-1.5 rounded-xl text-xs flex items-center justify-between gap-2 transition-all ${
+                            seat.guestId
+                              ? 'bg-[#EBEBEB] shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] text-gray-800'
+                              : 'bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-400 italic'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 text-[10px] font-bold flex items-center justify-center shrink-0">
+                              {seat.seatNumber}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold truncate text-[11px] text-gray-800">
+                                {seat.guestName || 'Asiento Disponible'}
+                              </p>
+                              {guestObj?.protocolRoleTitle && (
+                                <p className="text-[9px] text-[#8C8276] truncate">
+                                  {guestObj.protocolRoleTitle}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          {seat.guestId && !selectedElement.isLocked && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updatedSeats = selectedElement.seats.map((s) =>
+                                  s.id === seat.id
+                                    ? {
+                                        ...s,
+                                        guestId: undefined,
+                                        guestName: undefined,
+                                        guestInitials: undefined,
+                                        guestPhone: undefined,
+                                        dietaryRequirement: undefined,
+                                      }
+                                    : s
+                                );
+                                onUpdateElement(selectedElement.id, { seats: updatedSeats });
+                              }}
+                              className="text-[10px] text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50 cursor-pointer"
+                              title="Desasignar asiento"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-[11px] text-gray-400 italic">No hay asientos configurados.</p>
+                  )}
+                </div>
+
+                {(() => {
+                  if (!guests) return null;
+                  const matchingGuests = guests.filter((g) => {
+                    if (!g.assignedTable || g.assignedTable.trim() === '' || g.assignedTable.toLowerCase().includes('por asignar')) return false;
+                    return isGuestAssignedToTable(g.assignedTable, selectedElement.name, selectedElement.tableNumber);
+                  });
+                  const seatedIds = new Set(selectedElement.seats?.filter((s) => Boolean(s.guestId)).map((s) => s.guestId));
+                  const unseatedGuests = matchingGuests.filter((g) => !seatedIds.has(g.id));
+                  if (unseatedGuests.length === 0) return null;
+                  return (
+                    <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-2 text-[10px] text-amber-900 space-y-1 mt-1">
+                      <p className="font-bold flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3 text-amber-600 shrink-0" />
+                        <span>{unseatedGuests.length} invitado(s) en lista exceden capacidad:</span>
+                      </p>
+                      <ul className="list-disc list-inside space-y-0.5 text-amber-800">
+                        {unseatedGuests.map((ug) => (
+                          <li key={ug.id} className="truncate">{ug.fullName}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
             {(selectedElement.type === 'chair_row' || selectedElement.type === 'armchair_luis_xv' || selectedElement.type === 'sofa_1_seat' || selectedElement.type === 'sofa_2_seat') && (
               <div className={selectedElement.isLocked ? 'opacity-60' : ''}>
                 <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">

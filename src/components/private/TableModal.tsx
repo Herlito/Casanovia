@@ -113,10 +113,10 @@ export const TableModal: React.FC<TableModalProps> = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           
-          {/* Table Name */}
+          {/* Table Name / Identifier */}
           <div>
             <label className="block text-xs font-semibold text-[#524B42] mb-1">
-              Nombre o Número de Mesa <span className="text-[#2D3748]">*</span>
+              Nombre / Identificador <span className="text-[#2D3748]">*</span>
             </label>
             <input
               type="text"

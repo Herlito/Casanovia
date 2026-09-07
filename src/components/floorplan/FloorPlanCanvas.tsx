@@ -382,7 +382,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           // Table Center Label
           const effectiveRoundTextColor = elem.textColor || getContrastTextColor(surfaceColor);
           ctx.fillStyle = effectiveRoundTextColor;
-          ctx.font = 'bold 13px system-ui, sans-serif';
+          ctx.font = "bold 13px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(elem.name || `Mesa ${elem.tableNumber || ''}`, 0, -6);
@@ -390,7 +390,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           // Seat capacity badge
           const assignedCount = elem.seats.filter((s) => s.guestId).length;
           ctx.fillStyle = isColorDark(surfaceColor) || effectiveRoundTextColor === '#FFFFFF' ? 'rgba(255, 255, 255, 0.75)' : '#6B7280';
-          ctx.font = '10px system-ui, sans-serif';
+          ctx.font = "10px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.fillText(`${assignedCount}/${elem.seats.length} pers.`, 0, 10);
           break;
         }
@@ -434,14 +434,14 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           // Label
           const effectiveRectTextColor = elem.textColor || getContrastTextColor(surfaceColor);
           ctx.fillStyle = effectiveRectTextColor;
-          ctx.font = 'bold 12px system-ui, sans-serif';
+          ctx.font = "bold 12px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(elem.name || `Mesa ${elem.tableNumber || ''}`, 0, -5);
 
           const assignedCount = elem.seats.filter((s) => s.guestId).length;
           ctx.fillStyle = isColorDark(surfaceColor) || effectiveRectTextColor === '#FFFFFF' ? 'rgba(255, 255, 255, 0.75)' : '#6B7280';
-          ctx.font = '10px system-ui, sans-serif';
+          ctx.font = "10px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.fillText(`${assignedCount}/${elem.seats.length} pers.`, 0, 10);
           break;
         }
@@ -479,7 +479,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.stroke();
 
           ctx.fillStyle = elem.textColor || getContrastTextColor(elem.color || '#374151');
-          ctx.font = 'bold 13px system-ui, sans-serif';
+          ctx.font = "bold 13px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(`🎤 ${elem.name || 'ESCENARIO'}`, 0, 0);
@@ -519,7 +519,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.stroke();
 
           ctx.fillStyle = elem.textColor || getContrastTextColor(elem.color || '#E8E4DF');
-          ctx.font = 'bold 13px system-ui, sans-serif';
+          ctx.font = "bold 13px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(`✨ ${elem.name || 'PISTA DE BAILE'}`, 0, 0);
@@ -559,7 +559,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.stroke();
 
           ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#4A3E3D') ? '#FDE68A' : '#78350F');
-          ctx.font = 'bold 12px system-ui, sans-serif';
+          ctx.font = "bold 12px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(`🍸 ${elem.name || 'BARRA DE BAR'}`, 0, 0);
@@ -599,7 +599,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.stroke();
 
           ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#1F2937') ? '#93C5FD' : '#1E40AF');
-          ctx.font = 'bold 11px system-ui, sans-serif';
+          ctx.font = "bold 11px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(`🎧 ${elem.name || 'CABINA DJ'}`, 0, 0);
@@ -639,7 +639,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.stroke();
 
           ctx.fillStyle = elem.textColor || getContrastTextColor(elem.color || '#E2E8F0');
-          ctx.font = 'bold 11px system-ui, sans-serif';
+          ctx.font = "bold 11px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(`🚻 ${elem.name || 'BAÑOS'}`, 0, 0);
@@ -679,7 +679,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.stroke();
 
           ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#FEF3C7') ? '#FEF08A' : '#92400E');
-          ctx.font = 'bold 11px system-ui, sans-serif';
+          ctx.font = "bold 11px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(`🚪 ${elem.name || 'ENTRADA'} ➜`, 0, 0);
@@ -718,7 +718,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.stroke();
 
           ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#FFE4E6') ? '#FECDD3' : '#9F1239');
-          ctx.font = 'bold 11px system-ui, sans-serif';
+          ctx.font = "bold 11px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(`🎂 ${elem.name || 'TORTA'}`, 0, 0);
@@ -758,7 +758,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.stroke();
 
           ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#EDE9FE') ? '#DDD6FE' : '#5B21B6');
-          ctx.font = 'bold 11px system-ui, sans-serif';
+          ctx.font = "bold 11px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(`🛋️ ${elem.name || 'LOUNGE'}`, 0, 0);
@@ -798,7 +798,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.stroke();
 
           ctx.fillStyle = elem.textColor || (isColorDark(elem.color || '#E0F2FE') ? '#BAE6FD' : '#0369A1');
-          ctx.font = 'bold 11px system-ui, sans-serif';
+          ctx.font = "bold 11px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(`📸 ${elem.name || 'CABINA'}`, 0, 0);
@@ -866,7 +866,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           // 5. Name Label
           const effectiveTextColor = elem.textColor || (isColorDark(rugColor) ? '#FFFFFF' : '#1F2937');
           ctx.fillStyle = effectiveTextColor;
-          ctx.font = 'bold 11px system-ui, sans-serif';
+          ctx.font = "bold 11px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(elem.name || 'ALFOMBRA', 0, 0);
@@ -909,7 +909,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.shadowColor = 'transparent';
           
           ctx.fillStyle = elem.textColor || getContrastTextColor(surfaceColor);
-          ctx.font = 'bold 11px sans-serif';
+          ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(elem.name || (count === 1 ? 'Silla' : 'Fila'), 0, count === 1 ? 0 : -elem.height / 2 - 10);
@@ -988,7 +988,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           ctx.shadowColor = 'transparent';
           
           ctx.fillStyle = elem.textColor || getContrastTextColor(elem.color || '#E5E7EB');
-          ctx.font = 'bold 12px sans-serif';
+          ctx.font = "bold 12px 'Plus Jakarta Sans', sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           const icon = isLuisXV ? '⚜️' : '🛋️';
@@ -997,7 +997,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         }
         case 'text_label': {
           ctx.fillStyle = elem.textColor || '#1F2937';
-          ctx.font = 'bold 14px system-ui, sans-serif';
+          ctx.font = "bold 14px 'Plus Jakarta Sans', system-ui, sans-serif";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(elem.name || 'Texto de Referencia', 0, 0);
@@ -1079,14 +1079,14 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           // Initials or Seat Number
           if (isAssigned) {
             ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 9.5px system-ui, sans-serif';
+            ctx.font = "bold 9.5px 'Plus Jakarta Sans', system-ui, sans-serif";
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             const initials = seat.guestInitials || seat.guestName?.substring(0, 2).toUpperCase() || 'INV';
             ctx.fillText(initials, 0, 0);
           } else {
             ctx.fillStyle = '#6B7280';
-            ctx.font = 'bold 8.5px system-ui, sans-serif';
+            ctx.font = "bold 8.5px 'Plus Jakarta Sans', system-ui, sans-serif";
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(`${seat.seatNumber}`, 0, 0);
@@ -1243,7 +1243,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
       ctx.fillStyle = '#1E1E1E';
       ctx.fillRect(midX - 35, midY - 14, 70, 20);
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 10px system-ui, sans-serif';
+      ctx.font = "bold 10px 'Plus Jakarta Sans', system-ui, sans-serif";
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(`${dist.toFixed(0)} px`, midX, midY - 4);
@@ -1283,7 +1283,7 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
       ctx.stroke();
 
       ctx.fillStyle = '#2D2A26';
-      ctx.font = 'bold 10px system-ui, sans-serif';
+      ctx.font = "bold 10px 'Plus Jakarta Sans', system-ui, sans-serif";
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
       ctx.fillText(`${barMeters} m`, barX + barPixels / 2, barY - 4);

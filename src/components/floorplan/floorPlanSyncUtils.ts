@@ -202,55 +202,71 @@ export function buildTableSeats(
   // 2. Sort primary guests with their registered companion records
   const orderedGuests = sortGuestsWithCompanions(matchingGuests);
 
-  // 3. Build seat objects
+  // 3. STRICT CAPACITY: Respect the exact capacity established in "Asignación de Mesas"
+  const targetTotalSeats = Math.max(1, tableCapacity || 8);
   const seats: FloorPlanSeat[] = [];
-  let seatNumberCounter = 1;
 
-  // Track explicit companion records to avoid duplicate synthesized companion seats
-  const registeredCompanionIds = new Set(
-    allGuests.filter((g) => Boolean(g.mainGuestId)).map((g) => g.id)
-  );
+  for (let i = 0; i < targetTotalSeats; i++) {
+    const seatNumber = i + 1;
+    if (i < orderedGuests.length) {
+      const guest = orderedGuests[i];
+      const initials = guest.fullName
+        .split(' ')
+        .filter(Boolean)
+        .map((n) => n[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase() || 'IN';
 
-  orderedGuests.forEach((guest) => {
-    const isExplicitCompanion = Boolean(guest.mainGuestId);
-
-    // Initials (2 letters)
-    const initials = guest.fullName
-      .split(' ')
-      .filter(Boolean)
-      .map((n) => n[0])
-      .join('')
-      .substring(0, 2)
-      .toUpperCase() || 'IN';
-
-    // Add seat for this actual registered guest
-    seats.push({
-      id: `seat_${elementId}_${seatNumberCounter}`,
-      seatNumber: seatNumberCounter,
-      guestId: guest.id,
-      guestName: guest.fullName,
-      guestInitials: initials,
-      guestPhone: guest.phone,
-      dietaryRequirement: guest.dietaryRestrictions,
-      companionCount: 1,
-    });
-    seatNumberCounter++;
-  });
-
-  // 4. Fill remaining empty seats up to the table capacity
-  const targetTotalSeats = Math.max(tableCapacity || 8, seats.length);
-  while (seats.length < targetTotalSeats) {
-    seats.push({
-      id: `seat_${elementId}_${seatNumberCounter}`,
-      seatNumber: seatNumberCounter,
-    });
-    seatNumberCounter++;
+      seats.push({
+        id: `seat_${elementId}_${seatNumber}`,
+        seatNumber,
+        guestId: guest.id,
+        guestName: guest.fullName,
+        guestInitials: initials,
+        guestPhone: guest.phone,
+        dietaryRequirement: guest.dietaryRestrictions,
+        companionCount: 1,
+      });
+    } else {
+      seats.push({
+        id: `seat_${elementId}_${seatNumber}`,
+        seatNumber,
+      });
+    }
   }
 
   return {
     seats,
-    seatCount: seats.length,
+    seatCount: targetTotalSeats,
   };
+}
+
+export function getRectangularSeatSides(
+  seatCount: number,
+  existingLongSide?: number,
+  existingHead?: number
+): { seatsLongSide: number; seatsHead: number } {
+  if (seatCount <= 2) {
+    // Mesa para 2 (como Mesa de Honor o novios): sillas al frente
+    return { seatsLongSide: -seatCount, seatsHead: 0 };
+  }
+  if (seatCount <= 4) {
+    return { seatsLongSide: 2, seatsHead: 0 };
+  }
+  if (existingLongSide !== undefined && existingHead !== undefined) {
+    const isOneSideLong = existingLongSide < 0;
+    const isOneSideHead = existingHead < 0;
+    const lSeats = Math.abs(existingLongSide);
+    const hSeats = Math.abs(existingHead);
+    const totalChairs = (isOneSideLong ? lSeats : lSeats * 2) + (isOneSideHead ? hSeats : hSeats * 2);
+    if (totalChairs === seatCount) {
+      return { seatsLongSide: existingLongSide, seatsHead: existingHead };
+    }
+  }
+  const head = 1;
+  const longSide = Math.max(1, Math.round((seatCount - head * 2) / 2));
+  return { seatsLongSide: longSide, seatsHead: head };
 }
 
 /**
@@ -303,14 +319,16 @@ export function buildFloorPlanFromWedding(
         guests
       );
 
+      const rectSides = isRect ? getRectangularSeatSides(seatCount, elem.seatsLongSide, elem.seatsHead) : null;
+
       updatedElements.push({
         ...elem,
         type: isRect ? 'rectangular_table' : 'round_table',
         name: tName,
         tableNumber: tNum,
         seatCount,
-        seatsLongSide: isRect ? (elem.seatsLongSide || Math.max(2, Math.floor((seatCount - 2) / 2))) : undefined,
-        seatsHead: isRect ? (elem.seatsHead !== undefined ? elem.seatsHead : 1) : undefined,
+        seatsLongSide: rectSides ? rectSides.seatsLongSide : undefined,
+        seatsHead: rectSides ? rectSides.seatsHead : undefined,
         seats,
       });
     });
@@ -333,6 +351,8 @@ export function buildFloorPlanFromWedding(
           guests
         );
 
+        const rectSides = isRect ? getRectangularSeatSides(seatCount) : null;
+
         const newElem: FloorPlanElement = {
           id: elemId,
           type: isRect ? 'rectangular_table' : 'round_table',
@@ -345,8 +365,8 @@ export function buildFloorPlanFromWedding(
           radius: isRect ? undefined : 65,
           rotation: 0,
           seatCount,
-          seatsLongSide: isRect ? Math.max(2, Math.floor((seatCount - 2) / 2)) : undefined,
-          seatsHead: isRect ? 1 : undefined,
+          seatsLongSide: rectSides ? rectSides.seatsLongSide : undefined,
+          seatsHead: rectSides ? rectSides.seatsHead : undefined,
           seats,
           color: '#FFFFFF',
           textColor: '#2D2A26',

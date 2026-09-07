@@ -55,7 +55,7 @@ import {
   getGuestGroupInfo,
   checkFloorPlanElementCapacityForGroup,
 } from './floorPlanSyncUtils';
-import { doc, getDoc, setDoc, deleteField } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteField, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { cleanFirestoreData } from '../../lib/firestoreUtils';
 
@@ -320,47 +320,41 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isLocalSavingRef = useRef(false);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialLoadRef = useRef(true);
 
-  // Load initial floor plan from Firestore or LocalStorage for active wedding, syncing with wedding tables & guests
+  // Set up Real-time Firestore Listener with onSnapshot so all devices see changes in real time
   useEffect(() => {
     if (!isOpen || !activeWeddingId) return;
 
     let isMounted = true;
+    isInitialLoadRef.current = true;
 
-    const loadPlan = async () => {
-      let loadedElements = null;
-      let loadedData = null;
+    const docRef = doc(db, 'floor_plans', activeWeddingId);
+    const unsubscribe = onSnapshot(
+      docRef,
+      (docSnap) => {
+        if (!isMounted) return;
 
-      try {
-        // Try Firestore
-        const docRef = doc(db, 'floor_plans', activeWeddingId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists() && isMounted) {
-          loadedData = docSnap.data();
-          loadedElements = loadedData.elements;
+        // Skip applying remote snapshot if this local client is currently performing a local write
+        if (docSnap.metadata.hasPendingWrites || isLocalSavingRef.current) {
+          return;
         }
-      } catch (err) {
-        console.info('[FloorPlan] Firestore read note (using local fallback):', err);
-      }
 
-      if (!loadedElements && isMounted) {
-        // Try Local Storage fallback
-        try {
-          const localData = localStorage.getItem(`casanovia_floor_plan_${activeWeddingId}`);
-          if (localData) {
-            loadedData = JSON.parse(localData);
-            loadedElements = loadedData.elements;
+        if (docSnap.exists()) {
+          const loadedData = docSnap.data();
+          const loadedElements = loadedData.elements;
+          if (loadedElements) {
+            // If autoSync is enabled, reconcile with registered tables and guests; otherwise keep loaded elements exactly as placed
+            if (autoSync) {
+              setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests, loadedElements), tables));
+            } else {
+              setElements(loadedElements);
+            }
           }
-        } catch (err) {}
-      }
-
-      if (isMounted) {
-        if (loadedElements) {
-          // We have a saved plan: always reconcile with registered tables and guests to ensure consistency with "Asignación de Mesas"
-          setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests, loadedElements), tables));
-          if (loadedData.backgroundImageUrl) setBackgroundImageUrl(loadedData.backgroundImageUrl);
-          if (loadedData.backgroundFileName) setBackgroundFileName(loadedData.backgroundFileName);
+          if (loadedData.backgroundImageUrl !== undefined) setBackgroundImageUrl(loadedData.backgroundImageUrl || null);
+          if (loadedData.backgroundFileName !== undefined) setBackgroundFileName(loadedData.backgroundFileName || null);
           if (loadedData.backgroundOpacity !== undefined) setBackgroundOpacity(loadedData.backgroundOpacity);
           if (loadedData.scale) setScaleCalibration(loadedData.scale);
           if (loadedData.gridSnap !== undefined) setGridSnap(loadedData.gridSnap);
@@ -369,17 +363,101 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           if (loadedData.canvasHeight) setCanvasHeight(loadedData.canvasHeight);
           if (loadedData.canvasBackgroundColor) setCanvasBackgroundColor(loadedData.canvasBackgroundColor);
         } else {
-          // NO saved plan
-          setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
+          // Document doesn't exist yet in Firestore, try local storage fallback
+          try {
+            const localData = localStorage.getItem(`casanovia_floor_plan_${activeWeddingId}`);
+            if (localData) {
+              const parsed = JSON.parse(localData);
+              if (parsed.elements) {
+                setElements(parsed.elements);
+              }
+            } else {
+              setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
+            }
+          } catch (e) {
+            setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
+          }
         }
-      }
-    };
 
-    loadPlan();
+        setTimeout(() => {
+          if (isMounted) isInitialLoadRef.current = false;
+        }, 800);
+      },
+      (error) => {
+        console.info('[FloorPlan] Real-time snapshot info:', error);
+      }
+    );
+
     return () => {
       isMounted = false;
+      unsubscribe();
     };
-  }, [isOpen, activeWeddingId, tables, guests, autoSync]);
+  }, [isOpen, activeWeddingId]);
+
+  // Debounced auto-save to Firestore so changes reflect automatically on all viewing devices
+  useEffect(() => {
+    if (!isOpen || !activeWeddingId || isInitialLoadRef.current) return;
+    if (!elements || elements.length === 0) return;
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        isLocalSavingRef.current = true;
+        const docRef = doc(db, 'floor_plans', activeWeddingId);
+        const planPayload: WeddingFloorPlan = {
+          id: activeWeddingId,
+          weddingId: activeWeddingId,
+          backgroundImageUrl,
+          backgroundFileName,
+          backgroundOpacity,
+          scale: scaleCalibration,
+          elements,
+          gridSnap,
+          gridSize,
+          canvasWidth,
+          canvasHeight,
+          canvasBackgroundColor,
+          updatedAt: new Date().toISOString(),
+        };
+
+        localStorage.setItem(`casanovia_floor_plan_${activeWeddingId}`, JSON.stringify(planPayload));
+        const firestorePayload: any = cleanFirestoreData(planPayload);
+        if (!backgroundImageUrl) {
+          firestorePayload.backgroundImageUrl = deleteField();
+          firestorePayload.backgroundFileName = deleteField();
+        }
+        await setDoc(docRef, firestorePayload, { merge: true });
+      } catch (err) {
+        console.info('[FloorPlan] Auto-sync to Firestore note:', err);
+      } finally {
+        setTimeout(() => {
+          isLocalSavingRef.current = false;
+        }, 600);
+      }
+    }, 1200);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [
+    elements,
+    backgroundImageUrl,
+    backgroundFileName,
+    backgroundOpacity,
+    scaleCalibration,
+    gridSnap,
+    gridSize,
+    canvasWidth,
+    canvasHeight,
+    canvasBackgroundColor,
+    isOpen,
+    activeWeddingId,
+  ]);
 
   const selectedElement = useMemo(
     () => elements.find((e) => e.id === selectedElementId) || null,
@@ -1293,11 +1371,47 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   };
 
   // Sync tables and seats with current wedding distribution
-  const handleSyncWithWedding = () => {
-    const synced = buildFloorPlanFromWedding(tables, guests, elements);
+  const handleSyncWithWedding = async () => {
+    const synced = ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests, elements), tables);
     setElements(synced);
     setSyncSuccessNotice(true);
     setTimeout(() => setSyncSuccessNotice(false), 3500);
+
+    // Persist immediately to Firestore so other devices see the synchronized distribution in real-time
+    if (activeWeddingId) {
+      try {
+        isLocalSavingRef.current = true;
+        const docRef = doc(db, 'floor_plans', activeWeddingId);
+        const planPayload: WeddingFloorPlan = {
+          id: activeWeddingId,
+          weddingId: activeWeddingId,
+          backgroundImageUrl,
+          backgroundFileName,
+          backgroundOpacity,
+          scale: scaleCalibration,
+          elements: synced,
+          gridSnap,
+          gridSize,
+          canvasWidth,
+          canvasHeight,
+          canvasBackgroundColor,
+          updatedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(`casanovia_floor_plan_${activeWeddingId}`, JSON.stringify(planPayload));
+        const firestorePayload: any = cleanFirestoreData(planPayload);
+        if (!backgroundImageUrl) {
+          firestorePayload.backgroundImageUrl = deleteField();
+          firestorePayload.backgroundFileName = deleteField();
+        }
+        await setDoc(docRef, firestorePayload, { merge: true });
+      } catch (err) {
+        console.warn('Error sincronizando plano con Firestore:', err);
+      } finally {
+        setTimeout(() => {
+          isLocalSavingRef.current = false;
+        }, 600);
+      }
+    }
   };
 
   // Save Distribution to Firestore and Local Storage
@@ -1325,6 +1439,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     };
 
     try {
+      isLocalSavingRef.current = true;
       // Save locally
       localStorage.setItem(`casanovia_floor_plan_${activeWeddingId}`, JSON.stringify(planPayload));
 
@@ -1346,6 +1461,9 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       setTimeout(() => setSaveSuccessNotice(false), 3000);
     } finally {
       setIsSaving(false);
+      setTimeout(() => {
+        isLocalSavingRef.current = false;
+      }, 600);
     }
   };
 
