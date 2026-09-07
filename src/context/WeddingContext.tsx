@@ -140,6 +140,7 @@ interface WeddingContextType {
     locationSummary: string;
     ceremonyVenueName?: string;
     receptionVenueName?: string;
+    emptyFields?: boolean;
   }) => Promise<string>;
   deleteWedding: (weddingId: string) => Promise<void>;
   
@@ -1386,13 +1387,13 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const settings: WeddingSettings = activeWedding?.settings || initialWeddingSettings;
   const guests: Guest[] = activeWedding?.guests || [];
   const timeline: TimelineMilestone[] = React.useMemo(() => {
-    const raw = activeWedding?.timeline || initialTimeline;
+    const raw = activeWedding?.timeline !== undefined ? activeWedding.timeline : initialTimeline;
     return sortTimelineMilestones<TimelineMilestone>(raw);
   }, [activeWedding?.timeline]);
   const budget: BudgetItem[] = activeWedding?.budget || [];
   const tasks: WeddingTask[] = activeWedding?.tasks || [];
-  const vendors: VendorItem[] = activeWedding?.vendors || initialVendors;
-  const tables: WeddingTable[] = activeWedding?.tables && activeWedding.tables.length > 0
+  const vendors: VendorItem[] = activeWedding?.vendors !== undefined ? activeWedding.vendors : initialVendors;
+  const tables: WeddingTable[] = activeWedding?.tables !== undefined
     ? activeWedding.tables
     : initialTables;
 
@@ -1460,108 +1461,167 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     locationSummary: string;
     ceremonyVenueName?: string;
     receptionVenueName?: string;
+    emptyFields?: boolean;
   }): Promise<string> => {
-    const slug = data.coupleNames
+    const isBlank = Boolean(data.emptyFields);
+    const coupleNames = data.coupleNames.trim() || (isBlank ? 'Nuevo Evento' : 'Nueva Pareja');
+    const slug = coupleNames
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
+      .replace(/(^-|-$)/g, '') || 'evento';
     const newWeddingId = `boda-${slug}-${Date.now().toString().slice(-4)}`;
 
-    const brideName = data.brideName || data.coupleNames.split('&')[0]?.trim() || 'Novia';
-    const groomName = data.groomName || data.coupleNames.split('&')[1]?.trim() || 'Novio';
+    const brideName = isBlank
+      ? (data.brideName?.trim() || '')
+      : (data.brideName || coupleNames.split('&')[0]?.trim() || 'Novia');
+    const groomName = isBlank
+      ? (data.groomName?.trim() || '')
+      : (data.groomName || coupleNames.split('&')[1]?.trim() || 'Novio');
 
-    const newSettings: WeddingSettings = {
-      ...initialWeddingSettings,
-      eventType: data.eventType || 'Boda',
-      coupleNames: data.coupleNames,
-      brideName,
-      groomName,
-      weddingDate: data.weddingDate,
-      weddingTime: '18:00',
-      locationSummary: data.locationSummary,
-      hasReligiousCeremony: true,
-      ceremonyVenue: {
-        ...initialWeddingSettings.ceremonyVenue,
-        name: data.ceremonyVenueName || 'Parroquia / Capilla Central',
-        address: data.locationSummary,
-      },
-      receptionVenue: {
-        ...initialWeddingSettings.receptionVenue,
-        name: data.receptionVenueName || 'Hacienda / Jardín de Eventos',
-        address: data.locationSummary,
-      },
-      additionalVenues: [],
-      bankDetails: {
-        bankName: 'Banco Destino',
-        accountHolder: data.coupleNames,
-        clabe: '000000000000000000',
-        accountNumber: '0000 0000 0000',
-        concept: `Regalo Boda ${data.coupleNames}`,
-      },
-      generalContactEmail: `boda.${slug}@gmail.com`,
-      generalContactPhone: '+52 81 0000 0000',
-      romanticQuote: '"El amor no se mira con los ojos, sino con el corazón."',
-    };
+    const newSettings: WeddingSettings = isBlank
+      ? {
+          eventType: data.eventType || 'Boda',
+          coupleNames,
+          brideName,
+          groomName,
+          weddingDate: data.weddingDate?.trim() || '',
+          weddingTime: '',
+          locationSummary: data.locationSummary?.trim() || '',
+          hasReligiousCeremony: false,
+          ceremonyVenue: {
+            name: data.ceremonyVenueName?.trim() || '',
+            address: '',
+            time: '',
+            googleMapsUrl: '',
+            wazeUrl: '',
+            notes: '',
+          },
+          receptionVenue: {
+            name: data.receptionVenueName?.trim() || '',
+            address: '',
+            time: '',
+            googleMapsUrl: '',
+            wazeUrl: '',
+            notes: '',
+          },
+          additionalVenues: [],
+          dressCodeStyle: '',
+          dressCodeDescription: '',
+          suggestedColors: [],
+          forbiddenColorsNote: '',
+          bankDetails: {
+            bankName: '',
+            accountHolder: '',
+            clabe: '',
+            accountNumber: '',
+            concept: '',
+          },
+          showGiftRegistry: false,
+          giftRegistryTitle: '',
+          giftRegistryMessage: '',
+          showBankDetails: false,
+          rsvpDeadline: '',
+          giftRegistries: [],
+          generalContactEmail: '',
+          generalContactPhone: '',
+          romanticQuote: '',
+          totalRealBudget: 0,
+        }
+      : {
+          ...initialWeddingSettings,
+          eventType: data.eventType || 'Boda',
+          coupleNames,
+          brideName,
+          groomName,
+          weddingDate: data.weddingDate,
+          weddingTime: '18:00',
+          locationSummary: data.locationSummary,
+          hasReligiousCeremony: true,
+          ceremonyVenue: {
+            ...initialWeddingSettings.ceremonyVenue,
+            name: data.ceremonyVenueName || 'Parroquia / Capilla Central',
+            address: data.locationSummary,
+          },
+          receptionVenue: {
+            ...initialWeddingSettings.receptionVenue,
+            name: data.receptionVenueName || 'Hacienda / Jardín de Eventos',
+            address: data.locationSummary,
+          },
+          additionalVenues: [],
+          bankDetails: {
+            bankName: 'Banco Destino',
+            accountHolder: data.coupleNames,
+            clabe: '000000000000000000',
+            accountNumber: '0000 0000 0000',
+            concept: `Regalo Boda ${data.coupleNames}`,
+          },
+          generalContactEmail: `boda.${slug}@gmail.com`,
+          generalContactPhone: '+52 81 0000 0000',
+          romanticQuote: '"El amor no se mira con los ojos, sino con el corazón."',
+        };
 
     const newWedding: Wedding = {
       id: newWeddingId,
-      coupleNames: data.coupleNames,
-      weddingDate: data.weddingDate,
-      locationSummary: data.locationSummary,
+      coupleNames,
+      weddingDate: data.weddingDate?.trim() || '',
+      locationSummary: data.locationSummary?.trim() || '',
       status: 'planning',
       settings: newSettings,
       createdByUserId: currentUser.id || currentUser.username,
       createdByUserName: currentUser.username,
       createdByUserLevel: currentUser.level,
       plannerName: currentUser.level === 3 ? currentUser.username : (currentUser.level === 1 ? 'Herly Lizarazo' : undefined),
-      guests: [
-        {
-          id: `g-${newWeddingId}-novia`,
-          code: `BODA-${slug.slice(0, 4).toUpperCase()}-NOVIA`,
-          fullName: brideName,
-          category: 'anfitrion',
-          protocolRoleTitle: 'Novia & Anfitriona Principal',
-          isProtocolParticipant: true,
-          totalPasses: 1,
-          confirmedPasses: 1,
-          rsvpStatus: 'confirmed',
-          assignedTable: 'Mesa Principal (Novios)',
-          congratulationMessage: '¡Nuestra gran boda!',
-          updatedAt: new Date().toISOString().split('T')[0],
-        },
-        {
-          id: `g-${newWeddingId}-novio`,
-          code: `BODA-${slug.slice(0, 4).toUpperCase()}-NOVIO`,
-          fullName: groomName,
-          category: 'anfitrion',
-          protocolRoleTitle: 'Novio & Anfitrión Principal',
-          isProtocolParticipant: true,
-          totalPasses: 1,
-          confirmedPasses: 1,
-          rsvpStatus: 'confirmed',
-          assignedTable: 'Mesa Principal (Novios)',
-          congratulationMessage: '¡El día más esperado!',
-          updatedAt: new Date().toISOString().split('T')[0],
-        },
-        {
-          id: `g-${newWeddingId}-padrino`,
-          code: `BODA-${slug.slice(0, 4).toUpperCase()}-PADRINO`,
-          fullName: 'Padrino de Velación',
-          category: 'cortejo_honor',
-          protocolRoleTitle: 'Padrino de Honor',
-          isProtocolParticipant: true,
-          totalPasses: 2,
-          confirmedPasses: 2,
-          rsvpStatus: 'confirmed',
-          assignedTable: 'Mesa 1 (Mesa de Honor)',
-          congratulationMessage: '¡Felicidades a los futuros esposos!',
-          updatedAt: new Date().toISOString().split('T')[0],
-        },
-      ],
-      timeline: initialTimeline.map((item) => ({ ...item, id: `tm-${newWeddingId}-${item.id}` })),
-      budget: initialBudget.map((item) => ({ ...item, id: `b-${newWeddingId}-${item.id}` })),
-      tasks: generateMasterTasksForWedding(),
-      vendors: initialVendors.map((item) => ({ ...item, id: `v-${newWeddingId}-${item.id}` })),
+      guests: isBlank
+        ? []
+        : [
+            {
+              id: `g-${newWeddingId}-novia`,
+              code: `BODA-${slug.slice(0, 4).toUpperCase()}-NOVIA`,
+              fullName: brideName,
+              category: 'anfitrion',
+              protocolRoleTitle: 'Novia & Anfitriona Principal',
+              isProtocolParticipant: true,
+              totalPasses: 1,
+              confirmedPasses: 1,
+              rsvpStatus: 'confirmed',
+              assignedTable: 'Mesa Principal (Novios)',
+              congratulationMessage: '¡Nuestra gran boda!',
+              updatedAt: new Date().toISOString().split('T')[0],
+            },
+            {
+              id: `g-${newWeddingId}-novio`,
+              code: `BODA-${slug.slice(0, 4).toUpperCase()}-NOVIO`,
+              fullName: groomName,
+              category: 'anfitrion',
+              protocolRoleTitle: 'Novio & Anfitrión Principal',
+              isProtocolParticipant: true,
+              totalPasses: 1,
+              confirmedPasses: 1,
+              rsvpStatus: 'confirmed',
+              assignedTable: 'Mesa Principal (Novios)',
+              congratulationMessage: '¡El día más esperado!',
+              updatedAt: new Date().toISOString().split('T')[0],
+            },
+            {
+              id: `g-${newWeddingId}-padrino`,
+              code: `BODA-${slug.slice(0, 4).toUpperCase()}-PADRINO`,
+              fullName: 'Padrino de Velación',
+              category: 'cortejo_honor',
+              protocolRoleTitle: 'Padrino de Honor',
+              isProtocolParticipant: true,
+              totalPasses: 2,
+              confirmedPasses: 2,
+              rsvpStatus: 'confirmed',
+              assignedTable: 'Mesa 1 (Mesa de Honor)',
+              congratulationMessage: '¡Felicidades a los futuros esposos!',
+              updatedAt: new Date().toISOString().split('T')[0],
+            },
+          ],
+      timeline: isBlank ? [] : initialTimeline.map((item) => ({ ...item, id: `tm-${newWeddingId}-${item.id}` })),
+      budget: isBlank ? [] : initialBudget.map((item) => ({ ...item, id: `b-${newWeddingId}-${item.id}` })),
+      tasks: isBlank ? [] : generateMasterTasksForWedding(),
+      vendors: isBlank ? [] : initialVendors.map((item) => ({ ...item, id: `v-${newWeddingId}-${item.id}` })),
+      tables: isBlank ? [] : initialTables,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
