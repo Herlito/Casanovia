@@ -28,7 +28,8 @@ import {
   Redo2,
   AlertCircle,
   AlertTriangle,
-  Palette
+  Palette,
+  Trash2
 } from 'lucide-react';
 import { useWedding } from '../../context/WeddingContext';
 import {
@@ -54,7 +55,7 @@ import {
   getGuestGroupInfo,
   checkFloorPlanElementCapacityForGroup,
 } from './floorPlanSyncUtils';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteField } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { cleanFirestoreData } from '../../lib/firestoreUtils';
 
@@ -1070,14 +1071,6 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     } catch (err) {
       console.warn('Error al actualizar mesa de invitado:', err);
     }
-
-    const companionCount = groupInfo.requiredSeats - 1;
-    setAssignmentNotice(
-      companionCount > 0
-        ? `¡"${guest.fullName}" y ${companionCount === 1 ? 'su acompañante' : `${companionCount} acompañantes`} ubicados en "${targetElem.name}"!`
-        : `¡"${guest.fullName}" ubicado en "${targetElem.name}"!`
-    );
-    setTimeout(() => setAssignmentNotice(null), 3500);
   };
 
   // Unassign guest from seat
@@ -1169,6 +1162,39 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     }
   };
 
+  // Borrar plano PDF o imagen importada
+  const handleDeleteBackgroundImage = async () => {
+    setBackgroundImageUrl(undefined);
+    setBackgroundFileName(undefined);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    if (activeWeddingId) {
+      try {
+        const localKey = `casanovia_floor_plan_${activeWeddingId}`;
+        const localData = localStorage.getItem(localKey);
+        if (localData) {
+          const parsed = JSON.parse(localData);
+          delete parsed.backgroundImageUrl;
+          delete parsed.backgroundFileName;
+          localStorage.setItem(localKey, JSON.stringify(parsed));
+        }
+
+        const docRef = doc(db, 'floor_plans', activeWeddingId);
+        await setDoc(
+          docRef,
+          {
+            backgroundImageUrl: deleteField(),
+            backgroundFileName: deleteField(),
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+      } catch (err) {
+        console.warn('Error al borrar plano importado en almacenamiento:', err);
+      }
+    }
+  };
+
   // Calibration Line Finished
   const handleCalibrationLineDrawn = (pixelDistance: number) => {
     setIsCalibratingScale(false);
@@ -1228,7 +1254,12 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
       // Save in Firestore
       const docRef = doc(db, 'floor_plans', activeWeddingId);
-      await setDoc(docRef, cleanFirestoreData(planPayload), { merge: true });
+      const firestorePayload: any = cleanFirestoreData(planPayload);
+      if (!backgroundImageUrl) {
+        firestorePayload.backgroundImageUrl = deleteField();
+        firestorePayload.backgroundFileName = deleteField();
+      }
+      await setDoc(docRef, firestorePayload, { merge: true });
 
       setSaveSuccessNotice(true);
       setTimeout(() => setSaveSuccessNotice(false), 3000);
@@ -1472,6 +1503,20 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             )}
             <span className="hidden sm:inline">Importar Plano (PDF)</span>
           </button>
+
+          {/* Botón para borrar plano PDF importado */}
+          {backgroundImageUrl && (
+            <button
+              id="btn-delete-imported-floorplan"
+              type="button"
+              onClick={handleDeleteBackgroundImage}
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-xs font-semibold text-rose-600 hover:text-rose-800 border-none transition-all cursor-pointer"
+              title="Borrar plano PDF importado"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+              <span className="hidden sm:inline">Borrar Plano Importado</span>
+            </button>
+          )}
 
           {/* Calibrate Scale button */}
           <button
@@ -1858,14 +1903,13 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
                 title="Opacidad del fondo PDF"
               />
               <button
-                onClick={() => {
-                  setBackgroundImageUrl(undefined);
-                  setBackgroundFileName(undefined);
-                }}
-                className="text-rose-600 hover:text-rose-800 text-[10px] font-bold p-1 cursor-pointer"
-                title="Quitar imagen de fondo"
+                type="button"
+                onClick={handleDeleteBackgroundImage}
+                className="flex items-center space-x-1 text-rose-600 hover:text-rose-800 text-[10px] font-bold p-1 cursor-pointer transition-colors border-none bg-transparent"
+                title="Borrar plano PDF importado"
               >
-                <X className="w-3 h-3" />
+                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <span className="hidden xs:inline">Borrar</span>
               </button>
             </div>
           )}

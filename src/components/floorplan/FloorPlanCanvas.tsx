@@ -1704,43 +1704,38 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           style={{
             left: `${selectedElemScreenPos.x}px`,
             top: `${
-              selectedElemScreenPos.y -
+              selectedElemScreenPos.y +
               (selectedElem.type === 'round_table'
                 ? ((selectedElem.radius || 60) + 36) * zoom
-                : (selectedElem.height / 2 + 36) * zoom)
+                : (((selectedElem.height || 60) / 2) + 36) * zoom)
             }px`,
-            transform: 'translate(-50%, -100%)',
+            transform: 'translate(-50%, 0)',
           }}
-          className="absolute z-30 pointer-events-auto flex items-center space-x-1 p-1 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-xs transition-all select-none"
+          className="absolute z-30 pointer-events-auto flex items-center p-1 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] transition-all select-none"
         >
           <button
+            id="btn-toggle-object-lock"
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               onUpdateElement(selectedElem.id, { isLocked: !selectedElem.isLocked });
             }}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border-none cursor-pointer ${
+            className={`w-8 h-8 flex items-center justify-center rounded-xl text-xs transition-all border-none cursor-pointer ${
               selectedElem.isLocked
                 ? 'bg-[#EBEBEB] text-amber-800 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] hover:bg-amber-100/50'
                 : 'bg-[#EBEBEB] text-gray-700 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
             }`}
             title={
               selectedElem.isLocked
-                ? 'Objeto bloqueado. Haz clic para desbloquearlo y poder moverlo o editarlo'
-                : 'Haz clic para bloquear el objeto y evitar que se mueva o cambie de propiedades'
+                ? 'Objeto bloqueado (haz clic para desbloquear)'
+                : 'Bloquear objeto'
             }
+            aria-label={selectedElem.isLocked ? 'Desbloquear objeto' : 'Bloquear objeto'}
           >
             {selectedElem.isLocked ? (
-              <>
-                <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <span>Bloqueado</span>
-                <span className="text-[10px] text-amber-700 font-normal pl-0.5">(clic para liberar)</span>
-              </>
+              <Lock className="w-4 h-4 text-amber-600 shrink-0" />
             ) : (
-              <>
-                <Unlock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                <span>Bloquear</span>
-              </>
+              <Unlock className="w-4 h-4 text-gray-600 shrink-0" />
             )}
           </button>
         </div>
