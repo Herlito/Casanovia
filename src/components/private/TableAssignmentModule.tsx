@@ -85,6 +85,7 @@ export const TableAssignmentModule: React.FC = () => {
     updateTable, 
     deleteTable, 
     batchAssignGuestsToTable,
+    batchUpdateGuests,
     setShowFloorPlanModal,
     settings,
     canEditActiveWedding,
@@ -416,86 +417,209 @@ export const TableAssignmentModule: React.FC = () => {
     setTargetBatchTable('');
   };
 
-  // Smart Auto-Assign
+  // Random Auto-Distribute to fill available seats up to capacity
   const handleSmartAutoAssign = async () => {
-    // Unassigned primary guests
-    const unassignedPrimary = guests.filter(
-      (g) => !g.mainGuestId && (!g.assignedTable || g.assignedTable.trim() === '' || g.assignedTable.toLowerCase().includes('por asignar'))
-    );
-
-    // Unassigned companions
-    const unassignedCompanions = guests.filter(
-      (g) => g.mainGuestId && (!g.assignedTable || g.assignedTable.trim() === '' || g.assignedTable.toLowerCase().includes('por asignar'))
-    );
-
-    if (unassignedPrimary.length === 0 && unassignedCompanions.length === 0) {
-      setAutoAssignMessage('¡Todos los invitados ya tienen una mesa asignada!');
-      setShowAutoAssignSuccess(true);
-      setTimeout(() => setShowAutoAssignSuccess(false), 3000);
-      return;
-    }
-
-    if (tables.length === 0) {
+    if (!tables || tables.length === 0) {
       setAutoAssignMessage('Por favor crea al menos una mesa antes de auto-asignar.');
       setShowAutoAssignSuccess(true);
       setTimeout(() => setShowAutoAssignSuccess(false), 3500);
       return;
     }
 
-    // Group available tables and their remaining capacity
-    const tableCapacities = tables.map((t) => {
+    const isUnassigned = (g: Guest) => {
+      if (!g) return false;
+      const t = (g.assignedTable || '').trim().toLowerCase();
+      return t === '' || t === 'mesa por asignar' || t === 'sin asignar' || t === 'sin mesa' || t.includes('por asignar');
+    };
+
+    // 1. Calculate current capacity per table based on tableOccupancyMap
+    const tableState = tables.map((t) => {
       const occ = tableOccupancyMap.get(t.name.trim().toLowerCase())?.totalPasses || 0;
       return {
-        table: t,
+        id: t.id,
+        name: t.name,
+        capacity: t.capacity,
         available: Math.max(0, t.capacity - occ),
       };
     });
 
-    let assignedCount = 0;
+    const totalAvailableSeats = tableState.reduce((sum, t) => sum + t.available, 0);
+    if (totalAvailableSeats <= 0) {
+      setAutoAssignMessage('No hay asientos disponibles en las mesas creadas.');
+      setShowAutoAssignSuccess(true);
+      setTimeout(() => setShowAutoAssignSuccess(false), 3500);
+      return;
+    }
 
-    // Group unassigned by category for affinity seating (Family together, Cortejo together, Friends together)
-    const sortedUnassigned = [...unassignedPrimary].sort((a, b) => {
-      if (a.category === 'anfitrion' || a.category === 'cortejo_honor') return -1;
-      if (b.category === 'anfitrion' || b.category === 'cortejo_honor') return 1;
-      if (a.category === 'familia_directa') return -1;
-      if (b.category === 'familia_directa') return 1;
-      return 0;
+    // 2. Identify unassigned guests
+    const unassignedList = guests.filter(isUnassigned);
+    if (unassignedList.length === 0) {
+      setAutoAssignMessage('¡Todos los invitados ya tienen una mesa asignada!');
+      setShowAutoAssignSuccess(true);
+      setTimeout(() => setShowAutoAssignSuccess(false), 3000);
+      return;
+    }
+
+    // 3. Build group units (each party consists of a primary guest and any registered companions)
+    interface GuestGroup {
+      primary: Guest;
+      companions: Guest[];
+      requiredSeats: number;
+    }
+
+    const processedGuestIds = new Set<string>();
+    const groups: GuestGroup[] = [];
+
+    // Group unassigned primary guests first with their unassigned companions
+    unassignedList.forEach((g) => {
+      if (processedGuestIds.has(g.id)) return;
+
+      if (!g.mainGuestId) {
+        const companions = unassignedList.filter((c) => c.mainGuestId === g.id && c.id !== g.id);
+        companions.forEach((c) => processedGuestIds.add(c.id));
+        processedGuestIds.add(g.id);
+
+        const passes = Math.max(
+          1 + companions.length,
+          g.confirmedPasses || 0,
+          g.totalPasses || 1
+        );
+
+        groups.push({
+          primary: g,
+          companions,
+          requiredSeats: passes,
+        });
+      }
     });
 
-    for (const guest of sortedUnassigned) {
-      const passes = guest.confirmedPasses || guest.totalPasses || 1;
-      // Find a table with enough space
-      const availableTable = tableCapacities.find((tc) => tc.available >= passes);
+    // Handle any remaining unassigned companions (e.g. whose primary is already assigned or orphan companions)
+    unassignedList.forEach((g) => {
+      if (processedGuestIds.has(g.id)) return;
+      processedGuestIds.add(g.id);
 
-      if (availableTable) {
-        // Assign primary guest
-        await updateGuest(guest.id, { assignedTable: availableTable.table.name });
-        
-        // Also assign any accompanying guests linked to this primary guest
-        const companions = unassignedCompanions.filter((c) => c.mainGuestId === guest.id);
-        for (const comp of companions) {
-          await updateGuest(comp.id, { assignedTable: availableTable.table.name });
+      // If main guest already has a table with space, try to keep them together
+      if (g.mainGuestId) {
+        const main = guests.find((m) => m.id === g.mainGuestId);
+        if (main && main.assignedTable && !isUnassigned(main)) {
+          const mainTbl = tableState.find((t) => t.name.trim().toLowerCase() === main.assignedTable.trim().toLowerCase());
+          if (mainTbl && mainTbl.available > 0) {
+            mainTbl.available -= 1;
+            groups.push({
+              primary: g,
+              companions: [],
+              requiredSeats: 0,
+            });
+            return;
+          }
         }
+      }
+
+      groups.push({
+        primary: g,
+        companions: [],
+        requiredSeats: Math.max(1, g.confirmedPasses || 0, g.totalPasses || 1),
+      });
+    });
+
+    // 4. Randomize the groups completely (Fisher-Yates shuffle) for aleatory distribution
+    for (let i = groups.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [groups[i], groups[j]] = [groups[j], groups[i]];
+    }
+
+    const guestTableAssignmentMap = new Map<string, string>();
+    let assignedPeopleCount = 0;
+
+    // Pre-seat any companions joining already assigned main guests
+    groups.forEach((grp) => {
+      if (grp.requiredSeats === 0 && grp.primary.mainGuestId) {
+        const main = guests.find((m) => m.id === grp.primary.mainGuestId);
+        if (main && main.assignedTable && !isUnassigned(main)) {
+          guestTableAssignmentMap.set(grp.primary.id, main.assignedTable);
+          assignedPeopleCount += 1;
+        }
+      }
+    });
+
+    const pendingGroups = groups.filter((grp) => !guestTableAssignmentMap.has(grp.primary.id));
+
+    // 5. Fill tables up to capacity occupying available seats
+    for (const table of tableState) {
+      if (table.available <= 0) continue;
+
+      let madeAssignment = true;
+      while (madeAssignment && table.available > 0 && pendingGroups.length > 0) {
+        madeAssignment = false;
+
+        // Try to find a group that fits perfectly (requiredSeats === table.available)
+        let groupIdx = pendingGroups.findIndex((g) => g.requiredSeats === table.available);
         
-        availableTable.available -= passes;
-        assignedCount += 1 + companions.length;
+        // If not found, find any group that fits within remaining table seats
+        if (groupIdx === -1) {
+          groupIdx = pendingGroups.findIndex((g) => g.requiredSeats <= table.available);
+        }
+
+        if (groupIdx !== -1) {
+          const group = pendingGroups.splice(groupIdx, 1)[0];
+          
+          guestTableAssignmentMap.set(group.primary.id, table.name);
+          group.companions.forEach((c) => {
+            guestTableAssignmentMap.set(c.id, table.name);
+          });
+
+          table.available -= group.requiredSeats;
+          assignedPeopleCount += 1 + group.companions.length;
+          madeAssignment = true;
+        }
       }
     }
 
-    // If there are any standalone companions whose main guests were already assigned, place them in the same table as their main guest
-    for (const comp of unassignedCompanions) {
-      if (comp.mainGuestId) {
-        const main = guests.find((g) => g.id === comp.mainGuestId);
-        if (main && main.assignedTable && !main.assignedTable.toLowerCase().includes('por asignar')) {
-          await updateGuest(comp.id, { assignedTable: main.assignedTable });
-          assignedCount += 1;
+    // If there are still pending groups and any table has available seats left, fill those remaining seats
+    if (pendingGroups.length > 0) {
+      for (const table of tableState) {
+        if (table.available <= 0) continue;
+        while (table.available > 0 && pendingGroups.length > 0) {
+          const group = pendingGroups.shift()!;
+          guestTableAssignmentMap.set(group.primary.id, table.name);
+          group.companions.forEach((c) => {
+            guestTableAssignmentMap.set(c.id, table.name);
+          });
+          const seatsUsed = Math.min(table.available, group.requiredSeats);
+          table.available -= seatsUsed;
+          assignedPeopleCount += 1 + group.companions.length;
         }
       }
     }
 
-    setAutoAssignMessage(`¡Se han asignado ${assignedCount} personas a mesas con espacio disponible!`);
+    if (guestTableAssignmentMap.size === 0) {
+      setAutoAssignMessage('No fue posible asignar invitados a las mesas disponibles.');
+      setShowAutoAssignSuccess(true);
+      setTimeout(() => setShowAutoAssignSuccess(false), 3000);
+      return;
+    }
+
+    // Apply all assignments in a single batch update
+    const today = new Date().toISOString().split('T')[0];
+    const updatedGuests = guests.map((g) => {
+      const assignedTable = guestTableAssignmentMap.get(g.id);
+      if (assignedTable) {
+        return {
+          ...g,
+          assignedTable,
+          rsvpStatus: (g.rsvpStatus === 'declined' ? 'confirmed' : g.rsvpStatus || 'confirmed') as RsvpStatus,
+          confirmedPasses: g.confirmedPasses || g.totalPasses || 1,
+          updatedAt: today,
+        };
+      }
+      return g;
+    });
+
+    await batchUpdateGuests(updatedGuests);
+
+    setAutoAssignMessage(`¡Se han auto-distribuido aleatoriamente ${assignedPeopleCount} personas ocupando los asientos disponibles!`);
     setShowAutoAssignSuccess(true);
-    setTimeout(() => setShowAutoAssignSuccess(false), 4000);
+    setTimeout(() => setShowAutoAssignSuccess(false), 4500);
   };
 
   // Quick Preset: Generate default tables

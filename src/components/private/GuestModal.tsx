@@ -54,7 +54,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Anfitrión',
     desc: 'Novios / Anfitriones del evento',
     icon: Sparkles,
-    activeColor: 'bg-purple-700 text-[#2D3748] border-purple-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    activeColor: 'bg-purple-700 text-white border-purple-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-purple-100 text-purple-800 border-purple-200',
   },
   {
@@ -63,7 +63,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Invitado',
     desc: 'Invitado general / Amigos',
     icon: User,
-    activeColor: 'bg-stone-800 text-[#2D3748] border-stone-900 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    activeColor: 'bg-stone-800 text-white border-stone-900 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-stone-100 text-stone-700 border-stone-200',
   },
   {
@@ -72,7 +72,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Familia',
     desc: 'Padres, hermanos, abuelos',
     icon: Heart,
-    activeColor: 'bg-amber-700 text-[#2D3748] border-amber-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    activeColor: 'bg-amber-700 text-white border-amber-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
   },
   {
@@ -81,7 +81,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Planner',
     desc: 'Coordinador, staff y logística',
     icon: ShieldCheck,
-    activeColor: 'bg-emerald-700 text-[#2D3748] border-emerald-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    activeColor: 'bg-emerald-700 text-white border-emerald-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
   },
   {
@@ -90,7 +90,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Cortejo',
     desc: 'Padrinos, madrinas, damas',
     icon: Crown,
-    activeColor: 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-[#2D3748] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    activeColor: 'bg-rose-700 text-white border-rose-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-rose-100 text-rose-800 border-rose-200',
   },
   {
@@ -99,7 +99,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Damita',
     desc: 'Acompañamiento en cortejo y ramo',
     icon: Sparkles,
-    activeColor: 'bg-pink-700 text-[#2D3748] border-pink-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    activeColor: 'bg-pink-700 text-white border-pink-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-pink-100 text-pink-800 border-pink-200',
   },
   {
@@ -108,7 +108,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Paje',
     desc: 'Portador de arras, anillos o letreros',
     icon: Crown,
-    activeColor: 'bg-sky-700 text-[#2D3748] border-sky-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    activeColor: 'bg-sky-700 text-white border-sky-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
   },
   {
@@ -117,7 +117,7 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Niño/a',
     desc: 'Menor de edad / comensal infantil',
     icon: Heart,
-    activeColor: 'bg-teal-700 text-[#2D3748] border-teal-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    activeColor: 'bg-teal-700 text-white border-teal-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-teal-100 text-teal-800 border-teal-200',
   },
   {
@@ -126,21 +126,21 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
     shortLabel: 'Proveedor',
     desc: 'Fotografía, DJ, banquete, flores',
     icon: Briefcase,
-    activeColor: 'bg-blue-700 text-[#2D3748] border-blue-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    activeColor: 'bg-blue-700 text-white border-blue-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
     badgeClass: 'bg-blue-100 text-blue-800 border-blue-200',
   },
 ];
 
 const COLOR_THEMES = [
-  { id: 'rose', name: 'Vino / Rosa', activeColor: 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-[#2D3748] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-rose-100 text-rose-800 border-rose-200' },
-  { id: 'purple', name: 'Púrpura', activeColor: 'bg-purple-700 text-[#2D3748] border-purple-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-purple-100 text-purple-800 border-purple-200' },
-  { id: 'pink', name: 'Rosa Pastel', activeColor: 'bg-pink-700 text-[#2D3748] border-pink-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-pink-100 text-pink-800 border-pink-200' },
-  { id: 'sky', name: 'Azul Cielo', activeColor: 'bg-sky-700 text-[#2D3748] border-sky-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-sky-100 text-sky-800 border-sky-200' },
-  { id: 'teal', name: 'Verde Azulado', activeColor: 'bg-teal-700 text-[#2D3748] border-teal-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-teal-100 text-teal-800 border-teal-200' },
-  { id: 'amber', name: 'Ámbar / Dorado', activeColor: 'bg-amber-700 text-[#2D3748] border-amber-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-amber-100 text-amber-900 border-amber-300' },
-  { id: 'emerald', name: 'Esmeralda', activeColor: 'bg-emerald-700 text-[#2D3748] border-emerald-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-  { id: 'indigo', name: 'Índigo', activeColor: 'bg-indigo-700 text-[#2D3748] border-indigo-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-  { id: 'stone', name: 'Piedra / Gris', activeColor: 'bg-stone-800 text-[#2D3748] border-stone-900 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-stone-100 text-stone-700 border-stone-200' },
+  { id: 'rose', name: 'Vino / Rosa', activeColor: 'bg-rose-700 text-white border-rose-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-rose-100 text-rose-800 border-rose-200' },
+  { id: 'purple', name: 'Púrpura', activeColor: 'bg-purple-700 text-white border-purple-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-purple-100 text-purple-800 border-purple-200' },
+  { id: 'pink', name: 'Rosa Pastel', activeColor: 'bg-pink-700 text-white border-pink-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-pink-100 text-pink-800 border-pink-200' },
+  { id: 'sky', name: 'Azul Cielo', activeColor: 'bg-sky-700 text-white border-sky-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-sky-100 text-sky-800 border-sky-200' },
+  { id: 'teal', name: 'Verde Azulado', activeColor: 'bg-teal-700 text-white border-teal-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-teal-100 text-teal-800 border-teal-200' },
+  { id: 'amber', name: 'Ámbar / Dorado', activeColor: 'bg-amber-700 text-white border-amber-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-amber-100 text-amber-900 border-amber-300' },
+  { id: 'emerald', name: 'Esmeralda', activeColor: 'bg-emerald-700 text-white border-emerald-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+  { id: 'indigo', name: 'Índigo', activeColor: 'bg-indigo-700 text-white border-indigo-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+  { id: 'stone', name: 'Piedra / Gris', activeColor: 'bg-stone-800 text-white border-stone-900 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-stone-100 text-stone-700 border-stone-200' },
 ];
 
 export const GuestModal: React.FC<GuestModalProps> = ({
@@ -203,8 +203,8 @@ export const GuestModal: React.FC<GuestModalProps> = ({
     dressCodeNote: '',
     accessoryAssigned: '',
     assignedMilestone: '',
-    assignedTable: '',
-    totalPasses: 2,
+    assignedTable: 'Mesa por asignar',
+    totalPasses: 1,
     confirmedPasses: 0,
     rsvpStatus: 'pending',
     dietaryRestrictions: 'Ninguna',
@@ -241,21 +241,14 @@ export const GuestModal: React.FC<GuestModalProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Calculate companions linked to this guest or in the same table
-  const tableCompanions = useMemo(() => {
-    const currentTable = formData.assignedTable?.trim().toLowerCase();
+  // Calculate companions strictly linked to this guest
+  const linkedCompanions = useMemo(() => {
     const guestId = guestToEdit?.id;
-    return guests.filter((g) => {
-      if (guestId && g.id === guestId) return false;
-      if (guestId && g.mainGuestId === guestId) return true;
-      if (currentTable && currentTable !== 'mesa por asignar' && g.assignedTable?.trim().toLowerCase() === currentTable) {
-        return true;
-      }
-      return false;
-    });
-  }, [guests, formData.assignedTable, guestToEdit]);
+    if (!guestId) return [];
+    return guests.filter((g) => g.id !== guestId && g.mainGuestId === guestId);
+  }, [guests, guestToEdit]);
 
-  const totalPasses = formData.totalPasses || 1;
+  const totalPasses = formData.totalPasses !== undefined ? formData.totalPasses : 1;
   const maxAllowedCompanions = Math.max(0, totalPasses - 1);
 
   useEffect(() => {
@@ -282,8 +275,8 @@ export const GuestModal: React.FC<GuestModalProps> = ({
         dressCodeNote: '',
         accessoryAssigned: '',
         assignedMilestone: '',
-        assignedTable: 'Mesa 1',
-        totalPasses: 2,
+        assignedTable: 'Mesa por asignar',
+        totalPasses: 1,
         confirmedPasses: 0,
         rsvpStatus: 'pending',
         dietaryRestrictions: 'Ninguna',
@@ -499,120 +492,14 @@ export const GuestModal: React.FC<GuestModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           
-          {/* 1. General Information */}
+          {/* 1. Datos Personales */}
           <div className="bg-[#EBEBEB] p-4 rounded-xl border border-transparent space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-1.5">
                 <User className="w-3.5 h-3.5" />
                 <span>1. Datos Personales</span>
               </h4>
-
-              {/* + Acompañante Button */}
-              <button
-                type="button"
-                onClick={() => setIsCompanionModalOpen(true)}
-                className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-[#2D3748] rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
-                title="Vincular o registrar un acompañante en esta misma mesa"
-              >
-                <UserPlus className="w-3.5 h-3.5" />
-                <span>+ Acompañante</span>
-              </button>
             </div>
-
-            {/* Notification when a companion was just added */}
-            {lastAddedCompanion && (
-              <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center space-x-2 animate-fadeIn">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>
-                  Acompañante <strong>{lastAddedCompanion}</strong> asignado(a) como <em>Invitado</em> en <strong>{formData.assignedTable || 'la misma mesa'}</strong>.
-                </span>
-              </div>
-            )}
-
-            {/* Notification when a companion was removed/unlinked */}
-            {companionActionMessage && (
-              <div className="p-2.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg text-xs flex items-center justify-between animate-fadeIn shadow-2xs">
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>{companionActionMessage}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCompanionActionMessage(null)}
-                  className="text-amber-700 hover:text-amber-900 p-0.5"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-
-            {/* Table Companions Interactive Management List */}
-            {tableCompanions.length > 0 && (
-              <div className="p-3 bg-[#FAF8F5] border border-transparent rounded-xl text-xs space-y-2.5 shadow-2xs">
-                <div className="flex items-center justify-between border-b border-transparent pb-1.5">
-                  <span className="font-bold text-[#7A7268] flex items-center space-x-1.5">
-                    <Users className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>Acompañantes ({tableCompanions.length} de {maxAllowedCompanions} permitidos):</span>
-                  </span>
-                  <span className="text-[10px] text-stone-500 italic">
-                    {formData.assignedTable || 'Mesa por asignar'}
-                  </span>
-                </div>
-
-                <div className="space-y-1.5">
-                  {tableCompanions.map((comp) => (
-                    <div
-                      key={comp.id}
-                      className="p-2 bg-[#EBEBEB] border border-[#D9CEBF] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs hover:border-transparent transition-all"
-                    >
-                      <div className="flex items-center space-x-2 min-w-0">
-                        <div className="w-6 h-6 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center text-[10px] font-bold shrink-0">
-                          {comp.fullName.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <span className="font-bold text-[#2D2A26] block truncate">
-                            {comp.fullName}
-                          </span>
-                          <div className="flex items-center space-x-1.5 text-[10px] text-[#7A7268]">
-                            <span className="text-stone-500 font-mono">{comp.code}</span>
-                            <span>•</span>
-                            <span className="text-emerald-700 font-medium">
-                              {comp.category === 'invitado' ? 'Invitado' : comp.category}
-                            </span>
-                            <span>•</span>
-                            <span className="text-[#8C8276] italic">Pase incluido con titular</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action buttons to remove companion */}
-                      <div className="flex items-center space-x-1.5 shrink-0 self-end sm:self-auto">
-                        <button
-                          type="button"
-                          disabled={isProcessingCompanion}
-                          onClick={() => handleRemoveCompanionFromTable(comp)}
-                          className="px-2 py-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-semibold flex items-center space-x-1 transition-colors cursor-pointer disabled:opacity-50"
-                          title="Quitar de esta mesa y enviarlo a 'Mesa por asignar' sin borrarlo de la lista"
-                        >
-                          <UserMinus className="w-3 h-3 text-amber-700" />
-                          <span>Quitar de mesa</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          disabled={isProcessingCompanion}
-                          onClick={() => handleDeleteCompanionGuest(comp)}
-                          className="p-1 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] transition-colors cursor-pointer disabled:opacity-50"
-                          title="Eliminar este acompañante de la lista de invitados"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
@@ -663,12 +550,220 @@ export const GuestModal: React.FC<GuestModalProps> = ({
             </div>
           </div>
 
-          {/* 2. Role Selection & Management */}
+          {/* 2. Mesa & Asistencia */}
+          <div className="bg-[#EBEBEB] p-4 rounded-xl border border-transparent space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-1.5">
+                <Users className="w-3.5 h-3.5" />
+                <span>2. Mesa & Asistencia</span>
+              </h4>
+
+              {/* + Acompañante Button (available when editing guest or having a registered guest) */}
+              {guestToEdit && (
+                <button
+                  type="button"
+                  onClick={() => setIsCompanionModalOpen(true)}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                  title="Vincular o registrar un acompañante para este invitado"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>+ Acompañante</span>
+                </button>
+              )}
+            </div>
+
+            {/* Notification when a companion was just added */}
+            {lastAddedCompanion && (
+              <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center space-x-2 animate-fadeIn">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>
+                  Acompañante <strong>{lastAddedCompanion}</strong> registrado(a) con <strong>{formData.assignedTable || 'Mesa por asignar'}</strong>.
+                </span>
+              </div>
+            )}
+
+            {/* Notification when a companion was removed/unlinked */}
+            {companionActionMessage && (
+              <div className="p-2.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg text-xs flex items-center justify-between animate-fadeIn shadow-2xs">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>{companionActionMessage}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCompanionActionMessage(null)}
+                  className="text-amber-700 hover:text-amber-900 p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Table Companions Interactive Management List */}
+            {guestToEdit && linkedCompanions.length > 0 && (
+              <div className="p-3 bg-[#FAF8F5] border border-transparent rounded-xl text-xs space-y-2.5 shadow-2xs">
+                <div className="flex items-center justify-between border-b border-transparent pb-1.5">
+                  <span className="font-bold text-[#7A7268] flex items-center space-x-1.5">
+                    <Users className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Acompañantes vinculados ({linkedCompanions.length} de {maxAllowedCompanions} permitidos):</span>
+                  </span>
+                  <span className="text-[10px] text-stone-500 italic">
+                    {formData.assignedTable || 'Mesa por asignar'}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  {linkedCompanions.map((comp) => (
+                    <div
+                      key={comp.id}
+                      className="p-2 bg-[#EBEBEB] border border-[#D9CEBF] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs hover:border-transparent transition-all"
+                    >
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <div className="w-6 h-6 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                          {comp.fullName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-bold text-[#2D2A26] block truncate">
+                            {comp.fullName}
+                          </span>
+                          <div className="flex items-center space-x-1.5 text-[10px] text-[#7A7268]">
+                            <span className="text-stone-500 font-mono">{comp.code}</span>
+                            <span>•</span>
+                            <span className="text-emerald-700 font-medium">
+                              {comp.category === 'invitado' ? 'Invitado' : comp.category}
+                            </span>
+                            <span>•</span>
+                            <span className="text-[#8C8276] italic">Pase de acompañante</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action buttons to remove companion */}
+                      <div className="flex items-center space-x-1.5 shrink-0 self-end sm:self-auto">
+                        <button
+                          type="button"
+                          disabled={isProcessingCompanion}
+                          onClick={() => handleRemoveCompanionFromTable(comp)}
+                          className="px-2 py-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-semibold flex items-center space-x-1 transition-colors cursor-pointer disabled:opacity-50"
+                          title="Quitar de esta mesa y enviarlo a 'Mesa por asignar' sin borrarlo de la lista"
+                        >
+                          <UserMinus className="w-3 h-3 text-amber-700" />
+                          <span>Desvincular</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isProcessingCompanion}
+                          onClick={() => handleDeleteCompanionGuest(comp)}
+                          className="p-1 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] transition-colors cursor-pointer disabled:opacity-50"
+                          title="Eliminar este acompañante de la lista de invitados"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-[#524B42] mb-1">
+                  Nombre de Mesa.
+                </label>
+                <select
+                  value={formData.assignedTable || 'Mesa por asignar'}
+                  onChange={(e) => setFormData({ ...formData, assignedTable: e.target.value })}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] text-[#2D2A26] cursor-pointer font-medium"
+                >
+                  <option value="Mesa por asignar">Mesa por asignar</option>
+                  {tables?.map((t) => (
+                    <option key={t.id} value={t.name}>
+                      {t.name} (Capacidad: {t.capacity} pax)
+                    </option>
+                  ))}
+                  {formData.assignedTable &&
+                    formData.assignedTable.trim().toLowerCase() !== 'mesa por asignar' &&
+                    !tables?.some((t) => t.name.trim().toLowerCase() === formData.assignedTable?.trim().toLowerCase()) && (
+                      <option value={formData.assignedTable}>{formData.assignedTable}</option>
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#524B42] mb-1">
+                  Pases Asignados
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={formData.totalPasses !== undefined ? formData.totalPasses : 1}
+                  onChange={(e) => setFormData({ ...formData, totalPasses: Number(e.target.value) })}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#524B42] mb-1">
+                  Estado RSVP
+                </label>
+                <select
+                  value={formData.rsvpStatus || 'pending'}
+                  onChange={(e) => {
+                    const status = e.target.value as RsvpStatus;
+                    setFormData({ 
+                      ...formData, 
+                      rsvpStatus: status,
+                      confirmedPasses: status === 'confirmed' ? (formData.confirmedPasses || formData.totalPasses || 1) : 0
+                    });
+                  }}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] font-medium"
+                >
+                  <option value="pending">⏳ Pendiente</option>
+                  <option value="confirmed">✅ Confirmado</option>
+                  <option value="declined">❌ Declinado</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label className="block text-xs font-semibold text-[#524B42] mb-1">
+                  Pases Confirmados Reales
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max={formData.totalPasses || 20}
+                  value={formData.confirmedPasses || 0}
+                  onChange={(e) => setFormData({ ...formData, confirmedPasses: Number(e.target.value) })}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#524B42] mb-1">
+                  Restricciones Dietarias / Alergias
+                </label>
+                <input
+                  type="text"
+                  value={formData.dietaryRestrictions || ''}
+                  onChange={(e) => setFormData({ ...formData, dietaryRestrictions: e.target.value })}
+                  placeholder="Ej. Celíaco, Vegano, Menú infantil, Sin nueces..."
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Role Selection & Management */}
           <div className="bg-[#EBEBEB] p-4 rounded-xl border border-transparent space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <h4 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-1.5">
                 <Crown className="w-3.5 h-3.5" />
-                <span>2. Rol en la Boda (Selecciona uno)</span>
+                <span>3. Rol en la Boda (Selecciona uno)</span>
               </h4>
               
               {/* Role Management Button (Restricted to Admin, Planner, Anfitrión) */}
@@ -867,10 +962,10 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                     }`}
                   >
                     <div className="flex items-center space-x-1.5 mb-1">
-                      <Icon className="w-4 h-4 shrink-0" />
-                      <span className="text-xs font-bold truncate">{opt.label}</span>
+                      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-stone-700'}`} />
+                      <span className={`text-xs font-bold truncate ${isSelected ? 'text-white' : 'text-stone-800'}`}>{opt.label}</span>
                     </div>
-                    <span className={`text-[10px] leading-tight line-clamp-2 ${isSelected ? 'opacity-90' : 'text-[#7A7268]'}`}>
+                    <span className={`text-[10px] leading-tight line-clamp-2 ${isSelected ? 'text-white/90' : 'text-[#7A7268]'}`}>
                       {opt.desc}
                     </span>
                   </button>
@@ -1047,104 +1142,6 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                     className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
                   />
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Table & RSVP Logistics */}
-          <div className="bg-[#EBEBEB] p-4 rounded-xl border border-transparent space-y-3">
-            <h4 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-1.5">
-              <Users className="w-3.5 h-3.5" />
-              <span>3. Mesa & Asistencia</span>
-            </h4>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Mesa Asignada (Nombre / Identificador)
-                </label>
-                <select
-                  value={formData.assignedTable || ''}
-                  onChange={(e) => setFormData({ ...formData, assignedTable: e.target.value })}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] text-[#2D2A26] cursor-pointer font-medium"
-                >
-                  <option value="">Mesa por asignar</option>
-                  {tables?.map((t) => (
-                    <option key={t.id} value={t.name}>
-                      {t.name} (Capacidad: {t.capacity} pax)
-                    </option>
-                  ))}
-                  {formData.assignedTable &&
-                    formData.assignedTable !== 'Mesa por asignar' &&
-                    !tables?.some((t) => t.name.trim().toLowerCase() === formData.assignedTable?.trim().toLowerCase()) && (
-                      <option value={formData.assignedTable}>{formData.assignedTable}</option>
-                  )}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Pases Asignados
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={formData.totalPasses || 2}
-                  onChange={(e) => setFormData({ ...formData, totalPasses: Number(e.target.value) })}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Estado RSVP
-                </label>
-                <select
-                  value={formData.rsvpStatus || 'pending'}
-                  onChange={(e) => {
-                    const status = e.target.value as RsvpStatus;
-                    setFormData({ 
-                      ...formData, 
-                      rsvpStatus: status,
-                      confirmedPasses: status === 'confirmed' ? (formData.confirmedPasses || formData.totalPasses || 1) : 0
-                    });
-                  }}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] font-medium"
-                >
-                  <option value="pending">⏳ Pendiente</option>
-                  <option value="confirmed">✅ Confirmado</option>
-                  <option value="declined">❌ Declinado</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Pases Confirmados Reales
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max={formData.totalPasses || 20}
-                  value={formData.confirmedPasses || 0}
-                  onChange={(e) => setFormData({ ...formData, confirmedPasses: Number(e.target.value) })}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Restricciones Dietarias / Alergias
-                </label>
-                <input
-                  type="text"
-                  value={formData.dietaryRestrictions || ''}
-                  onChange={(e) => setFormData({ ...formData, dietaryRestrictions: e.target.value })}
-                  placeholder="Ej. Celíaco, Vegano, Menú infantil, Sin nueces..."
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                />
               </div>
             </div>
           </div>

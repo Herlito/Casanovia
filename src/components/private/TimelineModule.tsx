@@ -281,6 +281,8 @@ export const TimelineModule: React.FC = () => {
   ];
 
   const timingHeaderTitle = formatTimingHeaderDate(settings.weddingDate);
+  const eventName = settings.coupleNames?.trim() || 
+    (settings.brideName && settings.groomName ? `${settings.brideName} & ${settings.groomName}` : 'Nuestro Evento');
 
   return (
     <div className="space-y-6">
@@ -289,7 +291,7 @@ export const TimelineModule: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
-            Programa Principal / Timing
+            Programa Principal
           </h2>
         </div>
 
@@ -417,7 +419,7 @@ export const TimelineModule: React.FC = () => {
           {/* Editorial Script Header: Reduced vertical space above and below, font of title preserved */}
           <div className="relative z-10 mb-3 sm:mb-4 text-left pr-16 sm:pr-24">
             <h3 className="font-script text-3xl sm:text-4xl md:text-5xl text-[#2D3748] tracking-wide drop-shadow-2xs">
-              Timing de Zenaida & Ronny
+              Timing de {eventName}
             </h3>
             <p className="text-xs sm:text-sm text-[#7A7268] mt-0.5 font-arapey italic">
               Programa Oficial Minuto a Minuto

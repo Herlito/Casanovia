@@ -201,6 +201,7 @@ interface WeddingContextType {
   updateTable: (id: string, updates: Partial<WeddingTable>) => Promise<void>;
   deleteTable: (id: string) => Promise<void>;
   batchAssignGuestsToTable: (guestIds: string[], tableName: string) => Promise<void>;
+  batchUpdateGuests: (updatedGuests: Guest[]) => Promise<void>;
   
   // Backup & Reset
   exportDataJson: () => void;
@@ -2396,6 +2397,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     await updateActiveWeddingDoc({ guests: updatedGuests });
   };
 
+  const batchUpdateGuests = async (updatedGuests: Guest[]) => {
+    await updateActiveWeddingDoc({ guests: updatedGuests });
+  };
+
   // -------------------------------------------------------------
   // Backup & Reset
   // -------------------------------------------------------------
@@ -2545,6 +2550,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateTable,
         deleteTable,
         batchAssignGuestsToTable,
+        batchUpdateGuests,
         exportDataJson,
         importDataJson,
         resetToDemoData,
