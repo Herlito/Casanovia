@@ -105,11 +105,11 @@ export const VendorsModule: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] border border-transparent">
+            <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800">
               Directorio de Servicios & Contratos
             </span>
           </div>
-          <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26] mt-1">
+          <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-gray-900 mt-1.5">
             Gestión de Proveedores & Servicios
           </h2>
         </div>
@@ -119,9 +119,9 @@ export const VendorsModule: React.FC = () => {
             <button
               type="button"
               onClick={handleOpenAddModal}
-              className="px-4 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] rounded-xl text-xs font-bold hover:bg-[#EBEBEB] transition-all flex items-center space-x-2 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] cursor-pointer active:scale-95"
+              className="px-5 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] text-gray-900 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-gray-900" />
               <span className="hidden sm:inline">Nuevo Proveedor</span>
             </button>
           </div>
@@ -129,82 +129,82 @@ export const VendorsModule: React.FC = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 border border-transparent shadow-2xs" : "bg-[#EBEBEB] rounded-2xl p-4 border border-transparent shadow-2xs"}>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-bold text-[#7A7268] uppercase tracking-wider">Proveedores</span>
-            <div className="w-7 h-7 rounded-lg bg-amber-50 text-[#D4AF37] flex items-center justify-center">
-              <Building2 className="w-3.5 h-3.5" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Proveedores</span>
+            <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-amber-700 flex items-center justify-center">
+              <Building2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26]">
+          <div className="font-serif-display text-2xl sm:text-3xl font-bold text-gray-900">
             {totalVendorsCount}
           </div>
-          <div className="text-[10px] text-[#7A7268] mt-0.5">
+          <div className="text-[11px] font-semibold text-gray-600 mt-1">
             {vendors.filter(v => v.status === 'liquidado').length} liquidados • {vendors.filter(v => v.status === 'contratado').length} activos
           </div>
         </div>
 
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 border border-transparent shadow-2xs" : "bg-[#EBEBEB] rounded-2xl p-4 border border-transparent shadow-2xs"}>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-bold text-[#7A7268] uppercase tracking-wider">Total Contratado</span>
-            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-              <DollarSign className="w-3.5 h-3.5" />
+        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Total Contratado</span>
+            <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-blue-700 flex items-center justify-center">
+              <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26]">
+          <div className="font-serif-display text-2xl sm:text-3xl font-bold text-gray-900">
             {formatCurrency(totalContractedAmount)}
           </div>
-          <div className="text-[10px] text-[#7A7268] mt-0.5">
+          <div className="text-[11px] font-semibold text-gray-600 mt-1">
             Suma de contratos vigentes
           </div>
         </div>
 
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 border border-transparent shadow-2xs" : "bg-[#EBEBEB] rounded-2xl p-4 border border-transparent shadow-2xs"}>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-bold text-[#7A7268] uppercase tracking-wider">Pagado / Anticipos</span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Pagado / Anticipos</span>
+            <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-emerald-700 flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="font-serif-display text-xl sm:text-2xl font-bold text-emerald-700">
+          <div className="font-serif-display text-2xl sm:text-3xl font-bold text-emerald-700">
             {formatCurrency(totalPaidAmount)}
           </div>
-          <div className="text-[10px] text-[#7A7268] mt-0.5">
+          <div className="text-[11px] font-semibold text-gray-600 mt-1">
             {totalPaidPercentage}% abonado a proveedores
           </div>
         </div>
 
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 border border-transparent shadow-2xs" : "bg-[#EBEBEB] rounded-2xl p-4 border border-transparent shadow-2xs"}>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-bold text-[#7A7268] uppercase tracking-wider">Saldo por Liquidar</span>
-            <div className="w-7 h-7 rounded-lg bg-rose-50 text-[#2D3748] flex items-center justify-center">
-              <Clock className="w-3.5 h-3.5" />
+        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Saldo por Liquidar</span>
+            <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-rose-700 flex items-center justify-center">
+              <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D3748]">
+          <div className="font-serif-display text-2xl sm:text-3xl font-bold text-rose-600">
             {formatCurrency(totalPendingBalance)}
           </div>
-          <div className="text-[10px] text-[#7A7268] mt-0.5">
-            Pendiente de pago
+          <div className="text-[11px] font-semibold text-gray-600 mt-1">
+            Pendiente de liquidación
           </div>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 border border-transparent shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3" : "bg-[#EBEBEB] rounded-2xl p-4 border border-transparent shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3"}>
+      <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por proveedor, contacto o servicio..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#FAF8F5] border border-transparent text-xs text-[#2D2A26] placeholder-[#8C8276] focus:outline-none focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-xs text-gray-900 placeholder-gray-500 focus:outline-none"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           {[
             { id: 'all', label: 'Todos' },
             { id: 'Locación', label: 'Locación/Banquete' },
@@ -218,10 +218,10 @@ export const VendorsModule: React.FC = () => {
               key={cat.id}
               type="button"
               onClick={() => setCategoryFilter(cat.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 categoryFilter === cat.id
-                  ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-2xs'
-                  : 'bg-[#FAF8F5] text-[#524B42] hover:bg-[#EFEAE2] border border-transparent'
+                  ? 'bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-900'
+                  : 'bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 hover:text-gray-900'
               }`}
             >
               {cat.label}
@@ -232,14 +232,14 @@ export const VendorsModule: React.FC = () => {
 
       {/* Vendors Grid */}
       {filteredVendors.length === 0 ? (
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-10 border border-transparent text-center space-y-3" : "bg-[#EBEBEB] rounded-2xl p-10 border border-transparent text-center space-y-3"}>
-          <div className="w-12 h-12 rounded-2xl bg-[#FAF8F5] border border-transparent text-stone-400 flex items-center justify-center mx-auto">
-            <Building2 className="w-6 h-6" />
+        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-10 text-center space-y-3">
+          <div className="w-14 h-14 rounded-2xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-500 flex items-center justify-center mx-auto">
+            <Building2 className="w-7 h-7" />
           </div>
-          <h3 className="font-serif-display text-base font-bold text-[#2D2A26]">
+          <h3 className="font-serif-display text-base font-bold text-gray-900">
             No se encontraron proveedores
           </h3>
-          <p className="text-xs text-[#7A7268] max-w-sm mx-auto">
+          <p className="text-xs text-gray-600 font-medium max-w-sm mx-auto">
             {searchTerm || categoryFilter !== 'all'
               ? 'Intenta ajustar los términos de búsqueda o filtros seleccionados.'
               : 'Aún no hay proveedores registrados en esta boda.'}
@@ -248,15 +248,15 @@ export const VendorsModule: React.FC = () => {
             <button
               type="button"
               onClick={handleOpenAddModal}
-              className="mt-2 px-4 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] rounded-xl text-xs font-bold hover:bg-[#EBEBEB] transition-all inline-flex items-center space-x-1.5 shadow-2xs cursor-pointer"
+              className="mt-2 px-5 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-900 rounded-xl text-xs font-bold transition-all inline-flex items-center space-x-1.5 cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4 text-gray-900" />
               <span>Registrar Primer Proveedor</span>
             </button>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredVendors.map((vendor) => {
             const pendingBalance = Math.max(0, (vendor.totalCost || 0) - (vendor.paidAmount || 0));
             const paidPercentage = (vendor.totalCost || 0) > 0 
@@ -266,56 +266,56 @@ export const VendorsModule: React.FC = () => {
             return (
               <div
                 key={vendor.id}
-                className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 border border-transparent shadow-xs flex flex-col justify-between space-y-4 hover:border-[#D4AF37] transition-all" : "bg-[#FFFDFB] rounded-2xl p-5 border border-transparent shadow-xs flex flex-col justify-between space-y-4 hover:border-[#D4AF37] transition-all"}
+                className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-5 flex flex-col justify-between space-y-4 transition-all"
               >
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {/* Top info and status */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] border border-transparent">
+                      <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800">
                         {vendor.category}
                       </span>
-                      <h3 className="font-serif-display text-base font-bold text-[#2D2A26] mt-1 truncate" title={vendor.name}>
+                      <h3 className="font-serif-display text-base font-bold text-gray-900 mt-1.5 truncate" title={vendor.name}>
                         {vendor.name}
                       </h3>
                       {vendor.contactPerson && (
-                        <p className="text-xs text-[#7A7268] flex items-center gap-1 mt-0.5 truncate">
-                          <span className="font-medium text-[#2D2A26]">{vendor.contactPerson}</span>
+                        <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5 truncate">
+                          <span className="font-bold text-gray-800">{vendor.contactPerson}</span>
                         </p>
                       )}
 
                       {/* Asistencia a Recepción */}
-                      <div className="mt-1.5">
+                      <div className="mt-2">
                         {vendor.attendingReception ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-rose-50 text-[#2D3748] border border-rose-200">
-                            <Users className="w-3 h-3 text-[#2D3748] shrink-0" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-200">
+                            <Users className="w-3 h-3 text-rose-700 shrink-0" />
                             <span>Asiste a recepción: <strong>{vendor.receptionAttendeesCount || 1} {(vendor.receptionAttendeesCount === 1) ? 'persona' : 'personas'}</strong></span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] text-stone-500 bg-[#FAF8F5] border border-transparent">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-600">
                             <span>No asiste a recepción</span>
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <div className="flex flex-col items-end gap-2 shrink-0">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                         vendor.status === 'liquidado'
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
                           : vendor.status === 'contratado'
-                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                          : 'bg-amber-100 text-amber-800 border border-amber-200'
+                          ? 'bg-blue-100 text-blue-900 border border-blue-200'
+                          : 'bg-amber-100 text-amber-900 border border-amber-200'
                       }`}>
                         {vendor.status === 'liquidado' ? 'Liquidado' : vendor.status === 'contratado' ? 'Contratado' : 'Cotización'}
                       </span>
 
                       {canManageVendors && (
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1.5">
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(vendor)}
-                            className="p-1 text-stone-500 hover:text-[#2D3748] hover:bg-[#FAF8F5] rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-gray-700 hover:text-gray-900 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-lg transition-all cursor-pointer"
                             title="Editar Proveedor"
                             aria-label={`Editar ${vendor.name}`}
                           >
@@ -324,7 +324,7 @@ export const VendorsModule: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setVendorToDelete(vendor)}
-                            className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-rose-600 hover:text-rose-700 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-lg transition-all cursor-pointer"
                             title="Eliminar Proveedor"
                             aria-label={`Eliminar ${vendor.name}`}
                           >
@@ -337,35 +337,35 @@ export const VendorsModule: React.FC = () => {
 
                   {/* Notes / Description */}
                   {vendor.notes ? (
-                    <p className="text-xs text-[#7A7268] bg-[#FAF8F5] p-2.5 rounded-xl border border-[#F0EAE1] leading-relaxed line-clamp-3">
+                    <p className="text-xs text-gray-700 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] p-3 rounded-2xl leading-relaxed line-clamp-3">
                       {vendor.notes}
                     </p>
                   ) : (
-                    <p className="text-xs text-stone-400 italic bg-[#FAF8F5] p-2.5 rounded-xl border border-[#F0EAE1]">
+                    <p className="text-xs text-gray-500 italic bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] p-3 rounded-2xl">
                       Sin notas adicionales registradas.
                     </p>
                   )}
 
                   {/* Financial overview */}
-                  <div className="space-y-1.5 pt-1">
+                  <div className="space-y-1.5 pt-1 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] p-3 rounded-2xl">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-[#7A7268]">Total Contratado:</span>
-                      <span className="font-bold text-[#2D2A26]">{formatCurrency(vendor.totalCost || 0)}</span>
+                      <span className="text-gray-600 font-medium">Total Contratado:</span>
+                      <span className="font-bold text-gray-900">{formatCurrency(vendor.totalCost || 0)}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-[#7A7268]">Pagado ({paidPercentage}%):</span>
-                      <span className="font-semibold text-emerald-700">{formatCurrency(vendor.paidAmount || 0)}</span>
+                      <span className="text-gray-600 font-medium">Pagado ({paidPercentage}%):</span>
+                      <span className="font-bold text-emerald-700">{formatCurrency(vendor.paidAmount || 0)}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-[#7A7268]">Saldo Pendiente:</span>
-                      <span className={`font-bold ${pendingBalance > 0 ? 'text-[#2D3748]' : 'text-emerald-700'}`}>
+                      <span className="text-gray-600 font-medium">Saldo Pendiente:</span>
+                      <span className={`font-bold ${pendingBalance > 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
                         {formatCurrency(pendingBalance)}
                       </span>
                     </div>
 
-                    <div className="w-full h-1.5 bg-[#F0EAE1] rounded-full overflow-hidden mt-1">
+                    <div className="w-full h-2 bg-gray-300 rounded-full overflow-hidden mt-1.5">
                       <div
-                        className="h-full bg-linear-to-r from-[#D4AF37] to-[#2D3748] rounded-full transition-all duration-300"
+                        className="h-full bg-emerald-600 rounded-full transition-all duration-300"
                         style={{ width: `${paidPercentage}%` }}
                       />
                     </div>
@@ -373,16 +373,16 @@ export const VendorsModule: React.FC = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="space-y-2 pt-3 border-t border-[#F0EAE1]">
-                  <div className="flex items-center gap-1.5">
+                <div className="space-y-2 pt-2 border-t border-gray-300/50">
+                  <div className="flex items-center gap-2">
                     {vendor.phone && (
                       <a
                         href={`https://wa.me/${vendor.phone.replace(/[^0-9]/g, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 py-1.5 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1 border border-emerald-200"
+                        className="flex-1 py-2 px-3 bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                       >
-                        <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                        <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
                         <span className="truncate">WhatsApp</span>
                       </a>
                     )}
@@ -390,20 +390,20 @@ export const VendorsModule: React.FC = () => {
                     {vendor.phone && (
                       <a
                         href={`tel:${vendor.phone}`}
-                        className="p-1.5 bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#524B42] rounded-xl border border-transparent transition-colors shrink-0"
+                        className="p-2 bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800 rounded-xl transition-all shrink-0"
                         title={`Llamar a ${vendor.phone}`}
                       >
-                        <Phone className="w-3.5 h-3.5" />
+                        <Phone className="w-4 h-4 text-gray-700" />
                       </a>
                     )}
 
                     {vendor.email && (
                       <a
                         href={`mailto:${vendor.email}`}
-                        className="p-1.5 bg-[#FAF8F5] hover:bg-[#EFEAE2] text-[#524B42] rounded-xl border border-transparent transition-colors shrink-0"
+                        className="p-2 bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800 rounded-xl transition-all shrink-0"
                         title={`Enviar correo a ${vendor.email}`}
                       >
-                        <Mail className="w-3.5 h-3.5" />
+                        <Mail className="w-4 h-4 text-gray-700" />
                       </a>
                     )}
 
@@ -411,10 +411,10 @@ export const VendorsModule: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleOpenEditModal(vendor)}
-                        className="py-1.5 px-3 bg-[#FAF8F5] hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] text-[#524B42] rounded-xl text-xs font-semibold border border-transparent transition-all flex items-center gap-1 cursor-pointer"
+                        className="py-2 px-3.5 bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                         title="Editar proveedor"
                       >
-                        <Edit2 className="w-3 h-3" />
+                        <Edit2 className="w-3.5 h-3.5 text-gray-700" />
                         <span>Editar</span>
                       </button>
                     )}

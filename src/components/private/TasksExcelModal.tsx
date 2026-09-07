@@ -197,18 +197,18 @@ export const TasksExcelModal: React.FC<TasksExcelModalProps> = ({
                 <p className="text-xs text-gray-600 leading-relaxed">
                   Descarga un archivo <strong>.xlsx</strong> compatible con Microsoft Excel, Google Sheets y Numbers con la estructura cronológica completa: Fase, Tarea, Prioridad, Responsable, Estado de completitud y Fecha límite.
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 text-[11px] text-gray-600">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 text-[11px] text-gray-700">
                   <div className="px-3 py-2 rounded-xl bg-[#EBEBEB] shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff]">
-                    <span className="text-gray-400 block text-[10px]">Completadas</span>
-                    <strong className="text-emerald-600 font-bold">{tasks.filter(t => t.isCompleted).length}</strong>
+                    <span className="text-gray-600 block text-[10px] font-bold uppercase">Completadas</span>
+                    <strong className="text-emerald-700 font-bold text-sm">{tasks.filter(t => t.isCompleted).length}</strong>
                   </div>
                   <div className="px-3 py-2 rounded-xl bg-[#EBEBEB] shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff]">
-                    <span className="text-gray-400 block text-[10px]">Pendientes</span>
-                    <strong className="text-amber-600 font-bold">{tasks.filter(t => !t.isCompleted).length}</strong>
+                    <span className="text-gray-600 block text-[10px] font-bold uppercase">Pendientes</span>
+                    <strong className="text-amber-700 font-bold text-sm">{tasks.filter(t => !t.isCompleted).length}</strong>
                   </div>
                   <div className="px-3 py-2 rounded-xl bg-[#EBEBEB] shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] col-span-2 sm:col-span-1">
-                    <span className="text-gray-400 block text-[10px]">Evento</span>
-                    <strong className="text-gray-800 font-semibold truncate block">{coupleNames}</strong>
+                    <span className="text-gray-600 block text-[10px] font-bold uppercase">Evento</span>
+                    <strong className="text-gray-900 font-bold truncate block">{coupleNames}</strong>
                   </div>
                 </div>
               </div>
@@ -352,7 +352,7 @@ export const TasksExcelModal: React.FC<TasksExcelModalProps> = ({
                   
                   {/* Mode Selector: Añadir o Reemplazar */}
                   <div className="p-4 rounded-3xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] space-y-3">
-                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
+                    <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wider block">
                       Método de Importación
                     </span>
 
@@ -363,24 +363,24 @@ export const TasksExcelModal: React.FC<TasksExcelModalProps> = ({
                         onClick={() => setImportMode('append')}
                         className={`p-3.5 rounded-2xl cursor-pointer transition-all flex items-start space-x-3 ${
                           importMode === 'append'
-                            ? 'bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] border-2 border-emerald-500/60'
+                            ? 'bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] border-2 border-emerald-600'
                             : 'bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff]'
                         }`}
                       >
                         <div className="mt-0.5">
                           <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                            importMode === 'append' ? 'border-emerald-600 bg-emerald-600' : 'border-gray-400'
+                            importMode === 'append' ? 'border-emerald-600 bg-emerald-600' : 'border-gray-500'
                           }`}>
                             {importMode === 'append' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                           </div>
                         </div>
                         <div>
-                          <h5 className="text-xs font-bold text-gray-800 flex items-center space-x-1.5">
+                          <h5 className="text-xs font-bold text-gray-900 flex items-center space-x-1.5">
                             <PlusCircle className="w-3.5 h-3.5 text-emerald-600" />
                             <span>Añadir a la lista existente</span>
                           </h5>
-                          <p className="text-[11px] text-gray-500 mt-1 leading-tight">
-                            Conserva las <strong>{tasks.length}</strong> tareas actuales y suma las <strong>{parsedTasks.length}</strong> nuevas (Total: {tasks.length + parsedTasks.length}).
+                          <p className="text-[11px] text-gray-700 mt-1 leading-tight font-medium">
+                            Conserva las <strong className="text-gray-900">{tasks.length}</strong> tareas actuales y suma las <strong className="text-gray-900">{parsedTasks.length}</strong> nuevas (Total: {tasks.length + parsedTasks.length}).
                           </p>
                         </div>
                       </div>
@@ -390,24 +390,24 @@ export const TasksExcelModal: React.FC<TasksExcelModalProps> = ({
                         onClick={() => setImportMode('replace')}
                         className={`p-3.5 rounded-2xl cursor-pointer transition-all flex items-start space-x-3 ${
                           importMode === 'replace'
-                            ? 'bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] border-2 border-rose-500/60'
+                            ? 'bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] border-2 border-rose-600'
                             : 'bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff]'
                         }`}
                       >
                         <div className="mt-0.5">
                           <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                            importMode === 'replace' ? 'border-rose-600 bg-rose-600' : 'border-gray-400'
+                            importMode === 'replace' ? 'border-rose-600 bg-rose-600' : 'border-gray-500'
                           }`}>
                             {importMode === 'replace' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                           </div>
                         </div>
                         <div>
-                          <h5 className="text-xs font-bold text-gray-800 flex items-center space-x-1.5">
+                          <h5 className="text-xs font-bold text-gray-900 flex items-center space-x-1.5">
                             <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
                             <span>Reemplazar lista completa</span>
                           </h5>
-                          <p className="text-[11px] text-gray-500 mt-1 leading-tight">
-                            Sustituye todas las tareas actuales por las <strong>{parsedTasks.length}</strong> tareas del archivo Excel.
+                          <p className="text-[11px] text-gray-700 mt-1 leading-tight font-medium">
+                            Sustituye todas las tareas actuales por las <strong className="text-gray-900">{parsedTasks.length}</strong> tareas del archivo Excel.
                           </p>
                         </div>
                       </div>
@@ -418,25 +418,25 @@ export const TasksExcelModal: React.FC<TasksExcelModalProps> = ({
                   {/* Preview of Parsed Tasks */}
                   <div className="rounded-3xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] p-4 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-gray-700">
+                      <span className="text-xs font-bold text-gray-800">
                         Vista Previa ({parsedTasks.length} detectadas)
                       </span>
-                      <span className="text-[10px] text-gray-500">Mostrando primeras 4 tareas</span>
+                      <span className="text-[10px] font-bold text-gray-600">Mostrando primeras 4 tareas</span>
                     </div>
 
-                    <div className="divide-y divide-gray-200/50">
+                    <div className="divide-y divide-gray-300/60">
                       {parsedTasks.slice(0, 4).map((t, idx) => (
                         <div key={idx} className="py-2 flex items-start justify-between gap-2 text-xs">
                           <div className="space-y-0.5 flex-1 min-w-0">
-                            <p className="font-medium text-gray-800 truncate">{t.title}</p>
-                            <div className="flex items-center space-x-2 text-[10px] text-gray-500">
-                              <span className="font-semibold text-gray-600 uppercase">{t.phase.replace('_', ' ')}</span>
+                            <p className="font-bold text-gray-900 truncate">{t.title}</p>
+                            <div className="flex items-center space-x-2 text-[10px] text-gray-600">
+                              <span className="font-bold text-gray-700 uppercase">{t.phase.replace('_', ' ')}</span>
                               <span>•</span>
-                              <span>{t.assignee}</span>
+                              <span className="font-medium text-gray-700">{t.assignee}</span>
                               {t.dueDate && (
                                 <>
                                   <span>•</span>
-                                  <span>{t.dueDate}</span>
+                                  <span className="font-medium text-gray-700">{t.dueDate}</span>
                                 </>
                               )}
                             </div>
