@@ -83,7 +83,7 @@ export const NewWeddingModal: React.FC = () => {
               <PlusCircle className="w-6 h-6 text-[#2D3748]" />
             </div>
             <div>
-              <span className={isNeumorphic ? "text-[10px] font-bold tracking-widest text-gray-500 uppercase block" : "text-[10px] font-bold tracking-widest text-[#E8DCCF] uppercase block"}>
+              <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase block">
                 {isLevel1Admin ? 'Nivel 1 • Super Administrador' : isLevel3Planner ? `Nivel 3 • Wedding Planner (${currentUser.username})` : currentUser.username}
               </span>
               <h3 className={`font-serif-display text-xl font-bold ${isNeumorphic ? "text-gray-900" : "text-[#2D3748]"}`}>
@@ -91,7 +91,7 @@ export const NewWeddingModal: React.FC = () => {
               </h3>
             </div>
           </div>
-          <p className="text-xs text-[#E8DCCF] font-light">
+          <p className="text-xs text-gray-600 font-normal">
             Se creará un nuevo paquete de evento en Firestore con la lista maestra de 6 fases y cronograma inicial listo para editar.
           </p>
         </div>
@@ -101,13 +101,13 @@ export const NewWeddingModal: React.FC = () => {
           
           
           <div>
-            <label className="block text-xs font-semibold text-[#524B42] mb-1">
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
               Tipo de Evento <span className="text-rose-500">*</span>
             </label>
             <select
               value={eventType}
               onChange={(e) => setEventType(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
+              className="w-full px-3 py-2 text-xs text-gray-800 font-medium rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
             >
               <option value="Boda">Boda</option>
               <option value="Quinceañero">Quinceañero</option>
@@ -121,25 +121,25 @@ export const NewWeddingModal: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#524B42] mb-1">
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
               Nombre del Evento <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <Heart className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C8276]" />
+              <Heart className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <input
                 type="text"
                 required
                 value={coupleNames}
                 onChange={(e) => setCoupleNames(e.target.value)}
                 placeholder="Ej. Isabella & Sebastián"
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
+                className="w-full pl-9 pr-3 py-2 text-xs text-gray-800 font-medium placeholder:text-gray-400 placeholder:font-normal rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#524B42] mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Novia/Anfitrión
               </label>
               <input
@@ -147,12 +147,12 @@ export const NewWeddingModal: React.FC = () => {
                 value={brideName}
                 onChange={(e) => setBrideName(e.target.value)}
                 placeholder="Isabella Gómez"
-                className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                className="w-full px-3 py-2 text-xs text-gray-800 font-medium placeholder:text-gray-400 placeholder:font-normal rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#524B42] mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Novio/Anfitrión
               </label>
               <input
@@ -160,41 +160,41 @@ export const NewWeddingModal: React.FC = () => {
                 value={groomName}
                 onChange={(e) => setGroomName(e.target.value)}
                 placeholder="Sebastián Ruiz"
-                className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                className="w-full px-3 py-2 text-xs text-gray-800 font-medium placeholder:text-gray-400 placeholder:font-normal rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#524B42] mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Fecha del Evento <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C8276]" />
+                <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   type="datetime-local"
                   required
                   value={weddingDate.slice(0, 16)}
                   onChange={(e) => setWeddingDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                  className="w-full pl-9 pr-3 py-2 text-xs text-gray-800 font-medium placeholder:text-gray-400 placeholder:font-normal rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#524B42] mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Ciudad / Destino <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <MapPin className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C8276]" />
+                <MapPin className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   type="text"
                   required
                   value={locationSummary}
                   onChange={(e) => setLocationSummary(e.target.value)}
                   placeholder="Ej. San Miguel de Allende, Gto."
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                  className="w-full pl-9 pr-3 py-2 text-xs text-gray-800 font-medium placeholder:text-gray-400 placeholder:font-normal rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
                 />
               </div>
             </div>
@@ -202,23 +202,23 @@ export const NewWeddingModal: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#524B42] mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Lugar de Ceremonia
               </label>
               <div className="relative">
-                <Church className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C8276]" />
+                <Church className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   type="text"
                   value={ceremonyVenueName}
                   onChange={(e) => setCeremonyVenueName(e.target.value)}
                   placeholder="Parroquia San Miguel Arcángel"
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                  className="w-full pl-9 pr-3 py-2 text-xs text-gray-800 font-medium placeholder:text-gray-400 placeholder:font-normal rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#524B42] mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Lugar de Recepción / Fiesta
               </label>
               <input
@@ -226,17 +226,17 @@ export const NewWeddingModal: React.FC = () => {
                 value={receptionVenueName}
                 onChange={(e) => setReceptionVenueName(e.target.value)}
                 placeholder="Hacienda Las Trancas"
-                className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
+                className="w-full px-3 py-2 text-xs text-gray-800 font-medium placeholder:text-gray-400 placeholder:font-normal rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
               />
             </div>
           </div>
 
-          <div className="bg-[#FAF8F5] border border-transparent rounded-xl p-3.5 space-y-1.5 text-xs text-[#6B6358]">
-            <div className="flex items-center space-x-1.5 text-[#2D3748] font-semibold text-[11px]">
-              <Sparkles className="w-3.5 h-3.5" />
+          <div className="bg-[#FAF8F5] border border-transparent rounded-xl p-3.5 space-y-1.5 text-xs text-gray-600">
+            <div className="flex items-center space-x-1.5 text-gray-800 font-semibold text-[11px]">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               <span>Auto-configuración Inteligente Incluida:</span>
             </div>
-            <ul className="list-disc list-inside space-y-1 text-[11px]">
+            <ul className="list-disc list-inside space-y-1 text-[11px] text-gray-600">
               <li>Checklist de 6 Fases Cronológicas completas (12 meses hasta Post-Boda).</li>
               <li>Cronograma minuto a minuto personalizable.</li>
               <li>Control de presupuesto con categorías de la industria.</li>
@@ -248,7 +248,7 @@ export const NewWeddingModal: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowNewWeddingModal(false)}
-              className="px-4 py-2 text-xs font-semibold text-[#6B6358] hover:bg-[#EFEAE2] rounded-xl transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-colors cursor-pointer"
             >
               Cancelar
             </button>
