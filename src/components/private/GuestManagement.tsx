@@ -387,40 +387,16 @@ export const GuestManagement: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          {canPrint && (
+          {canEditActiveWedding && (
             <button
               type="button"
-              onClick={handleExportExcel}
-              className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#FAF8F5] text-[#524B42] text-xs font-bold shadow-2xs transition-all cursor-pointer"
-              title="Exportar base de datos a Excel (.xlsx)"
+              id="btn-add-guest"
+              onClick={handleOpenAddModal}
+              className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold shadow-xs hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-emerald-700" />
-              <span className="hidden sm:inline">Excel</span>
+              <UserPlus className="w-4 h-4" />
+              <span className="hidden sm:inline">Nuevo Invitado</span>
             </button>
-          )}
-
-          {canEditActiveWedding && (
-            <>
-              <button
-                type="button"
-                onClick={() => setIsImportModalOpen(true)}
-                className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#EBEBEB] border border-[#D9CEBF] hover:bg-[#FAF8F5] text-[#524B42] text-xs font-bold shadow-2xs transition-all cursor-pointer"
-                title="Importar invitados desde Excel o CSV"
-              >
-                <Upload className="w-3.5 h-3.5 text-[#2D3748]" />
-                <span className="hidden sm:inline">Importar</span>
-              </button>
-
-              <button
-                type="button"
-                id="btn-add-guest"
-                onClick={handleOpenAddModal}
-                className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold shadow-xs hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all cursor-pointer"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span className="hidden sm:inline">Nuevo Invitado</span>
-              </button>
-            </>
           )}
         </div>
       </div>
@@ -1190,6 +1166,21 @@ export const GuestManagement: React.FC = () => {
             // Context will automatically synchronize table between host and companions
           }}
         />
+      )}
+
+      {/* Floating Action Button (FAB) at the bottom of the page */}
+      {canEditActiveWedding && (
+        <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40">
+          <button
+            type="button"
+            onClick={handleOpenAddModal}
+            id="fab-add-guest"
+            className="group flex items-center space-x-2.5 px-5 py-3.5 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-sm font-semibold shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] hover:shadow-xl shadow-[#d1d1d1]/30 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer border border-transparent backdrop-blur-xs"
+          >
+            <UserPlus className="w-5 h-5 transition-transform group-hover:scale-110 duration-200" />
+            <span className="tracking-wide">Nuevo Invitado</span>
+          </button>
+        </div>
       )}
 
     </div>

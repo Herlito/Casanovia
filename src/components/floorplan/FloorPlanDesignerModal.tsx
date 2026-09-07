@@ -371,11 +371,18 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
               if (parsed.elements) {
                 setElements(parsed.elements);
               }
+              if (parsed.backgroundImageUrl !== undefined) {
+                setBackgroundImageUrl(parsed.backgroundImageUrl || null);
+              }
             } else {
               setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
+              setBackgroundImageUrl(null);
+              setBackgroundFileName(null);
             }
           } catch (e) {
             setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
+            setBackgroundImageUrl(null);
+            setBackgroundFileName(null);
           }
         }
 
@@ -388,9 +395,20 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       }
     );
 
+    const handlePlanCleared = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (!customEvent.detail || customEvent.detail.weddingId === activeWeddingId) {
+        setElements([]);
+        setBackgroundImageUrl(null);
+        setBackgroundFileName(null);
+      }
+    };
+    window.addEventListener('casanovia_floor_plan_cleared', handlePlanCleared);
+
     return () => {
       isMounted = false;
       unsubscribe();
+      window.removeEventListener('casanovia_floor_plan_cleared', handlePlanCleared);
     };
   }, [isOpen, activeWeddingId]);
 

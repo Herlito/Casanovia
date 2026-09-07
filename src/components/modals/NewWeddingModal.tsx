@@ -28,8 +28,6 @@ export const NewWeddingModal: React.FC = () => {
 
   const [eventType, setEventType] = useState('Boda');
   const [coupleNames, setCoupleNames] = useState('');
-  const [brideName, setBrideName] = useState('');
-  const [groomName, setGroomName] = useState('');
   const [weddingDate, setWeddingDate] = useState('');
   const [locationSummary, setLocationSummary] = useState('');
   const [ceremonyVenueName, setCeremonyVenueName] = useState('');
@@ -40,8 +38,6 @@ export const NewWeddingModal: React.FC = () => {
 
   const handleClearForm = () => {
     setCoupleNames('');
-    setBrideName('');
-    setGroomName('');
     setWeddingDate('');
     setLocationSummary('');
     setCeremonyVenueName('');
@@ -54,8 +50,8 @@ export const NewWeddingModal: React.FC = () => {
       await createNewWedding({
         eventType: eventType || 'Boda',
         coupleNames: coupleNames.trim() || 'Nuevo Evento',
-        brideName: brideName.trim() || '',
-        groomName: groomName.trim() || '',
+        brideName: '',
+        groomName: '',
         weddingDate: weddingDate.trim() || '',
         locationSummary: locationSummary.trim() || '',
         ceremonyVenueName: ceremonyVenueName.trim() || '',
@@ -78,8 +74,8 @@ export const NewWeddingModal: React.FC = () => {
     try {
       await createNewWedding({
         coupleNames: coupleNames.trim(),
-        brideName: brideName.trim() || coupleNames.split('&')[0]?.trim() || 'Novia',
-        groomName: groomName.trim() || coupleNames.split('&')[1]?.trim() || 'Novio',
+        brideName: '',
+        groomName: '',
         weddingDate: weddingDate || new Date().toISOString(),
         locationSummary: locationSummary.trim(),
         ceremonyVenueName: ceremonyVenueName.trim() || 'Capilla / Parroquia Principal',
@@ -175,34 +171,6 @@ export const NewWeddingModal: React.FC = () => {
                 onChange={(e) => setCoupleNames(e.target.value)}
                 placeholder="Ej. Isabella & Sebastián"
                 className="w-full pl-10 pr-4 py-2.5 text-xs text-gray-900 font-medium placeholder:text-gray-500 rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                Novia/Anfitrión
-              </label>
-              <input
-                type="text"
-                value={brideName}
-                onChange={(e) => setBrideName(e.target.value)}
-                placeholder="Isabella Gómez"
-                className="w-full px-4 py-2.5 text-xs text-gray-900 font-medium placeholder:text-gray-500 rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                Novio/Anfitrión
-              </label>
-              <input
-                type="text"
-                value={groomName}
-                onChange={(e) => setGroomName(e.target.value)}
-                placeholder="Sebastián Ruiz"
-                className="w-full px-4 py-2.5 text-xs text-gray-900 font-medium placeholder:text-gray-500 rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-none"
               />
             </div>
           </div>

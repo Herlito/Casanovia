@@ -207,6 +207,7 @@ interface WeddingContextType {
   exportDataJson: () => void;
   importDataJson: (jsonString: string) => Promise<boolean>;
   resetToDemoData: () => Promise<void>;
+  clearWeddingData: (targetWeddingId?: string) => Promise<void>;
   
   // Custom Theme for this wedding
   currentWeddingTheme: WeddingCustomTheme;
@@ -2462,6 +2463,119 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const clearWeddingData = async (targetWeddingId?: string) => {
+    if (currentUser.level !== 1) {
+      console.warn('[WeddingContext] Solo el Administrador (Nivel 1) puede limpiar la boda.');
+      return;
+    }
+    const targetId = targetWeddingId || activeWeddingId;
+    if (!targetId) return;
+
+    const currentWedding = weddings.find((w) => w.id === targetId) || activeWedding;
+    if (!currentWedding) return;
+
+    const currentSettings = currentWedding.settings || settings;
+
+    // Solo conservar el nombre del evento, la fecha, ciudad y Fecha Límite para confirmar Asistencia.
+    const preservedCoupleNames = currentSettings?.coupleNames || currentWedding.coupleNames || 'Boda';
+    const preservedDate = currentSettings?.weddingDate || currentWedding.weddingDate || '';
+    const preservedLocation = currentSettings?.locationSummary || currentWedding.locationSummary || '';
+    const preservedRsvpDeadline = currentSettings?.rsvpDeadline || '';
+
+    const blankSettings: WeddingSettings = {
+      eventType: currentSettings?.eventType || 'Boda',
+      coupleNames: preservedCoupleNames,
+      brideName: '',
+      groomName: '',
+      weddingDate: preservedDate,
+      weddingTime: '',
+      locationSummary: preservedLocation,
+      hasReligiousCeremony: false,
+      ceremonyVenue: {
+        name: '',
+        address: '',
+        time: '',
+        googleMapsUrl: '',
+        wazeUrl: '',
+        notes: '',
+      },
+      receptionVenue: {
+        name: '',
+        address: '',
+        time: '',
+        googleMapsUrl: '',
+        wazeUrl: '',
+        notes: '',
+      },
+      additionalVenues: [],
+      dressCodeStyle: '',
+      dressCodeDescription: '',
+      suggestedColors: [],
+      forbiddenColorsNote: '',
+      bankDetails: {
+        bankName: '',
+        accountHolder: '',
+        clabe: '',
+        accountNumber: '',
+        concept: '',
+      },
+      showGiftRegistry: false,
+      giftRegistryTitle: '',
+      giftRegistryMessage: '',
+      showBankDetails: false,
+      rsvpDeadline: preservedRsvpDeadline,
+      giftRegistries: [],
+      generalContactEmail: '',
+      generalContactPhone: '',
+      romanticQuote: '',
+      totalRealBudget: 0,
+    };
+
+    const fullClearedWedding: Wedding = {
+      ...currentWedding,
+      coupleNames: preservedCoupleNames,
+      weddingDate: preservedDate,
+      locationSummary: preservedLocation,
+      settings: blankSettings,
+      guests: [],
+      timeline: [],
+      budget: [],
+      tasks: [],
+      tables: [],
+      vendors: [],
+      status: 'planning',
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      // Optimistically update local state so UI reflects it immediately
+      setWeddings((prev) =>
+        prev.map((w) => (w.id === targetId ? fullClearedWedding : w))
+      );
+
+      // Overwrite in Firestore
+      const cleaned = cleanFirestoreData(fullClearedWedding);
+      await setDoc(doc(db, 'weddings', targetId), cleaned);
+
+      // Borrar plano local en Firestore y almacenamiento local para que el lienzo empiece completamente vacío
+      try {
+        await deleteDoc(doc(db, 'floor_plans', targetId));
+      } catch (fpErr) {
+        console.warn('[Firestore] Error deleting floor plan on clear:', fpErr);
+      }
+      try {
+        localStorage.removeItem(`casanovia_floor_plan_${targetId}`);
+        window.dispatchEvent(new CustomEvent('casanovia_floor_plan_cleared', { detail: { weddingId: targetId } }));
+      } catch (e) {
+        // ignore
+      }
+    } catch (err) {
+      console.error('Error al limpiar los datos de la boda:', err);
+      handleFirestoreError(err, OperationType.UPDATE, `weddings/${targetId}`);
+      throw err;
+    }
+  };
+
   return (
     <WeddingContext.Provider
       value={{
@@ -2554,6 +2668,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         exportDataJson,
         importDataJson,
         resetToDemoData,
+        clearWeddingData,
         currentWeddingTheme,
         applyWeddingColorsTheme,
         resetWeddingColorsTheme,

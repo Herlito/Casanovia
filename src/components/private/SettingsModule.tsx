@@ -35,7 +35,8 @@ import {
   RotateCcw,
   CheckCircle2,
   Paintbrush,
-  MessageCircle
+  MessageCircle,
+  Eraser
 } from 'lucide-react';
 import { ColorPickerWithImageModal } from "../modals/ColorPickerWithImageModal";
 import { getContrastRatio, getAccessibleTextColor } from '../../lib/themeUtils';
@@ -58,7 +59,8 @@ export const SettingsModule: React.FC = () => {
     currentUser,
     currentWeddingTheme,
     applyWeddingColorsTheme,
-    resetWeddingColorsTheme
+    resetWeddingColorsTheme,
+    clearWeddingData
   } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic';
 
@@ -67,6 +69,9 @@ export const SettingsModule: React.FC = () => {
   const [themeSuccessMsg, setThemeSuccessMsg] = useState<string | null>(null);
   const [isApplyingTheme, setIsApplyingTheme] = useState(false);
   const [editingColorIndex, setEditingColorIndex] = useState<number | null>(null);
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [clearSuccess, setClearSuccess] = useState(false);
 
   // Additional venues local management state
   const [showVenueForm, setShowVenueForm] = useState(false);
@@ -191,6 +196,22 @@ export const SettingsModule: React.FC = () => {
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
+  const handleClearWedding = async () => {
+    if (!isLevel1Admin) return;
+    try {
+      setIsClearing(true);
+      await clearWeddingData();
+      setShowClearModal(false);
+      setClearSuccess(true);
+      setTimeout(() => setClearSuccess(false), 5000);
+    } catch (err) {
+      console.error('Error al limpiar la boda:', err);
+      alert('Ocurrió un error al limpiar los datos de la boda.');
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   return (<>
     <div className="space-y-3">
       
@@ -202,17 +223,42 @@ export const SettingsModule: React.FC = () => {
           </h2>
         </div>
 
-        {(canEditActiveWedding || isLevel1Admin) && (
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer self-start sm:self-auto"
-          >
-            {savedSuccess ? <Check className="w-4 h-4 text-[#2D3748]" /> : <Save className="w-4 h-4" />}
-            <span>{savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}</span>
-          </button>
-        )}
+        <div className="flex items-center space-x-2.5 flex-wrap gap-2">
+          {isLevel1Admin && (
+            <button
+              type="button"
+              onClick={() => setShowClearModal(true)}
+              className="px-4 py-2.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-rose-600 hover:text-rose-700 text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer self-start sm:self-auto"
+              title="Borrar todos los registros e invitados de la boda activa"
+            >
+              <Eraser className="w-4 h-4 text-rose-600" />
+              <span>Limpiar Boda</span>
+            </button>
+          )}
+
+          {(canEditActiveWedding || isLevel1Admin) && (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer self-start sm:self-auto"
+            >
+              {savedSuccess ? <Check className="w-4 h-4 text-[#2D3748]" /> : <Save className="w-4 h-4" />}
+              <span>{savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Success Notification for Clear Wedding */}
+      {clearSuccess && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center space-x-3 text-xs shadow-xs animate-fadeIn">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <div>
+            <span className="font-bold block">¡Boda limpiada con éxito!</span>
+            <span>Se eliminaron todos los registros e invitados dejándolos en blanco para llenar. Se conservaron el nombre del evento, la fecha, la ciudad y la fecha límite para confirmar asistencia.</span>
+          </div>
+        </div>
+      )}
 
       {/* Permission Warning for Level 2 users browsing another wedding */}
       {!canEditActiveWedding && !isLevel1Admin && (
@@ -439,30 +485,6 @@ export const SettingsModule: React.FC = () => {
                 type="text"
                 value={formData.locationSummary}
                 onChange={(e) => setFormData({ ...formData, locationSummary: e.target.value })}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-[#524B42] mb-1">
-                Nombre de la Novia
-              </label>
-              <input
-                type="text"
-                value={formData.brideName || ''}
-                onChange={(e) => setFormData({ ...formData, brideName: e.target.value })}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-[#524B42] mb-1">
-                Nombre del Novio
-              </label>
-              <input
-                type="text"
-                value={formData.groomName || ''}
-                onChange={(e) => setFormData({ ...formData, groomName: e.target.value })}
                 className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
               />
             </div>
@@ -1522,6 +1544,32 @@ export const SettingsModule: React.FC = () => {
           </div>
         </div>
 
+        {/* Admin Section: Limpiar Boda */}
+        {isLevel1Admin && (
+          <div className="mt-6 p-4 sm:p-5 rounded-3xl bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border border-rose-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start space-x-3 text-xs">
+              <div className="w-10 h-10 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center shrink-0 text-rose-600 mt-0.5">
+                <Eraser className="w-5 h-5" />
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="font-bold text-gray-900 text-sm">Opción de Administrador: Limpiar Boda</h4>
+                <p className="text-gray-600 text-xs leading-relaxed">
+                  Permite borrar todos los registros (invitados, cronograma, presupuesto, tareas, mesas de Asignación de Mesas, elementos de Plano Local y proveedores) para dejarlos en blanco y el lienzo vacío. Solo se conservarán el <strong>nombre del evento</strong>, la <strong>fecha</strong>, la <strong>ciudad</strong> y la <strong>fecha límite de confirmación</strong>.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowClearModal(true)}
+              className="px-5 py-2.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-rose-600 font-bold text-xs transition-all flex items-center justify-center space-x-2 shrink-0 cursor-pointer"
+            >
+              <Eraser className="w-4 h-4" />
+              <span>Limpiar Boda</span>
+            </button>
+          </div>
+        )}
+
         {/* Bottom Save Button */}
         <div className="flex items-center justify-end pt-4">
           <button
@@ -1548,6 +1596,80 @@ export const SettingsModule: React.FC = () => {
       }}
       colorName={editingColorIndex !== null && formData.suggestedColors && formData.suggestedColors[editingColorIndex] ? formData.suggestedColors[editingColorIndex].name : undefined}
     />
+
+    {/* Modal de Confirmación: Limpiar Boda (Solo Administrador) */}
+    {showClearModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fadeIn">
+        <div className="bg-[#EBEBEB] rounded-[2.5rem] shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] border border-white/60 p-6 sm:p-8 max-w-lg w-full space-y-5 text-gray-900">
+          <div className="flex items-center space-x-3.5 pb-2 border-b border-gray-300/40">
+            <div className="w-12 h-12 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center justify-center text-rose-600 shrink-0">
+              <Eraser className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-serif-display text-lg font-bold text-gray-900 leading-tight">
+                ¿Limpiar Boda y dejar registros en blanco?
+              </h3>
+              <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider block mt-0.5">
+                Acción exclusiva de Administrador
+              </span>
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-700 leading-relaxed">
+            Esta acción borrará permanentemente todos los datos de esta boda para que puedas volver a llenarlos desde cero.
+          </p>
+
+          <div className="p-3.5 rounded-2xl bg-[#EBEBEB] shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] space-y-2 text-xs">
+            <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              Se borrarán todos los siguientes registros:
+            </div>
+            <ul className="text-gray-700 space-y-1 pl-1 text-[11px]">
+              <li>• Lista de invitados y pases asignados</li>
+              <li>• Cronograma y protocolo minuto a minuto</li>
+              <li>• Presupuesto y gastos</li>
+              <li>• Tareas y lista de verificación</li>
+              <li>• Todas las mesas de Asignación de Mesas</li>
+              <li>• Todo el Plano Local (el lienzo quedará completamente vacío)</li>
+              <li>• Proveedores y cotizaciones</li>
+              <li>• Sedes adicionales, datos bancarios y notas</li>
+            </ul>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border border-emerald-300/60 space-y-1.5 text-xs text-emerald-950">
+            <div className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
+              Solo se conservarán los siguientes datos:
+            </div>
+            <div className="text-[11px] text-gray-800 space-y-1">
+              <div>✓ <strong>Nombre del Evento:</strong> {formData.coupleNames || settings.coupleNames}</div>
+              <div>✓ <strong>Fecha:</strong> {formData.weddingDate || settings.weddingDate || 'Pendiente'}</div>
+              <div>✓ <strong>Ciudad:</strong> {formData.locationSummary || settings.locationSummary || 'Pendiente'}</div>
+              <div>✓ <strong>Fecha Límite para confirmar Asistencia:</strong> {formData.rsvpDeadline || settings.rsvpDeadline || 'No definida'}</div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end space-x-3 pt-2">
+            <button
+              type="button"
+              disabled={isClearing}
+              onClick={() => setShowClearModal(false)}
+              className="px-5 py-2.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-700 text-xs font-semibold hover:text-gray-900 transition-all cursor-pointer"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="button"
+              disabled={isClearing}
+              onClick={handleClearWedding}
+              className="px-5 py-2.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-rose-600 hover:text-rose-700 text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <Eraser className="w-4 h-4" />
+              <span>{isClearing ? 'Limpiando Boda...' : 'Sí, Limpiar Boda'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 };
