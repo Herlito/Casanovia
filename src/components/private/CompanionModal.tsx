@@ -172,14 +172,9 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
       if (onPassesChange) {
         onPassesChange(newTotal);
       }
-
-      setSuccessMessage(`¡"${guest.fullName}" asignado(a) como acompañante de ${primaryGuestName}${finalTable !== 'Mesa por asignar' ? ` en ${finalTable}` : ''}!`);
       if (onCompanionAdded) onCompanionAdded(guest.fullName);
 
-      setTimeout(() => {
-        setSuccessMessage(null);
-        onClose();
-      }, 700);
+      onClose();
     } catch (err) {
       console.error('Error assigning companion:', err);
       setSuccessMessage('Ocurrió un error al vincular el acompañante. Intenta nuevamente.');
@@ -227,8 +222,6 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
       if (onPassesChange) {
         onPassesChange(newTotal);
       }
-
-      setSuccessMessage(`¡"${newGuest.fullName}" registrado(a) y asignado(a) como acompañante de ${primaryGuestName}!`);
       if (onCompanionAdded) onCompanionAdded(newGuest.fullName);
 
       // Reset form
@@ -237,10 +230,7 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
       setNewEmail('');
       setNewDietary('');
 
-      setTimeout(() => {
-        setSuccessMessage(null);
-        onClose();
-      }, 700);
+      onClose();
     } catch (err) {
       console.error('Error creating companion:', err);
       setSuccessMessage('Ocurrió un error al registrar el acompañante. Intenta nuevamente.');
