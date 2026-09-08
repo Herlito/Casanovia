@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Stage, Layer, Transformer, Rect, Circle, Ellipse, RegularPolygon, Line, Group, Text as KonvaText, Image as KonvaImage } from 'react-konva';
+import { Stage, Layer, Transformer, Rect, Circle, Ellipse, RegularPolygon, Line, Group, Text as KonvaText, Image as KonvaImage, Shape as KonvaShape } from 'react-konva';
 import { useEditorStore } from '../store/useEditorStore';
 import { CanvasCountdown } from './CanvasCountdown';
 import { CanvasInteractiveButton } from './CanvasInteractiveButton';
@@ -65,6 +65,8 @@ export const CanvasStage: React.FC = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragStartPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
+  const frameFileInputRef = useRef<HTMLInputElement>(null);
+  const activeFrameTargetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const checkSize = () => {
@@ -118,130 +120,212 @@ export const CanvasStage: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedElementIds, editingTextId, elements]);
 
+  // Helper to insert transparent images/SVGs from any source
+  const insertTransparentImage = (src: string, category = 'Imágenes Pegadas (Ctrl+V)') => {
+    const store = useEditorStore.getState();
+    const img = new window.Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      // Offscreen canvas ensures pristine 32-bit PNG alpha transparency channel is preserved
+      const maxDim = 1400;
+      let finalW = img.width || 400;
+      let finalH = img.height || 400;
+      if (finalW > maxDim || finalH > maxDim) {
+        const factor = Math.min(maxDim / finalW, maxDim / finalH);
+        finalW = Math.round(finalW * factor);
+        finalH = Math.round(finalH * factor);
+      }
+
+      const offscreen = window.document.createElement('canvas');
+      offscreen.width = finalW;
+      offscreen.height = finalH;
+      const ctx = offscreen.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, finalW, finalH);
+        ctx.drawImage(img, 0, 0, finalW, finalH);
+      }
+
+      const transparentPng = offscreen.toDataURL('image/png');
+      const maxCanvasW = Math.min(finalW, canvasConfig.width * 0.85);
+      const ratio = finalW > maxCanvasW ? maxCanvasW / finalW : 1;
+      const displayW = Math.round(finalW * ratio);
+      const displayH = Math.round(finalH * ratio);
+      const posX = Math.max(20, Math.round((canvasConfig.width - displayW) / 2));
+      const posY = Math.max(20, Math.round((canvasConfig.height - displayH) / 2));
+
+      const newEl: CanvasElement = {
+        id: uuidv4(),
+        type: 'image',
+        content: { 
+          src: transparentPng, 
+          originalSrc: transparentPng, 
+          naturalWidth: finalW, 
+          naturalHeight: finalH,
+          isTransparent: true 
+        },
+        style: { 
+          maskId: null, 
+          frameId: null, 
+          objectFit: 'cover', 
+          cropX: 0, 
+          cropY: 0, 
+          cropScale: 1, 
+          filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } 
+        },
+        transform: { x: posX, y: posY, width: displayW, height: displayH, rotation: 0, scaleX: 1, scaleY: 1 },
+        zIndex: store.document.pages[0].elements.length,
+        visible: true,
+        locked: false
+      };
+
+      store.addElement(newEl);
+      store.selectElements([newEl.id]);
+      saveElementToLibrary(newEl, category);
+      store.triggerLibraryUpdate();
+    };
+    img.src = src;
+  };
+
   // Global Paste Event
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
-      // Ignore if typing in an input
+      // Ignore if typing in an input or text area
       if (editingTextId || e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       
       const store = useEditorStore.getState();
       const clipboardData = e.clipboardData;
       if (!clipboardData) return;
 
-      let hasImage = false;
-      for (let i = 0; i < clipboardData.items.length; i++) {
-          const item = clipboardData.items[i];
-          if (item.type.indexOf('image') !== -1) {
-              hasImage = true;
-              const file = item.getAsFile();
-              if (file) {
-                  const reader = new FileReader();
-                  reader.onload = (event) => {
-                      const src = event.target?.result as string;
-                      const img = new Image();
-                      img.onload = () => {
-                          const maxW = Math.min(img.width, canvasConfig.width * 0.8);
-                          const ratio = img.width > maxW ? maxW / img.width : 1;
-                          const finalW = Math.round(img.width * ratio);
-                          const finalH = Math.round(img.height * ratio);
-                          const posX = Math.max(20, Math.round((canvasConfig.width - finalW) / 2));
-                          const posY = Math.max(20, Math.round((canvasConfig.height - finalH) / 2));
+      // 1. Check for HTML vector / transparent image content (e.g. from browsers, Office, Figma)
+      const htmlText = clipboardData.getData('text/html');
+      if (htmlText) {
+        const svgMatch = htmlText.match(/<svg[\s\S]*?<\/svg>/i);
+        if (svgMatch) {
+          e.preventDefault();
+          const svgData = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgMatch[0]);
+          insertTransparentImage(svgData, 'Vectores SVG Pegados');
+          return;
+        }
 
-                          const newEl: CanvasElement = {
-                              id: uuidv4(),
-                              type: 'image',
-                              content: { src, originalSrc: src, naturalWidth: img.width, naturalHeight: img.height },
-                              style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
-                              transform: { x: posX, y: posY, width: finalW, height: finalH, rotation: 0, scaleX: 1, scaleY: 1 },
-                              zIndex: store.document.pages[0].elements.length,
-                              visible: true,
-                              locked: false
-                          };
-                          store.addElement(newEl);
-                          store.selectElements([newEl.id]);
-                          saveElementToLibrary(newEl, 'Imágenes Pegadas (Ctrl+V)');
-                          store.triggerLibraryUpdate();
-                      };
-                      img.src = src;
-                  };
-                  reader.readAsDataURL(file);
-              }
-          }
+        const imgMatch = htmlText.match(/src=["'](data:image\/(?:png|webp)[^"']+)["']/i);
+        if (imgMatch && imgMatch[1]) {
+          e.preventDefault();
+          insertTransparentImage(imgMatch[1], 'Imágenes Pegadas (Ctrl+V)');
+          return;
+        }
       }
 
-      if (!hasImage) {
-          const text = clipboardData.getData('text');
-          if (text) {
-              try {
-                  const parsed = JSON.parse(text);
-                  if (parsed.wc_internal && parsed.elements) {
-                      const newIds: string[] = [];
-                      parsed.elements.forEach((el: any) => {
-                          const { id, ...elWithoutId } = el;
-                          const newId = uuidv4();
-                          newIds.push(newId);
-                          const newEl: CanvasElement = { 
-                              ...elWithoutId, 
-                              id: newId,
-                              transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
-                          };
-                          store.addElement(newEl);
-                          saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
-                      });
-                      store.selectElements(newIds);
-                      store.triggerLibraryUpdate();
-                      return;
-                  }
-              } catch(err) {
-                  // Standard text paste
-                  const newEl: CanvasElement = {
-                      id: uuidv4(),
-                      type: 'text',
-                      content: { text: text },
-                      style: { fontFamily: 'Playfair Display', fontSize: 24, color: '#000000', align: 'left' },
-                      transform: { x: 50, y: 50, width: 300, height: 100, rotation: 0, scaleX: 1, scaleY: 1 },
-                      zIndex: store.document.pages[0].elements.length,
-                      visible: true,
-                      locked: false
-                  };
-                  store.addElement(newEl);
-                  store.selectElements([newEl.id]);
-                  saveElementToLibrary(newEl, 'Textos Pegados (Ctrl+V)');
-                  store.triggerLibraryUpdate();
-                  return;
+      // 2. Check for image files in clipboard items (PNG with alpha, WebP, etc.)
+      let hasImage = false;
+      for (let i = 0; i < clipboardData.items.length; i++) {
+        const item = clipboardData.items[i];
+        if (item.type.indexOf('image') !== -1) {
+          hasImage = true;
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const src = event.target?.result as string;
+              if (src) {
+                insertTransparentImage(src, 'Imágenes Pegadas (Ctrl+V)');
               }
+            };
+            reader.readAsDataURL(file);
+            return;
           }
-          
-          // Fallback to sessionStorage if system clipboard read failed but paste event fired
-          const clip = sessionStorage.getItem('wc_clipboard');
-          if (clip) {
-              try {
-                  const parsed = JSON.parse(clip);
-                  if (parsed.wc_internal && parsed.elements) {
-                      const newIds: string[] = [];
-                      parsed.elements.forEach((el: any) => {
-                          const { id, ...elWithoutId } = el;
-                          const newId = uuidv4();
-                          newIds.push(newId);
-                          const newEl: CanvasElement = { 
-                              ...elWithoutId, 
-                              id: newId,
-                              transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
-                          };
-                          store.addElement(newEl);
-                          saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
-                      });
-                      store.selectElements(newIds);
-                      store.triggerLibraryUpdate();
-                  }
-              } catch(err) {}
+        }
+      }
+
+      // 3. Plain text fallback (could be raw SVG code, JSON elements, or regular text)
+      if (!hasImage) {
+        const text = clipboardData.getData('text');
+        if (text) {
+          const trimmed = text.trim();
+          if (trimmed.startsWith('<svg') && trimmed.endsWith('</svg>')) {
+            e.preventDefault();
+            const svgData = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(trimmed);
+            insertTransparentImage(svgData, 'Vectores SVG Pegados');
+            return;
           }
+          if (trimmed.startsWith('data:image/')) {
+            e.preventDefault();
+            insertTransparentImage(trimmed, 'Imágenes Pegadas (Ctrl+V)');
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(text);
+            if (parsed.wc_internal && parsed.elements) {
+              e.preventDefault();
+              const newIds: string[] = [];
+              parsed.elements.forEach((el: any) => {
+                const { id, ...elWithoutId } = el;
+                const newId = uuidv4();
+                newIds.push(newId);
+                const newEl: CanvasElement = { 
+                  ...elWithoutId, 
+                  id: newId,
+                  transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
+                };
+                store.addElement(newEl);
+                saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
+              });
+              store.selectElements(newIds);
+              store.triggerLibraryUpdate();
+              return;
+            }
+          } catch(err) {
+            e.preventDefault();
+            const newEl: CanvasElement = {
+              id: uuidv4(),
+              type: 'text',
+              content: { text: text },
+              style: { fontFamily: 'Playfair Display', fontSize: 24, color: '#000000', align: 'left' },
+              transform: { x: 50, y: 50, width: 300, height: 100, rotation: 0, scaleX: 1, scaleY: 1 },
+              zIndex: store.document.pages[0].elements.length,
+              visible: true,
+              locked: false
+            };
+            store.addElement(newEl);
+            store.selectElements([newEl.id]);
+            saveElementToLibrary(newEl, 'Textos Pegados (Ctrl+V)');
+            store.triggerLibraryUpdate();
+            return;
+          }
+        }
+        
+        // Fallback to sessionStorage if system clipboard read failed but paste event fired
+        const clip = sessionStorage.getItem('wc_clipboard');
+        if (clip) {
+          try {
+            const parsed = JSON.parse(clip);
+            if (parsed.wc_internal && parsed.elements) {
+              e.preventDefault();
+              const newIds: string[] = [];
+              parsed.elements.forEach((el: any) => {
+                const { id, ...elWithoutId } = el;
+                const newId = uuidv4();
+                newIds.push(newId);
+                const newEl: CanvasElement = { 
+                  ...elWithoutId, 
+                  id: newId,
+                  transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
+                };
+                store.addElement(newEl);
+                saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
+              });
+              store.selectElements(newIds);
+              store.triggerLibraryUpdate();
+            }
+          } catch(err) {}
+        }
       }
     };
 
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
-  }, [editingTextId, elements]);
+  }, [editingTextId, elements, canvasConfig]);
 
 
   useEffect(() => {
@@ -917,6 +1001,15 @@ export const CanvasStage: React.FC = () => {
                             ctx.arc(r, r, r, Math.PI, 0, false);
                             ctx.lineTo(w, h);
                             ctx.closePath();
+                        } else if (shapeVariant === 'heart') {
+                            const topCurveHeight = h * 0.3;
+                            ctx.beginPath();
+                            ctx.moveTo(w / 2, h / 5);
+                            ctx.bezierCurveTo(w / 2, 0, 0, 0, 0, topCurveHeight);
+                            ctx.bezierCurveTo(0, (h + topCurveHeight) / 2, w / 2, (h + topCurveHeight) / 2, w / 2, h);
+                            ctx.bezierCurveTo(w / 2, (h + topCurveHeight) / 2, w, (h + topCurveHeight) / 2, w, topCurveHeight);
+                            ctx.bezierCurveTo(w, 0, w / 2, 0, w / 2, h / 5);
+                            ctx.closePath();
                         } else {
                             const r = Math.min(cornerRadius, w / 2, h / 2);
                             if (r <= 0) {
@@ -938,7 +1031,18 @@ export const CanvasStage: React.FC = () => {
                     };
 
                     return (
-                        <Group key={el.id} {...commonProps}>
+                        <Group 
+                            key={el.id} 
+                            {...commonProps}
+                            onDblClick={() => {
+                                activeFrameTargetIdRef.current = el.id;
+                                frameFileInputRef.current?.click();
+                            }}
+                            onDblTap={() => {
+                                activeFrameTargetIdRef.current = el.id;
+                                frameFileInputRef.current?.click();
+                            }}
+                        >
                             {/* Clipped content */}
                             <Group clipFunc={clipFunc}>
                                 <Rect 
@@ -957,7 +1061,7 @@ export const CanvasStage: React.FC = () => {
                                             y={Math.max(10, h / 2 - 22)} 
                                             width={w - 20} 
                                             align="center" 
-                                            text="🖼️ Arrastra una foto aquí" 
+                                            text="🖼️ Doble clic para foto" 
                                             fontSize={Math.max(12, Math.min(16, w / 16))} 
                                             fontFamily="sans-serif"
                                             fill="#94A3B8" 
@@ -967,7 +1071,7 @@ export const CanvasStage: React.FC = () => {
                                             y={Math.max(34, h / 2 + 6)} 
                                             width={w - 20} 
                                             align="center" 
-                                            text="(o en Propiedades)" 
+                                            text="(o arrastra una imagen)" 
                                             fontSize={Math.max(10, Math.min(12, w / 22))} 
                                             fontFamily="sans-serif"
                                             fill="#CBD5E1" 
@@ -997,6 +1101,24 @@ export const CanvasStage: React.FC = () => {
                                     strokeWidth={strokeWidth} 
                                     fill="transparent" 
                                     listening={false} 
+                                />
+                            ) : shapeVariant === 'heart' ? (
+                                <KonvaShape
+                                    sceneFunc={(context, shape) => {
+                                        const topCurveHeight = h * 0.3;
+                                        context.beginPath();
+                                        context.moveTo(w / 2, h / 5);
+                                        context.bezierCurveTo(w / 2, 0, 0, 0, 0, topCurveHeight);
+                                        context.bezierCurveTo(0, (h + topCurveHeight) / 2, w / 2, (h + topCurveHeight) / 2, w / 2, h);
+                                        context.bezierCurveTo(w / 2, (h + topCurveHeight) / 2, w, (h + topCurveHeight) / 2, w, topCurveHeight);
+                                        context.bezierCurveTo(w, 0, w / 2, 0, w / 2, h / 5);
+                                        context.closePath();
+                                        context.fillStrokeShape(shape);
+                                    }}
+                                    stroke={stroke}
+                                    strokeWidth={strokeWidth}
+                                    fill="transparent"
+                                    listening={false}
                                 />
                             ) : (
                                 <Rect 
@@ -1053,6 +1175,50 @@ export const CanvasStage: React.FC = () => {
           )}
         </Layer>
       </Stage>
+
+      <input
+        type="file"
+        ref={frameFileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          const targetId = activeFrameTargetIdRef.current;
+          if (file && targetId) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              const src = ev.target?.result as string;
+              if (src) {
+                const img = new window.Image();
+                img.onload = () => {
+                  const targetEl = elements.find(el => el.id === targetId);
+                  updateElement(targetId, {
+                    content: {
+                      ...targetEl?.content,
+                      imageSrc: src,
+                      naturalWidth: img.width,
+                      naturalHeight: img.height
+                    }
+                  });
+                  if (targetEl) {
+                    saveElementToLibrary({
+                      ...targetEl,
+                      content: {
+                        ...targetEl.content,
+                        imageSrc: src
+                      }
+                    }, 'Formas con Foto');
+                    useEditorStore.getState().triggerLibraryUpdate();
+                  }
+                };
+                img.src = src;
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+          e.target.value = '';
+        }}
+      />
     </div>
   );
 };

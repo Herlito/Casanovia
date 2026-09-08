@@ -1,10 +1,25 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { Type, Square, Image as ImageIcon, Music, Link2, Clock, Shapes, Frame } from 'lucide-react';
+import { 
+  Type, 
+  Square, 
+  Circle, 
+  Heart, 
+  Image as ImageIcon, 
+  Music, 
+  Link2, 
+  Clock, 
+  Shapes, 
+  Frame,
+  ChevronDown,
+  ChevronRight,
+  Sparkles
+} from 'lucide-react';
 
 export const ToolsPanel: React.FC = () => {
   const { addElement, document } = useEditorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [shapesExpanded, setShapesExpanded] = useState(true);
 
   const handleAddText = () => {
     addElement({
@@ -24,40 +39,35 @@ export const ToolsPanel: React.FC = () => {
     });
   };
 
-  const handleAddShape = () => {
-    addElement({
-      type: 'svg-shape',
-      content: { svg: '' },
-      style: {
-        fill: '#8C8276',
-        stroke: '#2D3748',
-        strokeWidth: 2,
-        variant: 'rectangle',
-        opacity: 1
-      },
-      transform: { x: 100, y: 100, width: 150, height: 150, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: document.pages[0].elements.length,
-      locked: false,
-      visible: true
-    });
-  };
+  const handleAddShapeContainer = (shapeVariant: 'rectangle' | 'circle' | 'oval' | 'arch' | 'heart' = 'rectangle') => {
+    const isCircle = shapeVariant === 'circle';
+    const isOval = shapeVariant === 'oval';
+    const isArch = shapeVariant === 'arch';
+    const isHeart = shapeVariant === 'heart';
 
-  const handleAddImageFrame = () => {
     addElement({
       type: 'image-frame',
       content: { 
         imageSrc: null, 
-        shapeVariant: 'rectangle', 
+        shapeVariant: shapeVariant, 
         objectFit: 'cover' 
       },
       style: {
-        fill: '#E2E8F0',
-        stroke: '#8C8276',
+        fill: '#F1F5F9',
+        stroke: '#94A3B8',
         strokeWidth: 2,
-        borderRadius: 24,
+        borderRadius: isCircle ? 999 : isArch ? 110 : 20,
         opacity: 1
       },
-      transform: { x: 75, y: 150, width: 220, height: 220, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { 
+        x: 75, 
+        y: 150, 
+        width: isOval ? 240 : 220, 
+        height: isArch ? 260 : isOval ? 160 : 220, 
+        rotation: 0, 
+        scaleX: 1, 
+        scaleY: 1 
+      },
       zIndex: document.pages[0].elements.length,
       locked: false,
       visible: true
@@ -113,14 +123,73 @@ export const ToolsPanel: React.FC = () => {
           <Type className="w-4 h-4 text-[#2D3748]" />
           <span>Texto</span>
         </button>
-        <button onClick={handleAddShape} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
-          <Square className="w-4 h-4 text-[#2D3748]" />
-          <span>Forma</span>
-        </button>
-        <button onClick={handleAddImageFrame} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]" title="Forma que enmarca y corta una imagen">
-          <Frame className="w-4 h-4 text-[#2D3748]" />
-          <span>Marco / Contenedor</span>
-        </button>
+
+        {/* Forma Contenedor de Imagen (Sección Principal de Formas) */}
+        <div className="rounded-2xl p-2.5 bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2 border border-slate-200/50">
+          <div 
+            onClick={() => setShapesExpanded(!shapesExpanded)}
+            className="flex items-center justify-between cursor-pointer px-1 text-[#2D3748]"
+          >
+            <div className="flex items-center space-x-2">
+              <Shapes className="w-4 h-4 text-indigo-600" />
+              <span className="text-xs font-bold text-gray-800">Formas Contenedor</span>
+            </div>
+            {shapesExpanded ? <ChevronDown className="w-3.5 h-3.5 text-gray-500" /> : <ChevronRight className="w-3.5 h-3.5 text-gray-500" />}
+          </div>
+          
+          <p className="text-[10px] text-gray-500 px-1 leading-tight">
+            Inserta una forma que corta y enmarca fotos arrastradas dentro de ella.
+          </p>
+
+          {shapesExpanded && (
+            <div className="grid grid-cols-2 gap-1.5 pt-1">
+              <button
+                onClick={() => handleAddShapeContainer('rectangle')}
+                className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all"
+                title="Rectángulo con esquinas redondeadas"
+              >
+                <Square className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                <span className="truncate">Rectángulo</span>
+              </button>
+
+              <button
+                onClick={() => handleAddShapeContainer('circle')}
+                className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all"
+                title="Círculo contenedor"
+              >
+                <Circle className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                <span className="truncate">Círculo</span>
+              </button>
+
+              <button
+                onClick={() => handleAddShapeContainer('oval')}
+                className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all"
+                title="Óvalo contenedor"
+              >
+                <div className="w-3.5 h-2.5 rounded-full border-2 border-indigo-600 shrink-0" />
+                <span className="truncate">Óvalo</span>
+              </button>
+
+              <button
+                onClick={() => handleAddShapeContainer('arch')}
+                className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all"
+                title="Arco o portal de boda"
+              >
+                <Frame className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                <span className="truncate">Arco Boda</span>
+              </button>
+
+              <button
+                onClick={() => handleAddShapeContainer('heart')}
+                className="col-span-2 flex items-center justify-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all"
+                title="Corazón contenedor"
+              >
+                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-100 shrink-0" />
+                <span>Corazón Contenedor</span>
+              </button>
+            </div>
+          )}
+        </div>
         <div className="relative">
           <input
             type="file"

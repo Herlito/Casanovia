@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
 import { downloadHTML } from '../lib/exportHTML';
 import { 
@@ -14,11 +14,16 @@ import {
   Copy, 
   Boxes, 
   Ungroup,
-  BookmarkPlus
+  BookmarkPlus,
+  Check,
+  Loader2
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 export const Toolbar: React.FC = () => {
+  const [isSavingDirect, setIsSavingDirect] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
   const { 
     document, 
     selectedElementIds, 
@@ -29,9 +34,11 @@ export const Toolbar: React.FC = () => {
     undo, 
     redo, 
     history,
+    currentTemplateId,
     currentTemplateName,
     setSaveModalOpen,
     openSaveModal,
+    directSaveCurrentTemplate,
     duplicateElements,
     groupElements,
     ungroupElements
@@ -198,14 +205,37 @@ export const Toolbar: React.FC = () => {
           <span className="hidden sm:inline">Guardar Como</span>
         </button>
 
-        {/* Guardar Plantilla */}
+        {/* Guardar Plantilla (Directo si ya tiene nombre, o abre modal si es nueva) */}
         <button 
-          onClick={() => openSaveModal('prompt')}
-          className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-2xl transition-all text-emerald-700 text-xs font-bold"
-          title="Guardar cambios en la plantilla actual"
+          onClick={async () => {
+            if (currentTemplateId && currentTemplateName) {
+              setIsSavingDirect(true);
+              const res = await directSaveCurrentTemplate();
+              setIsSavingDirect(false);
+              if (res.success) {
+                setJustSaved(true);
+                setTimeout(() => setJustSaved(false), 2500);
+              }
+            } else {
+              openSaveModal('save_as');
+            }
+          }}
+          disabled={isSavingDirect}
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-2xl transition-all text-xs font-bold ${
+            justSaved 
+              ? 'bg-emerald-600 text-white shadow-[inset_4px_4px_8px_#047857]' 
+              : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-emerald-700'
+          }`}
+          title={currentTemplateName ? `Guardar cambios en "${currentTemplateName}"` : 'Guardar plantilla'}
         >
-          <Save className="w-4 h-4 text-emerald-600" />
-          <span>{currentTemplateName ? 'Guardar' : 'Guardar'}</span>
+          {isSavingDirect ? (
+            <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+          ) : justSaved ? (
+            <Check className="w-4 h-4 text-white" />
+          ) : (
+            <Save className="w-4 h-4 text-emerald-600" />
+          )}
+          <span>{isSavingDirect ? 'Guardando...' : justSaved ? '¡Guardado!' : 'Guardar'}</span>
         </button>
 
         {/* Exportar HTML */}

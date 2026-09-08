@@ -145,6 +145,34 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
       if (el.style.maskId === 'rounded') maskStyle = 'border-radius: 20px;';
       innerHtml = `<img class="el" src="${el.content.src}" style="${baseStyle} object-fit: cover; ${maskStyle}" />\n`;
     }
+    else if (el.type === 'image-frame') {
+      const shapeVariant = el.content?.shapeVariant || 'rectangle';
+      const cornerRadius = el.style?.cornerRadius ?? 24;
+      const stroke = el.style?.stroke || '#CBD5E1';
+      const strokeWidth = el.style?.strokeWidth ?? 1;
+      const imageSrc = el.content?.imageSrc;
+      const w = el.transform.width;
+
+      let clipStyle = '';
+      if (shapeVariant === 'circle' || shapeVariant === 'oval') {
+        clipStyle = 'border-radius: 50%;';
+      } else if (shapeVariant === 'arch') {
+        clipStyle = `border-radius: ${w/2}px ${w/2}px 0 0;`;
+      } else if (shapeVariant === 'heart') {
+        clipStyle = 'clip-path: polygon(50% 15%, 80% 0%, 100% 20%, 100% 50%, 50% 100%, 0% 50%, 0% 20%, 20% 0%);';
+      } else {
+        clipStyle = `border-radius: ${cornerRadius}px;`;
+      }
+
+      const imgContent = imageSrc 
+        ? `<img src="${imageSrc}" style="width: 100%; height: 100%; object-fit: cover; display: block;" />` 
+        : `<div style="width: 100%; height: 100%; background-color: ${el.style?.fill || '#F1F5F9'};"></div>`;
+
+      innerHtml = `
+      <div class="el" style="${baseStyle} ${clipStyle} border: ${strokeWidth}px solid ${stroke}; box-sizing: border-box; overflow: hidden;">
+        ${imgContent}
+      </div>\n`;
+    }
     else if (el.type === 'interactive-button') {
       const isOutline = el.style.variant === 'outline';
       const btnStyle = `

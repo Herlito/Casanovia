@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { Settings2, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Group as GroupIcon, Copy, Trash2, Image as ImageIcon, Layers, Upload, X, Ungroup } from 'lucide-react';
+import { Settings2, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Group as GroupIcon, Copy, Trash2, Image as ImageIcon, Layers, Upload, X, Ungroup, Sparkles, Square, Circle, Heart } from 'lucide-react';
 import { FontPicker } from './FontPicker';
 
 
@@ -341,6 +341,55 @@ export const PropertiesPanel: React.FC = () => {
                     Línea Fina
                   </button>
               </div>
+            </div>
+
+            {/* Smart Background Removal / Transparency Button */}
+            <div className="pt-2 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  const src = selectedElement.content?.src || selectedElement.content?.originalSrc;
+                  if (!src) return;
+                  const img = new Image();
+                  img.crossOrigin = 'anonymous';
+                  img.onload = () => {
+                    const canvas = window.document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+                    ctx.drawImage(img, 0, 0);
+                    const imgData = ctx.getImageData(0, 0, img.width, img.height);
+                    const data = imgData.data;
+                    const cornerR = data[0];
+                    const cornerG = data[1];
+                    const cornerB = data[2];
+                    for (let i = 0; i < data.length; i += 4) {
+                      const r = data[i];
+                      const g = data[i+1];
+                      const b = data[i+2];
+                      const isNearWhite = r > 230 && g > 230 && b > 230;
+                      const dist = Math.sqrt(Math.pow(r - cornerR, 2) + Math.pow(g - cornerG, 2) + Math.pow(b - cornerB, 2));
+                      if (isNearWhite || dist < 35) {
+                        data[i+3] = 0;
+                      }
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                    const transparentPng = canvas.toDataURL('image/png');
+                    handleUpdateContent({
+                      ...selectedElement.content,
+                      src: transparentPng,
+                      originalSrc: transparentPng,
+                      isTransparent: true
+                    });
+                  };
+                  img.src = src;
+                }}
+                className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-[#EBEBEB] hover:bg-white text-gray-700 text-xs font-semibold shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] transition-all"
+                title="Elimina fondos blancos u opacos para hacer la imagen transparente"
+              >
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span>Hacer Fondo Transparente</span>
+              </button>
             </div>
           </div>
         )}
@@ -845,6 +894,40 @@ export const PropertiesPanel: React.FC = () => {
               <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
                 Forma del Contenedor
               </label>
+              <div className="grid grid-cols-5 gap-1.5 mb-2">
+                {[
+                  { id: 'rectangle', label: 'Rect', icon: Square },
+                  { id: 'circle', label: 'Círculo', icon: Circle },
+                  { id: 'oval', label: 'Óvalo', isOval: true },
+                  { id: 'arch', label: 'Arco', isArch: true },
+                  { id: 'heart', label: 'Corazón', icon: Heart },
+                ].map(item => {
+                  const isSelected = (selectedElement.content?.shapeVariant || 'rectangle') === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleUpdateContent({ ...selectedElement.content, shapeVariant: item.id })}
+                      className={`flex flex-col items-center justify-center p-2 rounded-xl text-[10px] font-semibold transition-all ${
+                        isSelected 
+                          ? 'bg-[#2D3748] text-white shadow-inner' 
+                          : 'bg-[#EBEBEB] text-gray-700 shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] hover:bg-white'
+                      }`}
+                      title={item.label}
+                    >
+                      {Icon ? (
+                        <Icon className="w-4 h-4 mb-0.5 shrink-0" />
+                      ) : item.isOval ? (
+                        <div className="w-4 h-2.5 rounded-full border-2 border-current mb-0.5" />
+                      ) : (
+                        <div className="w-3.5 h-4 border-2 border-current rounded-t-full mb-0.5" />
+                      )}
+                      <span className="truncate">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               <select
                 className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 outline-none transition-all"
                 value={selectedElement.content?.shapeVariant || 'rectangle'}
@@ -854,6 +937,7 @@ export const PropertiesPanel: React.FC = () => {
                 <option value="circle">Círculo Perfecto</option>
                 <option value="oval">Óvalo</option>
                 <option value="arch">Arco Clásico (Portal de Boda)</option>
+                <option value="heart">Corazón Romántico</option>
               </select>
             </div>
 

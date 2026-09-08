@@ -75,11 +75,18 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
         }
 
         setIsLoading(false);
-        // Load templates from Firebase (real-time)
+        // Load templates from Firebase (real-time) and merge safely with IndexedDB
         try {
-            onSnapshot(collection(db, 'weddingcraft_templates'), (snap) => {
-                const templates = snap.docs.map(d => d.data());
-                useEditorStore.getState().loadTemplates(templates);
+            onSnapshot(collection(db, 'weddingcraft_templates'), async (snap) => {
+                const remoteTemplates: any[] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const localTemplates: any[] = (await get('wedding_craft_templates')) || [];
+                
+                const map = new Map<string, any>();
+                localTemplates.forEach(t => { if (t?.id) map.set(t.id, t); });
+                remoteTemplates.forEach(t => { if (t?.id) map.set(t.id, t); });
+                
+                const merged = Array.from(map.values()).sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+                useEditorStore.getState().loadTemplates(merged);
             });
         } catch (e) {
            console.error("Error loading templates", e);

@@ -31,6 +31,7 @@ interface EditorState {
   setCurrentTemplate: (id: string | null, name: string | null) => void;
   setLastSavedHash: (hash: string | null) => void;
   hasUnsavedChanges: () => boolean;
+  directSaveCurrentTemplate: () => Promise<{ success: boolean; name?: string }>;
   
   // Save Modal
   isSaveModalOpen: boolean;
@@ -120,6 +121,16 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     const currentHash = JSON.stringify(elements);
     if (!state.lastSavedHash) return true; // Has elements but was never saved in this session
     return currentHash !== state.lastSavedHash;
+  },
+
+  directSaveCurrentTemplate: async () => {
+    const state = get();
+    if (state.currentTemplateId && state.currentTemplateName) {
+      return await state.saveTemplate(state.currentTemplateName, true);
+    } else {
+      state.openSaveModal('save_as');
+      return { success: false };
+    }
   },
 
   isSaveModalOpen: false,
