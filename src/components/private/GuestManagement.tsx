@@ -335,9 +335,13 @@ export const GuestManagement: React.FC = () => {
     }
   };
 
-  const handleDeleteGuest = (id: string, name: string) => {
+  const handleDeleteGuest = async (id: string, name: string) => {
     if (window.confirm(`¿Estás seguro de eliminar a "${name}" de la lista de invitados?`)) {
-      deleteGuest(id);
+      try {
+        await deleteGuest(id);
+      } catch (err) {
+        console.error('Error al eliminar invitado:', err);
+      }
     }
   };
 

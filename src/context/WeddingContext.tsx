@@ -1321,7 +1321,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return weddings[0] || initialWeddingsList[0] || initialDefaultWedding;
   }, [weddings, userCreatedWeddings, accessibleWeddings, activeWeddingId, currentUser]);
 
-  // Auto-align activeWeddingId when user logs in or accessibleWeddings changes
+  // Auto-align activeWeddingId when user logs in, accessibleWeddings changes, or activeWedding is resolved
   useEffect(() => {
     if (currentUser.isAuthenticated && (currentUser.level === 3 || currentUser.level === 5)) {
       if (accessibleWeddings.length > 0) {
@@ -1333,8 +1333,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           setActiveWeddingId('');
         }
       }
+    } else if (activeWedding && activeWedding.id && activeWedding.id !== activeWeddingId) {
+      setActiveWeddingId(activeWedding.id);
     }
-  }, [currentUser, accessibleWeddings, activeWeddingId]);
+  }, [currentUser, accessibleWeddings, activeWeddingId, activeWedding]);
 
   // Compute permission to edit active wedding
   const canEditActiveWedding = React.useMemo(() => {
@@ -1402,10 +1404,14 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Helper to persist changes to active wedding in Firestore
   const updateActiveWeddingDoc = async (partialWedding: Partial<Wedding>) => {
-    if (!activeWeddingId) return;
+    const targetWeddingId = activeWedding?.id || activeWeddingId;
+    if (!targetWeddingId) return;
     if (currentUser.level === 5) {
       console.warn('[WeddingContext] Nivel 5 Observador tiene acceso de solo lectura. Modificación cancelada.');
       return;
+    }
+    if (activeWedding?.id && activeWeddingId !== activeWedding.id) {
+      setActiveWeddingId(activeWedding.id);
     }
     try {
       const updatedData = cleanFirestoreData({
@@ -1416,7 +1422,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Optimistically update local state immediately so UI updates instantly
       setWeddings((prev) =>
         prev.map((w) => {
-          if (w.id === activeWeddingId) {
+          if (w.id === targetWeddingId || (activeWeddingId && w.id === activeWeddingId)) {
             return {
               ...w,
               ...updatedData,
@@ -1426,9 +1432,9 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         })
       );
 
-      await setDoc(doc(db, 'weddings', activeWeddingId), updatedData, { merge: true });
+      await setDoc(doc(db, 'weddings', targetWeddingId), updatedData, { merge: true });
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `weddings/${activeWeddingId}`);
+      handleFirestoreError(err, OperationType.UPDATE, `weddings/${targetWeddingId}`);
       throw err;
     }
   };
@@ -1849,7 +1855,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Guests operations
   // -------------------------------------------------------------
   const addGuest = async (guestData: Omit<Guest, 'id'>): Promise<Guest> => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId);
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
     const currentGuests = currentWedding?.guests || guests || [];
 
     // Format full name to Altibajas automatically
@@ -1905,7 +1911,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateGuest = async (id: string, updates: Partial<Guest>) => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId);
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
     const currentGuests = currentWedding?.guests || guests || [];
     const targetGuest = currentGuests.find((g) => g.id === id);
 
@@ -1969,7 +1975,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const assignCompanion = async (primaryGuestId: string, companionGuestId: string, targetTable?: string) => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId);
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
     const currentGuests = currentWedding?.guests || guests || [];
 
     const primary = currentGuests.find((g) => g.id === primaryGuestId);
@@ -2038,7 +2044,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const deleteGuest = async (id: string) => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId);
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
     const currentGuests = currentWedding?.guests || guests || [];
     
     // If deleting a main guest, unlink companions so they don't hold orphan pointers
