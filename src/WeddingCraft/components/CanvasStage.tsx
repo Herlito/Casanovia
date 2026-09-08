@@ -120,72 +120,6 @@ export const CanvasStage: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedElementIds, editingTextId, elements]);
 
-  // Helper to insert transparent images/SVGs from any source
-  const insertTransparentImage = (src: string, category = 'Imágenes Pegadas (Ctrl+V)') => {
-    const store = useEditorStore.getState();
-    const img = new window.Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      // Offscreen canvas ensures pristine 32-bit PNG alpha transparency channel is preserved
-      const maxDim = 1400;
-      let finalW = img.width || 400;
-      let finalH = img.height || 400;
-      if (finalW > maxDim || finalH > maxDim) {
-        const factor = Math.min(maxDim / finalW, maxDim / finalH);
-        finalW = Math.round(finalW * factor);
-        finalH = Math.round(finalH * factor);
-      }
-
-      const offscreen = window.document.createElement('canvas');
-      offscreen.width = finalW;
-      offscreen.height = finalH;
-      const ctx = offscreen.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, finalW, finalH);
-        ctx.drawImage(img, 0, 0, finalW, finalH);
-      }
-
-      const transparentPng = offscreen.toDataURL('image/png');
-      const maxCanvasW = Math.min(finalW, canvasConfig.width * 0.85);
-      const ratio = finalW > maxCanvasW ? maxCanvasW / finalW : 1;
-      const displayW = Math.round(finalW * ratio);
-      const displayH = Math.round(finalH * ratio);
-      const posX = Math.max(20, Math.round((canvasConfig.width - displayW) / 2));
-      const posY = Math.max(20, Math.round((canvasConfig.height - displayH) / 2));
-
-      const newEl: CanvasElement = {
-        id: uuidv4(),
-        type: 'image',
-        content: { 
-          src: transparentPng, 
-          originalSrc: transparentPng, 
-          naturalWidth: finalW, 
-          naturalHeight: finalH,
-          isTransparent: true 
-        },
-        style: { 
-          maskId: null, 
-          frameId: null, 
-          objectFit: 'cover', 
-          cropX: 0, 
-          cropY: 0, 
-          cropScale: 1, 
-          filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } 
-        },
-        transform: { x: posX, y: posY, width: displayW, height: displayH, rotation: 0, scaleX: 1, scaleY: 1 },
-        zIndex: store.document.pages[0].elements.length,
-        visible: true,
-        locked: false
-      };
-
-      store.addElement(newEl);
-      store.selectElements([newEl.id]);
-      saveElementToLibrary(newEl, category);
-      store.triggerLibraryUpdate();
-    };
-    img.src = src;
-  };
-
   // Global Paste Event
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
@@ -196,130 +130,239 @@ export const CanvasStage: React.FC = () => {
       const clipboardData = e.clipboardData;
       if (!clipboardData) return;
 
-      // 1. Check for HTML vector / transparent image content (e.g. from browsers, Office, Figma)
+      // 1. Check for image files in clipboardData.items (prioritizing image/png to preserve alpha transparency channel)
+      let imageItem: DataTransferItem | null = null;
+      for (let i = 0; i < clipboardData.items.length; i++) {
+        const it = clipboardData.items[i];
+        if (it.type === 'image/png') {
+          imageItem = it;
+          break;
+        }
+      }
+      if (!imageItem) {
+        for (let i = 0; i < clipboardData.items.length; i++) {
+          const it = clipboardData.items[i];
+          if (it.type.indexOf('image') !== -1) {
+            imageItem = it;
+            break;
+          }
+        }
+      }
+
+      if (imageItem) {
+        const file = imageItem.getAsFile();
+        if (file) {
+          e.preventDefault();
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const src = event.target?.result as string;
+            if (!src) return;
+            const img = new Image();
+            img.onload = () => {
+              const maxW = Math.min(img.width, canvasConfig.width * 0.85);
+              const ratio = img.width > maxW ? maxW / img.width : 1;
+              const finalW = Math.round(img.width * ratio);
+              const finalH = Math.round(img.height * ratio);
+              const posX = Math.max(20, Math.round((canvasConfig.width - finalW) / 2));
+              const posY = Math.max(20, Math.round((canvasConfig.height - finalH) / 2));
+
+              const newEl: CanvasElement = {
+                id: uuidv4(),
+                type: 'image',
+                content: { 
+                  src, 
+                  originalSrc: src, 
+                  naturalWidth: img.width, 
+                  naturalHeight: img.height,
+                  isTransparent: true 
+                },
+                style: { 
+                  maskId: null, 
+                  frameId: null, 
+                  objectFit: 'cover', 
+                  cropX: 0, 
+                  cropY: 0, 
+                  cropScale: 1, 
+                  filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } 
+                },
+                transform: { x: posX, y: posY, width: finalW, height: finalH, rotation: 0, scaleX: 1, scaleY: 1 },
+                zIndex: store.document.pages[0].elements.length,
+                visible: true,
+                locked: false
+              };
+
+              store.addElement(newEl);
+              store.selectElements([newEl.id]);
+              saveElementToLibrary(newEl, 'Imágenes Pegadas (Ctrl+V)');
+              store.triggerLibraryUpdate();
+            };
+            img.src = src;
+          };
+          reader.readAsDataURL(file);
+          return;
+        }
+      }
+
+      // 2. Check for SVG vector code in HTML or plain text (e.g. from Figma, Illustrator, or browser)
       const htmlText = clipboardData.getData('text/html');
       if (htmlText) {
         const svgMatch = htmlText.match(/<svg[\s\S]*?<\/svg>/i);
         if (svgMatch) {
           e.preventDefault();
           const svgData = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgMatch[0]);
-          insertTransparentImage(svgData, 'Vectores SVG Pegados');
-          return;
-        }
+          const img = new Image();
+          img.onload = () => {
+            const finalW = Math.min(img.width || 300, canvasConfig.width * 0.85);
+            const ratio = (img.width || 300) > finalW ? finalW / (img.width || 300) : 1;
+            const displayW = Math.round((img.width || 300) * ratio);
+            const displayH = Math.round((img.height || 300) * ratio);
+            const posX = Math.max(20, Math.round((canvasConfig.width - displayW) / 2));
+            const posY = Math.max(20, Math.round((canvasConfig.height - displayH) / 2));
 
-        const imgMatch = htmlText.match(/src=["'](data:image\/(?:png|webp)[^"']+)["']/i);
-        if (imgMatch && imgMatch[1]) {
-          e.preventDefault();
-          insertTransparentImage(imgMatch[1], 'Imágenes Pegadas (Ctrl+V)');
-          return;
-        }
-      }
-
-      // 2. Check for image files in clipboard items (PNG with alpha, WebP, etc.)
-      let hasImage = false;
-      for (let i = 0; i < clipboardData.items.length; i++) {
-        const item = clipboardData.items[i];
-        if (item.type.indexOf('image') !== -1) {
-          hasImage = true;
-          e.preventDefault();
-          const file = item.getAsFile();
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              const src = event.target?.result as string;
-              if (src) {
-                insertTransparentImage(src, 'Imágenes Pegadas (Ctrl+V)');
-              }
-            };
-            reader.readAsDataURL(file);
-            return;
-          }
-        }
-      }
-
-      // 3. Plain text fallback (could be raw SVG code, JSON elements, or regular text)
-      if (!hasImage) {
-        const text = clipboardData.getData('text');
-        if (text) {
-          const trimmed = text.trim();
-          if (trimmed.startsWith('<svg') && trimmed.endsWith('</svg>')) {
-            e.preventDefault();
-            const svgData = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(trimmed);
-            insertTransparentImage(svgData, 'Vectores SVG Pegados');
-            return;
-          }
-          if (trimmed.startsWith('data:image/')) {
-            e.preventDefault();
-            insertTransparentImage(trimmed, 'Imágenes Pegadas (Ctrl+V)');
-            return;
-          }
-
-          try {
-            const parsed = JSON.parse(text);
-            if (parsed.wc_internal && parsed.elements) {
-              e.preventDefault();
-              const newIds: string[] = [];
-              parsed.elements.forEach((el: any) => {
-                const { id, ...elWithoutId } = el;
-                const newId = uuidv4();
-                newIds.push(newId);
-                const newEl: CanvasElement = { 
-                  ...elWithoutId, 
-                  id: newId,
-                  transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
-                };
-                store.addElement(newEl);
-                saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
-              });
-              store.selectElements(newIds);
-              store.triggerLibraryUpdate();
-              return;
-            }
-          } catch(err) {
-            e.preventDefault();
             const newEl: CanvasElement = {
               id: uuidv4(),
-              type: 'text',
-              content: { text: text },
-              style: { fontFamily: 'Playfair Display', fontSize: 24, color: '#000000', align: 'left' },
-              transform: { x: 50, y: 50, width: 300, height: 100, rotation: 0, scaleX: 1, scaleY: 1 },
+              type: 'image',
+              content: { src: svgData, originalSrc: svgData, naturalWidth: img.width || 300, naturalHeight: img.height || 300, isTransparent: true },
+              style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
+              transform: { x: posX, y: posY, width: displayW, height: displayH, rotation: 0, scaleX: 1, scaleY: 1 },
               zIndex: store.document.pages[0].elements.length,
               visible: true,
               locked: false
             };
             store.addElement(newEl);
             store.selectElements([newEl.id]);
-            saveElementToLibrary(newEl, 'Textos Pegados (Ctrl+V)');
+            saveElementToLibrary(newEl, 'Vectores SVG Pegados');
+            store.triggerLibraryUpdate();
+          };
+          img.src = svgData;
+          return;
+        }
+      }
+
+      // 3. Plain text fallback (could be raw SVG, image DataURL, internal elements JSON, or regular text)
+      const text = clipboardData.getData('text');
+      if (text) {
+        const trimmed = text.trim();
+        if (trimmed.startsWith('<svg') && trimmed.endsWith('</svg>')) {
+          e.preventDefault();
+          const svgData = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(trimmed);
+          const img = new Image();
+          img.onload = () => {
+            const displayW = Math.min(img.width || 300, canvasConfig.width * 0.85);
+            const ratio = (img.width || 300) > displayW ? displayW / (img.width || 300) : 1;
+            const w = Math.round((img.width || 300) * ratio);
+            const h = Math.round((img.height || 300) * ratio);
+            const newEl: CanvasElement = {
+              id: uuidv4(),
+              type: 'image',
+              content: { src: svgData, originalSrc: svgData, naturalWidth: img.width || 300, naturalHeight: img.height || 300, isTransparent: true },
+              style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
+              transform: { x: Math.max(20, (canvasConfig.width - w) / 2), y: Math.max(20, (canvasConfig.height - h) / 2), width: w, height: h, rotation: 0, scaleX: 1, scaleY: 1 },
+              zIndex: store.document.pages[0].elements.length,
+              visible: true,
+              locked: false
+            };
+            store.addElement(newEl);
+            store.selectElements([newEl.id]);
+            saveElementToLibrary(newEl, 'Vectores SVG Pegados');
+            store.triggerLibraryUpdate();
+          };
+          img.src = svgData;
+          return;
+        }
+
+        if (trimmed.startsWith('data:image/')) {
+          e.preventDefault();
+          const img = new Image();
+          img.onload = () => {
+            const maxW = Math.min(img.width, canvasConfig.width * 0.85);
+            const ratio = img.width > maxW ? maxW / img.width : 1;
+            const finalW = Math.round(img.width * ratio);
+            const finalH = Math.round(img.height * ratio);
+            const newEl: CanvasElement = {
+              id: uuidv4(),
+              type: 'image',
+              content: { src: trimmed, originalSrc: trimmed, naturalWidth: img.width, naturalHeight: img.height, isTransparent: true },
+              style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
+              transform: { x: Math.max(20, (canvasConfig.width - finalW) / 2), y: Math.max(20, (canvasConfig.height - finalH) / 2), width: finalW, height: finalH, rotation: 0, scaleX: 1, scaleY: 1 },
+              zIndex: store.document.pages[0].elements.length,
+              visible: true,
+              locked: false
+            };
+            store.addElement(newEl);
+            store.selectElements([newEl.id]);
+            saveElementToLibrary(newEl, 'Imágenes Pegadas (Ctrl+V)');
+            store.triggerLibraryUpdate();
+          };
+          img.src = trimmed;
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed.wc_internal && parsed.elements) {
+            e.preventDefault();
+            const newIds: string[] = [];
+            parsed.elements.forEach((el: any) => {
+              const { id, ...elWithoutId } = el;
+              const newId = uuidv4();
+              newIds.push(newId);
+              const newEl: CanvasElement = { 
+                ...elWithoutId, 
+                id: newId,
+                transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
+              };
+              store.addElement(newEl);
+              saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
+            });
+            store.selectElements(newIds);
             store.triggerLibraryUpdate();
             return;
           }
+        } catch(err) {
+          e.preventDefault();
+          const newEl: CanvasElement = {
+            id: uuidv4(),
+            type: 'text',
+            content: { text: text },
+            style: { fontFamily: 'Playfair Display', fontSize: 24, color: '#000000', align: 'left' },
+            transform: { x: 50, y: 50, width: 300, height: 100, rotation: 0, scaleX: 1, scaleY: 1 },
+            zIndex: store.document.pages[0].elements.length,
+            visible: true,
+            locked: false
+          };
+          store.addElement(newEl);
+          store.selectElements([newEl.id]);
+          saveElementToLibrary(newEl, 'Textos Pegados (Ctrl+V)');
+          store.triggerLibraryUpdate();
+          return;
         }
-        
-        // Fallback to sessionStorage if system clipboard read failed but paste event fired
-        const clip = sessionStorage.getItem('wc_clipboard');
-        if (clip) {
-          try {
-            const parsed = JSON.parse(clip);
-            if (parsed.wc_internal && parsed.elements) {
-              e.preventDefault();
-              const newIds: string[] = [];
-              parsed.elements.forEach((el: any) => {
-                const { id, ...elWithoutId } = el;
-                const newId = uuidv4();
-                newIds.push(newId);
-                const newEl: CanvasElement = { 
-                  ...elWithoutId, 
-                  id: newId,
-                  transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
-                };
-                store.addElement(newEl);
-                saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
-              });
-              store.selectElements(newIds);
-              store.triggerLibraryUpdate();
-            }
-          } catch(err) {}
-        }
+      }
+      
+      // Fallback to sessionStorage if system clipboard read failed but paste event fired
+      const clip = sessionStorage.getItem('wc_clipboard');
+      if (clip) {
+        try {
+          const parsed = JSON.parse(clip);
+          if (parsed.wc_internal && parsed.elements) {
+            e.preventDefault();
+            const newIds: string[] = [];
+            parsed.elements.forEach((el: any) => {
+              const { id, ...elWithoutId } = el;
+              const newId = uuidv4();
+              newIds.push(newId);
+              const newEl: CanvasElement = { 
+                ...elWithoutId, 
+                id: newId,
+                transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
+              };
+              store.addElement(newEl);
+              saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
+            });
+            store.selectElements(newIds);
+            store.triggerLibraryUpdate();
+          }
+        } catch(err) {}
       }
     };
 
