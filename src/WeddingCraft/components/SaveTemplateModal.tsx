@@ -8,7 +8,8 @@ export const SaveTemplateModal: React.FC = () => {
     setSaveModalOpen, 
     currentTemplateId, 
     currentTemplateName, 
-    saveTemplate 
+    saveTemplate,
+    saveModalInitialMode
   } = useEditorStore();
 
   const [mode, setMode] = useState<'prompt' | 'save_as'>('prompt');
@@ -18,7 +19,10 @@ export const SaveTemplateModal: React.FC = () => {
 
   useEffect(() => {
     if (isSaveModalOpen) {
-      if (currentTemplateName) {
+      if (saveModalInitialMode === 'save_as') {
+        setMode('save_as');
+        setTemplateName(currentTemplateName ? `${currentTemplateName} (Copia)` : 'Mi Plantilla de Boda');
+      } else if (currentTemplateName) {
         setMode('prompt');
         setTemplateName(`${currentTemplateName} (Copia)`);
       } else {
@@ -28,7 +32,7 @@ export const SaveTemplateModal: React.FC = () => {
       setSuccessMsg(null);
       setIsSaving(false);
     }
-  }, [isSaveModalOpen, currentTemplateName]);
+  }, [isSaveModalOpen, currentTemplateName, saveModalInitialMode]);
 
   if (!isSaveModalOpen) return null;
 

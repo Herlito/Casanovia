@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { Type, Square, Image as ImageIcon, Music, Link2, Clock, Shapes, MousePointer2 } from 'lucide-react';
+import { Type, Square, Image as ImageIcon, Music, Link2, Clock, Shapes, Frame } from 'lucide-react';
 
 export const ToolsPanel: React.FC = () => {
   const { addElement, document } = useEditorStore();
@@ -36,6 +36,28 @@ export const ToolsPanel: React.FC = () => {
         opacity: 1
       },
       transform: { x: 100, y: 100, width: 150, height: 150, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: document.pages[0].elements.length,
+      locked: false,
+      visible: true
+    });
+  };
+
+  const handleAddImageFrame = () => {
+    addElement({
+      type: 'image-frame',
+      content: { 
+        imageSrc: null, 
+        shapeVariant: 'rectangle', 
+        objectFit: 'cover' 
+      },
+      style: {
+        fill: '#E2E8F0',
+        stroke: '#8C8276',
+        strokeWidth: 2,
+        borderRadius: 24,
+        opacity: 1
+      },
+      transform: { x: 75, y: 150, width: 220, height: 220, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: document.pages[0].elements.length,
       locked: false,
       visible: true
@@ -94,6 +116,10 @@ export const ToolsPanel: React.FC = () => {
         <button onClick={handleAddShape} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
           <Square className="w-4 h-4 text-[#2D3748]" />
           <span>Forma</span>
+        </button>
+        <button onClick={handleAddImageFrame} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]" title="Forma que enmarca y corta una imagen">
+          <Frame className="w-4 h-4 text-[#2D3748]" />
+          <span>Marco / Contenedor</span>
         </button>
         <div className="relative">
           <input

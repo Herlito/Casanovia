@@ -44,7 +44,7 @@ const URLImage = ({ image, ...props }: any) => {
 };
 
 export const CanvasStage: React.FC = () => {
-  const { document, updateElement, selectedElementIds, selectElements } = useEditorStore();
+  const { document, updateElement, selectedElementIds, selectElements, deleteElements } = useEditorStore();
   const elements = document.pages[0]?.elements || [];
   const canvasConfig = document.canvas;
   const eventData = useEditorStore(state => state.eventData);
@@ -59,6 +59,12 @@ export const CanvasStage: React.FC = () => {
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [editingTextValue, setEditingTextValue] = useState('');
   const [guidelines, setGuidelines] = useState<any[]>([]);
+
+  // Multi-selection marquee and group dragging state
+  const [selectionBox, setSelectionBox] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
+  const dragStartPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
 
   useEffect(() => {
     const checkSize = () => {
@@ -134,18 +140,27 @@ export const CanvasStage: React.FC = () => {
                       const src = event.target?.result as string;
                       const img = new Image();
                       img.onload = () => {
+                          const maxW = Math.min(img.width, canvasConfig.width * 0.8);
+                          const ratio = img.width > maxW ? maxW / img.width : 1;
+                          const finalW = Math.round(img.width * ratio);
+                          const finalH = Math.round(img.height * ratio);
+                          const posX = Math.max(20, Math.round((canvasConfig.width - finalW) / 2));
+                          const posY = Math.max(20, Math.round((canvasConfig.height - finalH) / 2));
+
                           const newEl: CanvasElement = {
                               id: uuidv4(),
                               type: 'image',
                               content: { src, originalSrc: src, naturalWidth: img.width, naturalHeight: img.height },
                               style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
-                              transform: { x: 50, y: 50, width: img.width / 2, height: img.height / 2, rotation: 0, scaleX: 1, scaleY: 1 },
+                              transform: { x: posX, y: posY, width: finalW, height: finalH, rotation: 0, scaleX: 1, scaleY: 1 },
                               zIndex: store.document.pages[0].elements.length,
                               visible: true,
                               locked: false
                           };
                           store.addElement(newEl);
+                          store.selectElements([newEl.id]);
                           saveElementToLibrary(newEl, 'Imágenes Pegadas (Ctrl+V)');
+                          store.triggerLibraryUpdate();
                       };
                       img.src = src;
                   };
@@ -160,16 +175,21 @@ export const CanvasStage: React.FC = () => {
               try {
                   const parsed = JSON.parse(text);
                   if (parsed.wc_internal && parsed.elements) {
+                      const newIds: string[] = [];
                       parsed.elements.forEach((el: any) => {
                           const { id, ...elWithoutId } = el;
+                          const newId = uuidv4();
+                          newIds.push(newId);
                           const newEl: CanvasElement = { 
                               ...elWithoutId, 
-                              id: uuidv4(),
+                              id: newId,
                               transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
                           };
                           store.addElement(newEl);
                           saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
                       });
+                      store.selectElements(newIds);
+                      store.triggerLibraryUpdate();
                       return;
                   }
               } catch(err) {
@@ -185,7 +205,9 @@ export const CanvasStage: React.FC = () => {
                       locked: false
                   };
                   store.addElement(newEl);
+                  store.selectElements([newEl.id]);
                   saveElementToLibrary(newEl, 'Textos Pegados (Ctrl+V)');
+                  store.triggerLibraryUpdate();
                   return;
               }
           }
@@ -196,16 +218,21 @@ export const CanvasStage: React.FC = () => {
               try {
                   const parsed = JSON.parse(clip);
                   if (parsed.wc_internal && parsed.elements) {
+                      const newIds: string[] = [];
                       parsed.elements.forEach((el: any) => {
                           const { id, ...elWithoutId } = el;
+                          const newId = uuidv4();
+                          newIds.push(newId);
                           const newEl: CanvasElement = { 
                               ...elWithoutId, 
-                              id: uuidv4(),
+                              id: newId,
                               transform: { ...el.transform, x: el.transform.x + 20, y: el.transform.y + 20 } 
                           };
                           store.addElement(newEl);
                           saveElementToLibrary(newEl, 'Objetos Pegados (Ctrl+V)');
                       });
+                      store.selectElements(newIds);
+                      store.triggerLibraryUpdate();
                   }
               } catch(err) {}
           }
@@ -233,8 +260,6 @@ export const CanvasStage: React.FC = () => {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    
-    
     stageRef.current?.setPointersPositions(e);
     const pointerPosition = stageRef.current?.getPointerPosition();
     
@@ -246,15 +271,54 @@ export const CanvasStage: React.FC = () => {
           const src = ev.target?.result as string;
           const img = new Image();
           img.onload = () => {
-             useEditorStore.getState().addElement({
-                type: 'image',
-                content: { src, originalSrc: src, naturalWidth: img.width, naturalHeight: img.height },
-                style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
-                transform: { x: pointerPosition?.x || 50, y: pointerPosition?.y || 50, width: img.width / 2, height: img.height / 2, rotation: 0, scaleX: 1, scaleY: 1 },
-                zIndex: elements.length,
-                visible: true,
-                locked: false
-             });
+             const canvasPointerX = pointerPosition ? (pointerPosition.x - stageX) / scale : 50;
+             const canvasPointerY = pointerPosition ? (pointerPosition.y - stageY) / scale : 50;
+
+             // Check if dropped directly onto an image-frame container
+             const targetFrame = elements.slice().reverse().find(el => 
+               el.type === 'image-frame' &&
+               canvasPointerX >= el.transform.x &&
+               canvasPointerX <= el.transform.x + el.transform.width &&
+               canvasPointerY >= el.transform.y &&
+               canvasPointerY <= el.transform.y + el.transform.height
+             );
+
+             if (targetFrame) {
+               updateElement(targetFrame.id, {
+                 content: {
+                   ...targetFrame.content,
+                   imageSrc: src,
+                   naturalWidth: img.width,
+                   naturalHeight: img.height
+                 }
+               });
+               selectElements([targetFrame.id]);
+               saveElementToLibrary({
+                 ...targetFrame,
+                 content: { ...targetFrame.content, imageSrc: src }
+               }, 'Marcos de Imagen');
+               useEditorStore.getState().triggerLibraryUpdate();
+             } else {
+               const maxW = Math.min(img.width, canvasConfig.width * 0.8);
+               const ratio = img.width > maxW ? maxW / img.width : 1;
+               const finalW = Math.round(img.width * ratio);
+               const finalH = Math.round(img.height * ratio);
+
+               const newEl: CanvasElement = {
+                  id: uuidv4(),
+                  type: 'image',
+                  content: { src, originalSrc: src, naturalWidth: img.width, naturalHeight: img.height },
+                  style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
+                  transform: { x: canvasPointerX, y: canvasPointerY, width: finalW, height: finalH, rotation: 0, scaleX: 1, scaleY: 1 },
+                  zIndex: elements.length,
+                  visible: true,
+                  locked: false
+               };
+               useEditorStore.getState().addElement(newEl);
+               selectElements([newEl.id]);
+               saveElementToLibrary(newEl, 'Imágenes');
+               useEditorStore.getState().triggerLibraryUpdate();
+             }
           };
           img.src = src;
         };
@@ -301,7 +365,6 @@ export const CanvasStage: React.FC = () => {
     setGuidelines(guides);
   };
 
-
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
     const scaleBy = 1.1;
@@ -317,7 +380,6 @@ export const CanvasStage: React.FC = () => {
   const handleDragEnd = (e: any) => {
     setGuidelines([]);
     const id = e.target.id();
-    console.log("Drag End! Target X:", e.target.x(), "Target Y:", e.target.y());
     updateElement(id, {
       transform: {
         ...elements.find(el => el.id === id)?.transform,
@@ -325,6 +387,81 @@ export const CanvasStage: React.FC = () => {
         y: e.target.y()
       }
     });
+  };
+
+  // Marquee multi-selection with mouse drag
+  const handleStageMouseDown = (e: any) => {
+    const isBg = e.target === e.target.getStage() || e.target.name() === 'canvas-bg';
+    if (isBg) {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const pos = stage.getPointerPosition();
+      if (!pos) return;
+
+      selectionStartRef.current = { x: pos.x, y: pos.y };
+      setIsSelecting(true);
+      setSelectionBox(null);
+
+      if (!e.evt.shiftKey) {
+        selectElements([]);
+      }
+      setEditingTextId(null);
+    }
+  };
+
+  const handleStageMouseMove = (e: any) => {
+    if (!isSelecting || !selectionStartRef.current) return;
+    const stage = stageRef.current;
+    if (!stage) return;
+    const pos = stage.getPointerPosition();
+    if (!pos) return;
+
+    const start = selectionStartRef.current;
+    const box = {
+      x: Math.min(start.x, pos.x),
+      y: Math.min(start.y, pos.y),
+      width: Math.abs(pos.x - start.x),
+      height: Math.abs(pos.y - start.y)
+    };
+    setSelectionBox(box);
+
+    if (box.width > 4 || box.height > 4) {
+      const matchedIds: string[] = [];
+
+      elements.forEach(el => {
+        if (el.locked || el.visible === false) return;
+
+        const elStageX = stageX + el.transform.x * scale;
+        const elStageY = stageY + el.transform.y * scale;
+        const elStageW = el.transform.width * scale;
+        const elStageH = el.transform.height * scale;
+
+        const intersects = !(
+          elStageX + elStageW < box.x ||
+          elStageX > box.x + box.width ||
+          elStageY + elStageH < box.y ||
+          elStageY > box.y + box.height
+        );
+
+        if (intersects) {
+          if (el.parentGroup) {
+            elements.filter(s => s.parentGroup === el.parentGroup).forEach(s => {
+              if (!matchedIds.includes(s.id)) matchedIds.push(s.id);
+            });
+          } else {
+            if (!matchedIds.includes(el.id)) matchedIds.push(el.id);
+          }
+        }
+      });
+
+      selectElements(matchedIds);
+    }
+  };
+
+  const handleStageMouseUp = () => {
+    setIsSelecting(false);
+    selectionStartRef.current = null;
+    setSelectionBox(null);
   };
 
   return (
@@ -339,9 +476,17 @@ export const CanvasStage: React.FC = () => {
         height={actualStageHeight}
         ref={stageRef}
         onWheel={handleWheel}
+        onMouseDown={handleStageMouseDown}
+        onMouseMove={handleStageMouseMove}
+        onMouseUp={handleStageMouseUp}
+        onTouchStart={handleStageMouseDown}
+        onTouchMove={handleStageMouseMove}
+        onTouchEnd={handleStageMouseUp}
         onClick={(e) => {
           if (e.target === e.target.getStage() || e.target.name() === 'canvas-bg') {
-            selectElements([]);
+            if (!e.evt.shiftKey) {
+              selectElements([]);
+            }
             setEditingTextId(null);
           }
         }}
@@ -382,10 +527,134 @@ export const CanvasStage: React.FC = () => {
                         }
                         return { x: newX, y: pos.y };
                     },
-                    onClick: () => selectElements([el.id]),
-                    onTap: () => selectElements([el.id]),
-                    onDragMove: handleDragMove,
-                    onDragEnd: handleDragEnd,
+                    onClick: (e: any) => {
+                        e.cancelBubble = true;
+                        const isShift = e.evt.shiftKey;
+                        let targetIds = [el.id];
+                        if (el.parentGroup) {
+                            targetIds = elements.filter(s => s.parentGroup === el.parentGroup).map(s => s.id);
+                        }
+                        if (isShift) {
+                            const isSelected = targetIds.every(id => selectedElementIds.includes(id));
+                            if (isSelected) {
+                                selectElements(selectedElementIds.filter(id => !targetIds.includes(id)));
+                            } else {
+                                selectElements(Array.from(new Set([...selectedElementIds, ...targetIds])));
+                            }
+                        } else {
+                            selectElements(targetIds);
+                        }
+                    },
+                    onTap: (e: any) => {
+                        e.cancelBubble = true;
+                        let targetIds = [el.id];
+                        if (el.parentGroup) {
+                            targetIds = elements.filter(s => s.parentGroup === el.parentGroup).map(s => s.id);
+                        }
+                        selectElements(targetIds);
+                    },
+                    onDragStart: (e: any) => {
+                        const id = el.id;
+                        const idsToMove = selectedElementIds.includes(id) ? selectedElementIds : [id];
+                        const posMap: Record<string, { x: number; y: number }> = {};
+                        idsToMove.forEach(mid => {
+                            const node = stageRef.current?.findOne(`#${mid}`);
+                            if (node) {
+                                posMap[mid] = { x: node.x(), y: node.y() };
+                            } else {
+                                const mel = elements.find(item => item.id === mid);
+                                if (mel) posMap[mid] = { x: mel.transform.x, y: mel.transform.y };
+                            }
+                        });
+                        dragStartPositionsRef.current = posMap;
+                    },
+                    onDragMove: (e: any) => {
+                        handleDragMove(e);
+                        const id = el.id;
+                        const startPos = dragStartPositionsRef.current[id];
+                        if (!startPos) return;
+
+                        const dx = e.target.x() - startPos.x;
+                        const dy = e.target.y() - startPos.y;
+
+                        Object.keys(dragStartPositionsRef.current).forEach(otherId => {
+                            if (otherId === id) return;
+                            const otherNode = stageRef.current?.findOne(`#${otherId}`);
+                            const otherStart = dragStartPositionsRef.current[otherId];
+                            if (otherNode && otherStart) {
+                                otherNode.x(otherStart.x + dx);
+                                otherNode.y(otherStart.y + dy);
+                            }
+                        });
+                        trRef.current?.getLayer()?.batchDraw();
+                    },
+                    onDragEnd: (e: any) => {
+                        setGuidelines([]);
+                        const id = el.id;
+                        const startPos = dragStartPositionsRef.current[id];
+                        const idsToUpdate = Object.keys(dragStartPositionsRef.current);
+
+                        if (idsToUpdate.length > 1 && startPos) {
+                            const dx = e.target.x() - startPos.x;
+                            const dy = e.target.y() - startPos.y;
+
+                            idsToUpdate.forEach(targetId => {
+                                const targetStart = dragStartPositionsRef.current[targetId];
+                                if (targetStart) {
+                                    const mel = elements.find(item => item.id === targetId);
+                                    updateElement(targetId, {
+                                        transform: {
+                                            ...mel?.transform,
+                                            x: targetStart.x + dx,
+                                            y: targetStart.y + dy
+                                        }
+                                    });
+                                }
+                            });
+                        } else {
+                            // Check if dragged image was dropped onto an image-frame container!
+                            const draggedEl = elements.find(item => item.id === id);
+                            if (draggedEl && draggedEl.type === 'image') {
+                                const targetX = e.target.x();
+                                const targetY = e.target.y();
+                                const centerX = targetX + draggedEl.transform.width / 2;
+                                const centerY = targetY + draggedEl.transform.height / 2;
+
+                                const targetFrame = elements.slice().reverse().find(f => 
+                                    f.id !== id &&
+                                    f.type === 'image-frame' &&
+                                    centerX >= f.transform.x &&
+                                    centerX <= f.transform.x + f.transform.width &&
+                                    centerY >= f.transform.y &&
+                                    centerY <= f.transform.y + f.transform.height
+                                );
+
+                                if (targetFrame) {
+                                    const imageSrc = draggedEl.content.src || draggedEl.content.originalSrc;
+                                    updateElement(targetFrame.id, {
+                                        content: {
+                                            ...targetFrame.content,
+                                            imageSrc: imageSrc,
+                                            naturalWidth: draggedEl.content.naturalWidth,
+                                            naturalHeight: draggedEl.content.naturalHeight
+                                        }
+                                    });
+                                    deleteElements([draggedEl.id]);
+                                    selectElements([targetFrame.id]);
+                                    saveElementToLibrary({
+                                        ...targetFrame,
+                                        content: { ...targetFrame.content, imageSrc: imageSrc }
+                                    }, 'Marcos de Imagen');
+                                    useEditorStore.getState().triggerLibraryUpdate();
+                                    dragStartPositionsRef.current = {};
+                                    return;
+                                }
+                            }
+
+                            handleDragEnd(e);
+                        }
+                        dragStartPositionsRef.current = {};
+                    },
                     onTransform: (e: any) => {
                         if (el.type === 'text') {
                             const node = e.target;
@@ -620,6 +889,131 @@ export const CanvasStage: React.FC = () => {
                         </Group>
                     );
                 }
+
+                if (el.type === 'image-frame') {
+                    const w = el.transform.width;
+                    const h = el.transform.height;
+                    const shapeVariant = el.content?.shapeVariant || 'rectangle';
+                    const cornerRadius = el.style?.cornerRadius ?? 24;
+                    const stroke = el.style?.stroke || '#CBD5E1';
+                    const strokeWidth = el.style?.strokeWidth ?? 1;
+                    const imageSrc = el.content?.imageSrc;
+
+                    const clipFunc = (ctx: any) => {
+                        if (shapeVariant === 'circle') {
+                            const r = Math.min(w, h) / 2;
+                            ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2, false);
+                        } else if (shapeVariant === 'oval') {
+                            if (ctx.ellipse) {
+                                ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+                            } else {
+                                ctx.arc(w / 2, h / 2, Math.min(w, h) / 2, 0, Math.PI * 2, false);
+                            }
+                        } else if (shapeVariant === 'arch') {
+                            const r = w / 2;
+                            ctx.beginPath();
+                            ctx.moveTo(0, h);
+                            ctx.lineTo(0, r);
+                            ctx.arc(r, r, r, Math.PI, 0, false);
+                            ctx.lineTo(w, h);
+                            ctx.closePath();
+                        } else {
+                            const r = Math.min(cornerRadius, w / 2, h / 2);
+                            if (r <= 0) {
+                                ctx.rect(0, 0, w, h);
+                            } else {
+                                ctx.beginPath();
+                                ctx.moveTo(r, 0);
+                                ctx.lineTo(w - r, 0);
+                                ctx.quadraticCurveTo(w, 0, w, r);
+                                ctx.lineTo(w, h - r);
+                                ctx.quadraticCurveTo(w, h, w - r, h);
+                                ctx.lineTo(r, h);
+                                ctx.quadraticCurveTo(0, h, 0, h - r);
+                                ctx.lineTo(0, r);
+                                ctx.quadraticCurveTo(0, 0, r, 0);
+                                ctx.closePath();
+                            }
+                        }
+                    };
+
+                    return (
+                        <Group key={el.id} {...commonProps}>
+                            {/* Clipped content */}
+                            <Group clipFunc={clipFunc}>
+                                <Rect 
+                                    x={0} 
+                                    y={0} 
+                                    width={w} 
+                                    height={h} 
+                                    fill={el.style?.fill || '#F8FAFC'} 
+                                />
+                                {imageSrc ? (
+                                    <URLImage image={{ src: imageSrc }} width={w} height={h} />
+                                ) : (
+                                    <Group listening={false}>
+                                        <KonvaText 
+                                            x={10} 
+                                            y={Math.max(10, h / 2 - 22)} 
+                                            width={w - 20} 
+                                            align="center" 
+                                            text="🖼️ Arrastra una foto aquí" 
+                                            fontSize={Math.max(12, Math.min(16, w / 16))} 
+                                            fontFamily="sans-serif"
+                                            fill="#94A3B8" 
+                                        />
+                                        <KonvaText 
+                                            x={10} 
+                                            y={Math.max(34, h / 2 + 6)} 
+                                            width={w - 20} 
+                                            align="center" 
+                                            text="(o en Propiedades)" 
+                                            fontSize={Math.max(10, Math.min(12, w / 22))} 
+                                            fontFamily="sans-serif"
+                                            fill="#CBD5E1" 
+                                        />
+                                    </Group>
+                                )}
+                            </Group>
+
+                            {/* Crisp shape border outline */}
+                            {shapeVariant === 'circle' ? (
+                                <Circle 
+                                    x={w / 2} 
+                                    y={h / 2} 
+                                    radius={Math.min(w, h) / 2} 
+                                    stroke={stroke} 
+                                    strokeWidth={strokeWidth} 
+                                    fill="transparent" 
+                                    listening={false} 
+                                />
+                            ) : shapeVariant === 'oval' ? (
+                                <Ellipse 
+                                    x={w / 2} 
+                                    y={h / 2} 
+                                    radiusX={w / 2} 
+                                    radiusY={h / 2} 
+                                    stroke={stroke} 
+                                    strokeWidth={strokeWidth} 
+                                    fill="transparent" 
+                                    listening={false} 
+                                />
+                            ) : (
+                                <Rect 
+                                    x={0} 
+                                    y={0} 
+                                    width={w} 
+                                    height={h} 
+                                    cornerRadius={shapeVariant === 'arch' ? [w / 2, w / 2, 0, 0] : cornerRadius} 
+                                    stroke={stroke} 
+                                    strokeWidth={strokeWidth} 
+                                    fill="transparent" 
+                                    listening={false} 
+                                />
+                            )}
+                        </Group>
+                    );
+                }
                 
                 if (el.type === 'countdown-widget') {
                     return (
@@ -642,6 +1036,21 @@ export const CanvasStage: React.FC = () => {
             ))}
           </Group>
           {<Transformer ref={trRef} boundBoxFunc={(oldBox, newBox) => { if (newBox.width < 5 || newBox.height < 5) return oldBox; return newBox; }} />}
+
+          {/* Marquee Selection Rectangle */}
+          {selectionBox && (
+            <Rect
+              x={selectionBox.x}
+              y={selectionBox.y}
+              width={selectionBox.width}
+              height={selectionBox.height}
+              fill="rgba(59, 130, 246, 0.15)"
+              stroke="#3B82F6"
+              strokeWidth={1}
+              dash={[4, 3]}
+              listening={false}
+            />
+          )}
         </Layer>
       </Stage>
     </div>

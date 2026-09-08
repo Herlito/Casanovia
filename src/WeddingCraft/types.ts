@@ -53,7 +53,7 @@ export interface AnimationConfig {
 
 export interface CanvasElement {
   id: string;
-  type: 'text' | 'image' | 'svg-shape' | 'countdown-widget' | 'decorative-element' | 'interactive-button' | 'audio-player';
+  type: 'text' | 'image' | 'svg-shape' | 'countdown-widget' | 'decorative-element' | 'interactive-button' | 'audio-player' | 'image-frame';
   transform: {
     x: number;
     y: number;
@@ -91,6 +91,7 @@ export interface ElementStyle {
   borderColor?: string;
   gap?: number;
   borderRadius?: number;
+  cornerRadius?: number;
   paddingX?: number;
   paddingY?: number;
   numberSize?: number;

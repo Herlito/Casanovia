@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { Settings2, Link as LinkIcon } from 'lucide-react';
+import { Settings2, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Group as GroupIcon, Copy, Trash2, Image as ImageIcon, Layers, Upload, X, Ungroup } from 'lucide-react';
 import { FontPicker } from './FontPicker';
-import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic } from 'lucide-react';
 
 
 
@@ -51,8 +50,82 @@ const GradientEditor = ({ style, onChange }: any) => {
 };
 
 export const PropertiesPanel: React.FC = () => {
-  const { document, selectedElementIds, updateElement, updateCanvas, eventData } = useEditorStore();
+  const { 
+    document, 
+    selectedElementIds, 
+    updateElement, 
+    updateCanvas, 
+    eventData,
+    groupElements,
+    ungroupElements,
+    duplicateElements,
+    deleteElements
+  } = useEditorStore();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
+  if (selectedElementIds.length > 1) {
+    const selectedList = document.pages[0].elements.filter(e => selectedElementIds.includes(e.id));
+    const hasAnyGrouped = selectedList.some(e => e.parentGroup);
+
+    return (
+      <div className="flex flex-col h-full wc-properties overflow-y-auto">
+        <div className="p-3 border-b border-gray-200/50 bg-[#EBEBEB]/50 backdrop-blur-md sticky top-0 z-10">
+          <h3 className="text-[11px] font-semibold text-gray-800 flex items-center space-x-1.5 uppercase tracking-wide">
+            <Layers className="w-4 h-4 text-blue-600" />
+            <span>Selección Múltiple</span>
+          </h3>
+        </div>
+        <div className="p-4 space-y-4">
+          <div className="p-3 bg-blue-50/80 rounded-2xl border border-blue-200/60 shadow-sm">
+            <p className="text-xs font-bold text-blue-900">
+              {selectedElementIds.length} elementos seleccionados
+            </p>
+            <p className="text-[10px] text-blue-700 mt-1">
+              Puedes moverlos juntos, agruparlos o duplicarlos con un clic o con atajos de teclado.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <button
+              onClick={() => groupElements(selectedElementIds)}
+              className="w-full flex items-center justify-center space-x-2 py-2.5 px-3 rounded-2xl bg-white border border-gray-200 text-gray-800 hover:bg-gray-50 active:bg-gray-100 font-medium text-xs shadow-sm transition-all"
+            >
+              <GroupIcon className="w-4 h-4 text-blue-600" />
+              <span>Agrupar Elementos (Ctrl+G)</span>
+            </button>
+
+            {hasAnyGrouped && (
+              <button
+                onClick={() => ungroupElements(selectedElementIds)}
+                className="w-full flex items-center justify-center space-x-2 py-2.5 px-3 rounded-2xl bg-white border border-gray-200 text-gray-800 hover:bg-gray-50 active:bg-gray-100 font-medium text-xs shadow-sm transition-all"
+              >
+                <Ungroup className="w-4 h-4 text-amber-600" />
+                <span>Desagrupar (Ctrl+Shift+G)</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => duplicateElements(selectedElementIds)}
+              className="w-full flex items-center justify-center space-x-2 py-2.5 px-3 rounded-2xl bg-white border border-gray-200 text-gray-800 hover:bg-gray-50 active:bg-gray-100 font-medium text-xs shadow-sm transition-all"
+            >
+              <Copy className="w-4 h-4 text-emerald-600" />
+              <span>Duplicar Selección (Ctrl+D)</span>
+            </button>
+
+            <button
+              onClick={() => deleteElements(selectedElementIds)}
+              className="w-full flex items-center justify-center space-x-2 py-2.5 px-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-medium text-xs shadow-sm transition-all"
+            >
+              <Trash2 className="w-4 h-4 text-rose-600" />
+              <span>Eliminar Selección (Supr)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const selectedElement = selectedElementIds.length === 1 
     ? document.pages[0].elements.find(e => e.id === selectedElementIds[0])
     : null;
@@ -762,6 +835,146 @@ export const PropertiesPanel: React.FC = () => {
                   onChange={(e) => handleUpdateStyle('containerOpacity', parseFloat(e.target.value))}
                 />
               </div>
+            </div>
+          </div>
+        )}
+
+        {selectedElement.type === 'image-frame' && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                Forma del Contenedor
+              </label>
+              <select
+                className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 outline-none transition-all"
+                value={selectedElement.content?.shapeVariant || 'rectangle'}
+                onChange={(e) => handleUpdateContent({ ...selectedElement.content, shapeVariant: e.target.value })}
+              >
+                <option value="rectangle">Rectángulo / Cuadrado</option>
+                <option value="circle">Círculo Perfecto</option>
+                <option value="oval">Óvalo</option>
+                <option value="arch">Arco Clásico (Portal de Boda)</option>
+              </select>
+            </div>
+
+            {/* Photo Inside Container */}
+            <div className="p-3 bg-white/70 rounded-2xl border border-gray-200/80 space-y-3">
+              <label className="block text-[10px] font-semibold text-gray-700 uppercase tracking-wider">
+                Foto Contenida
+              </label>
+
+              {selectedElement.content?.imageSrc ? (
+                <div className="space-y-2">
+                  <div className="relative w-full h-32 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
+                    <img 
+                      src={selectedElement.content.imageSrc} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex-1 flex items-center justify-center space-x-1.5 py-1.5 px-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-medium transition-all"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Cambiar Foto</span>
+                    </button>
+                    <button
+                      onClick={() => handleUpdateContent({ ...selectedElement.content, imageSrc: null })}
+                      className="flex items-center justify-center p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 transition-all"
+                      title="Quitar foto del marco"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="p-3 rounded-xl border border-dashed border-gray-300 bg-gray-50/50 text-center">
+                    <ImageIcon className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                    <p className="text-[11px] text-gray-600 font-medium">Sin imagen asignada</p>
+                    <p className="text-[9px] text-gray-400 mt-0.5">Arrastra una imagen del lienzo o de tu equipo y suéltala sobre esta forma.</p>
+                  </div>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl bg-[#2D3748] text-white hover:bg-black text-xs font-medium transition-all shadow-sm"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Subir Foto al Contenedor</span>
+                  </button>
+                </div>
+              )}
+
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      const src = ev.target?.result as string;
+                      handleUpdateContent({
+                        ...selectedElement.content,
+                        imageSrc: src
+                      });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+
+            {/* Colors and Borders */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color Fondo</label>
+                <input 
+                  type="color" 
+                  className="w-full h-7 p-0.5 border border-gray-200 rounded bg-gray-50/50 cursor-pointer"
+                  value={selectedElement.style?.fill || '#F8FAFC'}
+                  onChange={(e) => handleUpdateStyle('fill', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color Borde</label>
+                <input 
+                  type="color" 
+                  className="w-full h-7 p-0.5 border border-gray-200 rounded bg-gray-50/50 cursor-pointer"
+                  value={selectedElement.style?.stroke || '#CBD5E1'}
+                  onChange={(e) => handleUpdateStyle('stroke', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Grosor Borde</label>
+                <input 
+                  type="number" 
+                  min="0"
+                  max="30"
+                  className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
+                  value={selectedElement.style?.strokeWidth ?? 1}
+                  onChange={(e) => handleUpdateStyle('strokeWidth', parseInt(e.target.value) || 0)}
+                />
+              </div>
+              {(selectedElement.content?.shapeVariant || 'rectangle') === 'rectangle' && (
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Redondeo</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    max="150"
+                    className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
+                    value={selectedElement.style?.cornerRadius ?? 24}
+                    onChange={(e) => handleUpdateStyle('cornerRadius', parseInt(e.target.value) || 0)}
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}

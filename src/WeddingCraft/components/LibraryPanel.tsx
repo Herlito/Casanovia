@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const LibraryPanel: React.FC = () => {
   const { addElement, document } = useEditorStore();
+  const libraryVersion = useEditorStore(state => state.libraryVersion);
   const [libraryItems, setLibraryItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
@@ -24,7 +25,7 @@ export const LibraryPanel: React.FC = () => {
 
   useEffect(() => {
     loadItems();
-  }, []);
+  }, [libraryVersion]);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -133,6 +134,18 @@ export const LibraryPanel: React.FC = () => {
                     alt="Preview" 
                     className="max-h-12 max-w-full object-contain rounded mb-1" 
                   />
+                ) : item.element.type === 'image-frame' ? (
+                  item.element.content?.imageSrc ? (
+                    <img 
+                      src={item.element.content.imageSrc} 
+                      alt="Frame Preview" 
+                      className="max-h-12 max-w-full object-cover rounded-lg border border-indigo-200 mb-1" 
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-dashed border-indigo-300 flex items-center justify-center text-indigo-600 text-[10px] font-bold mb-1">
+                      Marco
+                    </div>
+                  )
                 ) : item.element.type === 'text' ? (
                   <p className="text-xs font-medium text-gray-800 truncate max-w-[100px] text-center mb-1">
                     "{item.element.content?.text}"

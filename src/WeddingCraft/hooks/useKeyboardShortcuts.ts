@@ -42,6 +42,26 @@ export const useKeyboardShortcuts = () => {
         return;
       }
 
+      // Duplicate: Ctrl+D or Cmd+D
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+        if (selectedIds.length > 0) {
+          e.preventDefault();
+          state.duplicateElements(selectedIds);
+        }
+        return;
+      }
+
+      // Group: Ctrl+G / Ungroup: Ctrl+Shift+G
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          state.ungroupElements(selectedIds);
+        } else {
+          state.groupElements(selectedIds);
+        }
+        return;
+      }
+
       // Arrow keys to move
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         if (selectedIds.length > 0) {

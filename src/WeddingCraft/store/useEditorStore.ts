@@ -34,13 +34,17 @@ interface EditorState {
   
   // Save Modal
   isSaveModalOpen: boolean;
+  saveModalInitialMode: 'prompt' | 'save_as';
   setSaveModalOpen: (isOpen: boolean) => void;
+  openSaveModal: (mode?: 'prompt' | 'save_as') => void;
 
   // Editor UI State
   selectedElementIds: string[];
   zoom: number;
   magnetEnabled: boolean;
   setMagnetEnabled: (enabled: boolean) => void;
+  libraryVersion: number;
+  triggerLibraryUpdate: () => void;
   
   // History for Undo/Redo
   history: {
@@ -65,6 +69,9 @@ interface EditorState {
   updateElement: (id: string, updates: Partial<CanvasElement>) => void;
   updateCanvas: (updates: Partial<WeddingDesignDocument['canvas']>) => void;
   deleteElements: (ids: string[]) => void;
+  duplicateElements: (ids: string[]) => void;
+  groupElements: (ids: string[]) => void;
+  ungroupElements: (ids: string[]) => void;
   selectElements: (ids: string[]) => void;
   
   // Viewport
@@ -116,12 +123,16 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
 
   isSaveModalOpen: false,
+  saveModalInitialMode: 'prompt',
   setSaveModalOpen: (isOpen) => set({ isSaveModalOpen: isOpen }),
+  openSaveModal: (mode = 'prompt') => set({ isSaveModalOpen: true, saveModalInitialMode: mode }),
 
   selectedElementIds: [],
   zoom: 1,
   magnetEnabled: true,
   setMagnetEnabled: (enabled) => set({ magnetEnabled: enabled }),
+  libraryVersion: 0,
+  triggerLibraryUpdate: () => set(state => ({ libraryVersion: state.libraryVersion + 1 })),
   
   history: { past: [], future: [] },
   templates: [],
@@ -308,6 +319,74 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     set(produce((state: EditorState) => {
       state.document.pages[0].elements = state.document.pages[0].elements.filter(e => !ids.includes(e.id));
       state.selectedElementIds = state.selectedElementIds.filter(id => !ids.includes(id));
+    }));
+  },
+
+  duplicateElements: (ids) => {
+    if (!ids || ids.length === 0) return;
+    get().commitHistory();
+    set(produce((state: EditorState) => {
+      const elements = state.document.pages[0].elements;
+      const targetElements = elements.filter(e => ids.includes(e.id));
+      if (targetElements.length === 0) return;
+
+      const groupMap: Record<string, string> = {};
+      const newIds: string[] = [];
+
+      targetElements.forEach((el, idx) => {
+        const newId = uuidv4();
+        newIds.push(newId);
+
+        let newGroup = el.parentGroup;
+        if (el.parentGroup) {
+          if (!groupMap[el.parentGroup]) {
+            groupMap[el.parentGroup] = 'group_' + uuidv4();
+          }
+          newGroup = groupMap[el.parentGroup];
+        }
+
+        const clone: CanvasElement = JSON.parse(JSON.stringify(el));
+        clone.id = newId;
+        clone.parentGroup = newGroup;
+        clone.transform.x = (clone.transform.x || 0) + 20;
+        clone.transform.y = (clone.transform.y || 0) + 20;
+        clone.zIndex = elements.length + idx + 1;
+
+        elements.push(clone);
+      });
+
+      state.selectedElementIds = newIds;
+      state.document.metadata.lastModified = Date.now();
+    }));
+  },
+
+  groupElements: (ids) => {
+    if (!ids || ids.length < 2) return;
+    get().commitHistory();
+    const newGroupId = 'group_' + uuidv4();
+    set(produce((state: EditorState) => {
+      state.document.pages[0].elements.forEach(el => {
+        if (ids.includes(el.id)) {
+          el.parentGroup = newGroupId;
+        }
+      });
+      state.document.metadata.lastModified = Date.now();
+    }));
+  },
+
+  ungroupElements: (ids) => {
+    if (!ids || ids.length === 0) return;
+    get().commitHistory();
+    set(produce((state: EditorState) => {
+      const targetElements = state.document.pages[0].elements.filter(e => ids.includes(e.id));
+      const targetGroups = new Set(targetElements.map(e => e.parentGroup).filter(Boolean));
+
+      state.document.pages[0].elements.forEach(el => {
+        if (ids.includes(el.id) || (el.parentGroup && targetGroups.has(el.parentGroup))) {
+          el.parentGroup = undefined;
+        }
+      });
+      state.document.metadata.lastModified = Date.now();
     }));
   },
 

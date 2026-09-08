@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { Layers, Image as ImageIcon, Type, Eye, EyeOff, Lock, Unlock, Trash2, Clock, Link2 } from 'lucide-react';
+import { Layers, Image as ImageIcon, Type, Eye, EyeOff, Lock, Unlock, Trash2, Clock, Link2, Frame, Boxes } from 'lucide-react';
 
 export const LayersPanel: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => {
   const { document, selectedElementIds, selectElements, updateElement, deleteElements } = useEditorStore();
@@ -13,6 +13,7 @@ export const LayersPanel: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => {
     switch(type) {
       case 'text': return <Type className="w-3.5 h-3.5" />;
       case 'image': return <ImageIcon className="w-3.5 h-3.5" />;
+      case 'image-frame': return <Frame className="w-3.5 h-3.5 text-indigo-600" />;
       case 'countdown-widget': return <Clock className="w-3.5 h-3.5 text-blue-500" />;
       case 'interactive-button': return <Link2 className="w-3.5 h-3.5 text-blue-500" />;
       default: return <Layers className="w-3.5 h-3.5" />;
@@ -57,11 +58,21 @@ export const LayersPanel: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => {
                     if (el.content.originalSrc && el.content.originalSrc.indexOf('image/jpeg') !== -1) return 'Imagen JPG';
                     return 'Imagen';
                   }
+                  if (el.type === 'image-frame') {
+                    const variant = el.content?.shapeVariant || 'rectángulo';
+                    const hasImg = Boolean(el.content?.imageSrc);
+                    return `Marco (${variant})${hasImg ? ' • Foto' : ' • Vacío'}`;
+                  }
                   if (el.type === 'countdown-widget') return 'Cuenta Regresiva';
                   if (el.type === 'interactive-button') return 'Botón Ubicación';
                   if (el.type === 'svg-shape') return 'Forma';
                   return 'Elemento';
                 })()}
+                {el.parentGroup && (
+                  <span className="ml-1 text-[9px] font-bold text-indigo-700 bg-indigo-50 px-1 py-0.5 rounded" title="Elemento agrupado">
+                    Grupo
+                  </span>
+                )}
                 {el.dataBinding && <span className="ml-1 text-[#D4AF37]" title="Vinculado al evento">🔗</span>}
               </span>
             </div>
