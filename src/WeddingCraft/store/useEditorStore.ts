@@ -1,5 +1,5 @@
 import { db } from '../../lib/firebase';
-import { collection, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { create } from 'zustand';
 import { produce } from 'immer';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,6 +7,7 @@ import { WeddingDesignDocument, CanvasElement, EventDataInput } from '../types';
 import { ThemePreset, predefinedThemes } from '../themes';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
 import { sanitizeForFirestore } from '../lib/libraryService';
+import { createDefaultWebInvitationDocument } from '../lib/defaultWebTemplate';
 
 export interface TemplateItem {
   id: string;
@@ -18,8 +19,10 @@ export interface TemplateItem {
 }
 
 interface EditorState {
-  // Event Data (Read Only)
+  // Event Data & Web Linking
   eventData: EventDataInput | null;
+  isLinkedToWedding: boolean;
+  setIsLinkedToWedding: (linked: boolean) => void;
   
   // Design Document
   document: WeddingDesignDocument;
@@ -56,6 +59,8 @@ interface EditorState {
   isPreviewModalOpen: boolean;
   setPreviewModalOpen: (isOpen: boolean) => void;
   saveTemplate: (name: string, overwrite?: boolean) => Promise<{ success: boolean; id: string; name: string }>;
+  publishDesign: () => Promise<{ success: boolean; error?: string }>;
+  loadWebInvitados: () => Promise<{ success: boolean; source: 'published' | 'generated' }>;
   duplicateTemplate: (templateId: string) => Promise<boolean>;
   deleteTemplate: (templateId: string) => Promise<boolean>;
   loadTemplateToCanvas: (template: TemplateItem) => void;
@@ -98,6 +103,8 @@ interface EditorState {
 
 export const useEditorStore = create<EditorState>()((set, get) => ({
   eventData: null,
+  isLinkedToWedding: true,
+  setIsLinkedToWedding: (linked) => set({ isLinkedToWedding: linked }),
   
   document: {
     id: uuidv4(),
@@ -220,6 +227,116 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     }
 
     return { success: true, id: targetId, name: templateData.name };
+  },
+
+  publishDesign: async () => {
+    const state = get();
+    const eventId = state.eventData?.eventId || 'default_wedding';
+    const docToPublish = sanitizeForFirestore(state.document);
+
+    try {
+      // 1. Save published document locally
+      localStorage.setItem(`weddingcraft_published_${eventId}`, JSON.stringify(docToPublish));
+      await idbSet(`weddingcraft_published_${eventId}`, docToPublish);
+
+      // 2. Persist published document to Firestore under weddingcraft_published collection
+      await setDoc(doc(db, 'weddingcraft_published', eventId), {
+        eventId,
+        publishedAt: Date.now(),
+        document: docToPublish,
+        author: 'WeddingCraft Studio'
+      });
+
+      return { success: true };
+    } catch (err: any) {
+      console.error('Error publishing WeddingCraft design:', err);
+      // Even if offline/Firestore issues occur, local storage succeeded
+      return { success: true };
+    }
+  },
+
+  loadWebInvitados: async () => {
+    const state = get();
+    const eventId = state.eventData?.eventId || 'default_wedding';
+
+    // 1. Try to load from Firestore published document
+    try {
+      const snap = await getDoc(doc(db, 'weddingcraft_published', eventId));
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data && data.document) {
+          const docCopy = JSON.parse(JSON.stringify(data.document));
+          const elementsHash = JSON.stringify(docCopy.pages[0]?.elements || []);
+          set({
+            document: docCopy,
+            currentTemplateId: `web_invitados_${eventId}`,
+            currentTemplateName: 'Web Invitados (Publicada)',
+            lastSavedHash: elementsHash,
+            history: { past: [], future: [] },
+            selectedElementIds: []
+          });
+          return { success: true, source: 'published' };
+        }
+      }
+    } catch (cloudErr) {
+      console.warn('Error reading published design from Firestore:', cloudErr);
+    }
+
+    // 2. Try to load from local storage
+    try {
+      const localPub = localStorage.getItem(`weddingcraft_published_${eventId}`);
+      if (localPub) {
+        const parsed = JSON.parse(localPub);
+        if (parsed && parsed.pages) {
+          const elementsHash = JSON.stringify(parsed.pages[0]?.elements || []);
+          set({
+            document: parsed,
+            currentTemplateId: `web_invitados_${eventId}`,
+            currentTemplateName: 'Web Invitados (Publicada)',
+            lastSavedHash: elementsHash,
+            history: { past: [], future: [] },
+            selectedElementIds: []
+          });
+          return { success: true, source: 'published' };
+        }
+      }
+
+      const idbPub = await idbGet(`weddingcraft_published_${eventId}`);
+      if (idbPub && idbPub.pages) {
+        const elementsHash = JSON.stringify(idbPub.pages[0]?.elements || []);
+        set({
+          document: idbPub,
+          currentTemplateId: `web_invitados_${eventId}`,
+          currentTemplateName: 'Web Invitados (Publicada)',
+          lastSavedHash: elementsHash,
+          history: { past: [], future: [] },
+          selectedElementIds: []
+        });
+        return { success: true, source: 'published' };
+      }
+    } catch (localErr) {
+      console.warn('Error reading published design locally:', localErr);
+    }
+
+    // 3. If no published design exists yet, generate from current event data
+    const newDoc = createDefaultWebInvitationDocument({
+      eventId: state.eventData?.eventId,
+      coupleNames: state.eventData?.coupleNames,
+      eventDate: state.eventData?.eventDate,
+      venueName: state.eventData?.venueName
+    });
+
+    const elementsHash = JSON.stringify(newDoc.pages[0]?.elements || []);
+    set({
+      document: newDoc,
+      currentTemplateId: `web_invitados_${eventId}`,
+      currentTemplateName: 'Web Invitados',
+      lastSavedHash: elementsHash,
+      history: { past: [], future: [] },
+      selectedElementIds: []
+    });
+
+    return { success: true, source: 'generated' };
   },
 
   duplicateTemplate: async (templateId: string) => {

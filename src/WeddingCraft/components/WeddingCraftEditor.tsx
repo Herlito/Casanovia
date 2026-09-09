@@ -15,6 +15,8 @@ import { WeddingDesignDocument } from '../types';
 import { X } from 'lucide-react';
 import { exportToHTML } from '../lib/exportHTML';
 import { SaveTemplateModal } from './SaveTemplateModal';
+import { FloatingPropertiesToolbar } from './FloatingPropertiesToolbar';
+import { createDefaultWebInvitationDocument } from '../lib/defaultWebTemplate';
 
 interface WeddingCraftEditorProps {
   externalAPI: any;
@@ -70,8 +72,20 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
             } catch (e) {
                console.warn("Failed to parse saved draft", e);
             }
+          } else {
+            // Default State: If linked and no design exists, load the current "Web Invitados" as the default canvas
+            const isLinked = useEditorStore.getState().isLinkedToWedding;
+            if (isLinked) {
+              const defaultDoc = createDefaultWebInvitationDocument({
+                eventId: eventData.eventId,
+                coupleNames: eventData.coupleNames,
+                eventDate: eventData.eventDate,
+                venueName: eventData.venueName,
+                venueAddress: eventData.venueAddress,
+              });
+              initializeDocument(defaultDoc);
+            }
           }
-          // Else relies on the store's default document
         }
 
         setIsLoading(false);
@@ -140,6 +154,7 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
       <div className="flex-1 flex overflow-hidden p-0 md:p-3 md:gap-3">
         <LeftSidebar />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+          <FloatingPropertiesToolbar />
           <CanvasStage />
           <FooterControls />
         </div>

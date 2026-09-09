@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
+import { useWedding } from '../../context/WeddingContext';
 import { downloadHTML } from '../lib/exportHTML';
 import { 
   Save, 
@@ -16,13 +17,23 @@ import {
   Ungroup,
   BookmarkPlus,
   Check,
-  Loader2
+  Loader2,
+  Globe,
+  Heart,
+  ChevronDown,
+  RefreshCw
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 export const Toolbar: React.FC = () => {
   const [isSavingDirect, setIsSavingDirect] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [justPublished, setJustPublished] = useState(false);
+  const [isLoadingWeb, setIsLoadingWeb] = useState(false);
+  const [justLoadedWeb, setJustLoadedWeb] = useState(false);
+
+  const { activeWedding, accessibleWeddings, selectWedding } = useWedding();
 
   const { 
     document, 
@@ -39,6 +50,8 @@ export const Toolbar: React.FC = () => {
     setSaveModalOpen,
     openSaveModal,
     directSaveCurrentTemplate,
+    publishDesign,
+    loadWebInvitados,
     duplicateElements,
     groupElements,
     ungroupElements
@@ -115,6 +128,28 @@ export const Toolbar: React.FC = () => {
           </button>
         </div>
 
+        {/* Wedding Selector (Displaying activeWedding.coupleNames) */}
+        {activeWedding && (
+          <div className="relative flex items-center space-x-1.5 px-3 py-1 bg-[#EBEBEB] rounded-xl shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-xs">
+            <Heart className="w-3.5 h-3.5 text-rose-500 shrink-0 fill-rose-100" />
+            <span className="text-[11px] font-bold text-gray-800 truncate max-w-[150px] sm:max-w-[200px]" title={activeWedding.coupleNames}>
+              {activeWedding.coupleNames}
+            </span>
+            {accessibleWeddings && accessibleWeddings.length > 1 && (
+              <select 
+                value={activeWedding.id}
+                onChange={(e) => selectWedding(e.target.value)}
+                className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                title="Cambiar boda activa"
+              >
+                {accessibleWeddings.map(w => (
+                  <option key={w.id} value={w.id}>{w.coupleNames}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
+
         {currentTemplateName && (
           <div className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 bg-[#EBEBEB] rounded-xl shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]">
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -185,6 +220,35 @@ export const Toolbar: React.FC = () => {
       </div>
 
       <div className="flex items-center space-x-2.5">
+        {/* Cargar Web Invitados */}
+        <button 
+          onClick={async () => {
+            setIsLoadingWeb(true);
+            const res = await loadWebInvitados();
+            setIsLoadingWeb(false);
+            if (res.success) {
+              setJustLoadedWeb(true);
+              setTimeout(() => setJustLoadedWeb(false), 2500);
+            }
+          }}
+          disabled={isLoadingWeb}
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-2xl transition-all text-xs font-bold ${
+            justLoadedWeb 
+              ? 'bg-amber-600 text-white shadow-[inset_4px_4px_8px_#b45309]' 
+              : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-amber-800 hover:text-amber-900'
+          }`}
+          title="Cargar la Web de Invitados actual en el lienzo para editarla"
+        >
+          {isLoadingWeb ? (
+            <Loader2 className="w-4 h-4 text-amber-700 animate-spin" />
+          ) : justLoadedWeb ? (
+            <Check className="w-4 h-4 text-white" />
+          ) : (
+            <RefreshCw className="w-4 h-4 text-amber-700" />
+          )}
+          <span>{isLoadingWeb ? 'Cargando...' : justLoadedWeb ? '¡Cargada!' : 'Cargar Web Invitados'}</span>
+        </button>
+
         {/* Nueva Plantilla */}
         <button 
           onClick={handleNewTemplate}
@@ -236,6 +300,35 @@ export const Toolbar: React.FC = () => {
             <Save className="w-4 h-4 text-emerald-600" />
           )}
           <span>{isSavingDirect ? 'Guardando...' : justSaved ? '¡Guardado!' : 'Guardar'}</span>
+        </button>
+
+        {/* Publicar Diseño como Web Invitados */}
+        <button 
+          onClick={async () => {
+            setIsPublishing(true);
+            const res = await publishDesign();
+            setIsPublishing(false);
+            if (res.success) {
+              setJustPublished(true);
+              setTimeout(() => setJustPublished(false), 3000);
+            }
+          }}
+          disabled={isPublishing}
+          className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-2xl transition-all text-xs font-bold ${
+            justPublished
+              ? 'bg-emerald-600 text-white shadow-[inset_4px_4px_8px_#047857]'
+              : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#6A2534]'
+          }`}
+          title="Publicar diseño para la Web de Invitados"
+        >
+          {isPublishing ? (
+            <Loader2 className="w-4 h-4 text-[#6A2534] animate-spin" />
+          ) : justPublished ? (
+            <Check className="w-4 h-4 text-white" />
+          ) : (
+            <Globe className="w-4 h-4 text-[#6A2534]" />
+          )}
+          <span>{isPublishing ? 'Publicando...' : justPublished ? '¡Publicado!' : 'Publicar'}</span>
         </button>
 
         {/* Exportar HTML */}

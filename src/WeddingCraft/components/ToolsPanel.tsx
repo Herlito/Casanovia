@@ -7,19 +7,24 @@ import {
   Heart, 
   Image as ImageIcon, 
   Music, 
-  Link2, 
+  MapPin, 
   Clock, 
   Shapes, 
   Frame,
+  Layers,
   ChevronDown,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Minus
 } from 'lucide-react';
+import { LayersPanel } from './LayersPanel';
 
 export const ToolsPanel: React.FC = () => {
   const { addElement, document } = useEditorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [shapesExpanded, setShapesExpanded] = useState(true);
+  const [shapesExpanded, setShapesExpanded] = useState(false);
+  const [containerShapesExpanded, setContainerShapesExpanded] = useState(false);
+  const [layersExpanded, setLayersExpanded] = useState(true);
 
   const handleAddText = () => {
     addElement({
@@ -33,6 +38,37 @@ export const ToolsPanel: React.FC = () => {
         opacity: 1
       },
       transform: { x: 50, y: 50, width: 250, height: 50, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: document.pages[0].elements.length,
+      locked: false,
+      visible: true
+    });
+  };
+
+  const handleAddVectorShape = (variant: 'rectangle' | 'circle' | 'line' | 'oval') => {
+    const isCircle = variant === 'circle';
+    const isLine = variant === 'line';
+    const isOval = variant === 'oval';
+
+    addElement({
+      type: 'svg-shape',
+      content: { svgPath: '' },
+      style: {
+        variant: variant,
+        fill: isLine ? 'transparent' : '#CBD5E1',
+        stroke: '#4A5568',
+        strokeWidth: isLine ? 2 : 1,
+        borderRadius: isCircle ? 999 : 8,
+        opacity: 1
+      },
+      transform: {
+        x: 60,
+        y: 120,
+        width: isLine ? 220 : isOval ? 200 : isCircle ? 140 : 160,
+        height: isLine ? 30 : isOval ? 130 : isCircle ? 140 : 120,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1
+      },
       zIndex: document.pages[0].elements.length,
       locked: false,
       visible: true
@@ -90,25 +126,31 @@ export const ToolsPanel: React.FC = () => {
         variant: 'cards',
         opacity: 1
       },
-      transform: { x: 50, y: 200, width: 280, height: 80, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: 45, y: 200, width: 285, height: 80, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: document.pages[0].elements.length,
       locked: false,
       visible: true
     });
   };
 
-  const handleAddButton = () => {
+  const handleAddLocationButton = () => {
     addElement({
       type: 'interactive-button',
-      content: { text: 'Ver Ubicación', actionType: 'copy-link', linkUrl: '' },
+      content: { 
+        text: '📍 Cómo Llegar / Ubicación', 
+        actionType: 'scroll-to-section', 
+        linkUrl: '#event-details-section' 
+      },
       style: {
-        backgroundColor: '#524B42',
+        backgroundColor: '#2D3748',
         color: '#FFFFFF',
         variant: 'solid',
-        borderRadius: 8,
+        borderRadius: 16,
+        fontSize: 14,
+        fontFamily: 'Montserrat',
         opacity: 1
       },
-      transform: { x: 50, y: 300, width: 200, height: 45, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: 50, y: 300, width: 220, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: document.pages[0].elements.length,
       locked: false,
       visible: true
@@ -116,166 +158,223 @@ export const ToolsPanel: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#EBEBEB] rounded-3xl shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-4">
-      <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Herramientas</h3>
-      <div className="flex flex-col space-y-2">
-        <button onClick={handleAddText} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
-          <Type className="w-4 h-4 text-[#2D3748]" />
-          <span>Texto</span>
-        </button>
+    <div className="w-full flex flex-col space-y-2">
+      {/* 1. Texto */}
+      <button 
+        onClick={handleAddText} 
+        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer"
+      >
+        <Type className="w-4 h-4 text-[#2D3748]" />
+        <span>Texto</span>
+      </button>
 
-        {/* Forma Contenedor de Imagen (Sección Principal de Formas) */}
-        <div className="rounded-2xl p-2.5 bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2 border border-slate-200/50">
-          <div 
-            onClick={() => setShapesExpanded(!shapesExpanded)}
-            className="flex items-center justify-between cursor-pointer px-1 text-[#2D3748]"
-          >
-            <div className="flex items-center space-x-2">
-              <Shapes className="w-4 h-4 text-indigo-600" />
-              <span className="text-xs font-bold text-gray-800">Formas Contenedor</span>
-            </div>
-            {shapesExpanded ? <ChevronDown className="w-3.5 h-3.5 text-gray-500" /> : <ChevronRight className="w-3.5 h-3.5 text-gray-500" />}
+      {/* 2. Formas (Básicas vectoriales) */}
+      <div className="rounded-2xl p-2.5 bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2 border border-slate-200/50">
+        <div 
+          onClick={() => setShapesExpanded(!shapesExpanded)}
+          className="flex items-center justify-between cursor-pointer px-1 text-[#2D3748]"
+        >
+          <div className="flex items-center space-x-2">
+            <Square className="w-4 h-4 text-emerald-600" />
+            <span className="text-xs font-bold text-gray-800">Formas</span>
           </div>
-          
-          <p className="text-[10px] text-gray-500 px-1 leading-tight">
-            Inserta una forma que corta y enmarca fotos arrastradas dentro de ella.
-          </p>
-
-          {shapesExpanded && (
-            <div className="grid grid-cols-2 gap-1.5 pt-1">
-              <button
-                onClick={() => handleAddShapeContainer('rectangle')}
-                className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all"
-                title="Rectángulo con esquinas redondeadas"
-              >
-                <Square className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                <span className="truncate">Rectángulo</span>
-              </button>
-
-              <button
-                onClick={() => handleAddShapeContainer('circle')}
-                className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all"
-                title="Círculo contenedor"
-              >
-                <Circle className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                <span className="truncate">Círculo</span>
-              </button>
-
-              <button
-                onClick={() => handleAddShapeContainer('oval')}
-                className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all"
-                title="Óvalo contenedor"
-              >
-                <div className="w-3.5 h-2.5 rounded-full border-2 border-indigo-600 shrink-0" />
-                <span className="truncate">Óvalo</span>
-              </button>
-
-              <button
-                onClick={() => handleAddShapeContainer('arch')}
-                className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all"
-                title="Arco o portal de boda"
-              >
-                <Frame className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                <span className="truncate">Arco Boda</span>
-              </button>
-
-              <button
-                onClick={() => handleAddShapeContainer('heart')}
-                className="col-span-2 flex items-center justify-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all"
-                title="Corazón contenedor"
-              >
-                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-100 shrink-0" />
-                <span>Corazón Contenedor</span>
-              </button>
-            </div>
-          )}
+          {shapesExpanded ? <ChevronDown className="w-3.5 h-3.5 text-gray-500" /> : <ChevronRight className="w-3.5 h-3.5 text-gray-500" />}
         </div>
-        <div className="relative">
-          <input
-            type="file"
-            accept="image/*"
-            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                  const src = ev.target?.result as string;
-                  const img = new Image();
-                  img.onload = () => {
-                    addElement({
-                      type: 'image',
-                      content: { src, originalSrc: src, naturalWidth: img.width, naturalHeight: img.height },
-                      style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
-                      transform: { x: 50, y: 50, width: img.width / 2, height: img.height / 2, rotation: 0, scaleX: 1, scaleY: 1 },
-                      zIndex: document.pages[0].elements.length,
-                      locked: false,
-                      visible: true
-                    });
-                  };
-                  img.src = src;
+        
+        {shapesExpanded && (
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
+            <button
+              onClick={() => handleAddVectorShape('rectangle')}
+              className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Rectángulo vectorial"
+            >
+              <Square className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="truncate">Rectángulo</span>
+            </button>
+            <button
+              onClick={() => handleAddVectorShape('circle')}
+              className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Círculo vectorial"
+            >
+              <Circle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="truncate">Círculo</span>
+            </button>
+            <button
+              onClick={() => handleAddVectorShape('oval')}
+              className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Óvalo vectorial"
+            >
+              <div className="w-3.5 h-2.5 rounded-full border-2 border-emerald-600 shrink-0" />
+              <span className="truncate">Óvalo</span>
+            </button>
+            <button
+              onClick={() => handleAddVectorShape('line')}
+              className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Línea divisora"
+            >
+              <Minus className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="truncate">Línea</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 3. Formas Contenedor (Marcos de recorte para fotos) */}
+      <div className="rounded-2xl p-2.5 bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2 border border-slate-200/50">
+        <div 
+          onClick={() => setContainerShapesExpanded(!containerShapesExpanded)}
+          className="flex items-center justify-between cursor-pointer px-1 text-[#2D3748]"
+        >
+          <div className="flex items-center space-x-2">
+            <Shapes className="w-4 h-4 text-indigo-600" />
+            <span className="text-xs font-bold text-gray-800">Formas Contenedor</span>
+          </div>
+          {containerShapesExpanded ? <ChevronDown className="w-3.5 h-3.5 text-gray-500" /> : <ChevronRight className="w-3.5 h-3.5 text-gray-500" />}
+        </div>
+        
+        {containerShapesExpanded && (
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
+            <button
+              onClick={() => handleAddShapeContainer('rectangle')}
+              className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Rectángulo redondeado"
+            >
+              <Square className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span className="truncate">Rectángulo</span>
+            </button>
+            <button
+              onClick={() => handleAddShapeContainer('circle')}
+              className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Círculo contenedor"
+            >
+              <Circle className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span className="truncate">Círculo</span>
+            </button>
+            <button
+              onClick={() => handleAddShapeContainer('oval')}
+              className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Óvalo contenedor"
+            >
+              <div className="w-3.5 h-2.5 rounded-full border-2 border-indigo-600 shrink-0" />
+              <span className="truncate">Óvalo</span>
+            </button>
+            <button
+              onClick={() => handleAddShapeContainer('arch')}
+              className="flex items-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Arco o portal"
+            >
+              <Frame className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span className="truncate">Arco Boda</span>
+            </button>
+            <button
+              onClick={() => handleAddShapeContainer('heart')}
+              className="col-span-2 flex items-center justify-center space-x-1.5 px-2 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Corazón contenedor"
+            >
+              <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-100 shrink-0" />
+              <span>Corazón Contenedor</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 4. Imagen */}
+      <div className="relative">
+        <input
+          type="file"
+          accept="image/*"
+          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (ev) => {
+                const src = ev.target?.result as string;
+                const img = new Image();
+                img.onload = () => {
+                  addElement({
+                    type: 'image',
+                    content: { src, originalSrc: src, naturalWidth: img.width, naturalHeight: img.height },
+                    style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
+                    transform: { x: 50, y: 50, width: img.width / 2, height: img.height / 2, rotation: 0, scaleX: 1, scaleY: 1 },
+                    zIndex: document.pages[0].elements.length,
+                    locked: false,
+                    visible: true
+                  });
                 };
-                reader.readAsDataURL(file);
-              }
-              e.target.value = '';
-            }}
-          />
-          <button className="w-full flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
-            <ImageIcon className="w-4 h-4 text-[#2D3748]" />
-            <span>Imagen</span>
-          </button>
-        </div>
-        <div className="relative">
-          <input
-            type="file"
-            accept="image/svg+xml,.svg"
-            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                if (file.size > 2 * 1024 * 1024) {
-                  alert("El SVG excede los 2MB");
-                  return;
-                }
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                  let svgText = ev.target?.result as string;
-                  const color = '#2D3748';
-                  const styleTag = `<style>* { fill: ${color} !important; stroke: ${color} !important; }</style>`;
-                  if (svgText.includes('<svg')) {
-                    svgText = svgText.replace(/(<svg[^>]*>)/i, `$1${styleTag}`);
-                  }
-                  const src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgText)));
-                  
-                  const img = new Image();
-                  img.onload = () => {
-                    addElement({
-                      type: 'image',
-                      content: { src, originalSrc: src, isSvg: true, svgText, naturalWidth: img.width, naturalHeight: img.height },
-                      style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, fill: '#2D3748', filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
-                      transform: { x: 50, y: 50, width: Math.min(img.width, 150), height: Math.min(img.height, 150 * (img.height / img.width)), rotation: 0, scaleX: 1, scaleY: 1 },
-                      zIndex: document.pages[0].elements.length,
-                      locked: false,
-                      visible: true
-                    });
-                  };
-                  img.src = src;
-                };
-                reader.readAsText(file);
-              }
-              e.target.value = '';
-            }}
-          />
-          <button className="w-full flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
-            <Shapes className="w-4 h-4 text-[#2D3748]" />
-            <span>Objeto</span>
-          </button>
-        </div>
-        <button onClick={handleAddCountdown} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
-          <Clock className="w-4 h-4 text-[#2D3748]" />
-          <span>Cuenta Regresiva</span>
+                img.src = src;
+              };
+              reader.readAsDataURL(file);
+            }
+            e.target.value = '';
+          }}
+        />
+        <button className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer">
+          <ImageIcon className="w-4 h-4 text-[#2D3748]" />
+          <span>Imagen</span>
         </button>
-        <button onClick={() => {
+      </div>
+
+      {/* 5. Objeto (SVG / Gráficos) */}
+      <div className="relative">
+        <input
+          type="file"
+          accept="image/svg+xml,.svg"
+          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              if (file.size > 2 * 1024 * 1024) {
+                alert("El SVG excede los 2MB");
+                return;
+              }
+              const reader = new FileReader();
+              reader.onload = (ev) => {
+                let svgText = ev.target?.result as string;
+                const color = '#2D3748';
+                const styleTag = `<style>* { fill: ${color} !important; stroke: ${color} !important; }</style>`;
+                if (svgText.includes('<svg')) {
+                  svgText = svgText.replace(/(<svg[^>]*>)/i, `$1${styleTag}`);
+                }
+                const src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgText)));
+                
+                const img = new Image();
+                img.onload = () => {
+                  addElement({
+                    type: 'image',
+                    content: { src, originalSrc: src, isSvg: true, svgText, naturalWidth: img.width, naturalHeight: img.height },
+                    style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, fill: '#2D3748', filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
+                    transform: { x: 50, y: 50, width: Math.min(img.width, 150), height: Math.min(img.height, 150 * (img.height / img.width)), rotation: 0, scaleX: 1, scaleY: 1 },
+                    zIndex: document.pages[0].elements.length,
+                    locked: false,
+                    visible: true
+                  });
+                };
+                img.src = src;
+              };
+              reader.readAsText(file);
+            }
+            e.target.value = '';
+          }}
+        />
+        <button className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer">
+          <Sparkles className="w-4 h-4 text-[#2D3748]" />
+          <span>Objeto</span>
+        </button>
+      </div>
+
+      {/* 6. Cuenta Regresiva */}
+      <button 
+        onClick={handleAddCountdown} 
+        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer"
+      >
+        <Clock className="w-4 h-4 text-[#2D3748]" />
+        <span>Cuenta Regresiva</span>
+      </button>
+
+      {/* 7. Audio */}
+      <button 
+        onClick={() => {
           addElement({
             type: 'audio-player',
             content: { src: '', title: 'Canción' },
@@ -285,14 +384,40 @@ export const ToolsPanel: React.FC = () => {
             locked: false,
             visible: true
           });
-        }} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
-          <Music className="w-4 h-4 text-[#2D3748]" />
-          <span>Audio</span>
-        </button>
-        <button onClick={handleAddButton} className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold hover:bg-[#F3EFEA] rounded-xl border border-transparent shadow-[inset_6px_6px_12px_#d1d1d1,inset_-6px_-6px_12px_#ffffff] bg-[#EBEBEB] text-[#2D3748]">
-          <Link2 className="w-4 h-4 text-[#2D3748]" />
-          <span>Botón Ubicación</span>
-        </button>
+        }} 
+        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer"
+      >
+        <Music className="w-4 h-4 text-[#2D3748]" />
+        <span>Audio</span>
+      </button>
+
+      {/* 8. Ubicación (Botón Interactivo de Navegación / Itinerario) */}
+      <button 
+        onClick={handleAddLocationButton} 
+        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer"
+      >
+        <MapPin className="w-4 h-4 text-rose-600" />
+        <span>Ubicación</span>
+      </button>
+
+      {/* 9. Capas */}
+      <div className="rounded-2xl p-2.5 bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2 border border-slate-200/50">
+        <div 
+          onClick={() => setLayersExpanded(!layersExpanded)}
+          className="flex items-center justify-between cursor-pointer px-1 text-[#2D3748]"
+        >
+          <div className="flex items-center space-x-2">
+            <Layers className="w-4 h-4 text-purple-600" />
+            <span className="text-xs font-bold text-gray-800">Capas</span>
+          </div>
+          {layersExpanded ? <ChevronDown className="w-3.5 h-3.5 text-gray-500" /> : <ChevronRight className="w-3.5 h-3.5 text-gray-500" />}
+        </div>
+
+        {layersExpanded && (
+          <div className="pt-1 max-h-56 overflow-y-auto">
+            <LayersPanel isMobile={true} />
+          </div>
+        )}
       </div>
     </div>
   );

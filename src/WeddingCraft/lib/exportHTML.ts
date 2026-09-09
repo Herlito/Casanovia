@@ -200,6 +200,35 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
           });
         });
         `;
+      } else if (el.content.actionType === 'scroll-to-section') {
+        scriptContent += `
+        document.getElementById('${btnId}').addEventListener('click', function() {
+          const targetId = '${(el.content.linkUrl || '').replace('#', '')}';
+          const target = document.getElementById(targetId) || window.parent?.document?.getElementById(targetId);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else if ('${el.content.linkUrl || ''}'.startsWith('#')) {
+            window.location.hash = '${el.content.linkUrl || ''}';
+          }
+        });
+        `;
+      } else if (el.content.linkUrl) {
+        scriptContent += `
+        document.getElementById('${btnId}').addEventListener('click', function() {
+          const url = '${el.content.linkUrl}';
+          if (url.startsWith('#')) {
+            const targetId = url.replace('#', '');
+            const target = document.getElementById(targetId) || window.parent?.document?.getElementById(targetId);
+            if (target) {
+              target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+              window.location.hash = url;
+            }
+          } else {
+            window.open(url, '_blank');
+          }
+        });
+        `;
       }
     }
     else if (el.type === 'audio-player') {

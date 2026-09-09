@@ -725,13 +725,70 @@ export const PropertiesPanel: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Enlace (URL)</label>
+              <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Acción / Destino del Botón</label>
+              <select
+                className="w-full text-xs p-2 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all mb-2"
+                value={
+                  selectedElement.content.linkUrl === '#rsvp-section' 
+                    ? '#rsvp-section'
+                    : selectedElement.content.linkUrl === '#event-details-section'
+                    ? '#event-details-section'
+                    : selectedElement.content.linkUrl === '#gift-registry-section'
+                    ? '#gift-registry-section'
+                    : selectedElement.content.linkUrl === '#wishes-wall-section'
+                    ? '#wishes-wall-section'
+                    : selectedElement.content.linkUrl === '#protocol-pass-section'
+                    ? '#protocol-pass-section'
+                    : selectedElement.content.actionType === 'copy-link'
+                    ? '__copy_link__'
+                    : '__custom_url__'
+                }
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '__copy_link__') {
+                    handleUpdateContent({
+                      ...selectedElement.content,
+                      actionType: 'copy-link'
+                    });
+                  } else if (val === '__custom_url__') {
+                    handleUpdateContent({
+                      ...selectedElement.content,
+                      actionType: 'open-url'
+                    });
+                  } else {
+                    // Internal section link
+                    handleUpdateContent({
+                      ...selectedElement.content,
+                      actionType: 'scroll-to-section',
+                      linkUrl: val
+                    });
+                  }
+                }}
+              >
+                <optgroup label="Secciones Web Invitados (Opción 2)">
+                  <option value="#rsvp-section">Confirmar Asistencia (RSVP)</option>
+                  <option value="#event-details-section">Cómo llegar / Ubicación y Horarios</option>
+                  <option value="#gift-registry-section">Mesa de Regalos / Datos Bancarios</option>
+                  <option value="#wishes-wall-section">Muro de Firmas y Deseos</option>
+                  <option value="#protocol-pass-section">Pase de Entrada / Protocolo</option>
+                </optgroup>
+                <optgroup label="Otras Acciones">
+                  <option value="__custom_url__">Enlace Externo Personalizado (URL)</option>
+                  <option value="__copy_link__">Copiar Texto al Portapapeles</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                {selectedElement.content.actionType === 'copy-link' ? 'Texto a Copiar' : 'Enlace / ID de Destino'}
+              </label>
               <input 
                 type="text" 
                 className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
                 value={selectedElement.content.linkUrl || ''}
                 onChange={(e) => handleUpdateContent({ ...selectedElement.content, linkUrl: e.target.value })}
-                placeholder="https://goo.gl/maps/..."
+                placeholder="#rsvp-section o https://..."
               />
             </div>
             <div>
