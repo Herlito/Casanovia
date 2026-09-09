@@ -338,14 +338,15 @@ export const RsvpSection: React.FC = () => {
               </div>
             )}
 
-            {/* Submit Button */}
+            {/* Submit Button (Neumorphic Style) */}
             <button
               type="submit"
               id="btn-submit-rsvp"
-              className="w-full py-4 rounded-xl bg-linear-to-r from-[#2D3748] to-[#732837] text-[#2D3748] font-bold text-sm hover:from-[#7A2F3D] hover:to-[#621E2C] transition-all duration-200 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] flex items-center justify-center space-x-2 cursor-pointer transform active:scale-99"
+              disabled={isSubmitting}
+              className="w-full py-4 rounded-2xl bg-[#EBEBEB] text-gray-900 font-bold text-sm transition-all duration-300 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-60"
             >
-              <Send className="w-4 h-4" />
-              <span>Enviar Mi Confirmación</span>
+              <Send className="w-4 h-4 text-gray-700" />
+              <span>{isSubmitting ? 'Enviando Confirmación...' : 'Enviar Mi Confirmación'}</span>
             </button>
           </form>
         </div>
