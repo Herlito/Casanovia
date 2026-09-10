@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useWedding } from '../../context/WeddingContext';
-import { Clock, Heart, Sparkles } from 'lucide-react';
+import { Clock, Heart, Sparkles, Edit3 } from 'lucide-react';
 import { parseWeddingDateParts, formatCeremonyTimeSimple, isRsvpDeadlinePassed } from '../../lib/dateUtils';
+import { useSyncedInvitationDesign } from '../../hooks/useSyncedInvitationDesign';
+import { SyncedInvitationHero } from './SyncedInvitationHero';
 
 export const HeroCountdown: React.FC = () => {
-  const { settings } = useWedding();
+  const { settings, activeWedding, activeWeddingId, currentUser, setShowWeddingCraftModal } = useWedding();
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
+
+  const targetEventId = activeWedding?.id || activeWeddingId || (settings as any)?.id || 'demo_event';
+  const { document: syncedDesign, hasCustomDesign } = useSyncedInvitationDesign(targetEventId);
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -69,8 +74,31 @@ export const HeroCountdown: React.FC = () => {
     <>{settings.coupleNames}</>
   );
 
+  // If a visual design has been customized/published in WeddingCraft, render the synced WYSIWYG hero
+  if (hasCustomDesign && syncedDesign) {
+    return (
+      <SyncedInvitationHero
+        document={syncedDesign}
+        onOpenEditor={() => setShowWeddingCraftModal(true)}
+        showEditTrigger={Boolean(currentUser)}
+      />
+    );
+  }
+
   return (
     <section className="relative overflow-hidden pt-6 pb-12 sm:pt-10 sm:pb-16 bg-[#EBEBEB]">
+      {Boolean(currentUser) && (
+        <div className="max-w-xl mx-auto px-4 mb-4 flex justify-end">
+          <button
+            id="btn-open-editor-from-hero"
+            onClick={() => setShowWeddingCraftModal(true)}
+            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-[#EBEBEB] text-xs font-semibold text-[#2D3748] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all cursor-pointer"
+          >
+            <Edit3 className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <span>Personalizar Diseño Visual</span>
+          </button>
+        </div>
+      )}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
         {/* Couple Names in Large Display Serif Typography */}
         <h1 className="font-serif-display text-4xl sm:text-5xl md:text-6xl font-bold text-[#2D2A26] tracking-tight leading-none mb-2">

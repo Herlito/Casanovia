@@ -171,6 +171,44 @@
         "updatedAt": { "type": "string", "description": "Timestamp of last modification" }
       },
       "required": ["id", "weddingId", "updatedAt"]
+    },
+    "WeddingCraftPublished": {
+      "title": "WeddingCraftPublished",
+      "description": "Published interactive digital invitation design for the wedding web",
+      "type": "object",
+      "properties": {
+        "eventId": { "type": "string", "description": "Target wedding event identifier" },
+        "publishedAt": { "type": "number", "description": "Timestamp of publication" },
+        "document": { "type": "object", "description": "Full design document JSON" },
+        "author": { "type": "string", "description": "Author identifier" }
+      },
+      "required": ["eventId", "publishedAt", "document"]
+    },
+    "WeddingCraftTemplate": {
+      "title": "WeddingCraftTemplate",
+      "description": "Saved invitation design template",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Template ID" },
+        "name": { "type": "string", "description": "Template name" },
+        "document": { "type": "object", "description": "Full design document JSON" },
+        "createdAt": { "type": "number", "description": "Timestamp of creation" },
+        "updatedAt": { "type": "number", "description": "Timestamp of last modification" }
+      },
+      "required": ["id", "name", "document"]
+    },
+    "WeddingCraftLibraryItem": {
+      "title": "WeddingCraftLibraryItem",
+      "description": "Custom reusable element saved to the user library",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Library item identifier" },
+        "category": { "type": "string", "description": "Category folder name" },
+        "name": { "type": "string", "description": "Item label" },
+        "element": { "type": "object", "description": "Saved element definition" },
+        "createdAt": { "type": "number", "description": "Timestamp of creation" }
+      },
+      "required": ["id", "name", "element"]
     }
   },
   "firestore": {
@@ -213,6 +251,18 @@
     "/floor_plans/{planId}": {
       "schema": "WeddingFloorPlan",
       "description": "Interactive floor plans with PDF backgrounds and seat guest assignments"
+    },
+    "/weddingcraft_published/{eventId}": {
+      "schema": "WeddingCraftPublished",
+      "description": "Collection of published wedding invitation designs rendered for guests"
+    },
+    "/weddingcraft_templates/{templateId}": {
+      "schema": "WeddingCraftTemplate",
+      "description": "Collection of reusable user and system design templates"
+    },
+    "/weddingcraft_library/{elementId}": {
+      "schema": "WeddingCraftLibraryItem",
+      "description": "Collection of custom design components and frames saved to the library"
     }
   }
 }

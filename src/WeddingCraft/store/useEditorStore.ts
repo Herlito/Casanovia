@@ -247,6 +247,13 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         author: 'WeddingCraft Studio'
       });
 
+      // 3. Dispatch reactive broadcast event for instant in-page synchronization
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('weddingcraft_design_updated', {
+          detail: { eventId, document: docToPublish }
+        }));
+      }
+
       return { success: true };
     } catch (err: any) {
       console.error('Error publishing WeddingCraft design:', err);

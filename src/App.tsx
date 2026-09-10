@@ -40,7 +40,9 @@ const MainLayout: React.FC = () => {
     showWeddingCraftModal,
     setShowWeddingCraftModal,
     setShowFloorPlanModal,
-    updateSettings
+    updateSettings,
+    activeWedding,
+    activeWeddingId
   } = useWedding();
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
@@ -139,7 +141,7 @@ const MainLayout: React.FC = () => {
                 ? settings.coupleNames.split(' & ')
                 : [settings?.groomName || 'Novio', settings?.brideName || 'Novia'];
               return {
-                eventId: (settings as any)?.id || 'demo_event',
+                eventId: activeWedding?.id || activeWeddingId || (settings as any)?.id || 'demo_event',
                 coupleNames: [names[0] || 'Novio', names[1] || 'Novia'],
                 eventDate: settings?.weddingDate || new Date().toISOString(),
                 venueName: settings?.ceremonyVenue?.name || 'Lugar',

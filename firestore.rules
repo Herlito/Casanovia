@@ -122,6 +122,13 @@ service cloud.firestore {
       allow delete: if isValidId(elementId);
     }
 
+    // WeddingCraft Published Designs (Live Web Invitados)
+    match /weddingcraft_published/{eventId} {
+      allow read: if true;
+      allow create, update: if isValidId(eventId);
+      allow delete: if isValidId(eventId);
+    }
+
     // Test connection document
     match /test/{testId} {
       allow read: if true;
