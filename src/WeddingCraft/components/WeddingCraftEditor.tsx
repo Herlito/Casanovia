@@ -82,6 +82,7 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
                 eventDate: eventData.eventDate,
                 venueName: eventData.venueName,
                 venueAddress: eventData.venueAddress,
+                romanticQuote: eventData.romanticQuote,
               });
               initializeDocument(defaultDoc);
             }

@@ -4,8 +4,17 @@ export interface EventDataInput {
   eventDate: string; // ISO Date
   venueName?: string;
   venueAddress?: string;
+  romanticQuote?: string;
   currentTheme?: string;
   isReadOnly?: boolean;
+  onSyncSettings?: (updates: {
+    coupleNames?: string;
+    brideName?: string;
+    groomName?: string;
+    weddingDate?: string;
+    ceremonyVenueName?: string;
+    romanticQuote?: string;
+  }) => Promise<void>;
 }
 
 export interface WeddingDesignDocument {
@@ -70,7 +79,7 @@ export interface CanvasElement {
   visible: boolean;
   parentGroup?: string;
   dataBinding?: {
-    field: 'coupleNames' | 'eventDate' | 'venueName';
+    field: 'coupleNames' | 'eventDate' | 'venueName' | 'romanticQuote' | 'headerTag' | 'footerGreeting';
     format?: string; // e.g. "{{0}} & {{1}}"
   };
   animation?: {

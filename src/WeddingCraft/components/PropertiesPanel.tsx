@@ -215,12 +215,37 @@ export const PropertiesPanel: React.FC = () => {
 
       <div className="p-3 space-y-4">
         {selectedElement.dataBinding && (
-          <div className="p-3 rounded-lg bg-blue-50 border border-blue-100 flex items-start space-x-2">
-            <LinkIcon className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs font-bold text-blue-900">Vinculado a Datos</p>
-              <p className="text-[10px] text-blue-700 mt-0.5">El contenido de este texto se inyecta desde el evento principal (Solo Lectura).</p>
+          <div className="p-3 rounded-xl bg-blue-50 border border-blue-200/60 shadow-sm space-y-2">
+            <div className="flex items-start justify-between space-x-2">
+              <div className="flex items-start space-x-2">
+                <LinkIcon className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-blue-900">Vinculado a Datos</p>
+                  <p className="text-[10px] text-blue-700 mt-0.5">
+                    Campo: <span className="font-semibold">
+                      {selectedElement.dataBinding.field === 'coupleNames' ? 'Nombres de los Novios' :
+                       selectedElement.dataBinding.field === 'eventDate' ? 'Fecha de la Boda' :
+                       selectedElement.dataBinding.field === 'venueName' ? 'Lugar de Ceremonia' :
+                       selectedElement.dataBinding.field === 'romanticQuote' ? 'Frase Romántica' :
+                       selectedElement.dataBinding.field === 'headerTag' ? 'Etiqueta de Encabezado' :
+                       selectedElement.dataBinding.field === 'footerGreeting' ? 'Despedida / Saludo' :
+                       selectedElement.dataBinding.field}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => updateElement(selectedElement.id, { dataBinding: undefined })}
+                className="text-[10px] font-semibold text-blue-700 hover:text-blue-900 underline shrink-0 transition-colors"
+                title="Desvincular del evento para escribir texto personalizado"
+              >
+                Desvincular
+              </button>
             </div>
+            <p className="text-[10px] text-blue-600/80 italic">
+              Sincronizado automáticamente con los datos principales de Casanovia.
+            </p>
           </div>
         )}
 

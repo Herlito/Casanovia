@@ -39,7 +39,8 @@ const MainLayout: React.FC = () => {
     showFloorPlanModal,
     showWeddingCraftModal,
     setShowWeddingCraftModal,
-    setShowFloorPlanModal
+    setShowFloorPlanModal,
+    updateSettings
   } = useWedding();
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
@@ -133,12 +134,22 @@ const MainLayout: React.FC = () => {
       {showWeddingCraftModal && (
         <WeddingCraftEditor
           externalAPI={{
-            getEventData: () => ({
-              eventId: (settings as any)?.id || 'demo_event',
-              coupleNames: [settings?.coupleNames?.split(' & ')[0] || 'Novio', settings?.coupleNames?.split(' & ')[1] || 'Novia'],
-              eventDate: settings?.weddingDate || new Date().toISOString(),
-              venueName: settings?.ceremonyVenue?.name || 'Lugar',
-            })
+            getEventData: () => {
+              const names = settings?.coupleNames?.includes(' & ')
+                ? settings.coupleNames.split(' & ')
+                : [settings?.groomName || 'Novio', settings?.brideName || 'Novia'];
+              return {
+                eventId: (settings as any)?.id || 'demo_event',
+                coupleNames: [names[0] || 'Novio', names[1] || 'Novia'],
+                eventDate: settings?.weddingDate || new Date().toISOString(),
+                venueName: settings?.ceremonyVenue?.name || 'Lugar',
+                venueAddress: settings?.ceremonyVenue?.address || '',
+                romanticQuote: settings?.romanticQuote || '',
+              };
+            },
+            syncSettings: async (updates: any) => {
+              await updateSettings(updates);
+            }
           }}
           onClose={() => setShowWeddingCraftModal(false)}
         />

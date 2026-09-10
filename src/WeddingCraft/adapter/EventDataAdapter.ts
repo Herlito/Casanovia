@@ -25,7 +25,9 @@ export class EventDataAdapter {
       eventDate: rawData.date || rawData.eventDate || new Date().toISOString(),
       venueName: rawData.venue?.name || rawData.venueName || undefined,
       venueAddress: rawData.venue?.address || rawData.venueAddress || undefined,
-      isReadOnly: true, // Force read-only mode for parent data
+      romanticQuote: rawData.romanticQuote || undefined,
+      onSyncSettings: typeof this.externalAPI.syncSettings === 'function' ? this.externalAPI.syncSettings : undefined,
+      isReadOnly: false,
     };
   }
 

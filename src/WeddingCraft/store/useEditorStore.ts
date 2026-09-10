@@ -323,7 +323,9 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       eventId: state.eventData?.eventId,
       coupleNames: state.eventData?.coupleNames,
       eventDate: state.eventData?.eventDate,
-      venueName: state.eventData?.venueName
+      venueName: state.eventData?.venueName,
+      venueAddress: state.eventData?.venueAddress,
+      romanticQuote: state.eventData?.romanticQuote
     });
 
     const elementsHash = JSON.stringify(newDoc.pages[0]?.elements || []);

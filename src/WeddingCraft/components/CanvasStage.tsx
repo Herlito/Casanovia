@@ -976,6 +976,27 @@ export const CanvasStage: React.FC = () => {
                     }
 
                     let transformedText = el.content.text || '';
+                    if (el.dataBinding && eventData) {
+                      if (el.dataBinding.field === 'coupleNames' && eventData.coupleNames && eventData.coupleNames.length >= 2) {
+                        transformedText = el.dataBinding.format
+                          ? el.dataBinding.format.replace('{{0}}', eventData.coupleNames[0]).replace('{{1}}', eventData.coupleNames[1])
+                          : `${eventData.coupleNames[0]} & ${eventData.coupleNames[1]}`;
+                      } else if (el.dataBinding.field === 'eventDate' && eventData.eventDate) {
+                        const rawDate = new Date(eventData.eventDate);
+                        if (!isNaN(rawDate.getTime())) {
+                          transformedText = rawDate.toLocaleDateString('es-ES', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          });
+                        }
+                      } else if (el.dataBinding.field === 'venueName' && eventData.venueName) {
+                        transformedText = eventData.venueName;
+                      } else if (el.dataBinding.field === 'romanticQuote' && eventData.romanticQuote) {
+                        transformedText = `"${eventData.romanticQuote}"`;
+                      }
+                    }
                     if (el.style.textTransform === 'uppercase') transformedText = transformedText.toUpperCase();
                     else if (el.style.textTransform === 'lowercase') transformedText = transformedText.toLowerCase();
                     else if (el.style.textTransform === 'capitalize') transformedText = transformedText.replace(/\b\w/g, l => l.toUpperCase());

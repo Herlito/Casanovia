@@ -63,7 +63,8 @@ export function createDefaultWebInvitationDocument(options: {
       transform: { x: 20, y: 35, width: 335, height: 24, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 1,
       locked: false,
-      visible: true
+      visible: true,
+      dataBinding: { field: 'headerTag' }
     },
 
     // 2. Couple Names in Elegant Serif
@@ -82,7 +83,8 @@ export function createDefaultWebInvitationDocument(options: {
       transform: { x: 15, y: 65, width: 345, height: 85, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 2,
       locked: false,
-      visible: true
+      visible: true,
+      dataBinding: { field: 'coupleNames', format: '{{0}} & {{1}}' }
     },
 
     // 3. Romantic Quote
@@ -102,7 +104,8 @@ export function createDefaultWebInvitationDocument(options: {
       transform: { x: 25, y: 155, width: 325, height: 60, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 3,
       locked: false,
-      visible: true
+      visible: true,
+      dataBinding: { field: 'romanticQuote' }
     },
 
     // 4. Elegant Date Line
@@ -121,7 +124,8 @@ export function createDefaultWebInvitationDocument(options: {
       transform: { x: 20, y: 225, width: 335, height: 26, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 4,
       locked: false,
-      visible: true
+      visible: true,
+      dataBinding: { field: 'eventDate' }
     },
 
     // 5. Venue Name
@@ -139,7 +143,8 @@ export function createDefaultWebInvitationDocument(options: {
       transform: { x: 20, y: 255, width: 335, height: 30, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 5,
       locked: false,
-      visible: true
+      visible: true,
+      dataBinding: { field: 'venueName' }
     },
 
     // 6. Real-Time Countdown Widget
@@ -326,7 +331,8 @@ export function createDefaultWebInvitationDocument(options: {
       transform: { x: 20, y: 780, width: 335, height: 35, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 13,
       locked: false,
-      visible: true
+      visible: true,
+      dataBinding: { field: 'footerGreeting' }
     }
   ];
 
