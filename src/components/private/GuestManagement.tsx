@@ -4,6 +4,7 @@ import { Guest, ProtocolCategory, RsvpStatus } from '../../types';
 import { GuestModal } from './GuestModal';
 import { GuestImportModal } from './GuestImportModal';
 import { CompanionModal } from './CompanionModal';
+import { GuestRoleCell, GuestCompanionCell, GuestRsvpCell } from './GuestTableCells';
 import { sortGuestsWithCompanions } from './TableAssignmentModule';
 import { exportGuestsToExcel, ROLE_LABEL_MAP } from '../../lib/excelUtils';
 import { 
@@ -33,7 +34,9 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  GripVertical
+  ChevronDown,
+  Check,
+  Ticket
 } from 'lucide-react';
 
 const ROLE_ICONS: Record<string, React.ElementType> = {
@@ -110,9 +113,13 @@ export const GuestManagement: React.FC = () => {
     }
   };
 
-  // Drag and Drop state
-  const [draggedGuestId, setDraggedGuestId] = useState<string | null>(null);
-  const [dragOverGuestId, setDragOverGuestId] = useState<string | null>(null);
+  // Mobile accordion state for guest cards
+  const [expandedGuestId, setExpandedGuestId] = useState<string | null>(null);
+
+  const toggleExpandGuest = (id: string) => {
+    setExpandedGuestId((prev) => (prev === id ? null : id));
+  };
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -120,82 +127,30 @@ export const GuestManagement: React.FC = () => {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const handleDragStart = (e: React.DragEvent, guest: Guest) => {
-    setDraggedGuestId(guest.id);
-    e.dataTransfer.setData('text/plain', guest.id);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent, targetGuest: Guest) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragOverGuestId !== targetGuest.id) {
-      setDragOverGuestId(targetGuest.id);
-    }
-  };
-
-  const handleDragLeave = () => {
-    setDragOverGuestId(null);
-  };
-
-  const handleDrop = async (e: React.DragEvent, targetGuest: Guest) => {
-    e.preventDefault();
-    setDragOverGuestId(null);
-    if (!draggedGuestId || draggedGuestId === targetGuest.id) {
-      setDraggedGuestId(null);
-      return;
-    }
-
-    const draggedGuest = guests.find((g) => g.id === draggedGuestId);
-    if (!draggedGuest) {
-      setDraggedGuestId(null);
-      return;
-    }
-
-    // Identificar todos los miembros del grupo del invitado arrastrado (titular + acompañantes)
-    let groupToMove: Guest[] = [];
-    if (draggedGuest.mainGuestId) {
-      const main = guests.find((g) => g.id === draggedGuest.mainGuestId);
-      if (main) {
-        groupToMove = [main, ...guests.filter((g) => g.mainGuestId === main.id)];
-      } else {
-        groupToMove = [draggedGuest];
+  const handleUnlinkCompanion = async (companionGuest: Guest) => {
+    try {
+      const formerMainGuestId = companionGuest.mainGuestId;
+      await updateGuest(companionGuest.id, {
+        mainGuestId: undefined,
+        assignedTable: 'Mesa por asignar',
+      });
+      if (formerMainGuestId) {
+        const mainGuest = guests.find((g) => g.id === formerMainGuestId);
+        if (mainGuest && (mainGuest.totalPasses || 1) > 1) {
+          const remainingCompanions = guests.filter(
+            (g) => g.mainGuestId === formerMainGuestId && g.id !== companionGuest.id
+          );
+          const newPasses = Math.max(1, remainingCompanions.length + 1);
+          if (newPasses !== mainGuest.totalPasses) {
+            await updateGuest(formerMainGuestId, { totalPasses: newPasses });
+          }
+        }
       }
-    } else {
-      groupToMove = [draggedGuest, ...guests.filter((g) => g.mainGuestId === draggedGuest.id)];
+      showToast(`"${companionGuest.fullName}" fue desvinculado(a) como acompañante.`);
+    } catch (err) {
+      console.error('Error desvinculando acompañante:', err);
+      showToast('Error al desvincular acompañante');
     }
-
-    const groupCount = groupToMove.length;
-    const targetTable = targetGuest.assignedTable || 'Mesa por asignar';
-    const currentTable = draggedGuest.assignedTable || 'Mesa por asignar';
-
-    // Si el destino tiene una mesa diferente a la actual, trasladar el grupo completo a esa mesa
-    if (targetTable !== currentTable && targetTable !== 'Mesa por asignar') {
-      await updateGuest(draggedGuest.id, { assignedTable: targetTable });
-      showToast(`¡"${draggedGuest.fullName}"${groupCount > 1 ? ` y ${groupCount - 1} acompañante(s)` : ''} trasladado(s) a "${targetTable}"!`);
-    } else {
-      // Reordenar posición en la lista manteniendo a los acompañantes juntos
-      const currentList = [...guests];
-      const groupIds = new Set(groupToMove.map((g) => g.id));
-      const listWithoutGroup = currentList.filter((g) => !groupIds.has(g.id));
-      const targetIdx = listWithoutGroup.findIndex((g) => g.id === targetGuest.id);
-
-      let reordered: Guest[] = [];
-      if (targetIdx === -1) {
-        reordered = [...listWithoutGroup, ...groupToMove];
-      } else {
-        reordered = [
-          ...listWithoutGroup.slice(0, targetIdx),
-          ...groupToMove,
-          ...listWithoutGroup.slice(targetIdx),
-        ];
-      }
-
-      await reorderGuests(reordered);
-      showToast(`¡Posición de "${draggedGuest.fullName}"${groupCount > 1 ? ' y sus acompañantes' : ''} actualizada!`);
-    }
-
-    setDraggedGuestId(null);
   };
 
   // Normalize categories
@@ -395,34 +350,34 @@ export const GuestManagement: React.FC = () => {
   const confirmedPasses = primaryGuests.filter(g => g.rsvpStatus === 'confirmed').reduce((acc, g) => acc + (g.confirmedPasses || g.totalPasses || 1), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2 sm:space-y-3">
       
       {/* Top Header & Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-2 px-1 sm:px-0">
         <div>
-          <h1 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
+          <h1 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26]">
             Lista de Invitados
           </h1>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           {canEditActiveWedding && (
             <button
               type="button"
               id="btn-add-guest"
               onClick={handleOpenAddModal}
-              className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold shadow-xs hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all cursor-pointer"
+              className="inline-flex items-center space-x-1.5 px-3 sm:px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-xs font-bold transition-all cursor-pointer shrink-0"
             >
               <UserPlus className="w-4 h-4" />
-              <span className="hidden sm:inline">Nuevo Invitado</span>
+              <span>Nuevo Invitado</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Role Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
+      {/* Role Summary KPI Cards (Hidden on mobile) */}
+      <div className="hidden md:grid md:grid-cols-5 lg:grid-cols-9 gap-2">
         
         {/* 1. Anfitriones */}
         <button
@@ -589,25 +544,32 @@ export const GuestManagement: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#EBEBEB] p-3.5 sm:p-4 rounded-2xl border border-transparent shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        
-        {/* Search input */}
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#8C8276] absolute left-3 top-3" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por nombre, rol, mesa, código de pase o teléfono..."
-            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
-          />
-        </div>
+      <div className="bg-[#EBEBEB] p-2.5 sm:p-3.5 rounded-2xl border border-transparent shadow-xs">
+        {/* Mobile View: Search input + 3 icon-only buttons in one single row */}
+        <div className="flex md:hidden items-center gap-1.5 w-full">
+          {/* Search input */}
+          <div className="relative flex-1 min-w-0">
+            <Search className="w-3.5 h-3.5 text-[#8C8276] absolute left-2.5 top-2.5" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar..."
+              className="w-full pl-8 pr-2 py-1.5 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden"
+            />
+          </div>
 
-        {/* Role & RSVP dropdowns */}
-        <div className="flex flex-wrap items-center gap-2">
-          
-          <div className="flex items-center space-x-1 text-xs">
-            <Filter className="w-3.5 h-3.5 text-[#8C8276]" />
+          {/* Filtrar Roles (Icon only, no text) */}
+          <div className="relative shrink-0" title="Filtrar por Rol">
+            <div
+              className={`p-2 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
+                categoryFilter !== 'all'
+                  ? 'bg-amber-100 text-amber-900 border-amber-300 ring-1 ring-amber-400'
+                  : 'bg-[#FAF8F5] text-[#524B42] border-[#D9CEBF]'
+              }`}
+            >
+              <Filter className="w-4 h-4" />
+            </div>
             <select
               value={categoryFilter}
               onChange={(e) => {
@@ -618,7 +580,8 @@ export const GuestManagement: React.FC = () => {
                   setSortDirection('asc');
                 }
               }}
-              className="px-2.5 py-1.5 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] text-xs text-[#524B42] font-medium"
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              aria-label="Filtrar Roles"
             >
               <option value="all">Todos los Roles ({guests.length})</option>
               <option value="by_table">🍽️ Por Mesa (Listar por mesas)</option>
@@ -639,11 +602,34 @@ export const GuestManagement: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex items-center space-x-1 text-xs">
+          {/* Filtrar Estados RSVP (Icon only, no text) */}
+          <div className="relative shrink-0" title="Filtrar por Estado RSVP">
+            <div
+              className={`p-2 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
+                rsvpFilter === 'confirmed'
+                  ? 'bg-emerald-100 text-emerald-700 border-emerald-300 ring-1 ring-emerald-400'
+                  : rsvpFilter === 'pending'
+                  ? 'bg-amber-100 text-amber-600 border-amber-300 ring-1 ring-amber-400'
+                  : rsvpFilter === 'declined'
+                  ? 'bg-rose-100 text-rose-600 border-rose-300 ring-1 ring-rose-400'
+                  : 'bg-[#FAF8F5] text-[#524B42] border-[#D9CEBF]'
+              }`}
+            >
+              {rsvpFilter === 'confirmed' ? (
+                <CheckCircle2 className="w-4 h-4" color="#059669" strokeWidth={2.5} />
+              ) : rsvpFilter === 'pending' ? (
+                <Clock className="w-4 h-4" color="#d97706" strokeWidth={2.5} />
+              ) : rsvpFilter === 'declined' ? (
+                <XCircle className="w-4 h-4" color="#e11d48" strokeWidth={2.5} />
+              ) : (
+                <CheckCircle2 className="w-4 h-4" />
+              )}
+            </div>
             <select
               value={rsvpFilter}
               onChange={(e) => setRsvpFilter(e.target.value)}
-              className="px-2.5 py-1.5 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] text-xs text-[#524B42] font-medium"
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              aria-label="Filtrar Estados RSVP"
             >
               <option value="all">Todos los Estados RSVP</option>
               <option value="confirmed">Confirmados ({confirmedPasses} pases)</option>
@@ -652,24 +638,29 @@ export const GuestManagement: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex items-center text-xs">
-            <label
-              htmlFor="filter-show-invite-codes"
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] text-xs text-[#524B42] font-medium cursor-pointer hover:bg-white transition-colors select-none"
-              title="Mostrar u ocultar los códigos de pase de los invitados"
-            >
-              <input
-                type="checkbox"
-                id="filter-show-invite-codes"
-                checked={showInviteCodes}
-                onChange={(e) => handleToggleShowCodes(e.target.checked)}
-                className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-stone-300 cursor-pointer accent-emerald-600"
-              />
-              <span className="font-semibold">Mostrar códigos</span>
-            </label>
-          </div>
+          {/* Mostrar Códigos (Icon only, no text) */}
+          <button
+            type="button"
+            onClick={() => handleToggleShowCodes(!showInviteCodes)}
+            title={showInviteCodes ? "Ocultar códigos" : "Mostrar códigos"}
+            className={`p-2 rounded-xl border transition-all flex items-center justify-center shrink-0 cursor-pointer ${
+              showInviteCodes
+                ? 'bg-stone-300/90 text-[#2D2A26] border-stone-400 ring-1 ring-stone-400'
+                : 'bg-[#FAF8F5] text-stone-400 border-[#D9CEBF]'
+            }`}
+            aria-label="Mostrar u ocultar códigos"
+          >
+            <Ticket className="w-4 h-4" />
+          </button>
+        </div>
 
-          {(categoryFilter !== 'all' || rsvpFilter !== 'all' || searchQuery || sortField !== 'none') && (
+        {/* Mobile active filters row (if active) */}
+        {(categoryFilter !== 'all' || rsvpFilter !== 'all' || searchQuery) && (
+          <div className="flex md:hidden items-center justify-between mt-2 pt-1.5 border-t border-stone-200/60 text-[11px] text-[#7A7268]">
+            <span className="truncate">
+              {categoryFilter !== 'all' && <span className="mr-2">Rol: {categoryFilter}</span>}
+              {rsvpFilter !== 'all' && <span>RSVP: {rsvpFilter}</span>}
+            </span>
             <button
               type="button"
               onClick={() => {
@@ -679,17 +670,113 @@ export const GuestManagement: React.FC = () => {
                 setSortField('none');
                 setSortDirection('asc');
               }}
-              className="text-xs text-[#2D3748] font-semibold underline px-1 hover:text-[#2D3748] cursor-pointer"
+              className="text-[#2D3748] font-bold underline cursor-pointer shrink-0 ml-2"
             >
-              Limpiar filtros
+              Limpiar
             </button>
-          )}
+          </div>
+        )}
 
+        {/* Desktop View: Full search + selects + checkboxes */}
+        <div className="hidden md:flex items-center justify-between gap-3">
+          {/* Search input */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-[#8C8276] absolute left-3 top-2.5" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por nombre, rol, mesa, código de pase o teléfono..."
+              className="w-full pl-9 pr-3 py-1.5 sm:py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
+            />
+          </div>
+
+          {/* Role & RSVP dropdowns */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-1 text-xs">
+              <Filter className="w-3.5 h-3.5 text-[#8C8276]" />
+              <select
+                value={categoryFilter}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCategoryFilter(val);
+                  if (val === 'by_table') {
+                    setSortField('table');
+                    setSortDirection('asc');
+                  }
+                }}
+                className="px-2.5 py-1.5 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] text-xs text-[#524B42] font-medium"
+              >
+                <option value="all">Todos los Roles ({guests.length})</option>
+                <option value="by_table">🍽️ Por Mesa (Listar por mesas)</option>
+                <option value="anfitrion">Anfitrión ({countAnfitrion})</option>
+                <option value="invitado">Invitado ({countInvitados})</option>
+                <option value="familia_directa">Familia Directa ({countFamilia})</option>
+                <option value="wedding_planner">Wedding Planner ({countPlanner})</option>
+                <option value="cortejo_honor">Cortejo de Honor ({countCortejo})</option>
+                <option value="damita_honor">Damita de Honor ({countDamita})</option>
+                <option value="paje_honor">Paje de Honor ({countPaje})</option>
+                <option value="nino_boda">Niño/a de Boda ({countNino})</option>
+                <option value="proveedor">Proveedor ({countProveedor})</option>
+                {(settings.customGuestRoles || []).map((cr) => (
+                  <option key={cr.id} value={cr.id}>
+                    {cr.label} ({guests.filter(g => g.category === cr.id).length})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center space-x-1 text-xs">
+              <select
+                value={rsvpFilter}
+                onChange={(e) => setRsvpFilter(e.target.value)}
+                className="px-2.5 py-1.5 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] text-xs text-[#524B42] font-medium"
+              >
+                <option value="all">Todos los Estados RSVP</option>
+                <option value="confirmed">Confirmados ({confirmedPasses} pases)</option>
+                <option value="pending">Pendientes</option>
+                <option value="declined">Declinados</option>
+              </select>
+            </div>
+
+            <div className="flex items-center text-xs">
+              <label
+                htmlFor="filter-show-invite-codes"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] text-xs text-[#524B42] font-medium cursor-pointer hover:bg-white transition-colors select-none"
+                title="Mostrar u ocultar los códigos de pase de los invitados"
+              >
+                <input
+                  type="checkbox"
+                  id="filter-show-invite-codes"
+                  checked={showInviteCodes}
+                  onChange={(e) => handleToggleShowCodes(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-stone-300 cursor-pointer accent-emerald-600"
+                />
+                <span className="font-semibold">Mostrar códigos</span>
+              </label>
+            </div>
+
+            {(categoryFilter !== 'all' || rsvpFilter !== 'all' || searchQuery || sortField !== 'none') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCategoryFilter('all');
+                  setRsvpFilter('all');
+                  setSearchQuery('');
+                  setSortField('none');
+                  setSortDirection('asc');
+                }}
+                className="text-xs text-[#2D3748] font-semibold underline px-1 hover:text-[#2D3748] cursor-pointer"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
         </div>
 
       </div>
 
-      {/* Floating Toast Notification for Drag & Drop actions */}
+      {/* Floating Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-[#2D2A26] text-[#2D3748] px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-2 border border-transparent animate-fadeIn">
           <Sparkles className="w-4 h-4 text-[#4A5568] shrink-0" />
@@ -705,42 +792,24 @@ export const GuestManagement: React.FC = () => {
       )}
 
       {/* Main Table: Lista de Invitados */}
-      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-transparent shadow-xs overflow-hidden" : "bg-[#EBEBEB] rounded-2xl border border-transparent shadow-xs overflow-hidden"}>
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-xl sm:rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] border border-transparent shadow-xs overflow-hidden w-full" : "bg-[#EBEBEB] rounded-xl sm:rounded-2xl border border-transparent shadow-xs overflow-hidden w-full"}>
         
         {/* Table Title Bar */}
-        <div className="bg-[#FAF8F5] px-4 py-3 border-b border-transparent flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center space-x-2">
-            <span className="font-serif-display font-bold text-sm text-[#2D2A26]">
+        <div className="bg-[#FAF8F5] px-3 sm:px-4 py-2 sm:py-2.5 border-b border-transparent flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span className="font-serif-display font-bold text-xs sm:text-sm text-[#2D2A26]">
               Registros en Lista ({filteredGuests.length} de {guests.length})
             </span>
-            <span className="text-xs text-[#7A7268]">
+            <span className="text-[11px] sm:text-xs text-[#7A7268]">
               • {confirmedPasses} de {totalPasses} pases asignados confirmados
             </span>
-          </div>
-
-          <div className="flex items-center space-x-3 text-xs text-[#7A7268]">
-            <label
-              htmlFor="title-show-invite-codes"
-              className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#D9CEBF] text-xs text-[#524B42] font-medium cursor-pointer hover:bg-[#FAF8F5] transition-colors select-none shadow-2xs"
-              title="Mostrar u ocultar los códigos de pase en la tabla"
-            >
-              <input
-                type="checkbox"
-                id="title-show-invite-codes"
-                checked={showInviteCodes}
-                onChange={(e) => handleToggleShowCodes(e.target.checked)}
-                className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-stone-300 cursor-pointer accent-emerald-600"
-              />
-              <span className="font-semibold text-stone-700">Mostrar códigos</span>
-            </label>
-            <span className="hidden sm:inline">💡 Arrastra invitados para reordenar o cambiar de mesa • Acompañantes se trasladan automáticamente</span>
           </div>
         </div>
 
         {filteredGuests.length === 0 ? (
-          <div className="p-12 text-center">
-            <Users className="w-12 h-12 text-stone-300 mx-auto mb-3" />
-            <h3 className="font-serif-display text-base font-bold text-[#2D2A26] mb-1">
+          <div className="p-8 sm:p-12 text-center">
+            <Users className="w-10 h-10 sm:w-12 sm:h-12 text-stone-300 mx-auto mb-3" />
+            <h3 className="font-serif-display text-sm sm:text-base font-bold text-[#2D2A26] mb-1">
               No se encontraron invitados con estos criterios
             </h3>
             <p className="text-xs text-[#7A7268] mb-4">
@@ -764,364 +833,397 @@ export const GuestManagement: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#FAF8F5] border-b border-transparent text-[#7A7268]">
-                <tr>
-                  {/* Drag Handle Header */}
-                  <th className="w-8 py-3 px-2 text-center" title="Arrastra para reordenar o mover de mesa">
-                    <span className="sr-only">Mover</span>
-                  </th>
-
-                  {/* 1. Invitado & Código Sortable */}
-                  <th className="py-3 px-4 font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => handleSort('name')}
-                      className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#2D3748] transition-colors cursor-pointer group select-none text-left"
-                      title="Ordenar por nombre de invitado (A-Z / Z-A)"
-                    >
-                      <span>{showInviteCodes ? 'Invitado & Código' : 'Invitado'}</span>
-                      <span className={`p-0.5 rounded transition-colors ${sortField === 'name' ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748]' : 'text-stone-400 group-hover:text-stone-600'}`}>
-                        {sortField === 'name' ? (
-                          sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
-                        ) : (
-                          <ArrowUpDown className="w-3.5 h-3.5" />
-                        )}
-                      </span>
-                    </button>
-                  </th>
-
-                  {/* 2. Rol en la Boda Sortable */}
-                  <th className="py-3 px-4 font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => handleSort('role')}
-                      className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#2D3748] transition-colors cursor-pointer group select-none text-left"
-                      title="Ordenar por rol o cargo en la boda"
-                    >
-                      <span>Rol en la Boda</span>
-                      <span className={`p-0.5 rounded transition-colors ${sortField === 'role' ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748]' : 'text-stone-400 group-hover:text-stone-600'}`}>
-                        {sortField === 'role' ? (
-                          sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
-                        ) : (
-                          <ArrowUpDown className="w-3.5 h-3.5" />
-                        )}
-                      </span>
-                    </button>
-                  </th>
-
-                  {/* 3. Mesa & Pases Sortable */}
-                  <th className="py-3 px-4 font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => handleSort('table')}
-                      className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#2D3748] transition-colors cursor-pointer group select-none text-left"
-                      title="Ordenar por mesa asignada (mesas ordenadas alfabéticamente)"
-                    >
-                      <span>Mesa & Pases</span>
-                      <span className={`p-0.5 rounded transition-colors ${sortField === 'table' ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748]' : 'text-stone-400 group-hover:text-stone-600'}`}>
-                        {sortField === 'table' ? (
-                          sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
-                        ) : (
-                          <ArrowUpDown className="w-3.5 h-3.5" />
-                        )}
-                      </span>
-                    </button>
-                  </th>
-
-                  {/* 4. Acompañante */}
-                  <th className="py-3 px-4 font-semibold">Acompañante</th>
-
-                  {/* 5. RSVP */}
-                  <th className="py-3 px-4 font-semibold text-center">RSVP</th>
-
-                  {/* 6. Acciones */}
-                  <th className="py-3 px-4 font-semibold text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F0EAE1]">
-                {filteredGuests.map((guest) => {
-                  const normCat = getNormalizedCategory(guest.category);
-                  const customRoleObj = (settings.customGuestRoles || []).find((cr) => cr.id === guest.category);
-                  const Icon = ROLE_ICONS[normCat] || (customRoleObj ? Sparkles : User);
-                  const badgeStyle = customRoleObj
-                    ? (customRoleObj.badgeClass || 'bg-stone-100 text-stone-700 border-stone-200')
-                    : (ROLE_BADGES[normCat] || 'bg-stone-100 text-stone-700 border-stone-200');
-                  const roleLabel = customRoleObj ? customRoleObj.label : (ROLE_LABEL_MAP[normCat] || guest.category);
-
-                  // Calculate companions linked to this guest or sharing table
-                  const tableNorm = guest.assignedTable?.trim().toLowerCase();
-                  const isCompanionOfSomeone = !!guest.mainGuestId;
-                  const mainGuest = isCompanionOfSomeone ? guests.find((g) => g.id === guest.mainGuestId) : null;
-                  
-                  const linkedCompanions = guests.filter((g) => g.mainGuestId === guest.id);
-                  const maxAllowedCompanions = Math.max(0, (guest.totalPasses || 1) - 1);
-
-                  const isBeingDragged = draggedGuestId === guest.id;
-                  const isDragTarget = dragOverGuestId === guest.id && draggedGuestId !== guest.id;
-
-                  return (
-                    <tr
-                      key={guest.id}
-                      draggable={canEditActiveWedding}
-                      onDragStart={(e) => canEditActiveWedding && handleDragStart(e, guest)}
-                      onDragOver={(e) => canEditActiveWedding && handleDragOver(e, guest)}
-                      onDragLeave={canEditActiveWedding ? handleDragLeave : undefined}
-                      onDrop={(e) => canEditActiveWedding && handleDrop(e, guest)}
-                      className={`transition-colors ${canEditActiveWedding ? 'cursor-move' : ''} ${
-                        isBeingDragged
-                          ? 'opacity-40 bg-[#F5EBE6]'
-                          : isDragTarget
-                          ? 'bg-[#FAF3F5] ring-2 ring-[#d1d1d1] ring-inset'
-                          : 'hover:bg-[#FAF8F5]/80'
-                      }`}
-                    >
-                      {/* Drag Handle */}
-                      <td className={`py-3 px-2 text-center align-middle text-stone-300 ${canEditActiveWedding ? 'hover:text-[#2D3748] cursor-grab active:cursor-grabbing' : 'opacity-30 cursor-default'}`}>
-                        <GripVertical className="w-4 h-4 mx-auto" />
-                      </td>
-                      
-                      {/* 1. Nombre & Pase */}
-                      <td className="py-3 px-4 align-top">
-                        <div className="font-bold text-sm text-[#2D2A26]">
-                          {guest.fullName}
-                        </div>
-                        {(showInviteCodes || guest.phone) && (
-                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                            {showInviteCodes && (
-                              <button
-                                type="button"
-                                onClick={() => copyGuestCode(guest.code)}
-                                title="Copiar código de pase"
-                                className="inline-flex items-center space-x-1 text-[11px] font-mono text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/5 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/15 px-1.5 py-0.5 rounded-md border border-transparent transition-colors cursor-pointer"
-                              >
-                                <span>{guest.code}</span>
-                                {copiedCodeForGuest === guest.code && (
-                                  <span className="text-[9px] text-emerald-700 font-bold ml-1">¡Copiado!</span>
-                                )}
-                              </button>
-                            )}
-
-                            {guest.phone && (
-                              <span className="text-[11px] text-[#7A7268]">{guest.phone}</span>
-                            )}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* 2. Rol en la Boda */}
-                      <td className="py-3 px-4 align-top">
-                        <div className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold mb-1 shadow-xs ${badgeStyle}`}>
-                          <Icon className="w-3.5 h-3.5 shrink-0" />
-                          <span>{roleLabel}</span>
-                        </div>
-                        {guest.protocolRoleTitle && (
-                          <div className="text-[11px] text-[#524B42] font-medium line-clamp-1">
-                            {guest.protocolRoleTitle}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* 3. Mesa & Pases */}
-                      <td className="py-3 px-4 align-top">
-                        <div className="font-semibold text-[#2D2A26]">
-                          {guest.assignedTable || 'Mesa por asignar'}
-                        </div>
-                        <div className="text-[11px] text-[#7A7268] mt-0.5">
-                          {isCompanionOfSomeone && mainGuest ? (
-                            <span className="text-stone-500 italic">
-                              (Pase de {mainGuest.fullName})
-                            </span>
+          <>
+            {/* Desktop Table View (Hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#FAF8F5] border-b border-transparent text-[#7A7268]">
+                  <tr>
+                    {/* 1. Invitado Sortable */}
+                    <th className="py-2.5 px-4 font-semibold min-w-[200px]">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('name')}
+                        className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#2D3748] transition-colors cursor-pointer group select-none text-left"
+                        title="Ordenar por nombre de invitado (A-Z / Z-A)"
+                      >
+                        <span>{showInviteCodes ? 'Invitado & Código' : 'Invitado'}</span>
+                        <span className={`p-0.5 rounded transition-colors ${sortField === 'name' ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]' : 'text-stone-400 group-hover:text-stone-600'}`}>
+                          {sortField === 'name' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
                           ) : (
-                            <>
-                              <span>{guest.totalPasses || 1} {guest.totalPasses === 1 ? 'pase' : 'pases'}</span>
-                              {guest.rsvpStatus === 'confirmed' && (
-                                <span className="text-emerald-700 font-medium ml-1">
-                                  ({guest.confirmedPasses || guest.totalPasses} conf.)
-                                </span>
-                              )}
-                            </>
+                            <ArrowUpDown className="w-3.5 h-3.5" />
                           )}
-                        </div>
-                      </td>
+                        </span>
+                      </button>
+                    </th>
 
-                      {/* 4. Acompañante(s) asignados */}
-                      <td className="py-3 px-4 align-top max-w-xs">
-                        {isCompanionOfSomeone ? (
-                          <div className="text-[11px] text-stone-600 bg-stone-50 border border-stone-200 rounded-lg p-2 space-y-0.5">
-                            <div className="flex items-center space-x-1 text-emerald-800 font-semibold">
-                              <User className="w-3 h-3 text-emerald-600 shrink-0" />
-                              <span className="truncate">Sigue a {mainGuest?.fullName || 'su titular'}</span>
-                            </div>
-                            <span className="text-[10px] text-stone-500 block">
-                              Mesa: <strong>{guest.assignedTable || 'Mesa por asignar'}</strong>
-                            </span>
-                          </div>
-                        ) : linkedCompanions.length > 0 ? (
-                          <div className="space-y-1.5">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-1 text-[11px] text-emerald-800 font-medium">
-                                <Users className="w-3.5 h-3.5" />
-                                <span>{linkedCompanions.length} de {maxAllowedCompanions} acomp.:</span>
+                    {/* 2. Mesa & Pases Sortable */}
+                    <th className="py-2.5 px-4 font-semibold min-w-[130px]">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('table')}
+                        className="inline-flex items-center space-x-1.5 font-semibold text-[#524B42] hover:text-[#2D3748] transition-colors cursor-pointer group select-none text-left"
+                        title="Ordenar por mesa asignada"
+                      >
+                        <span>Mesa & Pases</span>
+                        <span className={`p-0.5 rounded transition-colors ${sortField === 'table' ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]' : 'text-stone-400 group-hover:text-stone-600'}`}>
+                          {sortField === 'table' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                          ) : (
+                            <ArrowUpDown className="w-3.5 h-3.5" />
+                          )}
+                        </span>
+                      </button>
+                    </th>
+
+                    {/* 3. Acompañante */}
+                    <th className="py-2.5 px-3 font-semibold text-center w-28">Acompañante</th>
+
+                    {/* 4. RSVP */}
+                    <th className="py-2.5 px-4 font-semibold text-center w-28">RSVP</th>
+
+                    {/* 5. Acciones */}
+                    <th className="py-2.5 px-4 font-semibold text-right w-24">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F0EAE1]">
+                  {filteredGuests.map((guest) => {
+                    const normCat = getNormalizedCategory(guest.category);
+                    const customRoleObj = (settings.customGuestRoles || []).find((cr) => cr.id === guest.category);
+                    const Icon = ROLE_ICONS[normCat] || (customRoleObj ? Sparkles : User);
+                    const roleLabel = customRoleObj ? customRoleObj.label : (ROLE_LABEL_MAP[normCat] || guest.category);
+
+                    // Calculate companions linked to this guest or sharing table
+                    const isCompanionOfSomeone = !!guest.mainGuestId;
+                    const mainGuest = isCompanionOfSomeone ? guests.find((g) => g.id === guest.mainGuestId) || null : null;
+                    const linkedCompanions = guests.filter((g) => g.mainGuestId === guest.id);
+
+                    return (
+                      <tr
+                        key={guest.id}
+                        className="hover:bg-[#FAF8F5]/80 transition-colors"
+                      >
+                        {/* 1. Nombre & Pase con Ícono de Rol al lado izquierdo */}
+                        <td className="py-2.5 px-4 align-middle min-w-[200px]">
+                          <div className="flex items-center space-x-2.5">
+                            {/* Role Icon replacing dots */}
+                            <GuestRoleCell
+                              guest={guest}
+                              roleLabel={roleLabel}
+                              protocolRoleTitle={guest.protocolRoleTitle}
+                              Icon={Icon}
+                            />
+                            <div>
+                              <div className="font-bold text-sm text-[#2D2A26] whitespace-nowrap">
+                                {guest.fullName}
                               </div>
+                              {showInviteCodes && (
+                                <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => copyGuestCode(guest.code)}
+                                    title="Copiar código de pase"
+                                    className="inline-flex items-center space-x-1 text-[11px] font-mono text-[#2D3748] bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] px-1.5 py-0.5 rounded-md border border-transparent transition-colors cursor-pointer"
+                                  >
+                                    <span>{guest.code}</span>
+                                    {copiedCodeForGuest === guest.code && (
+                                      <span className="text-[9px] text-emerald-700 font-bold ml-1">¡Copiado!</span>
+                                    )}
+                                  </button>
+                                  {guest.phone && (
+                                    <span className="text-[11px] text-[#7A7268]">{guest.phone}</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 2. Mesa & Pases */}
+                        <td className="py-2.5 px-4 align-middle min-w-[130px]">
+                          <div className="font-semibold text-[#2D2A26]">
+                            {guest.assignedTable || 'Mesa por asignar'}
+                          </div>
+                          <div className="text-[11px] text-[#7A7268] mt-0.5">
+                            {isCompanionOfSomeone && mainGuest ? (
+                              <span className="text-stone-500 italic">
+                                (Pase de {mainGuest.fullName})
+                              </span>
+                            ) : (
+                              <>
+                                <span>{guest.totalPasses || 1} {guest.totalPasses === 1 ? 'pase' : 'pases'}</span>
+                                {guest.rsvpStatus === 'confirmed' && (
+                                  <span className="text-emerald-700 font-medium ml-1">
+                                    ({guest.confirmedPasses || guest.totalPasses} conf.)
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* 3. Acompañante (Icon only, actions on hover/click) */}
+                        <td className="py-2.5 px-3 align-middle text-center w-28">
+                          <GuestCompanionCell
+                            guest={guest}
+                            linkedCompanions={linkedCompanions}
+                            isCompanionOfSomeone={isCompanionOfSomeone}
+                            mainGuest={mainGuest}
+                            onOpenAssignCompanion={() => setCompanionModalGuest(guest)}
+                            onUnlinkCompanion={handleUnlinkCompanion}
+                          />
+                        </td>
+
+                        {/* 4. Estado RSVP - Single icon with popover options */}
+                        <td className="py-2.5 px-4 align-middle text-center">
+                          <GuestRsvpCell
+                            guest={guest}
+                            canEdit={canEditActiveWedding}
+                            onUpdateStatus={(newStatus) => {
+                              updateGuest(guest.id, {
+                                rsvpStatus: newStatus,
+                                confirmedPasses:
+                                  newStatus === 'confirmed'
+                                    ? guest.confirmedPasses || guest.totalPasses || 1
+                                    : 0,
+                              });
+                            }}
+                            size="md"
+                          />
+                        </td>
+
+                        {/* 5. Acciones: Editar, WhatsApp, Eliminar */}
+                        <td className="py-2.5 px-4 align-middle text-right">
+                          <div className="flex items-center justify-end space-x-1">
+                            {canEditActiveWedding && (
                               <button
                                 type="button"
-                                onClick={() => setCompanionModalGuest(guest)}
-                                className="text-[10px] font-bold text-emerald-700 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-200 transition-colors flex items-center space-x-0.5 cursor-pointer active:scale-95"
-                                title="Asignar o registrar otro acompañante"
+                                onClick={() => handleOpenEditModal(guest)}
+                                className="p-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#EBEBEB] text-[#524B42] hover:text-[#2D3748] border border-[#D9CEBF] hover:border-transparent transition-all cursor-pointer shadow-2xs"
+                                title="Editar invitado / Asignar acompañante"
                               >
-                                <UserPlus className="w-2.5 h-2.5" />
-                                <span>+ Acomp.</span>
+                                <Edit className="w-4 h-4" />
                               </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => generateWhatsappMessage(guest)}
+                              className="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-colors cursor-pointer"
+                              title="Enviar invitación por WhatsApp"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </button>
+
+                            {canEditActiveWedding && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteGuest(guest.id, guest.fullName)}
+                                className="p-1.5 rounded-lg text-[#8C8276] hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                title="Eliminar invitado"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Accordion View (Fichas Desplegables, 100% width, optimized for phone screen) */}
+            <div className="md:hidden block w-full divide-y divide-[#EAE3D7]">
+              {filteredGuests.map((guest) => {
+                const normCat = getNormalizedCategory(guest.category);
+                const customRoleObj = (settings.customGuestRoles || []).find((cr) => cr.id === guest.category);
+                const Icon = ROLE_ICONS[normCat] || (customRoleObj ? Sparkles : User);
+                const roleLabel = customRoleObj ? customRoleObj.label : (ROLE_LABEL_MAP[normCat] || guest.category);
+
+                const isCompanionOfSomeone = !!guest.mainGuestId;
+                const mainGuest = isCompanionOfSomeone ? guests.find((g) => g.id === guest.mainGuestId) || null : null;
+                const linkedCompanions = guests.filter((g) => g.mainGuestId === guest.id);
+                const isExpanded = expandedGuestId === guest.id;
+
+                return (
+                  <div key={guest.id} className="w-full bg-[#FAF8F5] transition-colors">
+                    {/* Ficha Cabecera: Role Icon + Nombre + Mesa + Status badge + Chevron */}
+                    <div
+                      onClick={() => toggleExpandGuest(guest.id)}
+                      className="w-full py-2.5 px-3 flex items-center justify-between gap-2 cursor-pointer select-none active:bg-[#F3EFE9] transition-colors"
+                    >
+                      <div className="flex items-center space-x-2.5 min-w-0 flex-1">
+                        {/* Role Icon replacing dots */}
+                        <GuestRoleCell
+                          guest={guest}
+                          roleLabel={roleLabel}
+                          protocolRoleTitle={guest.protocolRoleTitle}
+                          Icon={Icon}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-bold text-xs text-[#2D2A26] truncate">
+                              {guest.fullName}
+                            </span>
+                            {showInviteCodes && guest.assignedTable && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-stone-200/90 text-stone-700 font-medium shrink-0">
+                                {guest.assignedTable}
+                              </span>
+                            )}
+                          </div>
+                          {showInviteCodes && (
+                            <div className="flex items-center space-x-2 text-[10px] text-stone-500 font-mono mt-0.5">
+                              <span className="font-semibold text-emerald-800">{guest.code}</span>
+                              {guest.phone && <span>• {guest.phone}</span>}
                             </div>
-                            <div className="flex flex-wrap gap-1">
-                              {linkedCompanions.map((comp) => (
-                                <span
-                                  key={comp.id}
-                                  className="inline-flex items-center space-x-1 px-2 py-0.5 bg-[#FAF8F5] border border-[#D9CEBF] rounded-md text-[11px] font-medium text-stone-700 hover:border-emerald-300 transition-colors"
-                                  title={`${comp.fullName} (${comp.assignedTable || 'Mesa por asignar'})`}
-                                >
-                                  <User className="w-2.5 h-2.5 text-stone-400" />
-                                  <span className="truncate max-w-[120px]">{comp.fullName}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right: Quick RSVP indicator and Chevron */}
+                      <div className="flex items-center space-x-1.5 shrink-0">
+                        {guest.rsvpStatus === 'confirmed' && (
+                          <CheckCircle2 className="w-4 h-4 shrink-0" color="#059669" strokeWidth={2.6} />
+                        )}
+                        {guest.rsvpStatus === 'declined' && (
+                          <XCircle className="w-4 h-4 shrink-0" color="#e11d48" strokeWidth={2.6} />
+                        )}
+                        {guest.rsvpStatus === 'pending' && (
+                          <Clock className="w-4 h-4 shrink-0" color="#d97706" strokeWidth={2.6} />
+                        )}
+                        <ChevronDown
+                          className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${
+                            isExpanded ? 'rotate-180 text-[#2D3748]' : ''
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Ficha Desplegable (Detalle con Acompañante, RSVP y Acciones) */}
+                    {isExpanded && (
+                      <div className="px-3 py-2 bg-[#F5EFE6]/90 border-t border-[#EAE3D7] space-y-2 text-xs">
+                        {/* Mesa & Pases */}
+                        <div className="flex items-center justify-between text-[11px] text-[#524B42]">
+                          <div>
+                            {showInviteCodes ? (
+                              <>
+                                <span>Mesa: </span>
+                                <span className="font-bold text-[#2D2A26]">
+                                  {guest.assignedTable || 'Por asignar'}
                                 </span>
-                              ))}
+                              </>
+                            ) : null}
+                          </div>
+                          <div>
+                            <span>Pases: </span>
+                            <span className="font-bold text-[#2D2A26]">
+                              {guest.totalPasses || 1}
+                            </span>
+                            {guest.rsvpStatus === 'confirmed' && (
+                              <span className="text-emerald-700 font-medium ml-1">
+                                ({guest.confirmedPasses || guest.totalPasses} conf.)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Botones de Acompañante, RSVP y Acciones */}
+                        <div className="pt-2 border-t border-[#EAE3D7]/70 flex flex-col gap-2">
+                          {/* Acompañante row */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                              Acompañante:
+                            </span>
+                            <GuestCompanionCell
+                              guest={guest}
+                              linkedCompanions={linkedCompanions}
+                              isCompanionOfSomeone={isCompanionOfSomeone}
+                              mainGuest={mainGuest}
+                              onOpenAssignCompanion={() => setCompanionModalGuest(guest)}
+                              onUnlinkCompanion={handleUnlinkCompanion}
+                            />
+                          </div>
+
+                          {/* RSVP Buttons row - Single Icon with popover */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                              RSVP:
+                            </span>
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <GuestRsvpCell
+                                guest={guest}
+                                canEdit={canEditActiveWedding}
+                                onUpdateStatus={(newStatus) => {
+                                  updateGuest(guest.id, {
+                                    rsvpStatus: newStatus,
+                                    confirmedPasses:
+                                      newStatus === 'confirmed'
+                                        ? guest.confirmedPasses || guest.totalPasses || 1
+                                        : 0,
+                                  });
+                                }}
+                                size="sm"
+                              />
                             </div>
                           </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setCompanionModalGuest(guest)}
-                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-700 text-emerald-800 hover:text-white border border-emerald-300 hover:border-emerald-700 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer group active:scale-95"
-                            title={`Acompañante para ${guest.fullName}`}
-                          >
-                            <UserPlus className="w-3.5 h-3.5 text-emerald-700 group-hover:text-white transition-colors" />
-                            <span>Acompañante</span>
-                          </button>
-                        )}
-                      </td>
 
-                      {/* 5. Estado RSVP - Icon buttons without text */}
-                      <td className="py-3 px-4 align-top text-center">
-                        <div className="inline-flex items-center p-1 bg-[#FAF8F5] rounded-xl border border-[#D9CEBF] gap-1 shadow-2xs">
-                          {/* Confirmar */}
-                          <button
-                            type="button"
-                            disabled={!canEditActiveWedding}
-                            onClick={() => {
-                              if (!canEditActiveWedding) return;
-                              updateGuest(guest.id, {
-                                rsvpStatus: 'confirmed',
-                                confirmedPasses: guest.confirmedPasses || guest.totalPasses || 1,
-                              });
-                            }}
-                            title={canEditActiveWedding ? "Confirmado (Asiste)" : "Estado: Confirmado"}
-                            className={`p-1.5 rounded-lg transition-all ${
-                              canEditActiveWedding ? 'cursor-pointer' : 'cursor-default'
-                            } ${
-                              guest.rsvpStatus === 'confirmed'
-                                ? 'bg-emerald-600 text-[#2D3748] shadow-xs scale-105'
-                                : 'text-stone-400 hover:text-emerald-700 hover:bg-emerald-50'
-                            }`}
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                          </button>
-
-                          {/* Pendiente */}
-                          <button
-                            type="button"
-                            disabled={!canEditActiveWedding}
-                            onClick={() => {
-                              if (!canEditActiveWedding) return;
-                              updateGuest(guest.id, {
-                                rsvpStatus: 'pending',
-                                confirmedPasses: 0,
-                              });
-                            }}
-                            title={canEditActiveWedding ? "Pendiente" : "Estado: Pendiente"}
-                            className={`p-1.5 rounded-lg transition-all ${
-                              canEditActiveWedding ? 'cursor-pointer' : 'cursor-default'
-                            } ${
-                              guest.rsvpStatus === 'pending'
-                                ? 'bg-amber-500 text-[#2D3748] shadow-xs scale-105'
-                                : 'text-stone-400 hover:text-amber-700 hover:bg-amber-50'
-                            }`}
-                          >
-                            <Clock className="w-4 h-4" />
-                          </button>
-
-                          {/* Declinado */}
-                          <button
-                            type="button"
-                            disabled={!canEditActiveWedding}
-                            onClick={() => {
-                              if (!canEditActiveWedding) return;
-                              updateGuest(guest.id, {
-                                rsvpStatus: 'declined',
-                                confirmedPasses: 0,
-                              });
-                            }}
-                            title={canEditActiveWedding ? "Declinado (No asiste)" : "Estado: Declinado"}
-                            className={`p-1.5 rounded-lg transition-all ${
-                              canEditActiveWedding ? 'cursor-pointer' : 'cursor-default'
-                            } ${
-                              guest.rsvpStatus === 'declined'
-                                ? 'bg-rose-600 text-[#2D3748] shadow-xs scale-105'
-                                : 'text-stone-400 hover:text-rose-700 hover:bg-rose-50'
-                            }`}
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-
-                      {/* 6. Acciones: Editar, WhatsApp, Eliminar (Iconos limpios sin texto) */}
-                      <td className="py-3 px-4 align-top text-right">
-                        <div className="flex items-center justify-end space-x-1">
-                          
-                          {/* Botón Editar Invitado (Icon only) */}
-                          {canEditActiveWedding && (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEditModal(guest)}
-                              className="p-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-[#524B42] hover:text-[#2D3748] border border-[#D9CEBF] hover:border-transparent transition-all cursor-pointer shadow-2xs"
-                              title="Editar invitado / Asignar acompañante"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                          )}
-
-                          {/* WhatsApp / Compartir */}
-                          <button
-                            type="button"
-                            onClick={() => generateWhatsappMessage(guest)}
-                            className="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-colors cursor-pointer"
-                            title="Enviar invitación por WhatsApp"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                          </button>
-
-                          {/* Eliminar */}
-                          {canEditActiveWedding && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteGuest(guest.id, guest.fullName)}
-                              className="p-1.5 rounded-lg text-[#8C8276] hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                              title="Eliminar invitado"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
+                          {/* Acciones row */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                              Acciones:
+                            </span>
+                            <div className="flex items-center space-x-1.5">
+                              {canEditActiveWedding && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenEditModal(guest);
+                                  }}
+                                  className="p-1.5 rounded-lg bg-white hover:bg-[#EBEBEB] text-[#524B42] hover:text-[#2D3748] border border-[#D9CEBF] transition-all cursor-pointer shadow-2xs"
+                                  title="Editar invitado"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  generateWhatsappMessage(guest);
+                                }}
+                                className="p-1.5 rounded-lg bg-white text-emerald-700 hover:bg-emerald-50 border border-[#D9CEBF] hover:border-emerald-200 transition-colors cursor-pointer shadow-2xs"
+                                title="Enviar invitación por WhatsApp"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5" />
+                              </button>
+                              {canEditActiveWedding && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteGuest(guest.id, guest.fullName);
+                                  }}
+                                  className="p-1.5 rounded-lg bg-white text-rose-600 hover:bg-rose-50 border border-[#D9CEBF] transition-colors cursor-pointer shadow-2xs"
+                                  title="Eliminar invitado"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
 
                         </div>
-                      </td>
-
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
 
       </div>

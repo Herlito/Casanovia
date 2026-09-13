@@ -277,12 +277,12 @@ export const PlannerDashboard: React.FC = () => {
           - Right / Rows: Navigation Tabs [Panel, Invitados, Mesas, Proveedores, Presupuesto, Cronograma, Tareas, Ajustes]
           - Auto-wrapping for mobile view
          ======================================================== */}
-      <header className="bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] sticky top-16 sm:top-20 z-30">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-2">
+      <header className="bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] sticky top-14 sm:top-16 z-30">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-1.5 sm:py-2">
           <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-start gap-1 sm:gap-2">
             
-            {/* Wedding Selector Dropdown (Centered on mobile) */}
-            <div className="w-full sm:w-auto flex justify-center sm:justify-start">
+            {/* Wedding Selector Dropdown (Hidden on mobile) */}
+            <div className="hidden sm:flex sm:w-auto justify-start shrink-0">
               {currentUser.isAuthenticated && (isPlannerOrAdmin || isLevel5Observer) ? (
                 isLevel3Planner && accessibleWeddings.length === 0 ? (
                   <button
@@ -396,7 +396,7 @@ export const PlannerDashboard: React.FC = () => {
       {/* ========================================================
           BODY CONTAINER WITH LEFT VERTICAL MINI-RAIL & CONTENT
          ======================================================== */}
-      <div className="flex-1 flex max-w-7xl w-full mx-auto px-0 sm:px-6 lg:px-8 py-2 sm:py-6 gap-0 sm:gap-6">
+      <div className="flex-1 flex max-w-7xl w-full mx-auto px-0 sm:px-6 lg:px-8 py-1 sm:py-4 gap-0 sm:gap-6">
         
         {/* Left Vertical Icon Navigation Rail (Desktop) */}
         <aside className="hidden md:flex flex-col items-center justify-between w-16 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-2.5 shrink-0 self-start sticky top-24 border-none">
@@ -449,7 +449,7 @@ export const PlannerDashboard: React.FC = () => {
             <NoviosOverviewPanel onNavigateTab={(tab) => setActiveTab(tab)} />
           )}
           {activeTab === 'guests' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-transparent shadow-xs" : "bg-[#EBEBEB] rounded-3xl p-6 border border-transparent shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-0 sm:p-5 border-none sm:border border-transparent w-full" : "bg-[#EBEBEB] rounded-none sm:rounded-3xl p-0 sm:p-5 border-none sm:border border-transparent w-full"}>
               <GuestManagement />
             </div>
           )}

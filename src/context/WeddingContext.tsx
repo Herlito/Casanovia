@@ -1928,7 +1928,9 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (sanitizedUpdates.assignedTable !== undefined && targetGuest) {
       groupNewTable = sanitizedUpdates.assignedTable;
       
-      if (targetGuest.mainGuestId) {
+      const isUnlinking = 'mainGuestId' in sanitizedUpdates && !sanitizedUpdates.mainGuestId;
+
+      if (!isUnlinking && targetGuest.mainGuestId) {
         // Case A: The updated guest is a companion.
         // Si se le asigna a un acompañante también debe ir el invitado asignado
         const mainId = targetGuest.mainGuestId;
@@ -1936,7 +1938,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           mainId,
           ...currentGuests.filter((g) => g.mainGuestId === mainId).map((g) => g.id)
         ];
-      } else {
+      } else if (!isUnlinking) {
         // Case B: The updated guest is the primary/main guest.
         // Synchronize all companions of this main guest
         groupIdsToSyncTable = [

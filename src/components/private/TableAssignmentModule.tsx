@@ -666,26 +666,51 @@ export const TableAssignmentModule: React.FC = () => {
   };
 
   const renderTablesSection = () => (
-    <div className="space-y-4">
+    <div className="space-y-2.5 sm:space-y-3">
       {/* Controls Bar: Zones Filter, Presets & Guest Toggle */}
-      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-4 sm:p-5 border border-transparent shadow-xs flex flex-wrap items-center justify-between gap-3" : "bg-[#EBEBEB] rounded-3xl p-4 sm:p-5 border border-transparent shadow-xs flex flex-wrap items-center justify-between gap-3"}>
+      <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-2xl sm:rounded-[2rem] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] px-3 py-2 sm:px-4 sm:py-3 border border-transparent flex flex-wrap items-center justify-between gap-2.5" : "bg-[#EBEBEB] rounded-2xl sm:rounded-3xl px-3 py-2 sm:px-4 sm:py-3 border border-transparent flex flex-wrap items-center justify-between gap-2.5"}>
         
         {/* Zone Filter */}
         <div className="flex items-center space-x-2">
-          <span className="text-xs font-semibold text-[#524B42] flex items-center space-x-1">
-            <MapPin className="w-3.5 h-3.5 text-[#2D3748]" />
-            <span>Zona:</span>
-          </span>
-          <select
-            value={zoneFilter}
-            onChange={(e) => setZoneFilter(e.target.value)}
-            className="text-xs px-3 py-1.5 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] text-[#2D2A26] focus:bg-[#EBEBEB] cursor-pointer font-medium"
-          >
-            <option value="all">Todas las zonas ({tables.length} mesas)</option>
-            {allZones.map((z) => (
-              <option key={z} value={z}>{z}</option>
-            ))}
-          </select>
+          {/* Mobile view: Only icon without text */}
+          <div className="relative sm:hidden" title="Filtrar por Zona">
+            <div className={`p-2 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
+              zoneFilter !== 'all'
+                ? 'bg-amber-100 text-amber-900 border-amber-300 ring-1 ring-amber-400'
+                : 'bg-[#FAF8F5] text-[#524B42] border-[#D9CEBF]'
+            }`}>
+              <MapPin className="w-4 h-4 text-[#2D3748]" />
+            </div>
+            <select
+              value={zoneFilter}
+              onChange={(e) => setZoneFilter(e.target.value)}
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              aria-label="Filtrar por Zona"
+            >
+              <option value="all">Todas las zonas ({tables.length} mesas)</option>
+              {allZones.map((z) => (
+                <option key={z} value={z}>{z}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Desktop view: Label + visible select */}
+          <div className="hidden sm:flex items-center space-x-2">
+            <span className="text-xs font-semibold text-[#524B42] flex items-center space-x-1">
+              <MapPin className="w-3.5 h-3.5 text-[#2D3748]" />
+              <span>Zona:</span>
+            </span>
+            <select
+              value={zoneFilter}
+              onChange={(e) => setZoneFilter(e.target.value)}
+              className="text-xs px-3 py-1.5 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] text-[#2D2A26] focus:bg-[#EBEBEB] cursor-pointer font-medium"
+            >
+              <option value="all">Todas las zonas ({tables.length} mesas)</option>
+              {allZones.map((z) => (
+                <option key={z} value={z}>{z}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Quick Presets Menu & Guest Panel Toggle */}
@@ -694,15 +719,17 @@ export const TableAssignmentModule: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowGuestDirectory((prev) => !prev)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
+              className={`p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
                 showGuestDirectory
                   ? 'bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748]'
                   : 'bg-[#FAF8F5] border border-[#D9CEBF] text-[#524B42] hover:bg-[#F0EAE1]'
               }`}
-              title="Abrir o cerrar directorio de invitados"
+              title={showGuestDirectory ? 'Ocultar panel de invitados' : `Ver todos los invitados (${guests.length})`}
             >
-              <Users className="w-3.5 h-3.5 text-[#2D3748]" />
-              <span>{showGuestDirectory ? 'Ocultar panel de invitados' : `Ver todos los invitados (${guests.length})`}</span>
+              <Users className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-[#2D3748]" />
+              <span className="hidden sm:inline">
+                {showGuestDirectory ? 'Ocultar panel de invitados' : `Ver todos los invitados (${guests.length})`}
+              </span>
             </button>
           )}
 
@@ -711,16 +738,20 @@ export const TableAssignmentModule: React.FC = () => {
             <button
               type="button"
               onClick={() => handleCreateDefaultTableBatch(5, 10)}
-              className="px-2.5 py-1 rounded-lg bg-[#FAF8F5] border border-[#D9CEBF] text-[#524B42] hover:bg-[#F0EAE1] transition-colors cursor-pointer text-[11px] font-medium"
+              className="px-2.5 py-1 sm:px-2.5 sm:py-1 rounded-lg bg-[#FAF8F5] border border-[#D9CEBF] text-[#524B42] hover:bg-[#F0EAE1] transition-colors cursor-pointer text-[11px] font-bold flex items-center justify-center min-w-[32px]"
+              title="+5 Mesas de 10"
             >
-              +5 Mesas de 10
+              <span className="sm:hidden font-bold">+5</span>
+              <span className="hidden sm:inline font-medium">+5 Mesas de 10</span>
             </button>
             <button
               type="button"
               onClick={() => handleCreateDefaultTableBatch(10, 10)}
-              className="px-2.5 py-1 rounded-lg bg-[#FAF8F5] border border-[#D9CEBF] text-[#524B42] hover:bg-[#F0EAE1] transition-colors cursor-pointer text-[11px] font-medium"
+              className="px-2.5 py-1 sm:px-2.5 sm:py-1 rounded-lg bg-[#FAF8F5] border border-[#D9CEBF] text-[#524B42] hover:bg-[#F0EAE1] transition-colors cursor-pointer text-[11px] font-bold flex items-center justify-center min-w-[32px]"
+              title="+10 Mesas de 10"
             >
-              +10 Mesas de 10
+              <span className="sm:hidden font-bold">+10</span>
+              <span className="hidden sm:inline font-medium">+10 Mesas de 10</span>
             </button>
           </div>
         </div>
@@ -763,7 +794,7 @@ export const TableAssignmentModule: React.FC = () => {
                 if (!canEditActiveWedding) return;
                 handleDropOnTable(e, table.name);
               }}
-              className={`bg-[#EBEBEB] rounded-2xl sm:rounded-3xl p-3 sm:p-4 border shadow-xs space-y-2 sm:space-y-2.5 transition-all flex flex-col justify-between ${
+              className={`bg-[#EBEBEB] rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 border shadow-xs transition-all flex flex-col justify-between ${
                 isDragOver
                   ? isOverCapacityForDragged
                     ? 'border-rose-400 ring-2 ring-rose-300 bg-rose-50/70 shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] scale-[1.01]'
@@ -772,7 +803,7 @@ export const TableAssignmentModule: React.FC = () => {
               }`}
             >
               {/* Top Bar: Table Info & Actions */}
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {/* Visual drag-over capacity feedback banner */}
                 {isDragOver && (
                   isOverCapacityForDragged ? (
@@ -827,14 +858,14 @@ export const TableAssignmentModule: React.FC = () => {
               </div>
 
               {/* Seated Guests List */}
-              <div className="my-1.5 flex-1">
+              <div className="mt-1 mb-1 flex-1">
                 {seatedGuests.length === 0 ? (
-                  <div className="py-5 text-center text-[#8C8276] border border-dashed border-[#D9CEBF] rounded-xl text-[11px] flex flex-col items-center justify-center space-y-1">
+                  <div className="py-4 text-center text-[#8C8276] border border-dashed border-[#D9CEBF] rounded-xl text-[11px] flex flex-col items-center justify-center space-y-1">
                     <Users className="w-4 h-4 opacity-40" />
                     <span>Mesa disponible</span>
                   </div>
                 ) : (
-                  <ul className="space-y-1 max-h-52 overflow-y-auto pr-0.5 custom-scrollbar">
+                  <ul className="space-y-0.5">
                     {seatedGuests.map((guest, idx) => {
                       const isCompanion = Boolean(guest.mainGuestId);
                       const mainGuest = isCompanion ? guests.find((g) => g.id === guest.mainGuestId) : null;
@@ -858,7 +889,9 @@ export const TableAssignmentModule: React.FC = () => {
                             {canEditActiveWedding && (
                               <GripVertical className="w-3 h-3 text-stone-300 group-hover:text-stone-500 shrink-0 -ml-0.5" />
                             )}
-                            <span className="text-[8px] sm:text-[9px] font-bold text-[#8C8276] w-3 sm:w-3.5 shrink-0">{idx + 1}.</span>
+                            <span className="hidden sm:inline-block text-[8px] sm:text-[9px] font-bold text-[#8C8276] w-3 sm:w-3.5 shrink-0">
+                              {idx + 1}.
+                            </span>
                             <span className="font-medium text-[#2D2A26] truncate text-[10px] sm:text-[11px]">
                               {formatAltibajas(guest.fullName)}
                             </span>
@@ -878,19 +911,21 @@ export const TableAssignmentModule: React.FC = () => {
                               </button>
                             )}
 
-                            {/* Número de pases / Acompañante */}
-                            {isCompanion ? (
-                              <span 
-                                className="text-[8px] sm:text-[9px] px-1 py-0 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0 font-medium leading-tight"
-                                title={mainGuest ? `Acompañante de ${formatAltibajas(mainGuest.fullName)}` : 'Acompañante'}
-                              >
-                                Acomp.
-                              </span>
-                            ) : (
-                              <span className="text-[8px] sm:text-[9px] px-1 py-0 rounded bg-[#EBEBEB] text-[#7A7268] shrink-0 font-medium whitespace-nowrap leading-tight">
-                                {guest.confirmedPasses || guest.totalPasses || 1} p.
-                              </span>
-                            )}
+                            {/* Número de pases / Acompañante - Oculto en vista móvil */}
+                            <div className="hidden sm:inline-flex items-center shrink-0">
+                              {isCompanion ? (
+                                <span 
+                                  className="text-[8px] sm:text-[9px] px-1 py-0 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0 font-medium leading-tight"
+                                  title={mainGuest ? `Acompañante de ${formatAltibajas(mainGuest.fullName)}` : 'Acompañante'}
+                                >
+                                  Acomp.
+                                </span>
+                              ) : (
+                                <span className="text-[8px] sm:text-[9px] px-1 py-0 rounded bg-[#EBEBEB] text-[#7A7268] shrink-0 font-medium whitespace-nowrap leading-tight">
+                                  {guest.confirmedPasses || guest.totalPasses || 1} p.
+                                </span>
+                              )}
+                            </div>
                           </div>
 
                           <div className="flex items-center space-x-1 shrink-0">
@@ -908,7 +943,7 @@ export const TableAssignmentModule: React.FC = () => {
               </div>
 
               {/* Table Footer Controls */}
-              <div className="pt-2 border-t border-[#F0EAE1] flex flex-wrap sm:flex-nowrap items-center justify-between text-xs gap-1">
+              <div className="pt-1.5 border-t border-[#F0EAE1] flex flex-wrap sm:flex-nowrap items-center justify-between text-xs gap-1">
                 <div className="flex items-center space-x-2">
                   {canEditActiveWedding && (
                     <button
@@ -983,7 +1018,7 @@ export const TableAssignmentModule: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4">
       
       {/* ========================================================
           HEADER STATION

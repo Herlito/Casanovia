@@ -154,7 +154,7 @@ export const Navbar: React.FC = () => {
         
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
+          <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-4">
             
             {/* Left Column: View Switcher (Only icons without text for PC, tablet and mobile) */}
             <div className={`transition-opacity ${isPublicHomeLanding ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
