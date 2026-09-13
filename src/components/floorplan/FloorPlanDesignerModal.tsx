@@ -83,7 +83,9 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     activeWeddingId,
     activeWedding,
     weddings,
+    accessibleWeddings,
     setActiveWeddingId,
+    selectWedding,
     guests,
     tables,
     settings,
@@ -113,6 +115,25 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   const [showLeftSidebar, setShowLeftSidebar] = useState<boolean>(window.innerWidth > 768);
   const [showRightSidebar, setShowRightSidebar] = useState<boolean>(window.innerWidth > 768);
   const [showMobileTopBar, setShowMobileTopBar] = useState<boolean>(false);
+  const [weddingDropdownOpen, setWeddingDropdownOpen] = useState<boolean>(false);
+  const weddingDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close wedding dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (weddingDropdownRef.current && !weddingDropdownRef.current.contains(event.target as Node)) {
+        setWeddingDropdownOpen(false);
+      }
+    };
+    if (weddingDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [weddingDropdownOpen]);
 
   // Canvas viewport container ref
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -1716,26 +1737,71 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         
         {/* Mobile Header Row */}
         <div className="flex items-center justify-between h-14 px-4 sm:px-6 w-full md:w-auto shrink-0">
-          {/* Left: Brand & Wedding Selector */}
-          <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-800 flex items-center justify-center font-serif font-bold text-sm">
-            {weddingTitle.charAt(0).toUpperCase()}
+          {/* Mobile Screen Title (Hidden on desktop - Replaces Event Selector on Mobile) */}
+          <div className="md:hidden flex items-center space-x-2">
+            <span className="font-serif font-bold text-sm text-gray-800">
+              Plano de Mesas
+            </span>
           </div>
-          <div className="flex items-center space-x-4">
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="font-bold text-xs sm:text-sm text-gray-800 font-serif">
-                  {weddingTitle}
-                </h1>
-              </div>
-              <div className="flex items-center space-x-2 text-[11px] text-gray-500">
-                {scaleCalibration.isCalibrated && (
-                  <span className="text-emerald-700 font-semibold hidden sm:inline">
-                    📏 1m = {scaleCalibration.pixelsPerMeter.toFixed(1)}px
-                  </span>
-                )}
-              </div>
+
+          {/* Left: Brand & Wedding Selector (Only visible on Desktop/Tablet - Hidden on Mobile) */}
+          <div className="hidden md:flex items-center space-x-3">
+            <div className="relative" ref={weddingDropdownRef}>
+              <button
+                type="button"
+                onClick={() => accessibleWeddings && accessibleWeddings.length > 1 && setWeddingDropdownOpen(!weddingDropdownOpen)}
+                className={`flex items-center space-x-2.5 text-left border-none bg-transparent ${accessibleWeddings && accessibleWeddings.length > 1 ? 'cursor-pointer' : 'cursor-default'}`}
+              >
+                <div className="w-9 h-9 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-800 flex items-center justify-center font-serif font-bold text-sm shrink-0">
+                  {weddingTitle.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="flex items-center space-x-1.5">
+                    <h1 className="font-bold text-xs sm:text-sm text-gray-800 font-serif">
+                      {weddingTitle}
+                    </h1>
+                    {accessibleWeddings && accessibleWeddings.length > 1 && (
+                      <ChevronDown className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2 text-[11px] text-gray-500">
+                    {scaleCalibration.isCalibrated && (
+                      <span className="text-emerald-700 font-semibold hidden sm:inline">
+                        📏 1m = {scaleCalibration.pixelsPerMeter.toFixed(1)}px
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+
+              {weddingDropdownOpen && accessibleWeddings && accessibleWeddings.length > 1 && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-[#EBEBEB] rounded-2xl shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] z-[90] overflow-hidden py-1 border border-stone-200">
+                  <div className="px-3 py-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                    Seleccionar Evento
+                  </div>
+                  {accessibleWeddings.map((w) => (
+                    <button
+                      key={w.id}
+                      type="button"
+                      onClick={() => {
+                        selectWedding(w.id);
+                        setWeddingDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition-colors border-none cursor-pointer ${
+                        w.id === activeWeddingId
+                          ? 'bg-gray-200 text-gray-900 font-bold'
+                          : 'bg-transparent text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <span className="truncate">{w.coupleNames}</span>
+                      {w.id === activeWeddingId && <span className="text-emerald-600 font-bold ml-1">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+
+            <div className="flex items-center space-x-4">
 
             {/* Canvas Dimensions Editor */}
             <div className="hidden md:flex items-center space-x-1.5 bg-[#EBEBEB] px-2.5 py-1 rounded-2xl shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]">
