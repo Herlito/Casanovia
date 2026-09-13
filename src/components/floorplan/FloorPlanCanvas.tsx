@@ -1615,6 +1615,54 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     }
   };
 
+  // Mobile Touch Event Handling
+  const lastTouchDistRef = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 1) {
+      lastTouchDistRef.current = null;
+      const touch = e.touches[0];
+      handleMouseDown({
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        preventDefault: () => e.preventDefault(),
+        stopPropagation: () => e.stopPropagation(),
+      } as any);
+    } else if (e.touches.length === 2) {
+      // Pinch to zoom start
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      lastTouchDistRef.current = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 1 && lastTouchDistRef.current === null) {
+      const touch = e.touches[0];
+      handleMouseMove({
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        preventDefault: () => e.preventDefault(),
+        stopPropagation: () => e.stopPropagation(),
+      } as any);
+    } else if (e.touches.length === 2 && lastTouchDistRef.current !== null) {
+      // Pinch to zoom
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const factor = currentDist / lastTouchDistRef.current;
+      if (Math.abs(factor - 1) > 0.02) {
+        setZoom((z) => Math.min(Math.max(z * factor, 0.25), 3.5));
+        lastTouchDistRef.current = currentDist;
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    lastTouchDistRef.current = null;
+    handleMouseUp();
+  };
+
   // Wheel Zoom
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     e.preventDefault();
@@ -1656,8 +1704,12 @@ export const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
         onWheel={handleWheel}
-        className="w-full h-full block"
+        className="w-full h-full block touch-none"
       />
 
       {/* Interactive Tooltip on Chair Hover */}

@@ -467,7 +467,7 @@ export const PlannerDashboard: React.FC = () => {
             </div>
           )}
           {activeTab === 'timeline' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-transparent shadow-xs" : "bg-[#EBEBEB] rounded-3xl p-6 border border-transparent shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-0 sm:p-6 border-none sm:border border-transparent w-full" : "bg-[#EBEBEB] rounded-none sm:rounded-3xl p-0 sm:p-6 border-none sm:border border-transparent w-full"}>
               <TimelineModule />
             </div>
           )}

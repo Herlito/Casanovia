@@ -29,7 +29,18 @@ import {
   AlertCircle,
   AlertTriangle,
   Palette,
-  Trash2
+  Trash2,
+  RotateCw,
+  Lock,
+  Unlock,
+  Copy,
+  Armchair,
+  Type,
+  UserCheck,
+  UserPlus,
+  Check,
+  Plus,
+  Minus
 } from 'lucide-react';
 import { useWedding } from '../../context/WeddingContext';
 import {
@@ -41,7 +52,7 @@ import {
   WeddingTable,
 } from '../../types';
 import { FloorPlanCanvas } from './FloorPlanCanvas';
-import { FloorPlanToolbar } from './FloorPlanToolbar';
+import { FloorPlanToolbar, PRESET_COLORS } from './FloorPlanToolbar';
 import { FloorPlanGuestSidebar } from './FloorPlanGuestSidebar';
 import { FloorPlanPhpSqlModal } from './FloorPlanPhpSqlModal';
 import { renderPdfFirstPageToImage } from '../../lib/pdfUtils';
@@ -117,8 +128,8 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     const workspaceHeight = parentElem?.clientHeight || container?.clientHeight || (typeof window !== 'undefined' ? window.innerHeight - 130 : 800);
 
     // Calculate space occupied by sidebars depending on whether they are expanded or collapsed
-    const leftSidebarWidth = showLeftSidebar ? (isMobile ? Math.min(320, workspaceWidth * 0.85) : 320) : 0;
-    const rightSidebarWidth = showRightSidebar ? (isMobile ? Math.min(320, workspaceWidth * 0.85) : 320) : 0;
+    const leftSidebarWidth = !isMobile && showLeftSidebar ? 320 : 0;
+    const rightSidebarWidth = !isMobile && showRightSidebar ? 320 : 0;
 
     // Available space unobstructed by sidebars
     const availableWidth = Math.max(160, workspaceWidth - leftSidebarWidth - rightSidebarWidth);
@@ -482,6 +493,140 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     () => elements.find((e) => e.id === selectedElementId) || null,
     [elements, selectedElementId]
   );
+
+  // Mobile specific view states
+  const [selectedGuestIdForMobile, setSelectedGuestIdForMobile] = useState<string>('');
+  const [activeMobileProperty, setActiveMobileProperty] = useState<'none' | 'color' | 'seats' | 'size' | 'name'>('none');
+  const [mobileTempName, setMobileTempName] = useState<string>('');
+  const [mobileTempTableNum, setMobileTempTableNum] = useState<string>('');
+
+  // Reset mobile sub-property and guest selection when selected element changes
+  useEffect(() => {
+    setSelectedGuestIdForMobile('');
+    setActiveMobileProperty('none');
+    if (selectedElement) {
+      setMobileTempName(selectedElement.name || '');
+      setMobileTempTableNum(selectedElement.tableNumber !== undefined ? String(selectedElement.tableNumber) : '');
+    } else {
+      setMobileTempName('');
+      setMobileTempTableNum('');
+    }
+  }, [selectedElementId]);
+
+  const isSelectedElementTable = useMemo(() => {
+    if (!selectedElement) return false;
+    return (
+      selectedElement.type === 'round_table' ||
+      selectedElement.type === 'rectangular_table' ||
+      selectedElement.type === 'cake_table' ||
+      (selectedElement.seats && selectedElement.seats.length > 0) ||
+      selectedElement.tableNumber !== undefined
+    );
+  }, [selectedElement]);
+
+  const sortedGuests = useMemo(() => {
+    return [...guests].sort((a, b) =>
+      (a.fullName || '').localeCompare(b.fullName || '', 'es', { sensitivity: 'base' })
+    );
+  }, [guests]);
+
+  // Helper to assign a guest to the selected table on mobile
+  const handleAssignGuestToSelectedTable = async (guestId: string) => {
+    if (!selectedElement || !guestId) return;
+    const guest = guests.find((g) => g.id === guestId);
+    if (!guest) return;
+
+    // Check capacity first
+    const capacityCheck = checkFloorPlanElementCapacityForGroup(selectedElement, guest, guests);
+    if (!capacityCheck.canFit) {
+      showCapacityWarning(
+        capacityCheck.warningMessage ||
+          `La mesa "${selectedElement.name}" sobrepasa su capacidad.`
+      );
+      return;
+    }
+
+    const seats = selectedElement.seats || [];
+    const freeSeat = seats.find((s) => !s.guestId || s.guestId.trim() === '');
+    const targetSeatId = freeSeat ? freeSeat.id : (seats[0]?.id || `seat_${selectedElement.id}_1`);
+
+    await handleAssignGuestToSeat(selectedElement.id, targetSeatId, guest);
+    setAssignmentNotice(`¡${guest.fullName} asignado a ${selectedElement.name || `Mesa ${selectedElement.tableNumber || ''}`}!`);
+    setTimeout(() => setAssignmentNotice(null), 3500);
+    setSelectedGuestIdForMobile('');
+  };
+
+  // Helper for adjusting seat count on mobile
+  const handleMobileSeatCountChange = (newCount: number) => {
+    if (!selectedElement || selectedElement.isLocked) return;
+    const count = Math.max(2, Math.min(16, newCount));
+    const currentSeats = selectedElement.seats || [];
+    let updatedSeats: FloorPlanSeat[] = [...currentSeats];
+
+    if (count > currentSeats.length) {
+      for (let i = currentSeats.length + 1; i <= count; i++) {
+        updatedSeats.push({
+          id: `seat_${selectedElement.id}_${i}_${Date.now()}`,
+          seatNumber: i,
+        });
+      }
+    } else if (count < currentSeats.length) {
+      updatedSeats = updatedSeats.slice(0, count);
+    }
+
+    handleUpdateElement(selectedElement.id, {
+      seatCount: count,
+      seats: updatedSeats,
+    });
+  };
+
+  // Helper for adjusting rectangular table seats on mobile
+  const handleMobileRectSeatsChange = (deltaLong: number) => {
+    if (!selectedElement || selectedElement.isLocked) return;
+    const currentLong = selectedElement.seatsLongSide !== undefined ? Math.abs(selectedElement.seatsLongSide) : 3;
+    const newLong = Math.max(1, Math.min(8, currentLong + deltaLong));
+    const heads = selectedElement.seatsHead !== undefined ? selectedElement.seatsHead : 1;
+    const actualHeadsCount = heads < 0 ? Math.abs(heads) : heads * 2;
+    const actualLongCount = newLong * 2;
+    const totalCount = actualLongCount + actualHeadsCount;
+    const currentSeats = selectedElement.seats || [];
+    let updatedSeats: FloorPlanSeat[] = [...currentSeats];
+
+    if (totalCount > currentSeats.length) {
+      for (let i = currentSeats.length + 1; i <= totalCount; i++) {
+        updatedSeats.push({
+          id: `seat_${selectedElement.id}_${i}_${Date.now()}`,
+          seatNumber: i,
+        });
+      }
+    } else {
+      updatedSeats = updatedSeats.slice(0, totalCount);
+    }
+
+    handleUpdateElement(selectedElement.id, {
+      seatsLongSide: newLong,
+      seatsHead: heads,
+      seatCount: totalCount,
+      seats: updatedSeats,
+    });
+  };
+
+  // Helper for adjusting element dimensions on mobile
+  const handleMobileSizeChange = (delta: number) => {
+    if (!selectedElement || selectedElement.isLocked) return;
+    if (selectedElement.type === 'round_table' || selectedElement.type === 'cake_table') {
+      const currentR = selectedElement.radius || 60;
+      const newR = Math.max(30, Math.min(200, currentR + delta));
+      handleUpdateElement(selectedElement.id, { radius: newR });
+    } else {
+      const currentW = selectedElement.width || 120;
+      const currentH = selectedElement.height || 80;
+      const aspect = currentH / (currentW || 1);
+      const newW = Math.max(40, Math.min(600, currentW + delta * 2));
+      const newH = Math.max(30, Math.min(400, Math.round(newW * aspect)));
+      handleUpdateElement(selectedElement.id, { width: newW, height: newH });
+    }
+  };
 
   const weddingTitle =
     activeWedding?.coupleNames ||
@@ -1781,7 +1926,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             </button>
           )}
 
-          {/* Toggle Guest List Sidebar */}
+          {/* Toggle Guest List Sidebar (Desktop/Tablet) */}
           <button
             onClick={() => {
               setShowRightSidebar((s) => {
@@ -1790,7 +1935,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
                 return next;
               });
             }}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-2xl text-xs font-semibold border-none transition-all cursor-pointer ${
+            className={`hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-2xl text-xs font-semibold border-none transition-all cursor-pointer ${
               showRightSidebar
                 ? 'bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-amber-800'
                 : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-700'
@@ -1881,6 +2026,60 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       </div>
 
       </div>
+
+      {/* 1b. BARRA DESPLEGABLE DE INVITADOS PARA VISTA MÓVIL AL SELECCIONAR UNA MESA */}
+      {isSelectedElementTable && (
+        <div className="md:hidden w-full bg-[#EBEBEB] px-4 py-2.5 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] z-40 flex flex-col gap-2 animate-in fade-in slide-in-from-top-1 border-b border-gray-300">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-bold text-gray-800">
+                {selectedElement?.name || `Mesa ${selectedElement?.tableNumber !== undefined ? selectedElement.tableNumber : ''}`}
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EBEBEB] shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] text-gray-600">
+                {selectedElement?.seats?.filter((s) => Boolean(s.guestId)).length || 0} / {selectedElement?.seats?.length || 0} sillas
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedElementId(null)}
+              className="p-1 text-gray-500 hover:text-gray-800 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+              title="Deseleccionar mesa"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Barra desplegable con solo los nombres de invitados */}
+            <div className="relative flex-1">
+              <select
+                value={selectedGuestIdForMobile}
+                onChange={(e) => setSelectedGuestIdForMobile(e.target.value)}
+                className="w-full bg-[#EBEBEB] text-gray-800 text-xs font-semibold py-2 px-3 pr-8 rounded-xl shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] border-none focus:outline-hidden appearance-none cursor-pointer"
+              >
+                <option value="">Seleccionar invitado...</option>
+                {sortedGuests.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.fullName}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            {/* Opción para asignar a la mesa cuando se seleccione uno */}
+            {selectedGuestIdForMobile && (
+              <button
+                onClick={() => handleAssignGuestToSelectedTable(selectedGuestIdForMobile)}
+                className="shrink-0 flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-bold text-emerald-800 border-none transition-all cursor-pointer hover:scale-105"
+              >
+                <UserPlus className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Asignar a mesa</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 2. ERROR NOTICE / PDF ERROR BANNER */}
       {pdfError && (
         <div className="px-6 py-2 bg-rose-50 border-b border-rose-200 text-rose-800 text-xs flex items-center justify-between">
@@ -1953,7 +2152,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       <div className="flex-1 flex overflow-hidden relative">
         
         {/* Universal Zoom Controls (Footer) */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-1.5 bg-[#EBEBEB] p-2 rounded-full shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border-none">
+        <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 z-40 items-center space-x-1.5 bg-[#EBEBEB] p-2 rounded-full shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border-none ${selectedElement ? 'hidden md:flex' : 'flex'}`}>
           <button
             onClick={() => setZoom((z) => Math.min(z * 1.15, 3.5))}
             className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer"
@@ -2027,8 +2226,266 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           </label>
         </div>
 
-        {/* Left Sidebar: Furniture & Properties */}
-        <div className={`absolute md:relative z-50 h-full transition-all duration-300 flex shadow-2xl md:shadow-none ${showLeftSidebar ? 'translate-x-0 md:ml-0' : '-translate-x-full md:translate-x-0 md:-ml-80'}`}>
+        {/* Mobile Object Properties Bar (Footer) */}
+        {selectedElement && (
+          <div className="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2 max-w-[96vw]">
+            {/* Popovers for individual properties */}
+            {activeMobileProperty === 'color' && (
+              <div className="bg-[#EBEBEB] p-2 rounded-2xl shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] flex items-center space-x-2 overflow-x-auto max-w-[90vw] animate-in fade-in zoom-in-95">
+                {PRESET_COLORS.map((col) => (
+                  <button
+                    key={col.name}
+                    onClick={() => {
+                      if (!selectedElement.isLocked) {
+                        handleUpdateElement(selectedElement.id, { color: col.bg, textColor: col.text });
+                      }
+                    }}
+                    title={col.name}
+                    style={{ backgroundColor: col.bg }}
+                    className={`w-7 h-7 rounded-full border border-gray-300 shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] shrink-0 transition-transform active:scale-95 cursor-pointer ${
+                      selectedElement.color === col.bg ? 'ring-2 ring-gray-800 ring-offset-2' : ''
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {activeMobileProperty === 'seats' && (
+              <div className="bg-[#EBEBEB] p-2.5 px-4 rounded-2xl shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] flex items-center space-x-4 animate-in fade-in zoom-in-95">
+                <span className="text-xs font-bold text-gray-700">
+                  {selectedElement.type === 'rectangular_table'
+                    ? `Largo: ${selectedElement.seatsLongSide !== undefined ? Math.abs(selectedElement.seatsLongSide) : 3} por lado`
+                    : `${selectedElement.seats?.length || selectedElement.seatCount || 8} Sillas`}
+                </span>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      if (selectedElement.type === 'rectangular_table') {
+                        handleMobileRectSeatsChange(-1);
+                      } else {
+                        handleMobileSeatCountChange((selectedElement.seats?.length || selectedElement.seatCount || 8) - 1);
+                      }
+                    }}
+                    className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center text-gray-800 font-bold cursor-pointer border-none"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (selectedElement.type === 'rectangular_table') {
+                        handleMobileRectSeatsChange(1);
+                      } else {
+                        handleMobileSeatCountChange((selectedElement.seats?.length || selectedElement.seatCount || 8) + 1);
+                      }
+                    }}
+                    className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center text-gray-800 font-bold cursor-pointer border-none"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeMobileProperty === 'size' && (
+              <div className="bg-[#EBEBEB] p-2.5 px-4 rounded-2xl shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] flex items-center space-x-4 animate-in fade-in zoom-in-95">
+                <span className="text-xs font-bold text-gray-700">
+                  {selectedElement.type === 'round_table' || selectedElement.type === 'cake_table'
+                    ? `Radio: ${Math.round(selectedElement.radius || 60)}px`
+                    : `${Math.round(selectedElement.width || 120)} × ${Math.round(selectedElement.height || 80)}px`}
+                </span>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleMobileSizeChange(-10)}
+                    className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center text-gray-800 font-bold cursor-pointer border-none"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleMobileSizeChange(10)}
+                    className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center text-gray-800 font-bold cursor-pointer border-none"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeMobileProperty === 'name' && (
+              <div className="bg-[#EBEBEB] p-2.5 px-3 rounded-2xl shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] flex items-center space-x-2 animate-in fade-in zoom-in-95">
+                <input
+                  type="text"
+                  value={mobileTempName}
+                  onChange={(e) => setMobileTempName(e.target.value)}
+                  placeholder="Nombre..."
+                  className="w-32 bg-[#EBEBEB] text-gray-900 text-xs px-2.5 py-1.5 rounded-xl shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] focus:outline-hidden"
+                />
+                {(selectedElement.type === 'round_table' || selectedElement.type === 'rectangular_table') && (
+                  <input
+                    type="number"
+                    value={mobileTempTableNum}
+                    onChange={(e) => setMobileTempTableNum(e.target.value)}
+                    placeholder="#"
+                    className="w-14 bg-[#EBEBEB] text-gray-900 text-xs px-2 py-1.5 rounded-xl shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] focus:outline-hidden text-center"
+                  />
+                )}
+                <button
+                  onClick={() => {
+                    handleUpdateElement(selectedElement.id, {
+                      name: mobileTempName.trim() || undefined,
+                      tableNumber: mobileTempTableNum ? parseInt(mobileTempTableNum, 10) : undefined,
+                    });
+                    setActiveMobileProperty('none');
+                  }}
+                  className="p-1.5 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-emerald-700 hover:text-emerald-900 cursor-pointer border-none"
+                  title="Guardar nombre"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Primary Action Icons Bar */}
+            <div className="flex items-center space-x-1.5 bg-[#EBEBEB] p-1.5 px-3 rounded-2xl shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] overflow-x-auto max-w-full">
+              {/* Rotate 45° */}
+              <button
+                onClick={() => {
+                  if (selectedElement.isLocked) return;
+                  handleUpdateElement(selectedElement.id, {
+                    rotation: ((selectedElement.rotation || 0) + 45) % 360,
+                  });
+                  setActiveMobileProperty('none');
+                }}
+                disabled={selectedElement.isLocked}
+                className="p-2 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-700 disabled:opacity-40 transition-all cursor-pointer border-none shrink-0"
+                title="Girar 45°"
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
+
+              {/* Seats count (if table or chair row) */}
+              {(selectedElement.type === 'round_table' || selectedElement.type === 'rectangular_table' || (selectedElement.seats && selectedElement.seats.length > 0)) && (
+                <button
+                  onClick={() => setActiveMobileProperty(activeMobileProperty === 'seats' ? 'none' : 'seats')}
+                  disabled={selectedElement.isLocked}
+                  className={`p-2 rounded-xl bg-[#EBEBEB] text-gray-700 disabled:opacity-40 transition-all cursor-pointer border-none shrink-0 ${
+                    activeMobileProperty === 'seats'
+                      ? 'shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900'
+                      : 'shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                  }`}
+                  title="Sillas / Capacidad"
+                >
+                  <Armchair className="w-4 h-4" />
+                </button>
+              )}
+
+              {/* Size */}
+              <button
+                onClick={() => setActiveMobileProperty(activeMobileProperty === 'size' ? 'none' : 'size')}
+                disabled={selectedElement.isLocked}
+                className={`p-2 rounded-xl bg-[#EBEBEB] text-gray-700 disabled:opacity-40 transition-all cursor-pointer border-none shrink-0 ${
+                  activeMobileProperty === 'size'
+                    ? 'shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900'
+                    : 'shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                }`}
+                title="Dimensiones / Tamaño"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+
+              {/* Color */}
+              <button
+                onClick={() => setActiveMobileProperty(activeMobileProperty === 'color' ? 'none' : 'color')}
+                disabled={selectedElement.isLocked}
+                className={`p-2 rounded-xl bg-[#EBEBEB] text-gray-700 disabled:opacity-40 transition-all cursor-pointer border-none shrink-0 ${
+                  activeMobileProperty === 'color'
+                    ? 'shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900'
+                    : 'shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                }`}
+                title="Color del objeto"
+              >
+                <Palette className="w-4 h-4" />
+              </button>
+
+              {/* Name / Table Number */}
+              <button
+                onClick={() => setActiveMobileProperty(activeMobileProperty === 'name' ? 'none' : 'name')}
+                disabled={selectedElement.isLocked}
+                className={`p-2 rounded-xl bg-[#EBEBEB] text-gray-700 disabled:opacity-40 transition-all cursor-pointer border-none shrink-0 ${
+                  activeMobileProperty === 'name'
+                    ? 'shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-900'
+                    : 'shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                }`}
+                title="Nombre y número"
+              >
+                <Type className="w-4 h-4" />
+              </button>
+
+              {/* Lock / Unlock */}
+              <button
+                onClick={() => {
+                  handleUpdateElement(selectedElement.id, { isLocked: !selectedElement.isLocked });
+                  setActiveMobileProperty('none');
+                }}
+                className="p-2 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all cursor-pointer border-none shrink-0"
+                title={selectedElement.isLocked ? 'Desbloquear objeto' : 'Bloquear objeto'}
+              >
+                {selectedElement.isLocked ? (
+                  <Lock className="w-4 h-4 text-amber-600" />
+                ) : (
+                  <Unlock className="w-4 h-4 text-gray-600" />
+                )}
+              </button>
+
+              {/* Bring to Front */}
+              <button
+                onClick={() => handleBringToFront(selectedElement.id)}
+                className="p-2 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-700 transition-all cursor-pointer border-none shrink-0"
+                title="Traer al frente"
+              >
+                <Layers className="w-4 h-4" />
+              </button>
+
+              {/* Duplicate */}
+              <button
+                onClick={() => handleDuplicateElement(selectedElement.id)}
+                className="p-2 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-700 transition-all cursor-pointer border-none shrink-0"
+                title="Duplicar"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+
+              {/* Delete */}
+              <button
+                onClick={() => {
+                  handleDeleteElement(selectedElement.id);
+                  setSelectedElementId(null);
+                  setActiveMobileProperty('none');
+                }}
+                className="p-2 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-rose-600 transition-all cursor-pointer border-none shrink-0"
+                title="Eliminar objeto"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+
+              <div className="w-px h-5 bg-gray-300 mx-0.5 shrink-0" />
+
+              {/* Close/Deselect */}
+              <button
+                onClick={() => {
+                  setSelectedElementId(null);
+                  setActiveMobileProperty('none');
+                }}
+                className="p-2 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-500 hover:text-gray-900 transition-all cursor-pointer border-none shrink-0"
+                title="Cerrar y restablecer zoom"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Left Sidebar: Furniture & Properties (Desktop/Tablet) */}
+        <div className={`hidden md:flex md:relative z-50 h-full transition-all duration-300 shadow-2xl md:shadow-none ${showLeftSidebar ? 'translate-x-0 md:ml-0' : '-translate-x-full md:translate-x-0 md:-ml-80'}`}>
           <FloorPlanToolbar
           selectedElement={selectedElement}
           tables={tables}
@@ -2058,7 +2515,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
               onClick={() => {
                 setShowLeftSidebar(false);
               }}
-              className="absolute -right-9 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-r-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center cursor-pointer z-50 border-none transition-all group"
+              className="hidden md:flex absolute -right-9 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-r-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] items-center justify-center cursor-pointer z-50 border-none transition-all group"
               title="Contraer panel de herramientas"
             >
               <ChevronLeft className="w-5 h-5 text-gray-700 group-hover:scale-110 transition-transform" />
@@ -2074,7 +2531,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
               setShowLeftSidebar(true);
               if (window.innerWidth <= 768) setShowRightSidebar(false);
             }}
-            className="absolute left-0 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-r-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center cursor-pointer z-50 border-none transition-all group"
+            className="hidden md:flex absolute left-0 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-r-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] items-center justify-center cursor-pointer z-50 border-none transition-all group"
             title="Expandir catálogo y propiedades"
           >
             <ChevronRight className="w-5 h-5 text-gray-700 group-hover:scale-110 transition-transform" />
@@ -2151,7 +2608,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
               setShowRightSidebar(true);
               if (window.innerWidth <= 768) setShowLeftSidebar(false);
             }}
-            className="absolute right-0 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-l-2xl shadow-[-6px_6px_12px_#d1d1d1,6px_-6px_12px_#ffffff] hover:shadow-[-10px_10px_20px_#c8c8c8,10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center cursor-pointer z-50 border-none transition-all group"
+            className="hidden md:flex absolute right-0 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-l-2xl shadow-[-6px_6px_12px_#d1d1d1,6px_-6px_12px_#ffffff] hover:shadow-[-10px_10px_20px_#c8c8c8,10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] items-center justify-center cursor-pointer z-50 border-none transition-all group"
             title="Expandir lista de invitados y mesas"
           >
             <ChevronLeft className="w-5 h-5 text-gray-700 group-hover:scale-110 transition-transform" />
@@ -2159,7 +2616,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         )}
 
         {/* Right Sidebar: Seating Guest List */}
-        <div className={`absolute right-0 md:relative z-50 h-full transition-all duration-300 flex shadow-2xl md:shadow-none ${showRightSidebar ? 'translate-x-0 md:mr-0 pointer-events-auto' : 'translate-x-full md:translate-x-0 md:-mr-80 pointer-events-none'}`}>
+        <div className={`hidden md:flex md:relative z-50 h-full transition-all duration-300 shadow-2xl md:shadow-none ${showRightSidebar ? 'translate-x-0 md:mr-0 pointer-events-auto' : 'translate-x-full md:translate-x-0 md:-mr-80 pointer-events-none'}`}>
           {/* Collapse Handle Right (when open) */}
           {showRightSidebar && (
             <button
@@ -2167,7 +2624,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
               onClick={() => {
                 setShowRightSidebar(false);
               }}
-              className="absolute -left-9 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-l-2xl shadow-[-6px_6px_12px_#d1d1d1,6px_-6px_12px_#ffffff] hover:shadow-[-10px_10px_20px_#c8c8c8,10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center cursor-pointer z-50 border-none transition-all group"
+              className="hidden md:flex absolute -left-9 bottom-4 w-9 h-14 bg-[#EBEBEB] rounded-l-2xl shadow-[-6px_6px_12px_#d1d1d1,6px_-6px_12px_#ffffff] hover:shadow-[-10px_10px_20px_#c8c8c8,10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] items-center justify-center cursor-pointer z-50 border-none transition-all group"
               title="Contraer lista de invitados"
             >
               <ChevronRight className="w-5 h-5 text-gray-700 group-hover:scale-110 transition-transform" />

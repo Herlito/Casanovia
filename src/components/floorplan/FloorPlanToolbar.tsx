@@ -57,7 +57,7 @@ interface FloorPlanToolbarProps {
   onSendToBack: (id: string) => void;
 }
 
-const PRESET_COLORS = [
+export const PRESET_COLORS = [
   // Blancos y Neutros
   { name: 'Blanco Puro', bg: '#FFFFFF', text: '#1F2937' },
   { name: 'Marfil Suave', bg: '#FAF8F5', text: '#2D2A26' },
