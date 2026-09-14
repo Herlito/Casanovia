@@ -130,14 +130,14 @@ export const BudgetModule: React.FC = () => {
   ).filter(Boolean);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 sm:space-y-3">
       
       {/* Module Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-2 px-1 sm:px-0">
         <div>
-          <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
-            Control de Presupuesto & Finanzas
-          </h2>
+          <h1 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26]">
+            Presupuesto
+          </h1>
         </div>
 
         {canEditActiveWedding && (
@@ -148,8 +148,8 @@ export const BudgetModule: React.FC = () => {
               onClick={handleSyncWithVendors}
               disabled={isSyncing}
               id="btn-sync-budget-vendors"
-              className="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold transition-all shadow-2xs flex items-center space-x-2 cursor-pointer disabled:opacity-50"
-              title="Sincronizar todos los datos de Gestión de Proveedores & Servicios con este Presupuesto"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold transition-all shadow-2xs flex items-center space-x-2 cursor-pointer disabled:opacity-50"
+              title="Sincronizar todos los datos de Proveedores con este Presupuesto"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Sincronizar Proveedores</span>
@@ -159,10 +159,10 @@ export const BudgetModule: React.FC = () => {
               type="button"
               onClick={handleOpenAdd}
               id="btn-add-budget"
-              className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
+              className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Nuevo Concepto</span>
+              <span>Nuevo Concepto</span>
             </button>
           </div>
         )}
@@ -187,14 +187,8 @@ export const BudgetModule: React.FC = () => {
           </div>
           <div>
             <div className="font-bold text-[#2D2A26] flex items-center space-x-1.5">
-              <span>Sincronización con Gestión de Proveedores & Servicios</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
-                {vendors.length} Proveedores Registrados
-              </span>
+              <span>Sincronización</span>
             </div>
-            <p className="text-[11px] text-[#7A7268] mt-0.5">
-              Los cambios en cotizaciones o anticipos de proveedores se reflejan y guardan automáticamente en este módulo y en la nube.
-            </p>
           </div>
         </div>
 

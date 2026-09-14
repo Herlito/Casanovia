@@ -215,26 +215,27 @@ export const SettingsModule: React.FC = () => {
   };
 
   return (<>
-    <div className="space-y-3">
+    <div className="space-y-2 sm:space-y-3">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 px-1 sm:px-0">
         <div>
-          <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
-            {isPlannerOrAdmin ? 'Configuración' : 'Configuración'}
-          </h2>
+          <h1 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26]">
+            Configuración
+          </h1>
         </div>
 
-        <div className="flex items-center space-x-2.5 flex-wrap gap-2">
+        <div className="flex items-center space-x-2 sm:space-x-2.5 flex-wrap gap-2">
           {isLevel1Admin && (
             <button
               type="button"
               onClick={() => setShowClearModal(true)}
-              className="px-4 py-2.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-rose-600 hover:text-rose-700 text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer self-start sm:self-auto"
+              className="p-2 sm:px-4 sm:py-2.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-rose-600 hover:text-rose-700 text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer self-start sm:self-auto"
               title="Borrar todos los registros e invitados de la boda activa"
+              aria-label="Limpiar Boda"
             >
-              <Eraser className="w-4 h-4 text-rose-600" />
-              <span>Limpiar Boda</span>
+              <Eraser className="w-4 h-4 text-rose-600 shrink-0" />
+              <span className="hidden sm:inline">Limpiar Boda</span>
             </button>
           )}
 
@@ -242,10 +243,12 @@ export const SettingsModule: React.FC = () => {
             <button
               type="button"
               onClick={handleSubmit}
-              className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer self-start sm:self-auto"
+              className="p-2 sm:px-5 sm:py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer self-start sm:self-auto"
+              title={savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}
+              aria-label={savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}
             >
-              {savedSuccess ? <Check className="w-4 h-4 text-[#2D3748]" /> : <Save className="w-4 h-4" />}
-              <span>{savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}</span>
+              {savedSuccess ? <Check className="w-4 h-4 text-[#2D3748] shrink-0" /> : <Save className="w-4 h-4 shrink-0" />}
+              <span className="hidden sm:inline">{savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}</span>
             </button>
           )}
         </div>
@@ -298,11 +301,11 @@ export const SettingsModule: React.FC = () => {
                   <h3 className="font-serif-display text-base font-bold text-[#2D2A26]">
                     Mis Eventos ({sortedWeddings.length})
                   </h3>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                  <span className="hidden sm:inline px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
                     Ordenadas por fecha (más cercanas primero)
                   </span>
                 </div>
-                <p className="text-xs text-[#7A7268]">
+                <p className="hidden sm:block text-xs text-[#7A7268]">
                   Panel multi-boda sincronizado en tiempo real con Firebase Firestore.
                 </p>
               </div>
@@ -315,12 +318,12 @@ export const SettingsModule: React.FC = () => {
                 className="px-4 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] rounded-xl text-xs font-bold hover:bg-[#EBEBEB] transition-all flex items-center space-x-1.5 shadow-2xs self-start sm:self-auto cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" />
-                <span>+ Crear Evento</span>
+                <span>Crear Evento</span>
               </button>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
             {sortedWeddings.map((w, index) => {
               const isActive = w.id === activeWeddingId;
               const daysInfo = getDaysUntilWedding(w.weddingDate);
@@ -329,7 +332,7 @@ export const SettingsModule: React.FC = () => {
               return (
                 <div
                   key={w.id}
-                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 relative ${
+                  className={`p-2.5 sm:p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-2 sm:space-y-3 relative ${
                     isActive
                       ? 'border-amber-400/60 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-900 shadow-xs ring-2 ring-amber-400/40'
                       : 'border-gray-200 bg-[#FAF8F5] text-gray-900 hover:border-amber-400'
@@ -337,53 +340,53 @@ export const SettingsModule: React.FC = () => {
                 >
                   <div className="flex items-start justify-between">
                     <div className="w-full">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <h4 className="font-serif-display text-base font-bold text-gray-900">
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                        <h4 className="font-serif-display text-xs sm:text-base font-bold text-gray-900 line-clamp-1">
                           {w.coupleNames}
                         </h4>
                         {isActive && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900 border border-amber-300">
-                            Boda Activa
+                          <span className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-amber-200 text-amber-900 border border-amber-300">
+                            Activa
                           </span>
                         )}
                         {isClosest && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-0.5">
-                            <Sparkles className="w-3 h-3" />
-                            <span>Más Próxima</span>
+                          <span className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-0.5">
+                            <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                            <span>Próxima</span>
                           </span>
                         )}
                       </div>
 
-                      <p className="text-xs text-gray-600 flex items-center gap-1 mt-1">
-                        <MapPin className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                      <p className="text-[11px] sm:text-xs text-gray-600 flex items-center gap-1 mt-0.5 sm:mt-1">
+                        <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-500 shrink-0" />
                         <span className="truncate">{w.locationSummary || 'Locación por definir'}</span>
                       </p>
 
-                      <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-900 bg-white px-3 py-1 rounded-xl border border-gray-300 shadow-2xs">
-                          <Calendar className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                          <span className="text-gray-900 font-semibold">{w.weddingDate ? formatWeddingDateCustom(w.weddingDate) : 'Fecha pendiente'}</span>
+                      <div className="mt-1.5 sm:mt-2.5 flex flex-wrap items-center gap-1 sm:gap-2">
+                        <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-gray-900 bg-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl border border-gray-300 shadow-2xs">
+                          <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-700 shrink-0" />
+                          <span className="text-gray-900 font-semibold truncate">{w.weddingDate ? formatWeddingDateCustom(w.weddingDate) : 'Pendiente'}</span>
                         </span>
-                        <span className="text-[11px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-xl shadow-2xs">
+                        <span className="text-[10px] sm:text-[11px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl shadow-2xs">
                           {daysInfo.label}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-[#EFEAE2] text-xs">
-                    <span className="text-[#8C8276] text-[11px]">
-                      {w.guests?.length || 0} invitados • {w.tasks?.length || 0} tareas
+                  <div className="flex items-center justify-between pt-1.5 sm:pt-2 border-t border-[#EFEAE2] text-[10px] sm:text-xs">
+                    <span className="text-[#8C8276] text-[10px] sm:text-[11px] truncate">
+                      {w.guests?.length || 0} inv. • {w.tasks?.length || 0} tar.
                     </span>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
                       {!isActive && (
                         <button
                           type="button"
                           onClick={() => selectWedding(w.id)}
-                          className="px-3 py-1 bg-[#EBEBEB] border border-[#D9CEBF] text-[#2D2A26] rounded-lg font-semibold hover:bg-[#EFEAE2] transition-colors text-xs cursor-pointer"
+                          className="px-2 sm:px-3 py-1 bg-[#EBEBEB] border border-[#D9CEBF] text-[#2D2A26] rounded-lg font-semibold hover:bg-[#EFEAE2] transition-colors text-[10px] sm:text-xs cursor-pointer"
                         >
-                          Abrir Boda
+                          Abrir
                         </button>
                       )}
 
@@ -395,10 +398,10 @@ export const SettingsModule: React.FC = () => {
                               deleteWedding(w.id);
                             }
                           }}
-                          className="p-1.5 text-stone-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                          className="p-1 sm:p-1.5 text-stone-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                           title="Eliminar evento"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
                         </button>
                       )}
                     </div>

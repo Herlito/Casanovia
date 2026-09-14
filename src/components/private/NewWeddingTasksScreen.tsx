@@ -26,37 +26,37 @@ import {
 
 const PHASE_LABELS: Record<string, { name: string; time: string; color: string; badgeBg: string }> = {
   fase_1: {
-    name: 'Fase 1: Fundamentos y Reservas Principales',
+    name: 'Inicializar y Reservar',
     time: '12 a 9 meses antes',
     color: 'border-transparent text-[#2D3748]',
     badgeBg: 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748]',
   },
   fase_2: {
-    name: 'Fase 2: Estilo, Proveedores Clave y Diseño',
+    name: 'Estilo, Proveedores y Diseño',
     time: '8 a 6 meses antes',
     color: 'border-[#C5A880] text-[#8C6B3E]',
     badgeBg: 'bg-amber-100 text-amber-900',
   },
   fase_3: {
-    name: 'Fase 3: Coordinación de Detalles y Logística',
+    name: 'Logística, Detalles y Convocatoria',
     time: '5 a 3 meses antes',
     color: 'border-[#8A9A86] text-[#4A5D46]',
     badgeBg: 'bg-emerald-100 text-emerald-900',
   },
   fase_4: {
-    name: 'Fase 4: Confirmaciones y Protocolo Final',
+    name: 'Confirmaciones y Protocolo',
     time: '2 meses a 2 semanas antes',
     color: 'border-[#4A5568] text-[#2D3748]',
     badgeBg: 'bg-slate-100 text-slate-800',
   },
   fase_5: {
-    name: 'Fase 5: Recta Final',
+    name: 'Recta Final',
     time: 'Semana previa al evento',
     color: 'border-[#D4AF37] text-[#977B1E]',
     badgeBg: 'bg-yellow-100 text-yellow-900',
   },
   fase_6: {
-    name: 'Fase 6: El Día de la Boda y Post-Boda',
+    name: 'Día de Boda y Post-Boda',
     time: 'Día D y días posteriores',
     color: 'border-rose-600 text-rose-700',
     badgeBg: 'bg-rose-100 text-rose-900',
@@ -552,7 +552,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
                                   onClick={() => toggleTask(task.id)}
                                   className={`text-xs sm:text-sm cursor-pointer transition-all leading-snug ${
                                     task.isCompleted
-                                      ? 'line-through text-gray-400 font-normal'
+                                      ? 'text-gray-400 font-normal'
                                       : 'text-gray-800 font-medium'
                                   }`}
                                 >

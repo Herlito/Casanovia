@@ -1018,21 +1018,18 @@ export const TableAssignmentModule: React.FC = () => {
   );
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-2 sm:space-y-3 pb-20 sm:pb-0">
       
-      {/* ========================================================
-          HEADER STATION
-         ======================================================== */}
-      <div className="bg-[#EBEBEB] rounded-[2.5rem] p-6 text-gray-800 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="max-w-2xl">
-          <h2 className="font-serif-display text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2.5">
-            <UtensilsCrossed className="w-6 h-6 sm:w-7 sm:h-7 text-gray-800" />
-            <span>Asignación de Mesas</span>
-          </h2>
+      {/* Top Header & Actions */}
+      <div className="flex items-center justify-between gap-2 px-1 sm:px-0">
+        <div>
+          <h1 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26]">
+            Asignación de Mesas
+          </h1>
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2.5 shrink-0">
+        {/* Action Buttons (Desktop & Tablet) */}
+        <div className="hidden sm:grid sm:grid-cols-2 lg:flex items-center gap-2.5 shrink-0">
           {canEditActiveWedding && (
             <button
               type="button"
@@ -1041,7 +1038,7 @@ export const TableAssignmentModule: React.FC = () => {
               title="Asigna automáticamente invitados sin mesa a los lugares libres"
             >
               <Wand2 className="w-4 h-4 text-gray-800" />
-              <span className="hidden sm:inline">Auto-Distribuir</span>
+              <span>Auto-Distribuir</span>
             </button>
           )}
 
@@ -1052,7 +1049,7 @@ export const TableAssignmentModule: React.FC = () => {
               className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-semibold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">Imprimir</span>
+              <span>Imprimir</span>
             </button>
           )}
 
@@ -1063,7 +1060,7 @@ export const TableAssignmentModule: React.FC = () => {
             title="Diseñador visual interactivo de planos en 2D con carga de PDF y asignación de asientos"
           >
             <MapIcon className="w-4 h-4 text-[#2D3748]" />
-            <span className="hidden sm:inline">Plano Local</span>
+            <span>Plano Local</span>
           </button>
 
           {canEditActiveWedding && (
@@ -1076,7 +1073,7 @@ export const TableAssignmentModule: React.FC = () => {
               className="px-3.5 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-800 text-xs font-bold transition-all shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] border-none flex items-center justify-center space-x-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Nueva Mesa</span>
+              <span>Nueva Mesa</span>
             </button>
           )}
         </div>
@@ -1611,6 +1608,58 @@ export const TableAssignmentModule: React.FC = () => {
           </button>
         </div>
       )}
+
+      {/* Mobile Sticky Footer Action Bar (Matched to Plano de Mesas footer bar style) */}
+      <div className="sm:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-1.5 bg-[#EBEBEB] p-2 rounded-full shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border-none">
+        {canEditActiveWedding && (
+          <button
+            type="button"
+            onClick={handleSmartAutoAssign}
+            className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer flex items-center justify-center"
+            title="Auto-Distribuir"
+            aria-label="Auto-Distribuir"
+          >
+            <Wand2 className="w-4 h-4 text-gray-800" />
+          </button>
+        )}
+
+        {canPrint && (
+          <button
+            type="button"
+            onClick={() => setIsPrintModalOpen(true)}
+            className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer flex items-center justify-center"
+            title="Imprimir"
+            aria-label="Imprimir"
+          >
+            <Printer className="w-4 h-4 text-gray-800" />
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setShowFloorPlanModal(true)}
+          className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer flex items-center justify-center"
+          title="Plano Local"
+          aria-label="Plano Local"
+        >
+          <MapIcon className="w-4 h-4 text-gray-800" />
+        </button>
+
+        {canEditActiveWedding && (
+          <button
+            type="button"
+            onClick={() => {
+              setTableToEdit(null);
+              setIsTableModalOpen(true);
+            }}
+            className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer flex items-center justify-center"
+            title="Nueva Mesa"
+            aria-label="Nueva Mesa"
+          >
+            <Plus className="w-4 h-4 text-gray-800" />
+          </button>
+        )}
+      </div>
 
     </div>
   );

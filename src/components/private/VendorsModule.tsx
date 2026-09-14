@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useWedding } from '../../context/WeddingContext';
-import { formatCurrency, formatCurrencyInteger } from '../../lib/formatUtils';
+import { formatCurrencyInteger } from '../../lib/formatUtils';
 import { VendorItem } from '../../types';
 import { VendorModal } from './VendorModal';
 import { 
@@ -100,18 +100,13 @@ export const VendorsModule: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-2 sm:space-y-4 animate-fadeIn">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-2 px-1 sm:px-0">
         <div>
-          <div className="flex items-center space-x-2">
-            <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800">
-              Directorio de Servicios & Contratos
-            </span>
-          </div>
-          <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-gray-900 mt-1.5">
-            Gestión de Proveedores & Servicios
-          </h2>
+          <h1 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26]">
+            Proveedores
+          </h1>
         </div>
 
         {canManageVendors && (
@@ -119,81 +114,57 @@ export const VendorsModule: React.FC = () => {
             <button
               type="button"
               onClick={handleOpenAddModal}
-              className="px-5 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] text-gray-900 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] text-gray-900 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer"
             >
               <Plus className="w-4 h-4 text-gray-900" />
-              <span className="hidden sm:inline">Nuevo Proveedor</span>
+              <span>Nuevo Proveedor</span>
             </button>
           </div>
         )}
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Proveedores</span>
-            <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-amber-700 flex items-center justify-center">
-              <Building2 className="w-4 h-4" />
-            </div>
-          </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-2 sm:p-5 flex items-center justify-between">
           <div className="font-serif-display text-2xl sm:text-3xl font-bold text-gray-900">
             {totalVendorsCount}
           </div>
-          <div className="text-[11px] font-semibold text-gray-600 mt-1">
-            {vendors.filter(v => v.status === 'liquidado').length} liquidados • {vendors.filter(v => v.status === 'contratado').length} activos
+          <div className="w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-amber-700 flex items-center justify-center shrink-0">
+            <Building2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Total Contratado</span>
-            <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-blue-700 flex items-center justify-center">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
+        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-2 sm:p-5 flex items-center justify-between">
           <div className="font-serif-display text-2xl sm:text-3xl font-bold text-gray-900">
-            {formatCurrency(totalContractedAmount)}
+            {formatCurrencyInteger(totalContractedAmount)}
           </div>
-          <div className="text-[11px] font-semibold text-gray-600 mt-1">
-            Suma de contratos vigentes
+          <div className="w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-blue-700 flex items-center justify-center shrink-0">
+            <DollarSign className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Pagado / Anticipos</span>
-            <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-emerald-700 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
+        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-2 sm:p-5 flex items-center justify-between">
           <div className="font-serif-display text-2xl sm:text-3xl font-bold text-emerald-700">
-            {formatCurrency(totalPaidAmount)}
+            {formatCurrencyInteger(totalPaidAmount)}
           </div>
-          <div className="text-[11px] font-semibold text-gray-600 mt-1">
-            {totalPaidPercentage}% abonado a proveedores
+          <div className="w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-emerald-700 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Saldo por Liquidar</span>
-            <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-rose-700 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
+        <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-2 sm:p-5 flex items-center justify-between">
           <div className="font-serif-display text-2xl sm:text-3xl font-bold text-rose-600">
-            {formatCurrency(totalPendingBalance)}
+            {formatCurrencyInteger(totalPendingBalance)}
           </div>
-          <div className="text-[11px] font-semibold text-gray-600 mt-1">
-            Pendiente de liquidación
+          <div className="w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-rose-700 flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5" />
           </div>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-3">
-        <div className="relative w-full md:w-80">
+      {/* Search Bar */}
+      <div className="bg-[#EBEBEB] rounded-3xl shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] p-2 sm:p-5 flex items-center">
+        <div className="relative w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
@@ -202,31 +173,6 @@ export const VendorsModule: React.FC = () => {
             placeholder="Buscar por proveedor, contacto o servicio..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-xs text-gray-900 placeholder-gray-500 focus:outline-none"
           />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          {[
-            { id: 'all', label: 'Todos' },
-            { id: 'Locación', label: 'Locación/Banquete' },
-            { id: 'Foto', label: 'Foto/Video' },
-            { id: 'Música', label: 'Música' },
-            { id: 'Flor', label: 'Flores' },
-            { id: 'Vestuario', label: 'Vestuario' },
-            { id: 'Papelería', label: 'Papelería' },
-          ].map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setCategoryFilter(cat.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                categoryFilter === cat.id
-                  ? 'bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-900'
-                  : 'bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 hover:text-gray-900'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -350,16 +296,16 @@ export const VendorsModule: React.FC = () => {
                   <div className="space-y-1.5 pt-1 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] p-3 rounded-2xl">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-600 font-medium">Total Contratado:</span>
-                      <span className="font-bold text-gray-900">{formatCurrency(vendor.totalCost || 0)}</span>
+                      <span className="font-bold text-gray-900">{formatCurrencyInteger(vendor.totalCost || 0)}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-600 font-medium">Pagado ({paidPercentage}%):</span>
-                      <span className="font-bold text-emerald-700">{formatCurrency(vendor.paidAmount || 0)}</span>
+                      <span className="font-bold text-emerald-700">{formatCurrencyInteger(vendor.paidAmount || 0)}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-600 font-medium">Saldo Pendiente:</span>
                       <span className={`font-bold ${pendingBalance > 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
-                        {formatCurrency(pendingBalance)}
+                        {formatCurrencyInteger(pendingBalance)}
                       </span>
                     </div>
 

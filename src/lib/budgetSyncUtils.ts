@@ -131,7 +131,7 @@ export function buildBudgetDirectlyFromVendors(vendors: VendorItem[]): BudgetIte
       ? vendor.notes 
       : contactInfo 
       ? `Contacto: ${contactInfo}`
-      : `Servicio de ${vendor.category} registrado en Gestión de Proveedores.`;
+      : `Servicio de ${vendor.category} registrado en Proveedores.`;
 
     return {
       id: `b-v-${vendor.id || index + 1}`,

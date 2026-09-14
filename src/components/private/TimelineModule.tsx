@@ -420,17 +420,17 @@ export const TimelineModule: React.FC = () => {
     (settings.brideName && settings.groomName ? `${settings.brideName} & ${settings.groomName}` : 'Nuestro Evento');
 
   return (
-    <div className="space-y-4 sm:space-y-6 w-full">
+    <div className="space-y-2 sm:space-y-4 w-full pb-20 sm:pb-0">
       
       {/* Module Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-2 sm:px-0">
+      <div className="flex items-center justify-between gap-2 px-1 sm:px-0">
         <div>
-          <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
+          <h1 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26]">
             Programa Principal
-          </h2>
+          </h1>
         </div>
 
-        <div className="flex items-center space-x-2 self-start sm:self-auto flex-wrap gap-y-2">
+        <div className="hidden sm:flex items-center space-x-2 self-start sm:self-auto flex-wrap gap-y-2">
           {/* View Mode Toggle */}
           <div className="bg-[#EBEBEB] p-1 rounded-xl border border-[#D9CEBF] flex items-center space-x-1">
             <button
@@ -501,23 +501,6 @@ export const TimelineModule: React.FC = () => {
             </button>
           )}
         </div>
-      </div>
-
-      {/* Category Filter Badges */}
-      <div className="flex overflow-x-auto pb-2 gap-2 text-xs border-b border-transparent px-2 sm:px-0">
-        {categoriesFilterList.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setCategoryFilter(item.id)}
-            className={`px-3 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap cursor-pointer ${
-              categoryFilter === item.id
-                ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs'
-                : 'bg-[#F2ECE3] text-[#524B42] hover:bg-[#E8DCCF]'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
       </div>
 
       {/* Empty State */}
@@ -918,9 +901,9 @@ export const TimelineModule: React.FC = () => {
         onClose={() => setIsPrintModalOpen(false)}
       />
 
-      {/* Floating Action Button (FAB) at the bottom of the page */}
+      {/* Floating Action Button (FAB) at the bottom of the page (Desktop only) */}
       {canEditActiveWedding && (
-        <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40">
+        <div className="hidden sm:block fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40">
           <button
             type="button"
             onClick={handleOpenAdd}
@@ -932,6 +915,75 @@ export const TimelineModule: React.FC = () => {
           </button>
         </div>
       )}
+
+      {/* Mobile Sticky Footer Action Bar (Matched to Plano de Mesas footer bar style) */}
+      <div className="sm:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-1.5 bg-[#EBEBEB] p-2 rounded-full shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border-none">
+        <button
+          type="button"
+          onClick={() => setViewMode('editorial')}
+          className={`p-2 rounded-full transition-all border-none cursor-pointer flex items-center justify-center ${
+            viewMode === 'editorial'
+              ? 'bg-[#EBEBEB] text-gray-900 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+              : 'bg-[#EBEBEB] text-gray-700 hover:text-gray-900 shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+          }`}
+          title="Estilo Timing"
+          aria-label="Estilo Timing"
+        >
+          <LayoutList className="w-4 h-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setViewMode('cards')}
+          className={`p-2 rounded-full transition-all border-none cursor-pointer flex items-center justify-center ${
+            viewMode === 'cards'
+              ? 'bg-[#EBEBEB] text-gray-900 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+              : 'bg-[#EBEBEB] text-gray-700 hover:text-gray-900 shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+          }`}
+          title="Texto"
+          aria-label="Texto"
+        >
+          <Columns className="w-4 h-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setViewMode('protocol')}
+          className={`p-2 rounded-full transition-all border-none cursor-pointer flex items-center justify-center ${
+            viewMode === 'protocol'
+              ? 'bg-[#EBEBEB] text-gray-900 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+              : 'bg-[#EBEBEB] text-gray-700 hover:text-gray-900 shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+          }`}
+          title="Protocolo"
+          aria-label="Protocolo"
+        >
+          <BookmarkCheck className="w-4 h-4" />
+        </button>
+
+        {canPrint && (
+          <button
+            type="button"
+            onClick={() => setIsPrintModalOpen(true)}
+            className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer flex items-center justify-center"
+            title="Exportar Cronograma PDF"
+            aria-label="Exportar Cronograma PDF"
+          >
+            <Printer className="w-4 h-4 text-gray-800" />
+          </button>
+        )}
+
+        {canEditActiveWedding && (
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer flex items-center justify-center"
+            title="Añadir Hito"
+            aria-label="Añadir Hito"
+          >
+            <Plus className="w-4 h-4 text-gray-800" />
+          </button>
+        )}
+      </div>
 
     </div>
   );

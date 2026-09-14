@@ -278,8 +278,8 @@ export const PlannerDashboard: React.FC = () => {
           - Auto-wrapping for mobile view
          ======================================================== */}
       <header className="bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] sticky top-14 sm:top-16 z-30">
-        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-1.5 sm:py-2">
-          <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-start gap-1 sm:gap-2">
+        <div className="w-full max-w-7xl mx-auto px-1 sm:px-6 lg:px-8 py-1.5 sm:py-2">
+          <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-start gap-1 sm:gap-2 w-full">
             
             {/* Wedding Selector Dropdown (Hidden on mobile) */}
             <div className="hidden sm:flex sm:w-auto justify-start shrink-0">
@@ -355,8 +355,8 @@ export const PlannerDashboard: React.FC = () => {
               )}
             </div>
 
-            {/* Nav Tabs - flex-wrap allows responsive adjustment to wrap onto the next row on mobile devices */}
-            <nav className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 w-full sm:w-auto mt-1 sm:mt-0">
+            {/* Nav Tabs - 100% width of mobile screen, all buttons in a single row */}
+            <nav className="w-full sm:w-auto flex items-center justify-between gap-1 sm:gap-2 mt-0">
               {navTabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 const Icon = tab.icon;
@@ -377,13 +377,15 @@ export const PlannerDashboard: React.FC = () => {
                         setActiveTab(tab.id as PlannerDashboardTab);
                       }
                     }}
-                    className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 ${
+                    title={tab.label}
+                    aria-label={tab.label}
+                    className={`flex-1 sm:flex-initial min-w-0 h-9 sm:h-auto px-1 sm:px-3.5 py-1.5 sm:py-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-medium transition-all flex items-center justify-center space-x-0 sm:space-x-1.5 cursor-pointer ${
                       isActive
-                        ? (isNeumorphic ? 'bg-[#EBEBEB] text-[#6D7587] shadow-[inset_3px_3px_6px_#d1d9e6,inset_-3px_-3px_6px_#ffffff]' : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs font-semibold ring-1 ring-white/30')
-                        : (isNeumorphic ? 'text-[#6D7587] bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d9e6,-3px_-3px_6px_#ffffff]' : 'text-[#4A5568] hover:text-[#2D3748] hover:bg-[#EBEBEB]/10')
+                        ? (isNeumorphic ? 'bg-[#EBEBEB] text-[#2D3748] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]' : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs font-semibold ring-1 ring-white/30')
+                        : (isNeumorphic ? 'text-[#6D7587] bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]' : 'text-[#4A5568] hover:text-[#2D3748] hover:bg-[#EBEBEB]/10')
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                    <Icon className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
                     <span className="hidden sm:inline">{tab.label}</span>
                   </button>
                 );
@@ -454,30 +456,32 @@ export const PlannerDashboard: React.FC = () => {
             </div>
           )}
           {activeTab === 'seating' && (
-            <TableAssignmentModule />
+            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-0 sm:p-5 border-none sm:border border-transparent w-full" : "bg-[#EBEBEB] rounded-none sm:rounded-3xl p-0 sm:p-5 border-none sm:border border-transparent w-full"}>
+              <TableAssignmentModule />
+            </div>
           )}
           {activeTab === 'vendors' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-transparent shadow-xs" : "bg-[#EBEBEB] rounded-3xl p-6 border border-transparent shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-0 sm:p-5 border-none sm:border border-transparent w-full" : "bg-[#EBEBEB] rounded-none sm:rounded-3xl p-0 sm:p-5 border-none sm:border border-transparent w-full"}>
               <VendorsModule />
             </div>
           )}
           {activeTab === 'budget' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-transparent shadow-xs" : "bg-[#EBEBEB] rounded-3xl p-6 border border-transparent shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-0 sm:p-5 border-none sm:border border-transparent w-full" : "bg-[#EBEBEB] rounded-none sm:rounded-3xl p-0 sm:p-5 border-none sm:border border-transparent w-full"}>
               <BudgetModule />
             </div>
           )}
           {activeTab === 'timeline' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-0 sm:p-6 border-none sm:border border-transparent w-full" : "bg-[#EBEBEB] rounded-none sm:rounded-3xl p-0 sm:p-6 border-none sm:border border-transparent w-full"}>
+            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-0 sm:p-5 border-none sm:border border-transparent w-full" : "bg-[#EBEBEB] rounded-none sm:rounded-3xl p-0 sm:p-5 border-none sm:border border-transparent w-full"}>
               <TimelineModule />
             </div>
           )}
           {activeTab === 'checklist' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-transparent shadow-xs" : "bg-[#EBEBEB] rounded-3xl p-6 border border-transparent shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-0 sm:p-5 border-none sm:border border-transparent w-full" : "bg-[#EBEBEB] rounded-none sm:rounded-3xl p-0 sm:p-5 border-none sm:border border-transparent w-full"}>
               <ChecklistModule />
             </div>
           )}
           {activeTab === 'settings' && (
-            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-6 border border-transparent shadow-xs" : "bg-[#EBEBEB] rounded-3xl p-6 border border-transparent shadow-xs"}>
+            <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-0 sm:p-5 border-none sm:border border-transparent w-full" : "bg-[#EBEBEB] rounded-none sm:rounded-3xl p-0 sm:p-5 border-none sm:border border-transparent w-full"}>
               <SettingsModule />
             </div>
           )}

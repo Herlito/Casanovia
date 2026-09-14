@@ -2,18 +2,18 @@ import * as XLSX from 'xlsx';
 import { WeddingTask, TaskPhase, TaskPriority } from '../types';
 
 export const PHASE_NAME_MAP: Record<TaskPhase, string> = {
-  fase_1: 'Fase 1: Fundamentos y Reservas Principales (12 a 9 meses antes)',
-  fase_2: 'Fase 2: Estilo, Proveedores Clave y Diseño (8 a 6 meses antes)',
-  fase_3: 'Fase 3: Coordinación de Detalles y Logística (5 a 3 meses antes)',
-  fase_4: 'Fase 4: Confirmaciones y Protocolo Final (2 meses a 2 semanas antes)',
-  fase_5: 'Fase 5: Recta Final (Semana previa al evento)',
-  fase_6: 'Fase 6: El Día de la Boda y Post-Boda (Día D y posterior)',
-  '12_meses': 'Fase 1: Fundamentos (12 meses antes)',
-  '6_9_meses': 'Fase 2: Proveedores (6 a 9 meses antes)',
-  '2_3_meses': 'Fase 3: Detalles (2 a 3 meses antes)',
-  '1_mes': 'Fase 4: Confirmaciones (1 mes antes)',
-  semana_final: 'Fase 5: Recta Final (Semana final)',
-  dia_boda: 'Fase 6: El Día de la Boda',
+  fase_1: 'Inicializar y Reservar (12 a 9 meses antes)',
+  fase_2: 'Estilo, Proveedores y Diseño (8 a 6 meses antes)',
+  fase_3: 'Logística, Detalles y Convocatoria (5 a 3 meses antes)',
+  fase_4: 'Confirmaciones y Protocolo (2 meses a 2 semanas antes)',
+  fase_5: 'Recta Final (Semana previa al evento)',
+  fase_6: 'Día de Boda y Post-Boda (Día D y posterior)',
+  '12_meses': 'Inicializar y Reservar (12 meses antes)',
+  '6_9_meses': 'Estilo, Proveedores y Diseño (6 a 9 meses antes)',
+  '2_3_meses': 'Logística, Detalles y Convocatoria (2 a 3 meses antes)',
+  '1_mes': 'Confirmaciones y Protocolo (1 mes antes)',
+  semana_final: 'Recta Final (Semana final)',
+  dia_boda: 'Día de Boda y Post-Boda',
 };
 
 /**
@@ -23,7 +23,7 @@ export const normalizeTaskPhase = (raw: string | undefined | null): TaskPhase =>
   if (!raw) return 'fase_1';
   const clean = raw.toString().toLowerCase().trim();
 
-  if (clean.includes('fase 6') || clean.includes('fase_6') || clean.includes('post-boda') || clean.includes('día d') || clean.includes('dia d') || clean.includes('dia_boda')) {
+  if (clean.includes('fase 6') || clean.includes('fase_6') || clean.includes('post-boda') || clean.includes('post boda') || clean.includes('día d') || clean.includes('dia d') || clean.includes('dia_boda') || clean.includes('día de boda') || clean.includes('dia de boda')) {
     return 'fase_6';
   }
   if (clean.includes('fase 5') || clean.includes('fase_5') || clean.includes('recta final') || clean.includes('semana previa') || clean.includes('semana_final')) {
@@ -32,13 +32,13 @@ export const normalizeTaskPhase = (raw: string | undefined | null): TaskPhase =>
   if (clean.includes('fase 4') || clean.includes('fase_4') || clean.includes('confirmacion') || clean.includes('confirmación') || clean.includes('protocolo') || clean.includes('1_mes')) {
     return 'fase_4';
   }
-  if (clean.includes('fase 3') || clean.includes('fase_3') || clean.includes('logistica') || clean.includes('logística') || clean.includes('detalles') || clean.includes('2_3_meses')) {
+  if (clean.includes('fase 3') || clean.includes('fase_3') || clean.includes('logistica') || clean.includes('logística') || clean.includes('detalles') || clean.includes('convocatoria') || clean.includes('2_3_meses')) {
     return 'fase_3';
   }
   if (clean.includes('fase 2') || clean.includes('fase_2') || clean.includes('proveedor') || clean.includes('diseño') || clean.includes('diseno') || clean.includes('estilo') || clean.includes('6_9_meses')) {
     return 'fase_2';
   }
-  if (clean.includes('fase 1') || clean.includes('fase_1') || clean.includes('fundamento') || clean.includes('reserva') || clean.includes('12_meses') || clean.includes('presupuesto')) {
+  if (clean.includes('fase 1') || clean.includes('fase_1') || clean.includes('inicializar') || clean.includes('fundamento') || clean.includes('reserva') || clean.includes('12_meses') || clean.includes('presupuesto')) {
     return 'fase_1';
   }
 

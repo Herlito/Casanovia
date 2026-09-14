@@ -308,7 +308,7 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
           <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all" : "bg-[#FFFDFB] rounded-3xl p-6 border border-transparent shadow-xs transition-all hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff]"}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-[#F0EAE1]">
               <h3 className="font-serif-display text-lg sm:text-xl font-bold text-[#6D7587]">
-                Control de Presupuesto
+                Presupuesto
               </h3>
               <div className="text-right">
                 <span className="text-xs text-[#7A7268] mr-2">Presupuesto Total Real</span>
