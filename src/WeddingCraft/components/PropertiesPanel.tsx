@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { Settings2, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Group as GroupIcon, Copy, Trash2, Image as ImageIcon, Layers, Upload, X, Ungroup, Sparkles, Square, Circle, Heart, Church, PartyPopper, Shirt, MessageSquare, Plus, Palette, Type, MapPin, Clock, Navigation, Globe, RotateCcw, Check, Quote } from 'lucide-react';
+import { Settings2, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Group as GroupIcon, Copy, Trash2, Image as ImageIcon, Layers, Upload, X, Ungroup, Sparkles, Square, Circle, Heart, Church, PartyPopper, Shirt, MessageSquare, Plus, Palette, Type, MapPin, Clock, Navigation, Globe, RotateCcw, Check, Quote, Sun, Sliders, Eye, EyeOff, Box } from 'lucide-react';
 import { FontPicker } from './FontPicker';
 import { processImageTransparency } from '../lib/imageTransparency';
+import { CANVAS_SHADOW_PRESETS } from '../lib/canvasShadowUtils';
 
 
 
@@ -415,6 +416,311 @@ export const PropertiesPanel: React.FC = () => {
                 title="Restablecer al color neumórfico original"
               >
                 Restablecer (#EBEBEB)
+              </button>
+            </div>
+          </div>
+
+          {/* Brillo, Resplandor y Sombras del Canva */}
+          <div className="space-y-3 p-3 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1.5">
+                <Sun className="w-3.5 h-3.5 text-amber-500" />
+                <span>Brillo & Resplandor del Canva</span>
+              </label>
+              
+              {/* Toggle General de Brillo */}
+              <button
+                type="button"
+                onClick={() => {
+                  const currentGlow = canvasConfig.glowEnabled !== false;
+                  updateCanvas({ 
+                    glowEnabled: !currentGlow,
+                    shadowPreset: !currentGlow ? 'custom' : (canvasConfig.shadowEnabled === false ? 'none' : 'subtle-shadow')
+                  });
+                }}
+                className={`flex items-center space-x-1 px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer ${
+                  canvasConfig.glowEnabled !== false
+                    ? 'bg-amber-500 text-white shadow-[2px_2px_4px_#d97706]'
+                    : 'bg-[#EBEBEB] text-gray-500 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                }`}
+              >
+                {canvasConfig.glowEnabled !== false ? (
+                  <>
+                    <Eye className="w-3 h-3" />
+                    <span>Activo</span>
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="w-3 h-3" />
+                    <span>Sin Brillo</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <p className="text-[10px] text-gray-500 leading-tight">
+              Controla el brillo (halo/aura luminosa) o sombra exterior que rodea el canva en la Web de Invitados.
+            </p>
+
+            {/* Presets Rápidos de Brillo */}
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Estilos Predefinidos:</span>
+              <div className="grid grid-cols-2 gap-1.5">
+                {CANVAS_SHADOW_PRESETS.map((preset) => {
+                  const isCurrentPreset = 
+                    preset.id === 'none'
+                      ? canvasConfig.glowEnabled === false && canvasConfig.shadowEnabled === false
+                      : canvasConfig.shadowPreset === preset.id;
+
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => updateCanvas(preset.config)}
+                      className={`text-left p-2 rounded-xl transition-all cursor-pointer text-xs flex flex-col justify-between ${
+                        isCurrentPreset
+                          ? 'bg-[#EBEBEB] text-amber-900 font-bold ring-2 ring-amber-500 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]'
+                          : 'bg-[#EBEBEB] text-gray-700 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff]'
+                      }`}
+                      title={preset.description}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="text-[11px] font-bold truncate">{preset.name}</span>
+                        {isCurrentPreset && <Check className="w-3 h-3 text-amber-600 shrink-0" />}
+                      </div>
+                      <span className="text-[9px] text-gray-500 line-clamp-1 mt-0.5">{preset.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Configuración Detallada del Brillo (Si está habilitado) */}
+            {canvasConfig.glowEnabled !== false && (
+              <div className="space-y-3 pt-2 border-t border-gray-200/80">
+                {/* Color del Brillo */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-gray-600 uppercase">Color del Brillo:</span>
+                    <span className="text-[10px] font-mono font-bold text-amber-600 uppercase">
+                      {canvasConfig.glowColor || '#FFFFFF'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="color"
+                      className="w-8 h-8 p-0.5 border-0 rounded-xl bg-transparent cursor-pointer shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]"
+                      value={(canvasConfig.glowColor || '#FFFFFF').startsWith('#') ? (canvasConfig.glowColor || '#FFFFFF') : '#FFFFFF'}
+                      onChange={(e) => updateCanvas({ glowColor: e.target.value, shadowPreset: 'custom' })}
+                    />
+                    <input
+                      type="text"
+                      className="flex-1 px-2.5 py-1.5 text-xs font-mono rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] border-0 text-gray-800 outline-none"
+                      value={canvasConfig.glowColor || '#FFFFFF'}
+                      placeholder="#FFFFFF"
+                      onChange={(e) => updateCanvas({ glowColor: e.target.value, shadowPreset: 'custom' })}
+                    />
+                  </div>
+
+                  {/* Tonos rápidos de brillo */}
+                  <div className="flex items-center space-x-1.5 pt-1 overflow-x-auto pb-1">
+                    {[
+                      { name: 'Blanco Puro', color: '#FFFFFF' },
+                      { name: 'Oro / Dorado', color: '#D4AF37' },
+                      { name: 'Rosa Pastel', color: '#F472B6' },
+                      { name: 'Azul Nube', color: '#60A5FA' },
+                      { name: 'Verde Salvia', color: '#8A9A86' },
+                      { name: 'Ámbar Cálido', color: '#F59E0B' },
+                      { name: 'Lila Mágico', color: '#C084FC' }
+                    ].map(c => (
+                      <button
+                        key={c.color}
+                        type="button"
+                        onClick={() => updateCanvas({ glowColor: c.color, shadowPreset: 'custom' })}
+                        className={`w-6 h-6 rounded-full border border-black/10 flex items-center justify-center transition-transform cursor-pointer ${
+                          (canvasConfig.glowColor || '#FFFFFF').toLowerCase() === c.color.toLowerCase()
+                            ? 'ring-2 ring-amber-500 scale-110 shadow-sm'
+                            : 'hover:scale-105'
+                        }`}
+                        style={{ backgroundColor: c.color }}
+                        title={c.name}
+                      >
+                        {(canvasConfig.glowColor || '#FFFFFF').toLowerCase() === c.color.toLowerCase() && (
+                          <Check className={`w-3 h-3 ${c.color === '#FFFFFF' ? 'text-black' : 'text-white'}`} />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Intensidad / Desenfoque del Brillo */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-gray-600 uppercase">Intensidad / Difuminado:</span>
+                    <span className="text-[10px] font-mono font-bold text-gray-700">
+                      {canvasConfig.glowIntensity ?? 16}px
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="50"
+                    step="2"
+                    value={canvasConfig.glowIntensity ?? 16}
+                    onChange={(e) => updateCanvas({ glowIntensity: Number(e.target.value), shadowPreset: 'custom' })}
+                    className="w-full accent-amber-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[9px] text-gray-400">
+                    <span>0px (Nítido/Sin halo)</span>
+                    <span>24px (Medio)</span>
+                    <span>50px (Aura amplia)</span>
+                  </div>
+                </div>
+
+                {/* Opacidad del Brillo */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-gray-600 uppercase">Opacidad del Brillo:</span>
+                    <span className="text-[10px] font-mono font-bold text-gray-700">
+                      {Math.round((canvasConfig.glowOpacity ?? 0.7) * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={canvasConfig.glowOpacity ?? 0.7}
+                    onChange={(e) => updateCanvas({ glowOpacity: Number(e.target.value), shadowPreset: 'custom' })}
+                    className="w-full accent-amber-500 cursor-pointer"
+                  />
+                </div>
+
+                {/* Dirección / Alineación del Brillo */}
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-gray-600 uppercase block">Posición del Resplandor:</span>
+                  <div className="grid grid-cols-3 gap-1">
+                    <button
+                      type="button"
+                      onClick={() => updateCanvas({ glowOffsetX: -6, glowOffsetY: -6, shadowPreset: 'custom' })}
+                      className={`text-[10px] py-1 px-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                        (canvasConfig.glowOffsetX ?? -6) === -6 && (canvasConfig.glowOffsetY ?? -6) === -6
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-white/70 text-gray-700 hover:bg-white'
+                      }`}
+                    >
+                      Sup-Izq
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateCanvas({ glowOffsetX: 0, glowOffsetY: 0, shadowPreset: 'custom' })}
+                      className={`text-[10px] py-1 px-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                        (canvasConfig.glowOffsetX ?? -6) === 0 && (canvasConfig.glowOffsetY ?? -6) === 0
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-white/70 text-gray-700 hover:bg-white'
+                      }`}
+                    >
+                      Centrado (Halo)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateCanvas({ glowOffsetX: 6, glowOffsetY: 6, shadowPreset: 'custom' })}
+                      className={`text-[10px] py-1 px-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                        (canvasConfig.glowOffsetX ?? -6) === 6 && (canvasConfig.glowOffsetY ?? -6) === 6
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-white/70 text-gray-700 hover:bg-white'
+                      }`}
+                    >
+                      Inf-Der
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Sombra de Profundidad Inferior */}
+            <div className="space-y-2 pt-2 border-t border-gray-200/80">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-gray-700 uppercase">Sombra Inferior (Drop Shadow)</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentShadow = canvasConfig.shadowEnabled !== false;
+                    updateCanvas({ 
+                      shadowEnabled: !currentShadow,
+                      shadowPreset: 'custom'
+                    });
+                  }}
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-lg transition-colors cursor-pointer ${
+                    canvasConfig.shadowEnabled !== false
+                      ? 'bg-gray-800 text-white'
+                      : 'bg-gray-200 text-gray-500'
+                  }`}
+                >
+                  {canvasConfig.shadowEnabled !== false ? 'Activada' : 'Desactivada'}
+                </button>
+              </div>
+
+              {canvasConfig.shadowEnabled !== false && (
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-semibold text-gray-500">Opacidad Sombra:</span>
+                    <span className="text-[9px] font-mono font-bold text-gray-700">
+                      {Math.round((canvasConfig.shadowOpacity ?? 0.06) * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="0.4"
+                    step="0.02"
+                    value={canvasConfig.shadowOpacity ?? 0.06}
+                    onChange={(e) => updateCanvas({ shadowOpacity: Number(e.target.value), shadowPreset: 'custom' })}
+                    className="w-full accent-gray-700 cursor-pointer"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Esquinas y Bordes del Canva */}
+            <div className="space-y-2 pt-2 border-t border-gray-200/80">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-gray-700 uppercase">Redondeo de Esquinas:</span>
+                <span className="text-[10px] font-mono font-bold text-gray-700">
+                  {canvasConfig.borderRadius ?? 24}px
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="48"
+                step="2"
+                value={canvasConfig.borderRadius ?? 24}
+                onChange={(e) => updateCanvas({ borderRadius: Number(e.target.value) })}
+                className="w-full accent-gray-700 cursor-pointer"
+              />
+              <div className="flex justify-between text-[9px] text-gray-400">
+                <span>0px (Recto)</span>
+                <span>24px (Redondeado)</span>
+                <span>48px (Píldora)</span>
+              </div>
+            </div>
+
+            {/* Botón rápido para quitar todo (Plano) */}
+            <div className="pt-2 flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => updateCanvas({
+                  glowEnabled: false,
+                  shadowEnabled: false,
+                  shadowPreset: 'none'
+                })}
+                className="flex-1 text-[11px] py-1.5 px-2 rounded-xl bg-white/80 hover:bg-white text-rose-700 font-bold shadow-2xs transition-colors flex items-center justify-center space-x-1 cursor-pointer"
+                title="Desactiva totalmente el brillo y las sombras alrededor del canva"
+              >
+                <EyeOff className="w-3 h-3 text-rose-600" />
+                <span>Quitar Todo el Brillo y Sombras</span>
               </button>
             </div>
           </div>

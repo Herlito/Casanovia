@@ -50,6 +50,27 @@ export interface WeddingDesignDocument {
     backgroundColor: string;
     backgroundImage?: string;
     webBackgroundColor?: string;
+    // Glow & Shadow Canvas Settings
+    glowEnabled?: boolean;
+    glowColor?: string;
+    glowIntensity?: number;
+    glowOpacity?: number;
+    glowSpread?: number;
+    glowOffsetX?: number;
+    glowOffsetY?: number;
+
+    shadowEnabled?: boolean;
+    shadowColor?: string;
+    shadowIntensity?: number;
+    shadowOpacity?: number;
+    shadowSpread?: number;
+    shadowOffsetX?: number;
+    shadowOffsetY?: number;
+
+    shadowPreset?: string;
+    borderRadius?: number;
+    borderWidth?: number;
+    borderColor?: string;
   };
   theme: any;
   customThemes?: any[];

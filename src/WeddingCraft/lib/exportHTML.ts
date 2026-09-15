@@ -1,4 +1,5 @@
 import { WeddingDesignDocument, CanvasElement } from '../types';
+import { getCanvasBoxShadow } from './canvasShadowUtils';
 
 export const exportToHTML = (doc: WeddingDesignDocument) => {
   const page = doc.pages[0];
@@ -28,7 +29,8 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
     background-color: ${doc.canvas.backgroundColor || '#ffffff'};
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: ${getCanvasBoxShadow(doc.canvas)};
+    border-radius: ${doc.canvas.borderRadius !== undefined ? `${doc.canvas.borderRadius}px` : '24px'};
   }
   .el {
     position: absolute;

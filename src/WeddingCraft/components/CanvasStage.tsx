@@ -14,6 +14,7 @@ import { saveElementToLibrary } from '../lib/libraryService';
 import { CanvasElement } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { detectHasTransparency } from '../lib/imageTransparency';
+import { hexOrRgbToRgba } from '../lib/canvasShadowUtils';
 
 export const getGradientProps = (style: any, w: number, h: number) => {
     if (!style.gradientEnabled) return {};
@@ -703,7 +704,26 @@ export const CanvasStage: React.FC = () => {
         }}
       >
         <Layer>
-          {/* Canvas Web Viewport: Fluid native background without rigid card sticker shadow */}
+          {/* Canvas Drop Shadow Layer (if active) */}
+          {canvasConfig.shadowEnabled !== false && (canvasConfig.shadowIntensity === undefined || canvasConfig.shadowIntensity > 0) && canvasConfig.shadowPreset !== 'none' && (
+            <Rect
+              x={stageX}
+              y={stageY}
+              width={canvasConfig.width * scale}
+              height={canvasConfig.height * scale}
+              fill={canvasConfig.backgroundColor || '#ffffff'}
+              cornerRadius={Math.max(0, (canvasConfig.borderRadius ?? 24) * scale)}
+              shadowEnabled={true}
+              shadowColor={hexOrRgbToRgba(canvasConfig.shadowColor || '#000000', canvasConfig.shadowOpacity ?? 0.06)}
+              shadowBlur={(canvasConfig.shadowIntensity ?? 16) * scale}
+              shadowOffset={{
+                x: (canvasConfig.shadowOffsetX ?? 6) * scale,
+                y: (canvasConfig.shadowOffsetY ?? 6) * scale
+              }}
+            />
+          )}
+
+          {/* Canvas Web Viewport with Outer Glow / Resplandor */}
           <Rect
             name="canvas-bg"
             x={stageX}
@@ -711,9 +731,16 @@ export const CanvasStage: React.FC = () => {
             width={canvasConfig.width * scale}
             height={canvasConfig.height * scale}
             fill={canvasConfig.backgroundColor || '#ffffff'}
-            stroke="rgba(0, 0, 0, 0.08)"
-            strokeWidth={1}
-            cornerRadius={Math.max(0, 20 * scale)}
+            stroke={canvasConfig.borderColor || "rgba(0, 0, 0, 0.08)"}
+            strokeWidth={canvasConfig.borderWidth ?? 1}
+            cornerRadius={Math.max(0, (canvasConfig.borderRadius ?? 24) * scale)}
+            shadowEnabled={canvasConfig.glowEnabled !== false && (canvasConfig.glowIntensity === undefined || canvasConfig.glowIntensity > 0) && canvasConfig.shadowPreset !== 'none'}
+            shadowColor={hexOrRgbToRgba(canvasConfig.glowColor || '#FFFFFF', canvasConfig.glowOpacity ?? 0.7)}
+            shadowBlur={(canvasConfig.glowIntensity ?? 16) * scale}
+            shadowOffset={{
+              x: (canvasConfig.glowOffsetX ?? -6) * scale,
+              y: (canvasConfig.glowOffsetY ?? -6) * scale
+            }}
           />
 
           <Group x={stageX} y={stageY} scaleX={scale} scaleY={scale}>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WeddingDesignDocument, CanvasElement } from '../../WeddingCraft/types';
+import { getCanvasBoxShadow } from '../../WeddingCraft/lib/canvasShadowUtils';
 import { 
   Sparkles, 
   Edit3, 
@@ -135,11 +136,14 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
       >
         <div
           ref={containerRef}
-          className="relative w-full overflow-hidden mx-auto rounded-3xl shadow-[6px_6px_16px_rgba(0,0,0,0.06),-6px_-6px_16px_rgba(255,255,255,0.7)]"
+          className="relative w-full overflow-hidden mx-auto transition-all duration-300"
           style={{
             height: `${canvasHeight * scale}px`,
             maxWidth: `${canvasWidth}px`,
-            backgroundColor: doc.canvas?.backgroundColor || '#ffffff'
+            backgroundColor: doc.canvas?.backgroundColor || '#ffffff',
+            boxShadow: getCanvasBoxShadow(doc.canvas),
+            borderRadius: doc.canvas?.borderRadius !== undefined ? `${doc.canvas.borderRadius}px` : '1.5rem',
+            border: doc.canvas?.borderWidth ? `${doc.canvas.borderWidth}px solid ${doc.canvas.borderColor || 'rgba(0,0,0,0.08)'}` : undefined
           }}
         >
           {/* Scaled Canvas Layer */}
