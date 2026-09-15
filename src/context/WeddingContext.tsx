@@ -207,6 +207,8 @@ interface WeddingContextType {
   // Backup & Reset
   exportDataJson: () => void;
   importDataJson: (jsonString: string) => Promise<boolean>;
+  exportAllDatabaseJson: () => void;
+  importAllDatabaseJson: (jsonString: string) => Promise<{ success: boolean; message: string; weddingsCount: number; usersCount: number }>;
   resetToDemoData: () => Promise<void>;
   clearWeddingData: (targetWeddingId?: string) => Promise<void>;
   
@@ -495,7 +497,31 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // System Users state (Admin & Anfitrión roles)
-  const [systemUsers, setSystemUsers] = useState<SystemUser[]>(INITIAL_SYSTEM_USERS);
+  const [systemUsers, setSystemUsers] = useState<SystemUser[]>(() => {
+    try {
+      const local = localStorage.getItem('casanovia_system_users');
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return INITIAL_SYSTEM_USERS;
+  });
+
+  // Automatically persist systemUsers to localStorage as resilient offline backup
+  React.useEffect(() => {
+    try {
+      if (systemUsers && systemUsers.length > 0) {
+        localStorage.setItem('casanovia_system_users', JSON.stringify(systemUsers));
+      }
+    } catch {
+      // ignore
+    }
+  }, [systemUsers]);
 
   // Sync currentUser with systemUsers updates from Firestore
   React.useEffect(() => {
@@ -553,7 +579,72 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
 
   // Multi-wedding state
-  const [weddings, setWeddings] = useState<Wedding[]>(initialWeddingsList);
+  const [weddings, setWeddings] = useState<Wedding[]>(() => {
+    try {
+      const local = localStorage.getItem('casanovia_all_weddings');
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const remoteIds = new Set(parsed.map((w: Wedding) => w.id));
+          const missingDefaults = initialWeddingsList.filter((def) => !remoteIds.has(def.id));
+          return sortWeddingsByDate([...parsed, ...missingDefaults]);
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return initialWeddingsList;
+  });
+
+  // Automatically persist weddings to localStorage as resilient offline backup
+  React.useEffect(() => {
+    try {
+      if (weddings && weddings.length > 0) {
+        localStorage.setItem('casanovia_all_weddings', JSON.stringify(weddings));
+      }
+    } catch {
+      // ignore
+    }
+  }, [weddings]);
+
+  // Self-hosted seed loader (if running on casanovia.pe or Apache with api/data/seed.json)
+  React.useEffect(() => {
+    const checkSelfHostedSeed = async () => {
+      try {
+        const res = await fetch('/api/data/seed.json');
+        if (res.ok) {
+          const seed = await res.json();
+          if (seed && Array.isArray(seed.weddings) && seed.weddings.length > 0) {
+            setWeddings((prev) => {
+              const prevIds = new Set(prev.map(w => w.id));
+              const missingFromSeed = seed.weddings.filter((w: Wedding) => !prevIds.has(w.id));
+              if (missingFromSeed.length > 0) {
+                const merged = sortWeddingsByDate([...prev, ...missingFromSeed]);
+                try { localStorage.setItem('casanovia_all_weddings', JSON.stringify(merged)); } catch {}
+                return merged;
+              }
+              return prev;
+            });
+          }
+          if (seed && Array.isArray(seed.systemUsers) && seed.systemUsers.length > 0) {
+            setSystemUsers((prev) => {
+              const prevIds = new Set(prev.map(u => u.id));
+              const missingUsers = seed.systemUsers.filter((u: SystemUser) => !prevIds.has(u.id));
+              if (missingUsers.length > 0) {
+                const merged = [...prev, ...missingUsers];
+                try { localStorage.setItem('casanovia_system_users', JSON.stringify(merged)); } catch {}
+                return merged;
+              }
+              return prev;
+            });
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+    checkSelfHostedSeed();
+  }, []);
   const [activeWeddingId, setActiveWeddingId] = useState<string>(() => {
     const fromUrl = getRequestedWeddingIdFromUrl();
     if (fromUrl) {
@@ -576,8 +667,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Selected Guest for Guide
   const [selectedGuestForGuide, setSelectedGuestForGuide] = useState<Guest | null>(null);
 
-  // Firebase connection state
-  const [isFirebaseLoading, setIsFirebaseLoading] = useState<boolean>(true);
+  // Firebase connection state (non-blocking for self-hosted domain)
+  const [isFirebaseLoading, setIsFirebaseLoading] = useState<boolean>(false);
   const [isFirebaseConnected, setIsFirebaseConnected] = useState<boolean>(false);
 
   const isLevel1Admin = currentUser.isAuthenticated && currentUser.level === 1;
@@ -624,7 +715,15 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
             });
 
             if (list.length > 0) {
-              setSystemUsers(list);
+              const remoteIds = new Set(list.map((u) => u.id));
+              const missingDefaults = INITIAL_SYSTEM_USERS.filter((def) => !remoteIds.has(def.id));
+              const merged = [...list, ...missingDefaults];
+              setSystemUsers(merged);
+              try {
+                localStorage.setItem('casanovia_system_users', JSON.stringify(merged));
+              } catch {
+                // ignore
+              }
             }
           },
           (error) => {
@@ -1140,8 +1239,16 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
             });
 
             if (list.length > 0) {
-              const sortedList = sortWeddingsByDate(list);
+              const remoteIds = new Set(list.map((w) => w.id));
+              const missingDefaults = initialWeddingsList.filter((def) => !remoteIds.has(def.id));
+              const combinedList = [...list, ...missingDefaults];
+              const sortedList = sortWeddingsByDate(combinedList);
               setWeddings(sortedList);
+              try {
+                localStorage.setItem('casanovia_all_weddings', JSON.stringify(sortedList));
+              } catch {
+                // ignore
+              }
               // ensure activeWeddingId respects URL parameter if requested or remains valid with indicated wedding
               setActiveWeddingId((prev) => {
                 const requestedId = getRequestedWeddingIdFromUrl();
@@ -2571,10 +2678,152 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     URL.revokeObjectURL(url);
   };
 
+  const exportAllDatabaseJson = () => {
+    let weddingcraftTemplates = [];
+    try {
+      const wcStr = localStorage.getItem('weddingcraft_templates_backup');
+      if (wcStr) weddingcraftTemplates = JSON.parse(wcStr);
+    } catch {}
+
+    const exportObject = {
+      casanoviaVersion: '3.0.0-complete-suite',
+      exportDate: new Date().toISOString(),
+      systemUsers,
+      weddings,
+      tokensPaymentConfig,
+      weddingcraftTemplates,
+      activeWeddingId,
+      stats: {
+        totalWeddings: weddings.length,
+        totalUsers: systemUsers.length,
+        totalGuests: weddings.reduce((acc, w) => acc + (w.guests?.length || 0), 0),
+        totalWeddingCraftTemplates: weddingcraftTemplates.length,
+      }
+    };
+    const blob = new Blob([JSON.stringify(exportObject, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `casanovia_base_de_datos_completa_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const importAllDatabaseJson = async (jsonString: string): Promise<{ success: boolean; message: string; weddingsCount: number; usersCount: number }> => {
+    if (currentUser.level === 5) {
+      return { success: false, message: 'El usuario observador (Nivel 5) no tiene permisos de importación.', weddingsCount: 0, usersCount: 0 };
+    }
+    try {
+      const parsed = JSON.parse(jsonString);
+      let importedWeddings: Wedding[] = [];
+      let importedUsers: SystemUser[] = [];
+
+      if (Array.isArray(parsed.weddings)) {
+        importedWeddings = parsed.weddings;
+      } else if (parsed.wedding && parsed.wedding.id) {
+        importedWeddings = [parsed.wedding];
+      }
+
+      if (Array.isArray(parsed.systemUsers)) {
+        importedUsers = parsed.systemUsers;
+      }
+
+      if (Array.isArray(parsed.weddingcraftTemplates) && parsed.weddingcraftTemplates.length > 0) {
+        try {
+          localStorage.setItem('weddingcraft_templates_backup', JSON.stringify(parsed.weddingcraftTemplates));
+        } catch {}
+      }
+
+      if (importedWeddings.length === 0 && importedUsers.length === 0 && parsed.settings && parsed.guests) {
+        // Legacy single wedding format
+        await updateActiveWeddingDoc({
+          settings: parsed.settings,
+          guests: parsed.guests || [],
+          timeline: parsed.timeline || [],
+          budget: parsed.budget || [],
+          tasks: parsed.tasks || [],
+        });
+        return { success: true, message: 'Boda actual restaurada exitosamente.', weddingsCount: 1, usersCount: 0 };
+      }
+
+      if (importedWeddings.length > 0) {
+        const sorted = sortWeddingsByDate(importedWeddings);
+        setWeddings(sorted);
+        try {
+          localStorage.setItem('casanovia_all_weddings', JSON.stringify(sorted));
+        } catch {}
+
+        // If Firestore is available, batch write
+        try {
+          const batch = writeBatch(db);
+          for (const w of sorted) {
+            const wRef = doc(db, 'weddings', w.id);
+            batch.set(wRef, cleanFirestoreData(w), { merge: true });
+          }
+          await batch.commit();
+        } catch (e) {
+          console.warn('[Firestore] Syncing imported weddings to cloud deferred:', e);
+        }
+
+        if (sorted[0]?.id) {
+          setActiveWeddingId(sorted[0].id);
+          persistIndicatedWeddingId(sorted[0].id);
+        }
+      }
+
+      if (importedUsers.length > 0) {
+        setSystemUsers(importedUsers);
+        try {
+          localStorage.setItem('casanovia_system_users', JSON.stringify(importedUsers));
+        } catch {}
+
+        // If Firestore is available, batch write
+        try {
+          const batch = writeBatch(db);
+          for (const u of importedUsers) {
+            const uRef = doc(db, 'system_users', u.id);
+            batch.set(uRef, cleanFirestoreData(u), { merge: true });
+          }
+          await batch.commit();
+        } catch (e) {
+          console.warn('[Firestore] Syncing imported users to cloud deferred:', e);
+        }
+      }
+
+      if (parsed.tokensPaymentConfig) {
+        setTokensPaymentConfig(parsed.tokensPaymentConfig);
+        try {
+          localStorage.setItem('casanovia_tokens_payment_config', JSON.stringify(parsed.tokensPaymentConfig));
+        } catch {}
+      }
+
+      return {
+        success: true,
+        message: `¡Base de datos restaurada con éxito! Se cargaron ${importedWeddings.length} bodas y ${importedUsers.length} usuarios.`,
+        weddingsCount: importedWeddings.length,
+        usersCount: importedUsers.length,
+      };
+    } catch (err) {
+      console.error('Error importing full database JSON:', err);
+      return {
+        success: false,
+        message: 'El archivo JSON no tiene un formato válido.',
+        weddingsCount: 0,
+        usersCount: 0,
+      };
+    }
+  };
+
   const importDataJson = async (jsonString: string): Promise<boolean> => {
     if (currentUser.level === 5) return false;
     try {
       const parsed = JSON.parse(jsonString);
+      if (parsed.weddings || parsed.systemUsers) {
+        const res = await importAllDatabaseJson(jsonString);
+        return res.success;
+      }
       if (parsed.wedding && parsed.wedding.settings) {
         await updateActiveWeddingDoc(parsed.wedding);
         return true;
@@ -2825,6 +3074,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         batchUpdateGuests,
         exportDataJson,
         importDataJson,
+        exportAllDatabaseJson,
+        importAllDatabaseJson,
         resetToDemoData,
         clearWeddingData,
         currentWeddingTheme,

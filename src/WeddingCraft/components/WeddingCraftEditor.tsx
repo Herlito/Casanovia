@@ -17,6 +17,7 @@ import { exportToHTML } from '../lib/exportHTML';
 import { SaveTemplateModal } from './SaveTemplateModal';
 import { FloatingPropertiesToolbar } from './FloatingPropertiesToolbar';
 import { createDefaultWebInvitationDocument, reflowCanvasElements } from '../lib/defaultWebTemplate';
+import { RESTORED_MASTER_TEMPLATES } from '../data/masterTemplates';
 
 interface WeddingCraftEditorProps {
   externalAPI: any;
@@ -55,12 +56,15 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
         if (initialDocument) {
           initializeDocument(initialDocument);
         } else {
-          // Check IndexedDB for draft
-          // Load templates
-          const savedTemplates = await get('wedding_craft_templates');
-          if (savedTemplates) {
-             useEditorStore.getState().loadTemplates(savedTemplates);
+          // Check IndexedDB for draft and templates
+          const savedTemplates = (await get('wedding_craft_templates')) || [];
+          const map = new Map<string, any>();
+          RESTORED_MASTER_TEMPLATES.forEach(t => map.set(t.id, t));
+          if (Array.isArray(savedTemplates)) {
+            savedTemplates.forEach((t: any) => { if (t?.id) map.set(t.id, t); });
           }
+          const initialTemplates = Array.from(map.values()).sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+          useEditorStore.getState().loadTemplates(initialTemplates);
           
           const draftKey = `wedding_design_draft_${eventData.eventId}`;
           let savedDraft = await get(draftKey);
@@ -68,6 +72,12 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
             try {
               const localStr = localStorage.getItem(draftKey);
               if (localStr) savedDraft = JSON.parse(localStr);
+            } catch (e) {}
+          }
+          if (!savedDraft) {
+            try {
+              const localPub = localStorage.getItem(`weddingcraft_published_${eventData.eventId}`);
+              if (localPub) savedDraft = JSON.parse(localPub);
             } catch (e) {}
           }
           if (savedDraft) {
@@ -90,18 +100,26 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
                console.warn("Failed to parse saved draft", e);
             }
           } else {
-            // Default State: If linked and no design exists, load the current "Web Invitados" as the default canvas
-            const isLinked = useEditorStore.getState().isLinkedToWedding;
-            if (isLinked) {
-              const defaultDoc = createDefaultWebInvitationDocument({
-                eventId: eventData.eventId,
-                coupleNames: eventData.coupleNames,
-                eventDate: eventData.eventDate,
-                venueName: eventData.venueName,
-                venueAddress: eventData.venueAddress,
-                romanticQuote: eventData.romanticQuote,
-              });
-              initializeDocument(defaultDoc);
+            // Check if matching master template exists for this event
+            const matchingMaster = RESTORED_MASTER_TEMPLATES.find(
+              m => m.document.parentEventId === eventData.eventId || (eventData.coupleNames && m.name.toLowerCase().includes(eventData.coupleNames[0]?.toLowerCase() || ''))
+            );
+            if (matchingMaster) {
+              initializeDocument(matchingMaster.document);
+            } else {
+              // Default State: If linked and no design exists, load the current "Web Invitados" as the default canvas
+              const isLinked = useEditorStore.getState().isLinkedToWedding;
+              if (isLinked) {
+                const defaultDoc = createDefaultWebInvitationDocument({
+                  eventId: eventData.eventId,
+                  coupleNames: eventData.coupleNames,
+                  eventDate: eventData.eventDate,
+                  venueName: eventData.venueName,
+                  venueAddress: eventData.venueAddress,
+                  romanticQuote: eventData.romanticQuote,
+                });
+                initializeDocument(defaultDoc);
+              }
             }
           }
         }
@@ -119,9 +137,11 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
                 
                 const merged = Array.from(map.values()).sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
                 useEditorStore.getState().loadTemplates(merged);
+            }, (err) => {
+                console.info('[WeddingCraft] Templates remote listener notice (using local cache):', err);
             });
         } catch (e) {
-           console.error("Error loading templates", e);
+           console.info("Info loading templates:", e);
         }
       } catch (err: any) {
         setError(err.message || 'Error inicializando el editor visual.');

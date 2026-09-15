@@ -1,0 +1,63 @@
+{
+  "casanoviaVersion": "3.0.0-complete-suite",
+  "createdAt": "2026-09-15T21:46:10.256Z",
+  "systemUsers": [
+    {
+      "id": "user-herly",
+      "username": "Herly Lizarazo",
+      "clave": "00448157",
+      "level": 1,
+      "roleTitle": "Director General & Protocolo (Nivel 1 - Super Admin)",
+      "isSystemDefault": true,
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "user-planner-guest",
+      "username": "Guest Planner",
+      "clave": "952341165",
+      "level": 3,
+      "roleTitle": "Wedding Planner (Nivel 3 - Wedding Planner)",
+      "assignedWeddingIds": [
+        "boda-sofia-alejandro",
+        "boda-valentina-mateo"
+      ],
+      "createdWeddingIds": [
+        "boda-sofia-alejandro",
+        "boda-valentina-mateo"
+      ],
+      "isSystemDefault": true,
+      "createdAt": "2026-04-01T00:00:00Z"
+    },
+    {
+      "id": "user-zenaida",
+      "username": "Zenaida Anahua",
+      "clave": "70242438",
+      "level": 2,
+      "roleTitle": "Anfitriona de Boda (Nivel 2 - Anfitrión)",
+      "assignedWeddingIds": [
+        "boda-zenaida-ronny",
+        "boda-zenaida-ronald"
+      ],
+      "isSystemDefault": true,
+      "createdAt": "2026-08-17T00:00:00Z"
+    },
+    {
+      "id": "user-observador",
+      "username": "Observador Invitado",
+      "clave": "55555555",
+      "level": 5,
+      "roleTitle": "Observador Protocolar (Nivel 5 - Solo Lectura)",
+      "assignedWeddingIds": [
+        "boda-sofia-alejandro",
+        "boda-valentina-mateo",
+        "boda-zenaida-ronny"
+      ],
+      "isSystemDefault": true,
+      "createdAt": "2026-09-01T00:00:00Z"
+    }
+  ],
+  "stats": {
+    "totalUsers": 4,
+    "description": "Semilla inicial autoprovisionada para casanovia.pe"
+  }
+}

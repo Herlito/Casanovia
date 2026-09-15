@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useEditorStore, TemplateItem } from '../store/useEditorStore';
-import { LayoutTemplate, Trash2, Edit3, Copy, CheckCircle, Plus, Image as ImageIcon } from 'lucide-react';
+import { LayoutTemplate, Trash2, Edit3, Copy, CheckCircle, Plus, RefreshCw, Download, Upload, Sparkles } from 'lucide-react';
 import { generateDocumentSquareThumbnail } from '../lib/templateThumbnail';
+import { recoverAllWeddingCraftDesigns, exportWeddingCraftDesignsJson, importWeddingCraftDesignsJson } from '../lib/recoveryService';
 
 export const TemplatesPanel: React.FC = () => {
   const { 
@@ -13,6 +14,42 @@ export const TemplatesPanel: React.FC = () => {
     hasUnsavedChanges,
     setSaveModalOpen
   } = useEditorStore();
+
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [recoveryMsg, setRecoveryMsg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleRecover = async () => {
+    setIsRecovering(true);
+    setRecoveryMsg(null);
+    try {
+      const res = await recoverAllWeddingCraftDesigns();
+      setRecoveryMsg(`¡${res.totalRestored} diseños y plantillas listos! (${res.templatesCount} plantillas, ${res.publishedCount} publicadas).`);
+      setTimeout(() => setRecoveryMsg(null), 5000);
+    } catch (err: any) {
+      setRecoveryMsg(`Error al escanear: ${err.message || 'Inténtalo de nuevo'}`);
+    } finally {
+      setIsRecovering(false);
+    }
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const res = await importWeddingCraftDesignsJson(file);
+      if (res.success) {
+        setRecoveryMsg(`¡${res.count} diseños importados correctamente!`);
+        setTimeout(() => setRecoveryMsg(null), 5000);
+      } else {
+        alert(res.error || 'Error al importar.');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Error al procesar archivo JSON.');
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleLoad = (template: TemplateItem) => {
     if (currentTemplateId === template.id) {
@@ -60,11 +97,63 @@ export const TemplatesPanel: React.FC = () => {
     <div className="flex flex-col h-full overflow-y-auto wc-properties p-3 space-y-4">
       <div className="flex flex-col items-center justify-center p-5 text-center border border-dashed border-gray-300 rounded-3xl bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]">
         <LayoutTemplate className="w-7 h-7 text-[#2D3748] mb-2" />
-        <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Plantillas Guardadas</h4>
-        <p className="text-[11px] text-gray-500 mt-1">Disponibles para Romina y Herly Lizarazo</p>
+        <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Diseños & Plantillas</h4>
+        <p className="text-[11px] text-gray-500 mt-1">Disponibles para Romina, Zenaida y Herly Lizarazo</p>
       </div>
 
-      <div className="flex justify-between items-center px-1">
+      {/* Recovery and Backup Controls */}
+      <div className="p-3 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] space-y-2.5">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-amber-600" />
+            Recuperación de Diseños
+          </span>
+          <button
+            onClick={handleRecover}
+            disabled={isRecovering}
+            className="flex items-center space-x-1 px-2.5 py-1 bg-[#EBEBEB] rounded-xl text-blue-700 text-xs font-bold shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] hover:bg-blue-50/50 transition-all disabled:opacity-50"
+            title="Escanear y recuperar todos los diseños guardados en la nube, borradores y plantillas maestras"
+          >
+            <RefreshCw className={`w-3 h-3 ${isRecovering ? 'animate-spin text-blue-600' : 'text-blue-600'}`} />
+            <span>{isRecovering ? 'Escaneando...' : 'Recuperar Todo'}</span>
+          </button>
+        </div>
+
+        {recoveryMsg && (
+          <div className="p-2 bg-emerald-50 text-emerald-800 text-[11px] font-medium rounded-xl border border-emerald-200">
+            {recoveryMsg}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 pt-1 border-t border-gray-200/60">
+          <button
+            onClick={exportWeddingCraftDesignsJson}
+            className="flex-1 flex items-center justify-center space-x-1 py-1.5 px-2 bg-[#EBEBEB] rounded-xl text-[11px] font-bold text-gray-700 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] hover:bg-gray-100/60 transition-all"
+            title="Descargar copia de seguridad de todas las plantillas en formato JSON"
+          >
+            <Download className="w-3 h-3 text-gray-600" />
+            <span>Exportar Copia</span>
+          </button>
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex-1 flex items-center justify-center space-x-1 py-1.5 px-2 bg-[#EBEBEB] rounded-xl text-[11px] font-bold text-gray-700 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] hover:bg-gray-100/60 transition-all"
+            title="Restaurar diseños desde un archivo JSON descargado previamente"
+          >
+            <Upload className="w-3 h-3 text-gray-600" />
+            <span>Importar JSON</span>
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImportFile}
+            accept=".json"
+            className="hidden"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center px-1 pt-1">
         <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
           {templates.length} {templates.length === 1 ? 'Plantilla' : 'Plantillas'}
         </span>
@@ -81,7 +170,7 @@ export const TemplatesPanel: React.FC = () => {
         {templates.length === 0 ? (
           <div className="p-6 text-center bg-[#EBEBEB] rounded-2xl shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]">
             <p className="text-xs text-gray-500">No hay plantillas guardadas aún.</p>
-            <p className="text-[10px] text-gray-400 mt-1">Guarda tu diseño actual para verlo aquí.</p>
+            <p className="text-[10px] text-gray-400 mt-1">Pulsa en "Recuperar Todo" o guarda tu diseño actual.</p>
           </div>
         ) : (
           templates.map(t => {
@@ -169,4 +258,5 @@ export const TemplatesPanel: React.FC = () => {
     </div>
   );
 };
+
 

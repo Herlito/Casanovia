@@ -1,6 +1,7 @@
-import { FileText } from 'lucide-react';
+import { FileText, FolderUp } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import { useWedding } from '../context/WeddingContext';
+import { SubirWebModal } from './modals/SubirWebModal';
 import { 
   Heart, 
   Sparkles, 
@@ -76,6 +77,7 @@ export const Navbar: React.FC = () => {
   const [sandwichMenuOpen, setSandwichMenuOpen] = useState(false);
   const sandwichMenuRef = useRef<HTMLDivElement>(null);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showSubirWebModal, setShowSubirWebModal] = useState(false);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState(false);
@@ -519,6 +521,34 @@ export const Navbar: React.FC = () => {
                             )}
                           {/* Group 2: Herramientas de Datos */}
                           <div className="space-y-1 pt-1 border-t border-[#F0EAE1]">
+                            {/* Subir a mi Hosting Propio (casanovia.pe) */}
+                            {isPlannerOrAdmin && (
+                              <button
+                                type="button"
+                                id="sandwich-btn-subirweb"
+                                onClick={() => {
+                                  setSandwichMenuOpen(false);
+                                  setShowSubirWebModal(true);
+                                }}
+                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-gray-800 bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
+                              >
+                                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center shrink-0 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]">
+                                  <FolderUp className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-bold flex items-center justify-between">
+                                    <span>Subir a mi Dominio</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800">
+                                      casanovia.pe
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-gray-500 truncate font-normal">
+                                    Descargar paquete SubirWeb.zip para cPanel
+                                  </p>
+                                </div>
+                              </button>
+                            )}
+
                             {/* 5. Reiniciar (Solo visible para Super Admin Nivel 1 - Oculto para Anfitriones y Wedding Planners) */}
                             {isLevel1Admin && (
                               <button
@@ -649,6 +679,12 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal para Descargar Paquete SubirWeb para cPanel */}
+      <SubirWebModal 
+        isOpen={showSubirWebModal} 
+        onClose={() => setShowSubirWebModal(false)} 
+      />
     </>
   );
 };

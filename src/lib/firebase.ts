@@ -51,9 +51,13 @@ export interface FirestoreErrorInfo {
   };
 }
 
-export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): FirestoreErrorInfo {
+  const errMsg = error instanceof Error ? error.message : String(error);
+  const isQuota = errMsg.includes('Quota limit exceeded') || errMsg.includes('resource-exhausted') || errMsg.includes('Quota exceeded') || errMsg.includes('quota metric');
+  const isOffline = errMsg.includes('the client is offline') || errMsg.includes('unavailable') || errMsg.includes('network');
+
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errMsg,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -68,6 +72,14 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+
+  if (isQuota) {
+    console.warn(`[Firestore Quota Notice] Free daily read quota limit reached for "${path || 'unknown'}". Operating smoothly with local cache / fallback.`);
+  } else if (isOffline) {
+    console.info(`[Firestore Offline Notice] Client is offline or unavailable for "${path || 'unknown'}". Using local state.`);
+  } else {
+    console.warn('[Firestore Notice]', JSON.stringify(errInfo));
+  }
+
+  return errInfo;
 }

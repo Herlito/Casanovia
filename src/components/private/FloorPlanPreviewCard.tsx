@@ -1,14 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { useWedding } from '../../context/WeddingContext';
 import { FloorPlanElement } from '../../types';
 import { Map, ChevronRight, Loader2 } from 'lucide-react';
 
 export const FloorPlanPreviewCard: React.FC = () => {
-  const { activeWeddingId, setShowFloorPlanModal } = useWedding();
-  const [elements, setElements] = useState<FloorPlanElement[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { activeWeddingId, setShowFloorPlanModal, tables, guests } = useWedding();
+  const [elements, setElements] = useState<FloorPlanElement[]>(() => {
+    if (!activeWeddingId) return [];
+    try {
+      const cached = localStorage.getItem(`casanovia_floor_plan_${activeWeddingId}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed && Array.isArray(parsed.elements)) return parsed.elements;
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!activeWeddingId) {
@@ -16,26 +29,70 @@ export const FloorPlanPreviewCard: React.FC = () => {
       return;
     }
 
-    setLoading(true);
-    const docRef = doc(db, 'floor_plans', activeWeddingId);
-    
-    // Subscribe to real-time updates of the floor plan
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.elements) {
-          setElements(data.elements);
+    // Check local storage immediately
+    try {
+      const cached = localStorage.getItem(`casanovia_floor_plan_${activeWeddingId}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          setElements(parsed);
+        } else if (parsed && Array.isArray(parsed.elements)) {
+          setElements(parsed.elements);
         }
-      } else {
-        setElements([]);
       }
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching floor plan preview:", error);
-      setLoading(false);
-    });
+    } catch {
+      // ignore
+    }
 
-    return () => unsubscribe();
+    let isMounted = true;
+    let unsubscribe = () => {};
+
+    try {
+      const docRef = doc(db, 'floor_plans', activeWeddingId);
+      
+      // Subscribe to real-time updates of the floor plan
+      unsubscribe = onSnapshot(docRef, (docSnap) => {
+        if (!isMounted) return;
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.elements && Array.isArray(data.elements)) {
+            setElements(data.elements);
+            try {
+              localStorage.setItem(`casanovia_floor_plan_${activeWeddingId}`, JSON.stringify(data.elements));
+            } catch {
+              // ignore
+            }
+          }
+        }
+        setLoading(false);
+      }, (error) => {
+        if (!isMounted) return;
+        handleFirestoreError(error, OperationType.GET, `floor_plans/${activeWeddingId}`);
+        // Fallback to local storage if available
+        try {
+          const cached = localStorage.getItem(`casanovia_floor_plan_${activeWeddingId}`);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed)) {
+              setElements(parsed);
+            } else if (parsed && Array.isArray(parsed.elements)) {
+              setElements(parsed.elements);
+            }
+          }
+        } catch {
+          // ignore
+        }
+        setLoading(false);
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.GET, `floor_plans/${activeWeddingId}`);
+      setLoading(false);
+    }
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [activeWeddingId]);
 
   // Calculate bounding box for SVG

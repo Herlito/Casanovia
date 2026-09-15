@@ -49,11 +49,6 @@ const MainLayout: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // While wedding data is resolving from Firebase, display centered Casanovia logo loading screen
-  if (isFirebaseLoading) {
-    return <CasanoviaLoadingScreen />;
-  }
-
   return (
         <div data-theme={appTheme} className={`min-h-screen flex flex-col ${isPublicHomeLanding ? "bg-[#EBEBEB] flex-1" : "bg-[#EBEBEB]"} text-[#2D2A26] font-sans antialiased selection:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/20 selection:text-[#2D3748]`}>
       
