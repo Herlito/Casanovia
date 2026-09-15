@@ -17,22 +17,32 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
   const [scale, setScale] = useState<number>(1);
   const [copiedButtonId, setCopiedButtonId] = useState<string | null>(null);
 
-  const canvasWidth = doc.canvas?.width || 375;
+  const canvasWidth = doc.canvas?.width || 720;
   const canvasHeight = doc.canvas?.height || 980;
 
   // Responsive scale calculation to fit screen perfectly
   useEffect(() => {
     const updateScale = () => {
       if (containerRef.current) {
-        const availableWidth = containerRef.current.clientWidth;
-        const newScale = availableWidth / canvasWidth;
+        const clientW = containerRef.current.clientWidth;
+        const availableWidth = clientW > 0 ? clientW : Math.min(window.innerWidth - 16, canvasWidth);
+        const newScale = Math.min(1, Math.max(0.05, availableWidth / canvasWidth));
         setScale(newScale);
       }
     };
 
     updateScale();
+    const ro = new ResizeObserver(() => {
+      updateScale();
+    });
+    if (containerRef.current) {
+      ro.observe(containerRef.current);
+    }
     window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', updateScale);
+    };
   }, [canvasWidth]);
 
   const page = doc.pages?.[0];
@@ -66,7 +76,10 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
     <section className="relative overflow-hidden pt-6 pb-12 sm:pt-10 sm:pb-16 bg-[#EBEBEB]">
       {/* Optional Top Floating Customizer Pill for Bride/Groom or Admin */}
       {showEditTrigger && onOpenEditor && (
-        <div className="max-w-md mx-auto px-4 mb-3 flex items-center justify-between">
+        <div 
+          className="w-full mx-auto px-4 mb-3 flex items-center justify-between"
+          style={{ maxWidth: `${canvasWidth}px` }}
+        >
           <div className="flex items-center space-x-1.5 text-xs text-gray-500 font-medium tracking-wide">
             <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
             <span>Diseño visual sincronizado</span>
@@ -82,40 +95,42 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
         </div>
       )}
 
-      {/* Main Luxury Frame Container */}
-      <div className="max-w-[420px] mx-auto px-3 sm:px-4">
-        <div className="relative rounded-[2.5rem] bg-[#EBEBEB] p-2.5 sm:p-3 shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] border border-white/60">
+      {/* Main Fluid Canvas Container matching the exact WeddingCraft design width */}
+      <div 
+        className="w-full mx-auto px-2 sm:px-4 flex justify-center"
+        style={{ maxWidth: `${canvasWidth}px` }}
+      >
+        <div
+          ref={containerRef}
+          className="relative w-full overflow-hidden mx-auto"
+          style={{
+            height: `${canvasHeight * scale}px`,
+            maxWidth: `${canvasWidth}px`,
+            backgroundColor: doc.canvas?.backgroundColor || 'transparent'
+          }}
+        >
+          {/* Scaled Canvas Layer */}
           <div
-            ref={containerRef}
-            className="relative w-full rounded-[2rem] overflow-hidden shadow-inner"
+            className="absolute top-0 left-0"
             style={{
-              height: `${canvasHeight * scale}px`,
-              backgroundColor: doc.canvas?.backgroundColor || '#FAF8F5'
+              width: `${canvasWidth}px`,
+              height: `${canvasHeight}px`,
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+              backgroundColor: doc.canvas?.backgroundColor || 'transparent'
             }}
           >
-            {/* Scaled Canvas Layer */}
-            <div
-              className="absolute top-0 left-0"
-              style={{
-                width: `${canvasWidth}px`,
-                height: `${canvasHeight}px`,
-                transform: `scale(${scale})`,
-                transformOrigin: 'top left',
-                backgroundColor: doc.canvas?.backgroundColor || '#FAF8F5'
-              }}
-            >
-              {elements.map((el) => {
-                if (el.visible === false) return null;
-                return (
-                  <ElementRenderer
-                    key={el.id}
-                    element={el}
-                    onButtonClick={handleButtonClick}
-                    isCopied={copiedButtonId === el.id}
-                  />
-                );
-              })}
-            </div>
+            {elements.map((el) => {
+              if (el.visible === false) return null;
+              return (
+                <ElementRenderer
+                  key={el.id}
+                  element={el}
+                  onButtonClick={handleButtonClick}
+                  isCopied={copiedButtonId === el.id}
+                />
+              );
+            })}
           </div>
         </div>
       </div>

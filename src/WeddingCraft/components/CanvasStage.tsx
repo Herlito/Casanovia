@@ -55,7 +55,10 @@ export const CanvasStage: React.FC = () => {
   const stageRef = useRef<any>(null);
   const trRef = useRef<any>(null);
 
-  const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+  const [stageSize, setStageSize] = useState({ 
+    width: typeof window !== 'undefined' ? window.innerWidth : 1200, 
+    height: typeof window !== 'undefined' ? window.innerHeight : 800 
+  });
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [editingTextValue, setEditingTextValue] = useState('');
   const [guidelines, setGuidelines] = useState<any[]>([]);
@@ -69,17 +72,32 @@ export const CanvasStage: React.FC = () => {
   const activeFrameTargetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const checkSize = () => {
-      if (containerRef.current) {
-        setStageSize({
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight
-        });
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateSize = () => {
+      const w = container.clientWidth || container.offsetWidth;
+      const h = container.clientHeight || container.offsetHeight;
+      if (w > 0 && h > 0) {
+        setStageSize({ width: w, height: h });
       }
     };
-    checkSize();
-    window.addEventListener('resize', checkSize);
-    return () => window.removeEventListener('resize', checkSize);
+
+    updateSize();
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => {
+        updateSize();
+      });
+      ro.observe(container);
+    }
+
+    window.addEventListener('resize', updateSize);
+    return () => {
+      if (ro) ro.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
 
   // Keyboard shortcuts
@@ -454,11 +472,19 @@ export const CanvasStage: React.FC = () => {
     }
   };
 
-  const baseScale = Math.min(
-    (stageSize.width - 40) / canvasConfig.width,
-    (stageSize.height - 40) / canvasConfig.height
+  const safeStageW = stageSize.width > 40 ? stageSize.width : (typeof window !== 'undefined' ? Math.max(window.innerWidth, 800) : 1000);
+  const safeStageH = stageSize.height > 40 ? stageSize.height : (typeof window !== 'undefined' ? Math.max(window.innerHeight, 600) : 800);
+  const safeCanvasW = Math.max(10, canvasConfig.width || 720);
+  const safeCanvasH = Math.max(10, canvasConfig.height || 980);
+
+  const baseScale = Math.max(
+    0.1,
+    Math.min(
+      (safeStageW - 40) / safeCanvasW,
+      (safeStageH - 40) / safeCanvasH
+    )
   );
-  const scale = baseScale * zoom;
+  const scale = Math.max(0.05, baseScale * (zoom > 0 ? zoom : 1));
   
   const padding = 100;
   const contentWidth = canvasConfig.width * scale + padding;
@@ -593,7 +619,7 @@ export const CanvasStage: React.FC = () => {
 
   return (
     <div 
-      className="flex-1 bg-gray-100 flex items-start justify-start overflow-auto relative"
+      className="flex-1 bg-[#EBEBEB] flex items-start justify-start overflow-auto relative"
       ref={containerRef}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
@@ -619,16 +645,17 @@ export const CanvasStage: React.FC = () => {
         }}
       >
         <Layer>
+          {/* Canvas Web Viewport: Fluid native background without rigid card sticker shadow */}
           <Rect
             name="canvas-bg"
             x={stageX}
             y={stageY}
             width={canvasConfig.width * scale}
             height={canvasConfig.height * scale}
-            fill={canvasConfig.backgroundColor}
-            shadowColor="rgba(0,0,0,0.1)"
-            shadowBlur={20}
-            shadowOffsetY={10}
+            fill={canvasConfig.backgroundColor || '#EBEBEB'}
+            stroke="rgba(0, 0, 0, 0.08)"
+            strokeWidth={1}
+            cornerRadius={Math.max(0, 20 * scale)}
           />
 
           <Group x={stageX} y={stageY} scaleX={scale} scaleY={scale}>
@@ -1039,26 +1066,26 @@ export const CanvasStage: React.FC = () => {
                 }
 
                 if (el.type === 'image-frame') {
-                    const w = el.transform.width;
-                    const h = el.transform.height;
+                    const w = Math.max(0, el.transform.width);
+                    const h = Math.max(0, el.transform.height);
                     const shapeVariant = el.content?.shapeVariant || 'rectangle';
-                    const cornerRadius = el.style?.cornerRadius ?? 24;
+                    const cornerRadius = Math.max(0, el.style?.cornerRadius ?? 24);
                     const stroke = el.style?.stroke || '#CBD5E1';
-                    const strokeWidth = el.style?.strokeWidth ?? 1;
+                    const strokeWidth = Math.max(0, el.style?.strokeWidth ?? 1);
                     const imageSrc = el.content?.imageSrc;
 
                     const clipFunc = (ctx: any) => {
                         if (shapeVariant === 'circle') {
-                            const r = Math.min(w, h) / 2;
+                            const r = Math.max(0, Math.min(w, h) / 2);
                             ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2, false);
                         } else if (shapeVariant === 'oval') {
                             if (ctx.ellipse) {
-                                ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+                                ctx.ellipse(w / 2, h / 2, Math.max(0, w / 2), Math.max(0, h / 2), 0, 0, Math.PI * 2);
                             } else {
-                                ctx.arc(w / 2, h / 2, Math.min(w, h) / 2, 0, Math.PI * 2, false);
+                                ctx.arc(w / 2, h / 2, Math.max(0, Math.min(w, h) / 2), 0, Math.PI * 2, false);
                             }
                         } else if (shapeVariant === 'arch') {
-                            const r = w / 2;
+                            const r = Math.max(0, w / 2);
                             ctx.beginPath();
                             ctx.moveTo(0, h);
                             ctx.lineTo(0, r);
@@ -1075,7 +1102,7 @@ export const CanvasStage: React.FC = () => {
                             ctx.bezierCurveTo(w, 0, w / 2, 0, w / 2, h / 5);
                             ctx.closePath();
                         } else {
-                            const r = Math.min(cornerRadius, w / 2, h / 2);
+                            const r = Math.max(0, Math.min(cornerRadius, w / 2, h / 2));
                             if (r <= 0) {
                                 ctx.rect(0, 0, w, h);
                             } else {
@@ -1190,7 +1217,7 @@ export const CanvasStage: React.FC = () => {
                                     y={0} 
                                     width={w} 
                                     height={h} 
-                                    cornerRadius={shapeVariant === 'arch' ? [w / 2, w / 2, 0, 0] : cornerRadius} 
+                                    cornerRadius={shapeVariant === 'arch' ? [Math.max(0, w / 2), Math.max(0, w / 2), 0, 0] : Math.max(0, cornerRadius)} 
                                     stroke={stroke} 
                                     strokeWidth={strokeWidth} 
                                     fill="transparent" 

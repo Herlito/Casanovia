@@ -142,9 +142,34 @@ export const PropertiesPanel: React.FC = () => {
           </h3>
         </div>
         <div className="p-4 space-y-4">
-          <p className="text-xs text-[#8C8276] mb-4">Selecciona un elemento para editarlo, o configura la tarjeta base:</p>
+          <p className="text-xs text-[#8C8276] mb-4">Selecciona un elemento para editarlo, o configura el lienzo web:</p>
           <div>
-            <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Ancho (px)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Ancho (px)</label>
+              <div className="flex space-x-1">
+                <button 
+                  type="button" 
+                  onClick={() => updateCanvas({ width: 375 })}
+                  className={`px-1.5 py-0.5 text-[9px] rounded font-medium transition-colors ${canvasConfig.width === 375 ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                >
+                  Móvil
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => updateCanvas({ width: 720 })}
+                  className={`px-1.5 py-0.5 text-[9px] rounded font-medium transition-colors ${canvasConfig.width === 720 ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                >
+                  Web (720)
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => updateCanvas({ width: 900 })}
+                  className={`px-1.5 py-0.5 text-[9px] rounded font-medium transition-colors ${canvasConfig.width === 900 ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                >
+                  Amplia
+                </button>
+              </div>
+            </div>
             <input 
               type="number"
               className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"

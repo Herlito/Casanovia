@@ -13,7 +13,7 @@ export const WishesWall: React.FC = () => {
 
   return (
     <section className="py-12 bg-[#EBEBEB] border-t border-[#EADDCE]">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+      <div className="w-full mx-auto px-4 sm:px-6">
         
         <div className="text-center mb-8">
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] text-xs font-semibold uppercase tracking-wider mb-2">

@@ -26,7 +26,7 @@ export const EventDetails: React.FC = () => {
 
   return (
     <section id="event-details-section" className="py-12 sm:py-16 bg-[#EBEBEB] border-t border-b border-[#EADDCE]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="w-full mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
         <div className="text-center mb-10">

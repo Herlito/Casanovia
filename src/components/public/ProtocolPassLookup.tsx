@@ -75,7 +75,7 @@ export const ProtocolPassLookup: React.FC = () => {
 
   return (
     <section id="protocol-lookup-section" className="py-12 sm:py-16 bg-[#EBEBEB] scroll-mt-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+      <div className="w-full mx-auto px-4 sm:px-6">
         
         {/* Section Title */}
         <div className="text-center mb-8">

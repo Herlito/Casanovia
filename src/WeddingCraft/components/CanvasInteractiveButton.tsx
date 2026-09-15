@@ -23,7 +23,7 @@ export const CanvasInteractiveButton: React.FC<{
         {...(isOutline ? {} : getGradientProps(el.style, el.transform.width, el.transform.height))}
         stroke={getCol(theme?.palette.primary, el.style.backgroundColor || '#000')}
         strokeWidth={isOutline ? 2 : 0}
-        cornerRadius={el.style.borderRadius || 8}
+        cornerRadius={Math.max(0, el.style.borderRadius ?? 8)}
       />
       <KonvaText
         text={el.content.text || 'Botón'}

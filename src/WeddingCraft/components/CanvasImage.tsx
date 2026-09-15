@@ -24,16 +24,20 @@ export const CanvasImage: React.FC<{
 
   // Mask clip functions
   const clipFunc = (ctx: any) => {
-    const w = el.transform.width;
-    const h = el.transform.height;
+    const w = Math.max(0, el.transform.width);
+    const h = Math.max(0, el.transform.height);
     if (!el.style.maskId || el.style.maskId === 'none') {
       ctx.rect(0, 0, w, h);
     } else if (el.style.maskId === 'circle') {
-      ctx.arc(w / 2, h / 2, Math.min(w, h) / 2, 0, Math.PI * 2, false);
+      ctx.arc(w / 2, h / 2, Math.max(0, Math.min(w, h) / 2), 0, Math.PI * 2, false);
     } else if (el.style.maskId === 'ellipse') {
-      ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+      if (ctx.ellipse) {
+        ctx.ellipse(w / 2, h / 2, Math.max(0, w / 2), Math.max(0, h / 2), 0, 0, Math.PI * 2);
+      } else {
+        ctx.arc(w / 2, h / 2, Math.max(0, Math.min(w, h) / 2), 0, Math.PI * 2, false);
+      }
     } else if (el.style.maskId === 'rounded') {
-      const r = Math.min(20, w / 2, h / 2);
+      const r = Math.max(0, Math.min(20, w / 2, h / 2));
       ctx.beginPath();
       ctx.moveTo(r, 0);
       ctx.lineTo(w - r, 0);
@@ -46,7 +50,7 @@ export const CanvasImage: React.FC<{
       ctx.quadraticCurveTo(0, 0, r, 0);
       ctx.closePath();
     } else if (el.style.maskId === 'arch') {
-      const r = w / 2;
+      const r = Math.max(0, w / 2);
       ctx.beginPath();
       ctx.moveTo(0, h);
       ctx.lineTo(0, r);

@@ -3,8 +3,116 @@ import { predefinedThemes } from '../themes';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
+ * Responsive reflow function that reorganizes elements fluidly across any canvas width.
+ */
+export function reflowCanvasElements(
+  elements: CanvasElement[],
+  newWidth: number,
+  oldWidth?: number
+): CanvasElement[] {
+  const isMobile = newWidth < 500;
+  const centerX = (w: number) => Math.round((newWidth - w) / 2);
+
+  const updated = elements.map(el => {
+    // 1. Header Tag ("NUESTRA BODA")
+    if (el.dataBinding?.field === 'headerTag' || (el.type === 'text' && el.content?.text === 'NUESTRA BODA')) {
+      const w = Math.min(newWidth - 40, 360);
+      return {
+        ...el,
+        transform: { ...el.transform, x: centerX(w), y: 44, width: w, height: 22 }
+      };
+    }
+
+    // 2. Hero Couple Names
+    if (el.dataBinding?.field === 'coupleNames' || (el.type === 'text' && el.style?.fontSize && el.style.fontSize >= 30)) {
+      const w = Math.min(newWidth - 40, 580);
+      return {
+        ...el,
+        style: { ...el.style, fontSize: isMobile ? 32 : 44 },
+        transform: { ...el.transform, x: centerX(w), y: 72, width: w, height: isMobile ? 55 : 65 }
+      };
+    }
+
+    // 3. Romantic Quote
+    if (el.dataBinding?.field === 'romanticQuote' || (el.type === 'text' && (el.content?.text || '').includes('Y recuerda'))) {
+      const w = Math.min(newWidth - 60, 580);
+      const h = isMobile ? 90 : 72;
+      return {
+        ...el,
+        transform: { ...el.transform, x: centerX(w), y: 152, width: w, height: h }
+      };
+    }
+
+    // 4. Date Line
+    if (el.dataBinding?.field === 'eventDate' || (el.type === 'text' && (el.content?.text || '').toLowerCase().includes('julio'))) {
+      const w = Math.min(newWidth - 40, 480);
+      return {
+        ...el,
+        transform: { ...el.transform, x: centerX(w), y: isMobile ? 258 : 252, width: w, height: 24 }
+      };
+    }
+
+    // 5. Venue Name
+    if (el.dataBinding?.field === 'venueName' || (el.type === 'text' && (el.content?.text || '').includes('Iglesia'))) {
+      const w = Math.min(newWidth - 40, 480);
+      return {
+        ...el,
+        transform: { ...el.transform, x: centerX(w), y: isMobile ? 286 : 282, width: w, height: 32 }
+      };
+    }
+
+    // 6. Countdown Widget
+    if (el.type === 'countdown-widget') {
+      const w = Math.min(newWidth - 60, 420);
+      return {
+        ...el,
+        transform: { ...el.transform, x: centerX(w), y: isMobile ? 356 : 352, width: w, height: 90 }
+      };
+    }
+
+    // 7. Footer Greeting
+    if (el.dataBinding?.field === 'footerGreeting' || (el.type === 'text' && (el.content?.text || '').includes('Esperamos'))) {
+      const w = Math.min(newWidth - 40, 480);
+      return {
+        ...el,
+        transform: { ...el.transform, x: centerX(w), y: isMobile ? 830 : 850, width: w, height: 36 }
+      };
+    }
+
+    // Fallback for centered elements
+    if (oldWidth && oldWidth > 0 && Math.abs(el.transform.x + el.transform.width / 2 - oldWidth / 2) < 40) {
+      const newX = centerX(el.transform.width);
+      return {
+        ...el,
+        transform: { ...el.transform, x: newX }
+      };
+    }
+
+    return el;
+  });
+
+  // Re-align and stack action buttons
+  const buttons = updated.filter(el => el.type === 'interactive-button');
+  if (buttons.length > 0) {
+    const btnWidth = Math.min(newWidth - 80, 460);
+    const startY = isMobile ? 476 : 474;
+    const gap = 12;
+    const btnHeight = 46;
+
+    buttons.forEach((btn, index) => {
+      btn.transform.x = centerX(btnWidth);
+      btn.transform.y = startY + index * (btnHeight + gap);
+      btn.transform.width = btnWidth;
+      btn.transform.height = btnHeight;
+    });
+  }
+
+  return updated;
+}
+
+/**
  * Generates the default digital invitation canvas document based on "Web Invitados"
- * structure with interactive buttons connected to Casanovia modules (Opción 2).
+ * structure with fluid native web sections directly on the neutral canvas background.
  */
 export function createDefaultWebInvitationDocument(options: {
   eventId?: string;
@@ -13,81 +121,90 @@ export function createDefaultWebInvitationDocument(options: {
   venueName?: string;
   venueAddress?: string;
   romanticQuote?: string;
+  canvasWidth?: number;
+  canvasHeight?: number;
 }): WeddingDesignDocument {
-  const couple = options.coupleNames && options.coupleNames.length >= 2 
-    ? `${options.coupleNames[0]} & ${options.coupleNames[1]}`
-    : 'Nuestra Boda';
-  
-  const couple1 = options.coupleNames?.[0] || 'Novio';
-  const couple2 = options.coupleNames?.[1] || 'Novia';
-  const rawDate = options.eventDate ? new Date(options.eventDate) : new Date(Date.now() + 90 * 86400000);
-  const targetIsoDate = !isNaN(rawDate.getTime()) ? rawDate.toISOString() : new Date(Date.now() + 90 * 86400000).toISOString();
+  const couple1 = options.coupleNames?.[0] || 'Luciana';
+  const couple2 = options.coupleNames?.[1] || 'Mateo';
+  const rawDate = options.eventDate ? new Date(options.eventDate) : new Date('2027-07-16T18:00:00');
+  const targetIsoDate = !isNaN(rawDate.getTime()) ? rawDate.toISOString() : '2027-07-16T18:00:00.000Z';
 
   // Formatting date for text elements
-  const dateFormatted = !isNaN(rawDate.getTime()) 
+  const dateFormatted = options.eventDate
     ? rawDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-    : 'Sábado, 24 de Octubre de 2026';
+    : 'sábado, 16 de Julio de 2027';
   
-  const venue = options.venueName || 'Hacienda San José';
-  const quote = options.romanticQuote || 'Con la bendición de Dios y de nuestras familias, tenemos el honor de invitarte a celebrar nuestra boda.';
+  const venue = options.venueName || 'Iglesia San Francisco';
+  const quote = options.romanticQuote || 'Y recuerda, tal y como estaba escrito, que querer a otra persona es ver la cara de Dios. Querer a alguien y que nos quieran es la sensación más gratificante que podemos sentir los seres humanos';
 
   const theme = predefinedThemes[0] || {
     id: 'editorial-neutral',
     name: 'Editorial Neutral',
     palette: {
-      background: '#FAF8F5',
+      background: '#EBEBEB',
       primary: '#2D3748',
       secondary: '#6B6358',
       accent: '#D4AF37'
     }
   };
 
-  const canvasWidth = 375;
-  const canvasHeight = 980;
+  const canvasWidth = options.canvasWidth || 720;
+  const canvasHeight = options.canvasHeight || 980;
+
+  const centerX = (w: number) => Math.round((canvasWidth - w) / 2);
+
+  // Responsive widths
+  const tagWidth = Math.min(canvasWidth - 40, 360);
+  const heroWidth = Math.min(canvasWidth - 40, 580);
+  const quoteWidth = Math.min(canvasWidth - 60, 580);
+  const detailsWidth = Math.min(canvasWidth - 40, 480);
+  const countdownWidth = Math.min(canvasWidth - 60, 420);
+  const btnWidth = Math.min(canvasWidth - 80, 460);
+  const footerWidth = Math.min(canvasWidth - 40, 480);
 
   const elements: CanvasElement[] = [
-    // 1. Decorative Header Tag
+    // 1. Sección de Encabezado (Hero): Decorative Header Tag
     {
       id: uuidv4(),
       type: 'text',
       content: { text: 'NUESTRA BODA' },
       style: {
         fontFamily: 'Montserrat',
-        fontSize: 11,
+        fontSize: 12,
         color: '#8C8276',
         align: 'center',
         letterSpacing: 4,
         textTransform: 'uppercase',
         opacity: 1
       },
-      transform: { x: 20, y: 35, width: 335, height: 24, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(tagWidth), y: 44, width: tagWidth, height: 22, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 1,
       locked: false,
       visible: true,
       dataBinding: { field: 'headerTag' }
     },
 
-    // 2. Couple Names in Elegant Serif
+    // 2. Sección de Encabezado (Hero): Couple Names in Elegant Serif
     {
       id: uuidv4(),
       type: 'text',
       content: { text: `${couple1} & ${couple2}` },
       style: {
         fontFamily: 'Playfair Display',
-        fontSize: 34,
+        fontSize: canvasWidth < 500 ? 32 : 44,
         color: '#2D2A26',
         align: 'center',
         lineHeight: 1.15,
         opacity: 1
       },
-      transform: { x: 15, y: 65, width: 345, height: 85, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(heroWidth), y: 72, width: heroWidth, height: 64, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 2,
       locked: false,
       visible: true,
       dataBinding: { field: 'coupleNames', format: '{{0}} & {{1}}' }
     },
 
-    // 3. Romantic Quote
+    // 3. Cuerpo de Texto y Detalles: Romantic Quote
     {
       id: uuidv4(),
       type: 'text',
@@ -95,83 +212,89 @@ export function createDefaultWebInvitationDocument(options: {
       style: {
         fontFamily: 'Cormorant Garamond',
         fontStyle: 'italic',
-        fontSize: 15,
+        fontSize: 16,
         color: '#6B6358',
         align: 'center',
-        lineHeight: 1.35,
+        lineHeight: 1.45,
         opacity: 1
       },
-      transform: { x: 25, y: 155, width: 325, height: 60, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(quoteWidth), y: 152, width: quoteWidth, height: 72, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 3,
       locked: false,
       visible: true,
       dataBinding: { field: 'romanticQuote' }
     },
 
-    // 4. Elegant Date Line
+    // 4. Cuerpo de Texto y Detalles: Elegant Date Line
     {
       id: uuidv4(),
       type: 'text',
-      content: { text: dateFormatted.toUpperCase() },
+      content: { text: dateFormatted },
       style: {
         fontFamily: 'Montserrat',
-        fontSize: 12,
+        fontSize: 13,
         color: '#2D3748',
         align: 'center',
         letterSpacing: 2,
         opacity: 1
       },
-      transform: { x: 20, y: 225, width: 335, height: 26, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(detailsWidth), y: 252, width: detailsWidth, height: 24, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 4,
       locked: false,
       visible: true,
       dataBinding: { field: 'eventDate' }
     },
 
-    // 5. Venue Name
+    // 5. Cuerpo de Texto y Detalles: Venue Name
     {
       id: uuidv4(),
       type: 'text',
       content: { text: venue },
       style: {
         fontFamily: 'Playfair Display',
-        fontSize: 18,
+        fontSize: 20,
         color: '#2D2A26',
         align: 'center',
         opacity: 1
       },
-      transform: { x: 20, y: 255, width: 335, height: 30, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(detailsWidth), y: 282, width: detailsWidth, height: 32, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 5,
       locked: false,
       visible: true,
       dataBinding: { field: 'venueName' }
     },
 
-    // 6. Real-Time Countdown Widget
+    // 6. Sección de Llamadas a la Acción (CTA) y Cuenta Regresiva: Real-Time Countdown Widget
     {
       id: uuidv4(),
       type: 'countdown-widget',
       content: {
         targetDate: targetIsoDate,
         title: 'CUENTA REGRESIVA',
-        expiredMessage: '¡Llegó el gran día!'
+        expiredMessage: '¡Llegó el gran día!',
+        labels: { days: 'días', hours: 'hrs', minutes: 'min' }
       },
       style: {
-        backgroundColor: '#FFFFFF',
-        numberColor: '#2D3748',
+        backgroundColor: '#EBEBEB',
+        borderColor: '#CBD5E1',
         titleColor: '#8C8276',
+        numberColor: '#2D3748',
         labelColor: '#718096',
+        numberFont: 'Montserrat',
+        numberSize: 24,
+        labelSize: 10,
         variant: 'cards',
-        borderRadius: 16,
+        borderRadius: 14,
+        gap: 12,
         opacity: 1
       },
-      transform: { x: 25, y: 300, width: 325, height: 85, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(countdownWidth), y: 352, width: countdownWidth, height: 90, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 6,
       locked: false,
       visible: true
     },
 
-    // 7. Interactive Action Button: Confirmar Asistencia (RSVP)
+    // 7. Botón de Acción 1: Confirmar Asistencia (RSVP)
     {
       id: uuidv4(),
       type: 'interactive-button',
@@ -184,18 +307,18 @@ export function createDefaultWebInvitationDocument(options: {
         backgroundColor: '#2D3748',
         color: '#FFFFFF',
         variant: 'solid',
-        borderRadius: 18,
-        fontSize: 15,
+        borderRadius: 16,
+        fontSize: 14,
         fontFamily: 'Montserrat',
         opacity: 1
       },
-      transform: { x: 35, y: 415, width: 305, height: 48, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(btnWidth), y: 474, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 7,
       locked: false,
       visible: true
     },
 
-    // 8. Interactive Action Button: Pase Digital & Protocolo
+    // 8. Botón de Acción 2: Mi Pase & Ubicación de Mesa
     {
       id: uuidv4(),
       type: 'interactive-button',
@@ -208,18 +331,18 @@ export function createDefaultWebInvitationDocument(options: {
         backgroundColor: '#D4AF37',
         color: '#FFFFFF',
         variant: 'solid',
-        borderRadius: 18,
+        borderRadius: 16,
         fontSize: 14,
         fontFamily: 'Montserrat',
         opacity: 1
       },
-      transform: { x: 35, y: 475, width: 305, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(btnWidth), y: 532, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 8,
       locked: false,
       visible: true
     },
 
-    // 9. Interactive Action Button: Cómo llegar / Itinerario
+    // 9. Botón de Acción 3: Cómo Llegar & Itinerario
     {
       id: uuidv4(),
       type: 'interactive-button',
@@ -232,18 +355,18 @@ export function createDefaultWebInvitationDocument(options: {
         backgroundColor: '#4A5568',
         color: '#FFFFFF',
         variant: 'solid',
-        borderRadius: 18,
+        borderRadius: 16,
         fontSize: 14,
         fontFamily: 'Montserrat',
         opacity: 1
       },
-      transform: { x: 35, y: 533, width: 305, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(btnWidth), y: 590, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 9,
       locked: false,
       visible: true
     },
 
-    // 10. Interactive Action Button: Código de Vestimenta
+    // 10. Botón de Acción 4: Código de Vestimenta
     {
       id: uuidv4(),
       type: 'interactive-button',
@@ -256,18 +379,18 @@ export function createDefaultWebInvitationDocument(options: {
         backgroundColor: '#718096',
         color: '#FFFFFF',
         variant: 'solid',
-        borderRadius: 18,
+        borderRadius: 16,
         fontSize: 14,
         fontFamily: 'Montserrat',
         opacity: 1
       },
-      transform: { x: 35, y: 591, width: 305, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(btnWidth), y: 648, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 10,
       locked: false,
       visible: true
     },
 
-    // 11. Interactive Action Button: Mesa de Regalos
+    // 11. Botón de Acción 5: Mesa de Regalos
     {
       id: uuidv4(),
       type: 'interactive-button',
@@ -280,18 +403,18 @@ export function createDefaultWebInvitationDocument(options: {
         backgroundColor: '#8C8276',
         color: '#FFFFFF',
         variant: 'solid',
-        borderRadius: 18,
+        borderRadius: 16,
         fontSize: 14,
         fontFamily: 'Montserrat',
         opacity: 1
       },
-      transform: { x: 35, y: 649, width: 305, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(btnWidth), y: 706, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 11,
       locked: false,
       visible: true
     },
 
-    // 12. Interactive Action Button: Muro de Deseos
+    // 12. Botón de Acción 6: Muro de Deseos & Bendiciones
     {
       id: uuidv4(),
       type: 'interactive-button',
@@ -301,21 +424,21 @@ export function createDefaultWebInvitationDocument(options: {
         linkUrl: '#wishes-wall-section'
       },
       style: {
-        backgroundColor: '#A0AEC0',
+        backgroundColor: '#94A3B8',
         color: '#FFFFFF',
         variant: 'solid',
-        borderRadius: 18,
+        borderRadius: 16,
         fontSize: 14,
         fontFamily: 'Montserrat',
         opacity: 1
       },
-      transform: { x: 35, y: 707, width: 305, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(btnWidth), y: 764, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 12,
       locked: false,
       visible: true
     },
 
-    // 13. Bottom Romantic Greeting
+    // 13. Texto de Cierre
     {
       id: uuidv4(),
       type: 'text',
@@ -323,12 +446,12 @@ export function createDefaultWebInvitationDocument(options: {
       style: {
         fontFamily: 'Playfair Display',
         fontStyle: 'italic',
-        fontSize: 14,
+        fontSize: 15,
         color: '#718096',
         align: 'center',
         opacity: 1
       },
-      transform: { x: 20, y: 780, width: 335, height: 35, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: centerX(footerWidth), y: 846, width: footerWidth, height: 36, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: 13,
       locked: false,
       visible: true,
@@ -347,7 +470,7 @@ export function createDefaultWebInvitationDocument(options: {
     canvas: {
       width: canvasWidth,
       height: canvasHeight,
-      backgroundColor: '#FAF8F5'
+      backgroundColor: '#EBEBEB'
     },
     theme,
     pages: [

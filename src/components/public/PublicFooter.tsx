@@ -39,10 +39,10 @@ export const PublicFooter: React.FC = () => {
     <>
       <footer className="bg-[#EBEBEB] text-gray-800 py-14 border-t border-transparent relative overflow-hidden">
         
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6 relative z-10">
+        <div className="w-full mx-auto px-4 sm:px-6 text-center space-y-6 relative z-10">
           
           {/* Main Footer Container (Neumorphic Card) */}
-          <div className="relative group max-w-2xl mx-auto p-6 sm:p-8 rounded-[2.5rem] transition-all duration-300 bg-[#EBEBEB] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff]">
+          <div className="relative group w-full mx-auto p-6 sm:p-8 rounded-[2.5rem] transition-all duration-300 bg-[#EBEBEB] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff]">
             
             {/* Quick Edit Action Badge for Hosts and Admins */}
             {canEdit ? (

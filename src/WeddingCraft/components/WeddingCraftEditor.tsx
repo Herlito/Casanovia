@@ -16,7 +16,7 @@ import { X } from 'lucide-react';
 import { exportToHTML } from '../lib/exportHTML';
 import { SaveTemplateModal } from './SaveTemplateModal';
 import { FloatingPropertiesToolbar } from './FloatingPropertiesToolbar';
-import { createDefaultWebInvitationDocument } from '../lib/defaultWebTemplate';
+import { createDefaultWebInvitationDocument, reflowCanvasElements } from '../lib/defaultWebTemplate';
 
 interface WeddingCraftEditorProps {
   externalAPI: any;
@@ -68,6 +68,17 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
             // Support both stringified and plain objects depending on how it was saved
             try {
                const parsed = typeof savedDraft === 'string' ? JSON.parse(savedDraft) : savedDraft;
+               if (parsed?.canvas) {
+                 if (parsed.canvas.backgroundColor === '#FAF8F5') {
+                   parsed.canvas.backgroundColor = '#EBEBEB';
+                 }
+                 if (parsed.canvas.width === 375) {
+                   parsed.canvas.width = 720;
+                   if (parsed.pages?.[0]?.elements) {
+                     parsed.pages[0].elements = reflowCanvasElements(parsed.pages[0].elements, 720, 375);
+                   }
+                 }
+               }
                initializeDocument(parsed);
             } catch (e) {
                console.warn("Failed to parse saved draft", e);

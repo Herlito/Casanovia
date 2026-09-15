@@ -1,20 +1,31 @@
 import React from 'react';
 import { useWedding } from '../../context/WeddingContext';
+import { useSyncedInvitationDesign } from '../../hooks/useSyncedInvitationDesign';
 
 interface WeddingThemeWrapperProps {
   children: React.ReactNode;
 }
 
 export const WeddingThemeWrapper: React.FC<WeddingThemeWrapperProps> = ({ children }) => {
-  const { currentWeddingTheme } = useWedding();
+  const { currentWeddingTheme, settings, activeWedding, activeWeddingId } = useWedding();
+  const targetEventId = activeWedding?.id || activeWeddingId || (settings as any)?.id || 'demo_event';
+  const { document: syncedDesign } = useSyncedInvitationDesign(targetEventId);
+
+  // Exact canvas width designed in WeddingCraft Design (defaults to 720)
+  const canvasWidth = syncedDesign?.canvas?.width || 720;
 
   const isCustomThemeActive = Boolean(currentWeddingTheme && currentWeddingTheme.enabled);
 
   // Generate CSS variable inline styles
   const themeStyles = React.useMemo(() => {
-    if (!isCustomThemeActive) return {};
+    const baseVars: Record<string, string> = {
+      '--canvas-width': `${canvasWidth}px`,
+    };
+
+    if (!isCustomThemeActive) return baseVars as React.CSSProperties;
 
     return {
+      ...baseVars,
       '--wedding-primary': currentWeddingTheme.primary,
       '--wedding-primary-hover': currentWeddingTheme.primaryHover || currentWeddingTheme.primary,
       '--wedding-primary-fg': currentWeddingTheme.primaryForeground,
@@ -29,12 +40,12 @@ export const WeddingThemeWrapper: React.FC<WeddingThemeWrapperProps> = ({ childr
       '--wedding-text-muted': currentWeddingTheme.textMuted,
       '--wedding-border': currentWeddingTheme.borderSoft,
     } as React.CSSProperties;
-  }, [currentWeddingTheme, isCustomThemeActive]);
+  }, [currentWeddingTheme, isCustomThemeActive, canvasWidth]);
 
   return (
     <div 
       id="wedding-public-theme-container"
-      className={`wedding-theme-scope ${isCustomThemeActive ? 'wedding-theme-applied' : ''}`}
+      className={`wedding-theme-scope ${isCustomThemeActive ? 'wedding-theme-applied' : ''} w-full min-h-screen bg-[#EBEBEB] flex flex-col items-center`}
       style={themeStyles}
     >
       {isCustomThemeActive && (
@@ -90,7 +101,14 @@ export const WeddingThemeWrapper: React.FC<WeddingThemeWrapperProps> = ({ childr
           }
         `}</style>
       )}
-      {children}
+      {/* Main unified column constrained strictly to the WeddingCraft canvas width, auto-adjusting on smaller viewports */}
+      <div 
+        id="wedding-public-content-column"
+        className="w-full mx-auto transition-[max-width] duration-300 ease-out"
+        style={{ maxWidth: `${canvasWidth}px` }}
+      >
+        {children}
+      </div>
     </div>
   );
 };

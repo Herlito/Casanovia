@@ -36,18 +36,19 @@ export const CanvasCountdown: React.FC<{
     return () => clearInterval(timer);
   }, [el.content.targetDate]);
 
-  const gap = el.style.gap || 10;
+  const gap = Math.max(0, el.style.gap || 10);
   const numItems = el.content.showSeconds ? 4 : 3;
-  const itemWidth = (el.transform.width - (gap * (numItems - 1))) / numItems;
-  const innerHeight = el.transform.height - 30; // Leave room for title
+  const rawWidth = Math.max(20, el.transform.width);
+  const itemWidth = Math.max(10, (rawWidth - (gap * (numItems - 1))) / numItems);
+  const innerHeight = Math.max(10, el.transform.height - 30); // Leave room for title
 
   return (
     <Group {...commonProps} ref={groupRef}>
       {/* Container Background */}
       {(el.style.containerOpacity ?? 0) > 0 && (
         <Rect
-          width={el.transform.width}
-          height={el.transform.height}
+          width={rawWidth}
+          height={Math.max(10, el.transform.height)}
           fill={getCol(theme?.palette.background, el.style.containerBackgroundColor || '#ffffff')}
           opacity={el.style.containerOpacity ?? 0}
           cornerRadius={8}
@@ -56,7 +57,7 @@ export const CanvasCountdown: React.FC<{
       {/* Title */}
       <KonvaText
         text={el.content.title}
-        width={el.transform.width}
+        width={rawWidth}
         align="center"
         fontSize={14}
         fontFamily={el.style.labelFont || 'Arial'}
@@ -67,7 +68,7 @@ export const CanvasCountdown: React.FC<{
       {timeLeft.expired ? (
         <KonvaText
           text={el.content.expiredMessage}
-          width={el.transform.width}
+          width={rawWidth}
           align="center"
           fontSize={el.style.numberSize || 24}
           fontFamily={el.style.numberFont || 'Arial'}
@@ -91,7 +92,7 @@ export const CanvasCountdown: React.FC<{
                   fill={!el.style.gradientEnabled ? getCol(theme?.palette.background, el.style.backgroundColor || '#fff') : undefined}
                   {...getGradientProps(el.style, itemWidth, innerHeight)}
                   stroke={el.style.borderColor || '#ccc'}
-                  cornerRadius={8}
+                  cornerRadius={Math.max(0, el.style.borderRadius ?? 12)}
                 />
               )}
               {el.style.variant === 'circles' && (
@@ -101,7 +102,7 @@ export const CanvasCountdown: React.FC<{
                   fill={!el.style.gradientEnabled ? getCol(theme?.palette.background, el.style.backgroundColor || '#fff') : undefined}
                   {...getGradientProps(el.style, itemWidth, innerHeight)}
                   stroke={el.style.borderColor || '#ccc'}
-                  cornerRadius={Math.min(itemWidth, innerHeight) / 2}
+                  cornerRadius={Math.max(0, Math.min(itemWidth, innerHeight) / 2)}
                 />
               )}
               <KonvaText

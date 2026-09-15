@@ -33,7 +33,7 @@ export const DressCodeSection: React.FC = () => {
 
   return (
     <section id="dress-code-section" className="py-12 sm:py-16 bg-[#EBEBEB] relative">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+      <div className="w-full mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
         <div className="text-center mb-8">

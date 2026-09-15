@@ -7,7 +7,7 @@ import { WeddingDesignDocument, CanvasElement, EventDataInput } from '../types';
 import { ThemePreset, predefinedThemes } from '../themes';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
 import { sanitizeForFirestore } from '../lib/libraryService';
-import { createDefaultWebInvitationDocument } from '../lib/defaultWebTemplate';
+import { createDefaultWebInvitationDocument, reflowCanvasElements } from '../lib/defaultWebTemplate';
 
 export interface TemplateItem {
   id: string;
@@ -266,13 +266,29 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     const state = get();
     const eventId = state.eventData?.eventId || 'default_wedding';
 
+    // Helper to sanitize & modernize document layout
+    const sanitizeDoc = (doc: any) => {
+      if (doc?.canvas) {
+        if (doc.canvas.backgroundColor === '#FAF8F5') {
+          doc.canvas.backgroundColor = '#EBEBEB';
+        }
+        if (doc.canvas.width === 375) {
+          doc.canvas.width = 720;
+          if (doc.pages?.[0]?.elements) {
+            doc.pages[0].elements = reflowCanvasElements(doc.pages[0].elements, 720, 375);
+          }
+        }
+      }
+      return doc;
+    };
+
     // 1. Try to load from Firestore published document
     try {
       const snap = await getDoc(doc(db, 'weddingcraft_published', eventId));
       if (snap.exists()) {
         const data = snap.data();
         if (data && data.document) {
-          const docCopy = JSON.parse(JSON.stringify(data.document));
+          const docCopy = sanitizeDoc(JSON.parse(JSON.stringify(data.document)));
           const elementsHash = JSON.stringify(docCopy.pages[0]?.elements || []);
           set({
             document: docCopy,
@@ -293,7 +309,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     try {
       const localPub = localStorage.getItem(`weddingcraft_published_${eventId}`);
       if (localPub) {
-        const parsed = JSON.parse(localPub);
+        const parsed = sanitizeDoc(JSON.parse(localPub));
         if (parsed && parsed.pages) {
           const elementsHash = JSON.stringify(parsed.pages[0]?.elements || []);
           set({
@@ -310,9 +326,10 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
 
       const idbPub = await idbGet(`weddingcraft_published_${eventId}`);
       if (idbPub && idbPub.pages) {
-        const elementsHash = JSON.stringify(idbPub.pages[0]?.elements || []);
+        const sanitized = sanitizeDoc(idbPub);
+        const elementsHash = JSON.stringify(sanitized.pages[0]?.elements || []);
         set({
-          document: idbPub,
+          document: sanitized,
           currentTemplateId: `web_invitados_${eventId}`,
           currentTemplateName: 'Web Invitados (Publicada)',
           lastSavedHash: elementsHash,
@@ -436,8 +453,17 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
 
   updateCanvas: (updates) => {
     set(produce((state: EditorState) => {
+      const oldWidth = state.document.canvas.width;
       Object.assign(state.document.canvas, updates);
       state.document.metadata.lastModified = Date.now();
+
+      if (updates.width && updates.width !== oldWidth && state.document.pages[0]?.elements) {
+        state.document.pages[0].elements = reflowCanvasElements(
+          state.document.pages[0].elements,
+          updates.width,
+          oldWidth
+        );
+      }
     }));
   },
   

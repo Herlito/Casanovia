@@ -99,7 +99,7 @@ export const HeroCountdown: React.FC = () => {
           </button>
         </div>
       )}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+      <div className="w-full mx-auto px-4 sm:px-6 text-center">
         {/* Couple Names in Large Display Serif Typography */}
         <h1 className="font-serif-display text-4xl sm:text-5xl md:text-6xl font-bold text-[#2D2A26] tracking-tight leading-none mb-2">
           {displayTitle}
