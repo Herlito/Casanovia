@@ -1,0 +1,18 @@
+# INSTRUCCIONES PARA SUBIR TU WEB
+
+Esta carpeta "subirweb" contiene tu aplicación 100% compilada y lista para funcionar en cualquier hosting (cPanel, Hostinger, GoDaddy, DonWeb, etc.).
+
+## Pasos para subirla:
+1. Abre el Administrador de Archivos de tu Hosting (cPanel / hPanel).
+2. Dirígete a la carpeta raíz de tu dominio (habitualmente llamada "public_html").
+3. Sube TODO el contenido que está dentro de esta carpeta "subirweb":
+   - index.html
+   - .htaccess (archivo oculto para rutas amigables)
+   - Carpeta assets/
+   - Carpeta fonts/
+   - Imágenes y archivos .svg
+4. ¡Listo! Abre tu dominio en el navegador web (ej: https://tudominio.com).
+
+## Base de datos y Conectividad:
+Tu aplicación ya incluye la conexión en tiempo real a Firebase Firestore para guardar invitados, confirmaciones de asistencia (RSVP), deseos y plantillas.
+Recuerda agregar tu dominio propio en la lista de "Authorized Domains" de Firebase Authentication si lo requieres.

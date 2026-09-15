@@ -10,7 +10,21 @@ export const HeroCountdown: React.FC = () => {
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
   const targetEventId = activeWedding?.id || activeWeddingId || (settings as any)?.id || 'demo_event';
-  const { document: syncedDesign, hasCustomDesign } = useSyncedInvitationDesign(targetEventId);
+  const isCivilOnly = settings.hasReligiousCeremony === false;
+  const targetVenue = isCivilOnly ? settings.receptionVenue : settings.ceremonyVenue;
+  const venueName = targetVenue?.name || (isCivilOnly ? 'Salón de Recepción' : 'Iglesia San Francisco');
+
+  const brideFirstName = (settings.brideName ? settings.brideName.split(' ')[0] : settings.coupleNames?.split('&')[0]?.trim()) || 'Erika';
+  const groomFirstName = (settings.groomName ? settings.groomName.split(' ')[0] : settings.coupleNames?.split('&')[1]?.trim()) || 'Yemar';
+
+  const { document: syncedDesign, hasCustomDesign } = useSyncedInvitationDesign(targetEventId, {
+    eventId: targetEventId,
+    coupleNames: [brideFirstName, groomFirstName],
+    eventDate: settings.weddingDate,
+    venueName: venueName,
+    venueAddress: targetVenue?.address,
+    romanticQuote: settings.romanticQuote,
+  });
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -50,17 +64,12 @@ export const HeroCountdown: React.FC = () => {
   };
 
   const dateParts = parseWeddingDateParts(settings.weddingDate);
-  const isCivilOnly = settings.hasReligiousCeremony === false;
-  const targetVenue = isCivilOnly ? settings.receptionVenue : settings.ceremonyVenue;
-  const venueName = targetVenue?.name || (isCivilOnly ? 'Salón de Recepción' : 'Iglesia Santa Marta');
   const formattedTime = formatCeremonyTimeSimple(
     targetVenue?.time || settings.weddingTime,
     '12:00m'
   );
 
-    const isWedding = !settings.eventType || settings.eventType === 'Boda';
-  const brideFirstName = (settings.brideName ? settings.brideName.split(' ')[0] : settings.coupleNames?.split('&')[0]?.trim()) || 'Novia';
-  const groomFirstName = (settings.groomName ? settings.groomName.split(' ')[0] : settings.coupleNames?.split('&')[1]?.trim()) || 'Novio';
+  const isWedding = !settings.eventType || settings.eventType === 'Boda';
 
   const displayTitle = isWedding ? (
     <>
