@@ -2,12 +2,6 @@ import React, { useEffect } from 'react';
 import { WeddingProvider, useWedding } from './context/WeddingContext';
 import { Navbar } from './components/Navbar';
 import { HeroCountdown } from './components/public/HeroCountdown';
-import { ProtocolPassLookup } from './components/public/ProtocolPassLookup';
-import { EventDetails } from './components/public/EventDetails';
-import { DressCodeSection } from './components/public/DressCodeSection';
-import { RsvpSection } from './components/public/RsvpSection';
-import { GiftRegistrySection } from './components/public/GiftRegistrySection';
-import { WishesWall } from './components/public/WishesWall';
 import { PlannerDashboard } from './components/private/PlannerDashboard';
 import { NewWeddingTasksScreen } from './components/private/NewWeddingTasksScreen';
 import { TokensPurchaseScreen } from './components/tokens/TokensPurchaseScreen';
@@ -18,14 +12,12 @@ import { ShareWeddingModal } from './components/modals/ShareWeddingModal';
 import { AdminUploadedImagesModal } from './components/modals/AdminUploadedImagesModal';
 import { FloorPlanDesignerModal } from './components/floorplan/FloorPlanDesignerModal';
 import { RsvpFullScreenModal } from './components/modals/RsvpFullScreenModal';
-import { PublicFooter } from './components/public/PublicFooter';
 import { WeddingCraftEditor } from './WeddingCraft/components/WeddingCraftEditor';
 import { WeddingThemeWrapper } from './components/public/WeddingThemeWrapper';
 import { CasanoviaLoadingScreen } from './components/CasanoviaLoadingScreen';
 import { CasanoviaManual } from './components/private/CasanoviaManual';
 import { CasanoviaHomeLanding } from './components/public/CasanoviaHomeLanding';
 import { Heart, Sparkles } from 'lucide-react';
-import { isRsvpDeadlinePassed } from './lib/dateUtils';
 
 const MainLayout: React.FC = () => {
   const { 
@@ -48,7 +40,6 @@ const MainLayout: React.FC = () => {
     isRsvpModalOpen,
     closeRsvpModal
   } = useWedding();
-  const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
   useEffect(() => {
     document.title = 'Casanovia';
@@ -77,29 +68,8 @@ const MainLayout: React.FC = () => {
             <CasanoviaHomeLanding />
           ) : (
             <WeddingThemeWrapper>
-              {/* 1. Hero & Real-time Countdown */}
+              {/* Web Invitados 100% editada y controlada en WeddingCraft Design */}
               <HeroCountdown />
-
-              {/* 2. Interactive Protocol Pass & Personalized Guide Lookup (Oculto si vence la fecha límite) */}
-              {!isDeadlinePassed && <ProtocolPassLookup />}
-
-              {/* 3. Venue Details & Map Links */}
-              <EventDetails />
-
-              {/* 4. Dress Code & Interactive Color Palette */}
-              <DressCodeSection />
-
-              {/* 5. Dynamic RSVP Form (Oculto si vence la fecha límite) */}
-              {!isDeadlinePassed && <RsvpSection />}
-
-              {/* 6. Gift Registry & Bank Transfer with 1-Click Copy */}
-              <GiftRegistrySection />
-
-              {/* 7. Wall of Wishes from Confirmed Guests */}
-              {settings?.showWishesWall !== false && <WishesWall />}
-
-              {/* Public Footer with Editable Romantic Quote, Couple Names & Contacts */}
-              <PublicFooter />
             </WeddingThemeWrapper>
           )}
         </main>

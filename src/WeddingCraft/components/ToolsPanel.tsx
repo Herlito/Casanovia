@@ -20,7 +20,8 @@ import {
   PartyPopper,
   Shirt,
   MessageSquareHeart,
-  CalendarDays
+  CalendarDays,
+  Quote
 } from 'lucide-react';
 import { LayersPanel } from './LayersPanel';
 
@@ -146,6 +147,42 @@ export const ToolsPanel: React.FC = () => {
         borderRadius: 20
       },
       transform: { x: 40, y: 770, width: 340, height: 230, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: document.pages[0].elements.length,
+      locked: false,
+      visible: true
+    });
+  };
+
+  const handleAddCoupleQuoteContacts = () => {
+    const names = eventData?.coupleNames ? `${eventData.coupleNames[0]} & ${eventData.coupleNames[1]}` : 'Romina & Herly';
+    const quote = eventData?.romanticQuote || 'El amor no se mira, se siente, y aún más cuando se comparte con quienes amamos. ¡Gracias por acompañarnos!';
+    addElement({
+      type: 'couple-quote-contacts-card',
+      content: {
+        badge: '💍 Frase, Nombres & Contactos',
+        coupleNames: names,
+        quote: quote,
+        weddingDate: '15 de Noviembre de 2026',
+        contactTitle: 'Confirmación & Contactos',
+        contactPhone: '+54 9 11 1234-5678',
+        contactEmail: 'contacto@nuestraboda.com',
+        contactNote: 'Por favor confirma tu asistencia lo antes posible.'
+      },
+      style: {
+        backgroundColor: '#FAF8F5',
+        borderColor: '#EADDCE',
+        titleColor: '#2D2A26',
+        color: '#524B42',
+        accentColor: '#C5A880',
+        borderRadius: 20,
+        titleFontFamily: 'Playfair Display',
+        fontFamily: 'Montserrat',
+        align: 'center',
+        titleFontSize: 22,
+        bodyFontSize: 12,
+        badgeFontSize: 10
+      },
+      transform: { x: 40, y: 160, width: 340, height: 250, rotation: 0, scaleX: 1, scaleY: 1 },
       zIndex: document.pages[0].elements.length,
       locked: false,
       visible: true
@@ -577,6 +614,16 @@ export const ToolsPanel: React.FC = () => {
       >
         <MessageSquareHeart className="w-4 h-4 text-rose-500" />
         <span>Muro de los Deseos</span>
+      </button>
+
+      {/* 12. Frase, Nombres & Contactos */}
+      <button 
+        onClick={handleAddCoupleQuoteContacts} 
+        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer"
+        title="Modificar o agregar Frase, Nombres & Contactos"
+      >
+        <Quote className="w-4 h-4 text-[#D4AF37]" />
+        <span>Frase, Nombres & Contactos</span>
       </button>
 
       {/* 12. Capas */}

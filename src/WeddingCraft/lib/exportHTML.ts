@@ -382,6 +382,62 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
       })();
       `;
     }
+    else if (el.type === 'couple-quote-contacts-card') {
+      const bg = el.style.backgroundColor || '#FAF8F5';
+      const border = el.style.borderColor || '#EADDCE';
+      const rad = el.style.borderRadius ?? 20;
+      const titleCol = el.style.titleColor || '#2D2A26';
+      const textCol = el.style.color || '#524B42';
+      const accent = el.style.accentColor || '#C5A880';
+      const align = el.style.align || 'center';
+      const titleFont = el.style.titleFontFamily || 'serif';
+      const bodyFont = el.style.fontFamily || 'sans-serif';
+      const titleSize = el.style.titleFontSize || 22;
+      const bodySize = el.style.bodyFontSize || 12;
+
+      innerHtml = `
+      <div class="el" style="${baseStyle} background-color: ${bg}; border: 1px solid ${border}; border-radius: ${rad}px; padding: 16px; box-sizing: border-box; text-align: ${align}; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="display: inline-block; background: ${accent}20; color: ${accent}; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: bold; margin-bottom: 6px;">
+            ${el.content?.badge || '💍 Frase, Nombres & Contactos'}
+          </div>
+          <h3 style="margin: 0 0 4px 0; font-family: ${titleFont}; font-size: ${titleSize}px; color: ${titleCol};">${el.content?.coupleNames || 'Romina & Herly'}</h3>
+          ${el.content?.weddingDate ? `<p style="margin: 0 0 8px 0; font-size: 10px; color: ${accent}; font-weight: 600;">• ${el.content.weddingDate} •</p>` : ''}
+          <p style="margin: 0 0 10px 0; font-style: italic; font-size: ${bodySize}px; font-family: ${titleFont}; color: ${textCol};">"${el.content?.quote || ''}"</p>
+        </div>
+        <div style="border-top: 1px solid ${border}; padding-top: 8px;">
+          <p style="margin: 0 0 4px 0; font-weight: bold; font-size: 10px; color: ${titleCol}; font-family: ${bodyFont};">${el.content?.contactTitle || 'Confirmación & Contactos'}</p>
+          <p style="margin: 0; font-size: 10px; color: ${textCol}; font-family: ${bodyFont};">${el.content?.contactPhone ? '📞 ' + el.content.contactPhone : ''} ${el.content?.contactEmail ? '| ✉️ ' + el.content.contactEmail : ''}</p>
+          ${el.content?.contactNote ? `<p style="margin: 3px 0 0 0; font-style: italic; font-size: 9px; color: ${accent};">${el.content.contactNote}</p>` : ''}
+        </div>
+      </div>
+      `;
+    }
+    else if (el.type === 'dress-code-card' || el.type === 'wishes-wall-card' || el.type === 'event-ceremony-card' || el.type === 'event-reception-card') {
+      const bg = el.style.backgroundColor || '#FAF8F5';
+      const border = el.style.borderColor || '#EADDCE';
+      const rad = el.style.borderRadius ?? 20;
+      const titleCol = el.style.titleColor || '#2D2A26';
+      const textCol = el.style.color || '#524B42';
+      const accent = el.style.accentColor || '#C5A880';
+      const align = el.style.align || 'left';
+      const titleFont = el.style.titleFontFamily || 'serif';
+      const bodyFont = el.style.fontFamily || 'sans-serif';
+      const titleSize = el.style.titleFontSize || 18;
+      const bodySize = el.style.bodyFontSize || 11;
+      const badgeSize = el.style.badgeFontSize || 11;
+      const strokeW = el.style.strokeWidth ?? 1;
+
+      innerHtml = `
+      <div class="el" style="${baseStyle} background-color: ${bg}; border: ${strokeW}px solid ${border}; border-radius: ${rad}px; padding: 16px; box-sizing: border-box; text-align: ${align};">
+        <div style="display: inline-block; background: ${accent}20; color: ${accent}; padding: 4px 10px; border-radius: 12px; font-size: ${badgeSize}px; font-weight: bold; margin-bottom: 8px;">
+          ${el.content?.badge || 'Detalles'}
+        </div>
+        <h4 style="margin: 0 0 6px 0; font-family: ${titleFont}; font-size: ${titleSize}px; color: ${titleCol};">${el.content?.title || el.content?.styleName || el.content?.venueName || ''}</h4>
+        <p style="margin: 0; font-size: ${bodySize}px; font-family: ${bodyFont}; color: ${textCol}; line-height: 1.4;">${el.content?.description || el.content?.subtitle || el.content?.address || ''}</p>
+      </div>
+      `;
+    }
     else {
        if (el.content.shapeType === 'rect') { 
          innerHtml = `<div class="el" style="${baseStyle} background-color: ${el.style.fill || '#000'};"></div>\n`;

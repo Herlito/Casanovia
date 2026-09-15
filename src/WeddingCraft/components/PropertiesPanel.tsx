@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { Settings2, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Group as GroupIcon, Copy, Trash2, Image as ImageIcon, Layers, Upload, X, Ungroup, Sparkles, Square, Circle, Heart, Church, PartyPopper, Shirt, MessageSquare, Plus, Palette, Type, MapPin, Clock, Navigation, Globe, RotateCcw, Check } from 'lucide-react';
+import { Settings2, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Group as GroupIcon, Copy, Trash2, Image as ImageIcon, Layers, Upload, X, Ungroup, Sparkles, Square, Circle, Heart, Church, PartyPopper, Shirt, MessageSquare, Plus, Palette, Type, MapPin, Clock, Navigation, Globe, RotateCcw, Check, Quote } from 'lucide-react';
 import { FontPicker } from './FontPicker';
 import { processImageTransparency } from '../lib/imageTransparency';
 
@@ -558,11 +558,12 @@ export const PropertiesPanel: React.FC = () => {
         {/* ========================================================= */}
         {/* CARD PROPS: Event Details, Dress Code, Wishes Wall        */}
         {/* ========================================================= */}
-        {['event-ceremony-card', 'event-reception-card', 'dress-code-card', 'wishes-wall-card'].includes(selectedElement.type) && (() => {
+        {['event-ceremony-card', 'event-reception-card', 'dress-code-card', 'wishes-wall-card', 'couple-quote-contacts-card'].includes(selectedElement.type) && (() => {
           const isCeremony = selectedElement.type === 'event-ceremony-card';
           const isReception = selectedElement.type === 'event-reception-card';
           const isDressCode = selectedElement.type === 'dress-code-card';
           const isWishesWall = selectedElement.type === 'wishes-wall-card';
+          const isCoupleQuoteContacts = selectedElement.type === 'couple-quote-contacts-card';
           const content = selectedElement.content || {};
           const style = selectedElement.style || {};
           const align = (style.align || style.textAlign || 'left') as 'left' | 'center' | 'right';
@@ -576,10 +577,12 @@ export const PropertiesPanel: React.FC = () => {
                   {isReception && <PartyPopper className="w-4 h-4 text-amber-700" />}
                   {isDressCode && <Shirt className="w-4 h-4 text-indigo-700" />}
                   {isWishesWall && <MessageSquare className="w-4 h-4 text-rose-700" />}
+                  {isCoupleQuoteContacts && <Quote className="w-4 h-4 text-amber-600" />}
                   <span className="text-[11px] font-bold text-gray-800 uppercase tracking-wider">
                     {isCeremony ? 'Contenido Ceremonia' :
                      isReception ? 'Contenido Recepción' :
-                     isDressCode ? 'Contenido Vestimenta' : 'Contenido Muro Deseos'}
+                     isDressCode ? 'Contenido Vestimenta' :
+                     isWishesWall ? 'Contenido Muro Deseos' : 'Frase, Nombres & Contactos'}
                   </span>
                 </div>
 
@@ -916,6 +919,107 @@ export const PropertiesPanel: React.FC = () => {
                             />
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Couple Quote & Contacts Card Fields */}
+                {isCoupleQuoteContacts && (
+                  <div className="space-y-2.5">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Etiqueta / Distintivo
+                      </label>
+                      <input 
+                        type="text"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none"
+                        value={content.badge ?? '💍 Frase, Nombres & Contactos'}
+                        onChange={(e) => handleUpdateContentKey('badge', e.target.value)}
+                        placeholder="Ej. Nuestra Boda"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Nombres de los Novios
+                      </label>
+                      <input 
+                        type="text"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none font-serif"
+                        value={content.coupleNames ?? 'Romina & Herly'}
+                        onChange={(e) => handleUpdateContentKey('coupleNames', e.target.value)}
+                        placeholder="Ej. Romina & Herly"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Frase / Cita de Amor
+                      </label>
+                      <textarea 
+                        rows={3}
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none italic resize-none"
+                        value={content.quote ?? 'El amor no se mira, se siente, y aún más cuando se comparte con quienes amamos. ¡Gracias por acompañarnos!'}
+                        onChange={(e) => handleUpdateContentKey('quote', e.target.value)}
+                        placeholder="Frase o cita romántica..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Fecha o Subtítulo
+                      </label>
+                      <input 
+                        type="text"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none"
+                        value={content.weddingDate ?? '15 de Noviembre de 2026'}
+                        onChange={(e) => handleUpdateContentKey('weddingDate', e.target.value)}
+                        placeholder="Ej. 15 de Noviembre de 2026"
+                      />
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-100 space-y-2">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Datos de Contacto</p>
+                      <div>
+                        <label className="block text-[9px] font-semibold text-gray-500 uppercase mb-0.5">Título Sección Contacto</label>
+                        <input 
+                          type="text"
+                          className="w-full text-[11px] p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white outline-none"
+                          value={content.contactTitle ?? 'Confirmación & Contactos'}
+                          onChange={(e) => handleUpdateContentKey('contactTitle', e.target.value)}
+                          placeholder="Ej. Confirmación & Contactos"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-semibold text-gray-500 uppercase mb-0.5">Teléfono / WhatsApp</label>
+                        <input 
+                          type="text"
+                          className="w-full text-[11px] p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white outline-none"
+                          value={content.contactPhone ?? '+54 9 11 1234-5678'}
+                          onChange={(e) => handleUpdateContentKey('contactPhone', e.target.value)}
+                          placeholder="Ej. +54 9 11 1234-5678"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-semibold text-gray-500 uppercase mb-0.5">Correo Electrónico</label>
+                        <input 
+                          type="email"
+                          className="w-full text-[11px] p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white outline-none"
+                          value={content.contactEmail ?? 'contacto@nuestraboda.com'}
+                          onChange={(e) => handleUpdateContentKey('contactEmail', e.target.value)}
+                          placeholder="Ej. contacto@nuestraboda.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-semibold text-gray-500 uppercase mb-0.5">Nota o Aclaración</label>
+                        <input 
+                          type="text"
+                          className="w-full text-[11px] p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white outline-none"
+                          value={content.contactNote ?? 'Por favor confirma tu asistencia lo antes posible.'}
+                          onChange={(e) => handleUpdateContentKey('contactNote', e.target.value)}
+                          placeholder="Ej. Por favor confirma tu asistencia..."
+                        />
                       </div>
                     </div>
                   </div>

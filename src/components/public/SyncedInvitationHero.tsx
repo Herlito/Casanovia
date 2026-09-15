@@ -402,6 +402,15 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({ element, onButtonClic
     );
   }
 
+  // 11. COUPLE QUOTE & CONTACTS CARD
+  if (type === 'couple-quote-contacts-card') {
+    return (
+      <div style={wrapperStyle}>
+        <SyncedCoupleContacts element={element} />
+      </div>
+    );
+  }
+
   return null;
 };
 
@@ -1067,6 +1076,185 @@ const SyncedWishesWall: React.FC<{ element: CanvasElement }> = ({ element }) => 
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// Couple Quote & Contacts Component
+// ==========================================
+
+const SyncedCoupleContacts: React.FC<{ element: CanvasElement }> = ({ element }) => {
+  const { content = {}, style = {} } = element;
+  const bgColor = style.backgroundColor || '#FAF8F5';
+  const borderColor = style.borderColor || '#EADDCE';
+  const strokeWidth = style.strokeWidth ?? 1;
+  const titleColor = style.titleColor || '#2D2A26';
+  const textColor = style.color || '#524B42';
+  const accentColor = style.accentColor || '#C5A880';
+  const radius = style.borderRadius ?? 20;
+
+  const titleFontFamily = style.titleFontFamily || style.fontFamily || 'Playfair Display, serif';
+  const bodyFontFamily = style.fontFamily || 'sans-serif';
+  const titleFontSize = style.titleFontSize || 22;
+  const bodyFontSize = style.bodyFontSize || 12;
+  const badgeFontSize = style.badgeFontSize || 10;
+  const textAlign = (style.align || style.textAlign || 'center') as 'left' | 'center' | 'right';
+
+  const badgeText = content.badge || '💍 Frase, Nombres & Contactos';
+  const coupleNames = content.coupleNames || 'Romina & Herly';
+  const quote = content.quote || 'El amor no se mira, se siente, y aún más cuando se comparte con quienes amamos. ¡Gracias por acompañarnos!';
+  const weddingDate = content.weddingDate || '15 de Noviembre de 2026';
+  const contactTitle = content.contactTitle || 'Confirmación & Contactos';
+  const contactPhone = content.contactPhone || '+54 9 11 1234-5678';
+  const contactEmail = content.contactEmail || 'contacto@nuestraboda.com';
+  const contactNote = content.contactNote || 'Por favor confirma tu asistencia lo antes posible.';
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: bgColor,
+        borderRadius: `${radius}px`,
+        border: `${strokeWidth}px solid ${borderColor}`,
+        padding: '16px',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        textAlign: textAlign,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+        overflow: 'hidden'
+      }}
+    >
+      <div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
+            gap: '6px',
+            backgroundColor: `${accentColor}20`,
+            color: accentColor,
+            padding: '3px 10px',
+            borderRadius: '12px',
+            fontSize: `${badgeFontSize}px`,
+            fontFamily: bodyFontFamily,
+            fontWeight: 700,
+            marginBottom: '8px'
+          }}
+        >
+          <Heart className="w-3 h-3 fill-current" />
+          <span>{badgeText}</span>
+        </div>
+
+        <h3
+          style={{
+            fontFamily: titleFontFamily,
+            fontSize: `${titleFontSize}px`,
+            fontWeight: 700,
+            color: titleColor,
+            lineHeight: 1.15,
+            margin: '0 0 4px 0',
+            textAlign: textAlign
+          }}
+        >
+          {coupleNames}
+        </h3>
+
+        {weddingDate && (
+          <p
+            style={{
+              fontSize: `${Math.max(9, bodyFontSize - 1)}px`,
+              fontFamily: bodyFontFamily,
+              color: accentColor,
+              letterSpacing: '1.5px',
+              fontWeight: 600,
+              margin: '0 0 8px 0',
+              textAlign: textAlign
+            }}
+          >
+            • {weddingDate} •
+          </p>
+        )}
+
+        <blockquote
+          style={{
+            fontSize: `${bodyFontSize}px`,
+            fontFamily: titleFontFamily,
+            fontStyle: 'italic',
+            color: textColor,
+            lineHeight: 1.4,
+            margin: '0 0 12px 0',
+            padding: '0 4px',
+            textAlign: textAlign
+          }}
+        >
+          "{quote}"
+        </blockquote>
+      </div>
+
+      <div style={{ borderTop: `1px solid ${borderColor}`, paddingTop: '10px' }}>
+        <p
+          style={{
+            margin: '0 0 4px 0',
+            fontSize: `${Math.max(9, bodyFontSize - 1)}px`,
+            fontWeight: 700,
+            color: titleColor,
+            fontFamily: bodyFontFamily,
+            textAlign: textAlign
+          }}
+        >
+          {contactTitle}
+        </p>
+
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '8px',
+            justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
+            fontSize: `${Math.max(9, bodyFontSize - 1)}px`,
+            fontFamily: bodyFontFamily,
+            color: textColor
+          }}
+        >
+          {contactPhone && (
+            <a
+              href={`https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+            >
+              <span>📞 {contactPhone}</span>
+            </a>
+          )}
+          {contactEmail && (
+            <a
+              href={`mailto:${contactEmail}`}
+              style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+            >
+              <span>✉️ {contactEmail}</span>
+            </a>
+          )}
+        </div>
+
+        {contactNote && (
+          <p
+            style={{
+              margin: '4px 0 0 0',
+              fontSize: `${Math.max(8, bodyFontSize - 2)}px`,
+              fontStyle: 'italic',
+              color: accentColor,
+              fontFamily: bodyFontFamily,
+              textAlign: textAlign
+            }}
+          >
+            {contactNote}
+          </p>
+        )}
       </div>
     </div>
   );

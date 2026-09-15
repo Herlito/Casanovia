@@ -92,7 +92,8 @@ export type CanvasElementType =
   | 'event-ceremony-card'
   | 'event-reception-card'
   | 'dress-code-card'
-  | 'wishes-wall-card';
+  | 'wishes-wall-card'
+  | 'couple-quote-contacts-card';
 
 export interface CanvasElement {
   id: string;

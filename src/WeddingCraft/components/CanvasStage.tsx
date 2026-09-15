@@ -6,6 +6,7 @@ import { CanvasInteractiveButton } from './CanvasInteractiveButton';
 import { CanvasEventCard } from './CanvasEventCard';
 import { CanvasDressCode } from './CanvasDressCode';
 import { CanvasWishesWall } from './CanvasWishesWall';
+import { CanvasCoupleContacts } from './CanvasCoupleContacts';
 import useImage from 'use-image';
 import { db } from '../../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
@@ -1316,6 +1317,12 @@ export const CanvasStage: React.FC = () => {
                 if (el.type === 'wishes-wall-card') {
                     return (
                         <CanvasWishesWall key={el.id} el={el} commonProps={commonProps} theme={document.theme} />
+                    );
+                }
+
+                if (el.type === 'couple-quote-contacts-card') {
+                    return (
+                        <CanvasCoupleContacts key={el.id} el={el} commonProps={commonProps} theme={document.theme} />
                     );
                 }
 

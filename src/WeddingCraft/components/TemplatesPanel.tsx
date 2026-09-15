@@ -1,6 +1,7 @@
 import React from 'react';
 import { useEditorStore, TemplateItem } from '../store/useEditorStore';
-import { LayoutTemplate, Trash2, Edit3, Copy, CheckCircle, Plus } from 'lucide-react';
+import { LayoutTemplate, Trash2, Edit3, Copy, CheckCircle, Plus, Image as ImageIcon } from 'lucide-react';
+import { generateDocumentSquareThumbnail } from '../lib/templateThumbnail';
 
 export const TemplatesPanel: React.FC = () => {
   const { 
@@ -110,6 +111,25 @@ export const TemplatesPanel: React.FC = () => {
                     <p className="text-[10px] text-gray-500 mt-0.5">
                       {dateStr} • {t.author || 'Romina / Herly Lizarazo'}
                     </p>
+                  </div>
+                </div>
+
+                {/* Square Design Preview Thumbnail */}
+                <div 
+                  onClick={() => handleLoad(t)}
+                  className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white/60 border border-gray-200/80 shadow-[inset_2px_2px_5px_#d1d1d1,inset_-2px_-2px_5px_#ffffff] flex items-center justify-center cursor-pointer group transition-all"
+                  title="Click para cargar y previsualizar en el lienzo"
+                >
+                  <img 
+                    src={t.thumbnail || generateDocumentSquareThumbnail(t.document, 280)} 
+                    alt={t.name}
+                    className="w-full h-full object-contain p-2 pointer-events-none transition-transform duration-300 group-hover:scale-[1.03]"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 px-2.5 py-1 bg-gray-900/85 text-white text-[10px] font-bold rounded-xl shadow-md transition-all transform scale-95 group-hover:scale-100">
+                      {isCurrent ? 'Diseño en Edición' : 'Cargar en Lienzo'}
+                    </span>
                   </div>
                 </div>
 

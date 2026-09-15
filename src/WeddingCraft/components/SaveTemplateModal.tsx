@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
 import { Save, Copy, X, Check, FileEdit } from 'lucide-react';
+import { generateDocumentSquareThumbnail } from '../lib/templateThumbnail';
 
 export const SaveTemplateModal: React.FC = () => {
   const { 
@@ -9,13 +10,26 @@ export const SaveTemplateModal: React.FC = () => {
     currentTemplateId, 
     currentTemplateName, 
     saveTemplate,
-    saveModalInitialMode
+    saveModalInitialMode,
+    document: currentDoc
   } = useEditorStore();
 
   const [mode, setMode] = useState<'prompt' | 'save_as'>('prompt');
   const [templateName, setTemplateName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (isSaveModalOpen) {
+      try {
+        const thumb = generateDocumentSquareThumbnail(currentDoc, 200);
+        setThumbnailUrl(thumb);
+      } catch {
+        setThumbnailUrl('');
+      }
+    }
+  }, [isSaveModalOpen, currentDoc]);
 
   useEffect(() => {
     if (isSaveModalOpen) {
@@ -77,6 +91,19 @@ export const SaveTemplateModal: React.FC = () => {
         >
           <X className="w-4 h-4" />
         </button>
+
+        {/* Preview Square Thumbnail */}
+        {thumbnailUrl && (
+          <div className="flex justify-center my-1">
+            <div className="w-28 h-28 aspect-square rounded-2xl overflow-hidden bg-white/70 border border-gray-200/80 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] p-1 flex items-center justify-center">
+              <img 
+                src={thumbnailUrl} 
+                alt="Vista previa" 
+                className="w-full h-full object-contain pointer-events-none"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-center space-x-3">

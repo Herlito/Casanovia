@@ -8,12 +8,14 @@ import { ThemePreset, predefinedThemes } from '../themes';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
 import { sanitizeForFirestore } from '../lib/libraryService';
 import { createDefaultWebInvitationDocument, reflowCanvasElements } from '../lib/defaultWebTemplate';
+import { generateDocumentSquareThumbnail } from '../lib/templateThumbnail';
 
 export interface TemplateItem {
   id: string;
   name: string;
   document: WeddingDesignDocument;
   author?: string;
+  thumbnail?: string;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -163,7 +165,20 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   templates: [],
   isPreviewModalOpen: false,
   setPreviewModalOpen: (isOpen) => set({ isPreviewModalOpen: isOpen }),
-  loadTemplates: (templates) => set({ templates }),
+  loadTemplates: (templates) => {
+    const withThumbnails = (templates || []).map(t => {
+      if (!t.thumbnail && t.document) {
+        try {
+          const thumb = generateDocumentSquareThumbnail(t.document, 300);
+          if (thumb) return { ...t, thumbnail: thumb };
+        } catch {
+          // ignore
+        }
+      }
+      return t;
+    });
+    set({ templates: withThumbnails });
+  },
 
   loadTemplateToCanvas: (template: TemplateItem) => {
     const docCopy = JSON.parse(JSON.stringify(template.document));
@@ -196,11 +211,21 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     const cleanDoc = sanitizeForFirestore(newDoc);
     
     const existingTemplate = state.templates.find(t => t.id === targetId);
+    
+    // Generate square thumbnail for the template preview card
+    let thumb = '';
+    try {
+      thumb = generateDocumentSquareThumbnail(cleanDoc, 320);
+    } catch (e) {
+      console.warn('Error generating square thumbnail for template:', e);
+    }
+
     const templateData: TemplateItem = {
       id: targetId,
       name: name.trim() || 'Sin Nombre',
       document: cleanDoc,
       author: 'Romina / Herly Lizarazo',
+      thumbnail: thumb || existingTemplate?.thumbnail || '',
       createdAt: (existingTemplate && overwrite) ? (existingTemplate.createdAt || Date.now()) : Date.now(),
       updatedAt: Date.now()
     };
@@ -397,11 +422,19 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     };
 
     const cleanDoc = sanitizeForFirestore(newDoc);
+    let thumb = original.thumbnail || '';
+    if (!thumb) {
+      try {
+        thumb = generateDocumentSquareThumbnail(cleanDoc, 320);
+      } catch (e) {}
+    }
+
     const duplicatedTemplate: TemplateItem = {
       id: newId,
       name: newName,
       document: cleanDoc,
       author: 'Romina / Herly Lizarazo',
+      thumbnail: thumb,
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
