@@ -92,7 +92,7 @@ export const CanvasCountdown: React.FC<{
                   fill={!el.style.gradientEnabled ? getCol(theme?.palette.background, el.style.backgroundColor || '#fff') : undefined}
                   {...getGradientProps(el.style, itemWidth, innerHeight)}
                   stroke={el.style.borderColor || '#ccc'}
-                  cornerRadius={Math.max(0, el.style.borderRadius ?? 12)}
+                  cornerRadius={Math.max(0, Math.min(el.style.borderRadius ?? 12, itemWidth / 2, innerHeight / 2))}
                 />
               )}
               {el.style.variant === 'circles' && (

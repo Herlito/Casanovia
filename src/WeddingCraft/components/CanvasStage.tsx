@@ -3,12 +3,16 @@ import { Stage, Layer, Transformer, Rect, Circle, Ellipse, RegularPolygon, Line,
 import { useEditorStore } from '../store/useEditorStore';
 import { CanvasCountdown } from './CanvasCountdown';
 import { CanvasInteractiveButton } from './CanvasInteractiveButton';
+import { CanvasEventCard } from './CanvasEventCard';
+import { CanvasDressCode } from './CanvasDressCode';
+import { CanvasWishesWall } from './CanvasWishesWall';
 import useImage from 'use-image';
 import { db } from '../../lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { saveElementToLibrary } from '../lib/libraryService';
 import { CanvasElement } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { detectHasTransparency } from '../lib/imageTransparency';
 
 export const getGradientProps = (style: any, w: number, h: number) => {
     if (!style.gradientEnabled) return {};
@@ -39,7 +43,7 @@ export const getGradientProps = (style: any, w: number, h: number) => {
 
 // Helper component for Image
 const URLImage = ({ image, ...props }: any) => {
-  const [img] = useImage(image.src);
+  const [img] = useImage(image?.src || '', 'anonymous');
   return <KonvaImage image={img} {...props} />;
 };
 
@@ -148,81 +152,122 @@ export const CanvasStage: React.FC = () => {
       const clipboardData = e.clipboardData;
       if (!clipboardData) return;
 
-      // 1. Check for image files in clipboardData.items (prioritizing image/png to preserve alpha transparency channel)
-      let imageItem: DataTransferItem | null = null;
-      for (let i = 0; i < clipboardData.items.length; i++) {
-        const it = clipboardData.items[i];
-        if (it.type === 'image/png') {
-          imageItem = it;
-          break;
-        }
-      }
-      if (!imageItem) {
+      // 1. Check for image files in clipboardData.items or files (prioritizing image/png to preserve alpha transparency channel)
+      let file: File | null = null;
+      if (clipboardData.items) {
         for (let i = 0; i < clipboardData.items.length; i++) {
           const it = clipboardData.items[i];
-          if (it.type.indexOf('image') !== -1) {
-            imageItem = it;
+          if (it.type === 'image/png') {
+            file = it.getAsFile();
+            break;
+          }
+        }
+        if (!file) {
+          for (let i = 0; i < clipboardData.items.length; i++) {
+            const it = clipboardData.items[i];
+            if (it.type.startsWith('image/')) {
+              file = it.getAsFile();
+              break;
+            }
+          }
+        }
+      }
+      if (!file && clipboardData.files && clipboardData.files.length > 0) {
+        for (let i = 0; i < clipboardData.files.length; i++) {
+          const f = clipboardData.files[i];
+          if (f.type.startsWith('image/') || f.name.match(/\.(png|webp|svg|gif|jpe?g)$/i)) {
+            file = f;
             break;
           }
         }
       }
 
-      if (imageItem) {
-        const file = imageItem.getAsFile();
-        if (file) {
-          e.preventDefault();
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            const src = event.target?.result as string;
-            if (!src) return;
-            const img = new Image();
-            img.onload = () => {
-              const maxW = Math.min(img.width, canvasConfig.width * 0.85);
-              const ratio = img.width > maxW ? maxW / img.width : 1;
-              const finalW = Math.round(img.width * ratio);
-              const finalH = Math.round(img.height * ratio);
-              const posX = Math.max(20, Math.round((canvasConfig.width - finalW) / 2));
-              const posY = Math.max(20, Math.round((canvasConfig.height - finalH) / 2));
-
-              const newEl: CanvasElement = {
-                id: uuidv4(),
-                type: 'image',
-                content: { 
-                  src, 
-                  originalSrc: src, 
-                  naturalWidth: img.width, 
-                  naturalHeight: img.height,
-                  isTransparent: true 
-                },
-                style: { 
-                  maskId: null, 
-                  frameId: null, 
-                  objectFit: 'cover', 
-                  cropX: 0, 
-                  cropY: 0, 
-                  cropScale: 1, 
-                  filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } 
-                },
-                transform: { x: posX, y: posY, width: finalW, height: finalH, rotation: 0, scaleX: 1, scaleY: 1 },
-                zIndex: store.document.pages[0].elements.length,
-                visible: true,
-                locked: false
-              };
-
-              store.addElement(newEl);
-              store.selectElements([newEl.id]);
-              saveElementToLibrary(newEl, 'Imágenes Pegadas (Ctrl+V)');
-              store.triggerLibraryUpdate();
-            };
-            img.src = src;
-          };
-          reader.readAsDataURL(file);
-          return;
+      // Check if text/html contains an original transparent image URL (preserves transparency if OS clipboard flattened it)
+      const htmlText = clipboardData.getData('text/html');
+      let htmlImgSrc: string | null = null;
+      if (htmlText) {
+        const imgMatch = htmlText.match(/<img[^>]+src=["']([^"']+)["']/i);
+        if (imgMatch && imgMatch[1]) {
+          const cand = imgMatch[1];
+          if (cand.match(/\.(png|webp|svg)(\?.*)?$/i) || cand.startsWith('data:image/png') || cand.startsWith('data:image/webp') || cand.startsWith('data:image/svg')) {
+            htmlImgSrc = cand;
+          }
         }
       }
 
+      const createImageElement = (src: string, img: HTMLImageElement) => {
+        const hasAlpha = detectHasTransparency(img);
+        const maxW = Math.min(img.width, canvasConfig.width * 0.85);
+        const ratio = img.width > maxW ? maxW / img.width : 1;
+        const finalW = Math.round(img.width * ratio);
+        const finalH = Math.round(img.height * ratio);
+        const posX = Math.max(20, Math.round((canvasConfig.width - finalW) / 2));
+        const posY = Math.max(20, Math.round((canvasConfig.height - finalH) / 2));
+
+        const newEl: CanvasElement = {
+          id: uuidv4(),
+          type: 'image',
+          content: { 
+            src, 
+            originalSrc: src, 
+            unprocessedSrc: src,
+            naturalWidth: img.width, 
+            naturalHeight: img.height,
+            isTransparent: hasAlpha,
+            bgRemovalTolerance: 35,
+            bgRemovalHalo: 2,
+            bgRemovalSmooth: true
+          },
+          style: { 
+            maskId: null, 
+            frameId: null, 
+            objectFit: 'cover', 
+            cropX: 0, 
+            cropY: 0, 
+            cropScale: 1, 
+            filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } 
+          },
+          transform: { x: posX, y: posY, width: finalW, height: finalH, rotation: 0, scaleX: 1, scaleY: 1 },
+          zIndex: store.document.pages[0].elements.length,
+          visible: true,
+          locked: false
+        };
+
+        store.addElement(newEl);
+        store.selectElements([newEl.id]);
+        saveElementToLibrary(newEl, 'Imágenes Pegadas (Ctrl+V)');
+        store.triggerLibraryUpdate();
+      };
+
+      if (file) {
+        e.preventDefault();
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const src = event.target?.result as string;
+          if (!src) return;
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            createImageElement(src, img);
+          };
+          img.src = src;
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      if (htmlImgSrc) {
+        e.preventDefault();
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          createImageElement(htmlImgSrc!, img);
+        };
+        img.src = htmlImgSrc;
+        return;
+      }
+
       // 2. Check for SVG vector code in HTML or plain text (e.g. from Figma, Illustrator, or browser)
-      const htmlText = clipboardData.getData('text/html');
       if (htmlText) {
         const svgMatch = htmlText.match(/<svg[\s\S]*?<\/svg>/i);
         if (svgMatch) {
@@ -449,10 +494,21 @@ export const CanvasStage: React.FC = () => {
                const finalW = Math.round(img.width * ratio);
                const finalH = Math.round(img.height * ratio);
 
+               const hasAlpha = detectHasTransparency(img);
                const newEl: CanvasElement = {
                   id: uuidv4(),
                   type: 'image',
-                  content: { src, originalSrc: src, naturalWidth: img.width, naturalHeight: img.height },
+                  content: { 
+                    src, 
+                    originalSrc: src, 
+                    unprocessedSrc: src, 
+                    naturalWidth: img.width, 
+                    naturalHeight: img.height,
+                    isTransparent: hasAlpha,
+                    bgRemovalTolerance: 35,
+                    bgRemovalHalo: 2,
+                    bgRemovalSmooth: true
+                  },
                   style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
                   transform: { x: canvasPointerX, y: canvasPointerY, width: finalW, height: finalH, rotation: 0, scaleX: 1, scaleY: 1 },
                   zIndex: elements.length,
@@ -619,7 +675,8 @@ export const CanvasStage: React.FC = () => {
 
   return (
     <div 
-      className="flex-1 bg-[#EBEBEB] flex items-start justify-start overflow-auto relative"
+      className="flex-1 flex items-start justify-start overflow-auto relative transition-colors duration-200"
+      style={{ backgroundColor: canvasConfig.webBackgroundColor || '#EBEBEB' }}
       ref={containerRef}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
@@ -652,7 +709,7 @@ export const CanvasStage: React.FC = () => {
             y={stageY}
             width={canvasConfig.width * scale}
             height={canvasConfig.height * scale}
-            fill={canvasConfig.backgroundColor || '#EBEBEB'}
+            fill={canvasConfig.backgroundColor || '#ffffff'}
             stroke="rgba(0, 0, 0, 0.08)"
             strokeWidth={1}
             cornerRadius={Math.max(0, 20 * scale)}
@@ -810,10 +867,14 @@ export const CanvasStage: React.FC = () => {
                         dragStartPositionsRef.current = {};
                     },
                     onTransform: (e: any) => {
+                        const node = e.target;
+                        const sx = Math.abs(node.scaleX());
+                        const sy = Math.abs(node.scaleY());
+                        if (node.scaleX() < 0) node.scaleX(1);
+                        if (node.scaleY() < 0) node.scaleY(1);
                         if (el.type === 'text') {
-                            const node = e.target;
                             node.setAttrs({
-                                width: Math.max(5, node.width() * node.scaleX()),
+                                width: Math.max(10, node.width() * sx),
                                 scaleX: 1,
                                 scaleY: 1
                             });
@@ -821,8 +882,8 @@ export const CanvasStage: React.FC = () => {
                     },
                     onTransformEnd: (e: any) => {
                         const node = e.target;
-                        const scaleX = node.scaleX();
-                        const scaleY = node.scaleY();
+                        const scaleX = Math.abs(node.scaleX());
+                        const scaleY = Math.abs(node.scaleY());
                         node.scaleX(1);
                         node.scaleY(1);
                         updateElement(el.id, {
@@ -830,8 +891,8 @@ export const CanvasStage: React.FC = () => {
                                 ...el.transform,
                                 x: node.x(),
                                 y: node.y(),
-                                width: Math.max(5, node.width() * scaleX),
-                                height: Math.max(5, node.height() * scaleY),
+                                width: Math.max(10, Math.abs(node.width()) * scaleX),
+                                height: Math.max(10, Math.abs(node.height()) * scaleY),
                                 rotation: node.rotation(),
                                 scaleX: 1,
                                 scaleY: 1
@@ -875,9 +936,9 @@ export const CanvasStage: React.FC = () => {
                     }
                   }
 
-                  const cornerRadius = el.style.borderRadius || 0;
-                  const w = el.transform.width;
-                  const h = el.transform.height;
+                  const w = Math.max(10, Math.abs(el.transform.width));
+                  const h = Math.max(10, Math.abs(el.transform.height));
+                  const cornerRadius = Math.max(0, Math.min(el.style.borderRadius || 0, w / 2, h / 2));
                   
                   const isGradient = el.style.gradientEnabled && !isLine;
                   const gradientProps = getGradientProps(el.style, w, h);
@@ -898,7 +959,7 @@ export const CanvasStage: React.FC = () => {
                       <Circle 
                         x={w/2} 
                         y={h/2} 
-                        radius={Math.min(w, h)/2} 
+                        radius={Math.max(1, Math.min(w, h)/2)} 
                         fill={fill !== 'transparent' ? fill : undefined}
                         stroke={stroke !== 'transparent' ? stroke : undefined}
                         strokeWidth={strokeWidth}
@@ -910,8 +971,8 @@ export const CanvasStage: React.FC = () => {
                       <Ellipse 
                         x={w/2} 
                         y={h/2} 
-                        radiusX={w/2}
-                        radiusY={h/2}
+                        radiusX={Math.max(1, w/2)}
+                        radiusY={Math.max(1, h/2)}
                         fill={fill !== 'transparent' ? fill : undefined}
                         stroke={stroke !== 'transparent' ? stroke : undefined}
                         strokeWidth={strokeWidth}
@@ -924,7 +985,7 @@ export const CanvasStage: React.FC = () => {
                         x={w/2} 
                         y={h/2} 
                         sides={3} 
-                        radius={Math.min(w, h)/2} 
+                        radius={Math.max(1, Math.min(w, h)/2)} 
                         fill={fill !== 'transparent' ? fill : undefined}
                         stroke={stroke !== 'transparent' ? stroke : undefined}
                         strokeWidth={strokeWidth}
@@ -937,7 +998,7 @@ export const CanvasStage: React.FC = () => {
                         x={w/2} 
                         y={h/2} 
                         sides={5} 
-                        radius={Math.min(w, h)/2} 
+                        radius={Math.max(1, Math.min(w, h)/2)} 
                         fill={fill !== 'transparent' ? fill : undefined}
                         stroke={stroke !== 'transparent' ? stroke : undefined}
                         strokeWidth={strokeWidth}
@@ -1217,7 +1278,7 @@ export const CanvasStage: React.FC = () => {
                                     y={0} 
                                     width={w} 
                                     height={h} 
-                                    cornerRadius={shapeVariant === 'arch' ? [Math.max(0, w / 2), Math.max(0, w / 2), 0, 0] : Math.max(0, cornerRadius)} 
+                                    cornerRadius={shapeVariant === 'arch' ? [Math.max(0, Math.min(w / 2, h / 2)), Math.max(0, Math.min(w / 2, h / 2)), 0, 0] : Math.max(0, Math.min(cornerRadius, w / 2, h / 2))} 
                                     stroke={stroke} 
                                     strokeWidth={strokeWidth} 
                                     fill="transparent" 
@@ -1240,6 +1301,24 @@ export const CanvasStage: React.FC = () => {
                     );
                 }
 
+                if (el.type === 'event-ceremony-card' || el.type === 'event-reception-card') {
+                    return (
+                        <CanvasEventCard key={el.id} el={el} commonProps={commonProps} theme={document.theme} />
+                    );
+                }
+
+                if (el.type === 'dress-code-card') {
+                    return (
+                        <CanvasDressCode key={el.id} el={el} commonProps={commonProps} theme={document.theme} />
+                    );
+                }
+
+                if (el.type === 'wishes-wall-card') {
+                    return (
+                        <CanvasWishesWall key={el.id} el={el} commonProps={commonProps} theme={document.theme} />
+                    );
+                }
+
                 return null;
             })}
 
@@ -1248,7 +1327,7 @@ export const CanvasStage: React.FC = () => {
                 <Line key={`guide-${i}`} name="guideline" points={g.points} stroke="#ec4899" strokeWidth={1.5 / scale} dash={[4 / scale, 4 / scale]} />
             ))}
           </Group>
-          {<Transformer ref={trRef} boundBoxFunc={(oldBox, newBox) => { if (newBox.width < 5 || newBox.height < 5) return oldBox; return newBox; }} />}
+          {<Transformer ref={trRef} flipEnabled={false} boundBoxFunc={(oldBox, newBox) => { if (newBox.width < 10 || newBox.height < 10) return oldBox; return newBox; }} />}
 
           {/* Marquee Selection Rectangle */}
           {selectionBox && (

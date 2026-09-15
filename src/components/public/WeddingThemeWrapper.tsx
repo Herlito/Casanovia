@@ -13,13 +13,14 @@ export const WeddingThemeWrapper: React.FC<WeddingThemeWrapperProps> = ({ childr
 
   // Exact canvas width designed in WeddingCraft Design (defaults to 720)
   const canvasWidth = syncedDesign?.canvas?.width || 720;
-
   const isCustomThemeActive = Boolean(currentWeddingTheme && currentWeddingTheme.enabled);
+  const webBgColor = syncedDesign?.canvas?.webBackgroundColor || (isCustomThemeActive ? currentWeddingTheme.bgSoft : '#EBEBEB');
 
   // Generate CSS variable inline styles
   const themeStyles = React.useMemo(() => {
     const baseVars: Record<string, string> = {
       '--canvas-width': `${canvasWidth}px`,
+      '--wedding-web-bg': webBgColor,
     };
 
     if (!isCustomThemeActive) return baseVars as React.CSSProperties;
@@ -40,16 +41,28 @@ export const WeddingThemeWrapper: React.FC<WeddingThemeWrapperProps> = ({ childr
       '--wedding-text-muted': currentWeddingTheme.textMuted,
       '--wedding-border': currentWeddingTheme.borderSoft,
     } as React.CSSProperties;
-  }, [currentWeddingTheme, isCustomThemeActive, canvasWidth]);
+  }, [currentWeddingTheme, isCustomThemeActive, canvasWidth, webBgColor]);
 
   return (
     <div 
       id="wedding-public-theme-container"
-      className={`wedding-theme-scope ${isCustomThemeActive ? 'wedding-theme-applied' : ''} w-full min-h-screen bg-[#EBEBEB] flex flex-col items-center`}
-      style={themeStyles}
+      className={`wedding-theme-scope ${isCustomThemeActive ? 'wedding-theme-applied' : ''} w-full min-h-screen flex flex-col items-center transition-colors duration-300`}
+      style={{
+        ...themeStyles,
+        backgroundColor: webBgColor
+      }}
     >
-      {isCustomThemeActive && (
-        <style>{`
+      <style>{`
+        #wedding-public-theme-container {
+          background-color: ${webBgColor} !important;
+        }
+        #wedding-public-theme-container section {
+          background-color: ${webBgColor} !important;
+        }
+        #wedding-public-theme-container footer {
+          background-color: ${webBgColor} !important;
+        }
+        ${isCustomThemeActive ? `
           .wedding-theme-applied .theme-primary-bg {
             background-color: var(--wedding-primary) !important;
             color: var(--wedding-primary-fg) !important;
@@ -99,8 +112,8 @@ export const WeddingThemeWrapper: React.FC<WeddingThemeWrapperProps> = ({ childr
           .wedding-theme-applied .theme-card-highlight {
             border-color: color-mix(in srgb, var(--wedding-primary) 25%, #E8DCCF) !important;
           }
-        `}</style>
-      )}
+        ` : ''}
+      `}</style>
       {/* Main unified column constrained strictly to the WeddingCraft canvas width, auto-adjusting on smaller viewports */}
       <div 
         id="wedding-public-content-column"

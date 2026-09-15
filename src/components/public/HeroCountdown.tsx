@@ -6,7 +6,7 @@ import { useSyncedInvitationDesign } from '../../hooks/useSyncedInvitationDesign
 import { SyncedInvitationHero } from './SyncedInvitationHero';
 
 export const HeroCountdown: React.FC = () => {
-  const { settings, activeWedding, activeWeddingId, currentUser, setShowWeddingCraftModal } = useWedding();
+  const { settings, activeWedding, activeWeddingId, currentUser, setShowWeddingCraftModal, openRsvpModal } = useWedding();
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
   const targetEventId = activeWedding?.id || activeWeddingId || (settings as any)?.id || 'demo_event';
@@ -202,10 +202,10 @@ export const HeroCountdown: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-6">
             <button
               id="hero-cta-rsvp"
-              onClick={() => scrollToSection('rsvp-section')}
-              className="w-full sm:w-auto px-8 py-3 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] theme-button-primary text-[#2D3748] font-semibold text-sm hover:bg-[#EBEBEB] transition-all duration-200 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] flex items-center justify-center space-x-2 transform hover:-translate-y-0.5 cursor-pointer"
+              onClick={openRsvpModal}
+              className="w-full sm:w-auto px-8 py-3 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] theme-button-primary font-semibold text-sm hover:bg-[#EBEBEB] transition-all duration-200 hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center space-x-2 transform hover:-translate-y-0.5 cursor-pointer"
             >
-              <Heart className="w-4 h-4 fill-white" />
+              <Heart className="w-4 h-4 fill-[#2D3748] text-[#2D3748]" />
               <span>Confirmar Asistencia (RSVP)</span>
             </button>
 

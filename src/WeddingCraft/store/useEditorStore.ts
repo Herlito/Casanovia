@@ -101,6 +101,13 @@ interface EditorState {
   deleteCustomTheme: (id: string) => void;
 }
 
+const computeDocHash = (doc: WeddingDesignDocument) => {
+  return JSON.stringify({
+    canvas: doc?.canvas,
+    elements: doc?.pages?.[0]?.elements || []
+  });
+};
+
 export const useEditorStore = create<EditorState>()((set, get) => ({
   eventData: null,
   isLinkedToWedding: true,
@@ -124,9 +131,9 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   hasUnsavedChanges: () => {
     const state = get();
     const elements = state.document.pages[0]?.elements || [];
-    if (elements.length === 0) return false;
-    const currentHash = JSON.stringify(elements);
-    if (!state.lastSavedHash) return true; // Has elements but was never saved in this session
+    if (elements.length === 0 && !state.lastSavedHash) return false;
+    const currentHash = computeDocHash(state.document);
+    if (!state.lastSavedHash) return elements.length > 0;
     return currentHash !== state.lastSavedHash;
   },
 
@@ -161,13 +168,13 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   loadTemplateToCanvas: (template: TemplateItem) => {
     const docCopy = JSON.parse(JSON.stringify(template.document));
     docCopy.id = template.id;
-    const elementsHash = JSON.stringify(docCopy.pages[0]?.elements || []);
+    const docHash = computeDocHash(docCopy);
     
     set({
       document: docCopy,
       currentTemplateId: template.id,
       currentTemplateName: template.name,
-      lastSavedHash: elementsHash,
+      lastSavedHash: docHash,
       history: { past: [], future: [] },
       selectedElementIds: []
     });
@@ -201,13 +208,13 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     // 1. Update local store state immediately
     const existingList = state.templates.filter(t => t.id !== targetId);
     const updatedTemplates = [templateData, ...existingList];
-    const elementsHash = JSON.stringify(cleanDoc.pages[0]?.elements || []);
+    const docHash = computeDocHash(cleanDoc);
 
     set({
       document: cleanDoc,
       currentTemplateId: targetId,
       currentTemplateName: templateData.name,
-      lastSavedHash: elementsHash,
+      lastSavedHash: docHash,
       templates: updatedTemplates
     });
 
@@ -254,6 +261,15 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         }));
       }
 
+      // Update last saved hash and draft
+      const publishedHash = computeDocHash(docToPublish);
+      set({ lastSavedHash: publishedHash });
+      const draftKey = `wedding_design_draft_${eventId}`;
+      await idbSet(draftKey, docToPublish);
+      try {
+        localStorage.setItem(draftKey, JSON.stringify(docToPublish));
+      } catch (e) {}
+
       return { success: true };
     } catch (err: any) {
       console.error('Error publishing WeddingCraft design:', err);
@@ -289,12 +305,12 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         const data = snap.data();
         if (data && data.document) {
           const docCopy = sanitizeDoc(JSON.parse(JSON.stringify(data.document)));
-          const elementsHash = JSON.stringify(docCopy.pages[0]?.elements || []);
+          const docHash = computeDocHash(docCopy);
           set({
             document: docCopy,
             currentTemplateId: `web_invitados_${eventId}`,
             currentTemplateName: 'Web Invitados (Publicada)',
-            lastSavedHash: elementsHash,
+            lastSavedHash: docHash,
             history: { past: [], future: [] },
             selectedElementIds: []
           });
@@ -311,12 +327,12 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       if (localPub) {
         const parsed = sanitizeDoc(JSON.parse(localPub));
         if (parsed && parsed.pages) {
-          const elementsHash = JSON.stringify(parsed.pages[0]?.elements || []);
+          const docHash = computeDocHash(parsed);
           set({
             document: parsed,
             currentTemplateId: `web_invitados_${eventId}`,
             currentTemplateName: 'Web Invitados (Publicada)',
-            lastSavedHash: elementsHash,
+            lastSavedHash: docHash,
             history: { past: [], future: [] },
             selectedElementIds: []
           });
@@ -327,12 +343,12 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       const idbPub = await idbGet(`weddingcraft_published_${eventId}`);
       if (idbPub && idbPub.pages) {
         const sanitized = sanitizeDoc(idbPub);
-        const elementsHash = JSON.stringify(sanitized.pages[0]?.elements || []);
+        const docHash = computeDocHash(sanitized);
         set({
           document: sanitized,
           currentTemplateId: `web_invitados_${eventId}`,
           currentTemplateName: 'Web Invitados (Publicada)',
-          lastSavedHash: elementsHash,
+          lastSavedHash: docHash,
           history: { past: [], future: [] },
           selectedElementIds: []
         });
@@ -352,12 +368,12 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       romanticQuote: state.eventData?.romanticQuote
     });
 
-    const elementsHash = JSON.stringify(newDoc.pages[0]?.elements || []);
+    const docHash = computeDocHash(newDoc);
     set({
       document: newDoc,
       currentTemplateId: `web_invitados_${eventId}`,
       currentTemplateName: 'Web Invitados',
-      lastSavedHash: elementsHash,
+      lastSavedHash: docHash,
       history: { past: [], future: [] },
       selectedElementIds: []
     });
@@ -452,6 +468,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
 
   updateCanvas: (updates) => {
+    get().commitHistory();
     set(produce((state: EditorState) => {
       const oldWidth = state.document.canvas.width;
       Object.assign(state.document.canvas, updates);
@@ -465,6 +482,17 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         );
       }
     }));
+
+    // Immediately persist draft so changes to canvas dimensions/background are never lost
+    const currentState = get();
+    if (currentState.eventData?.eventId) {
+      const draftKey = `wedding_design_draft_${currentState.eventData.eventId}`;
+      const docClean = sanitizeForFirestore(currentState.document);
+      idbSet(draftKey, docClean).catch(e => console.warn('idbSet canvas draft error:', e));
+      try {
+        localStorage.setItem(draftKey, JSON.stringify(docClean));
+      } catch (e) {}
+    }
   },
   
   updateElement: (id, updates) => {

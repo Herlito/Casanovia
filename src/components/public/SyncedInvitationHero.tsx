@@ -1,6 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WeddingDesignDocument, CanvasElement } from '../../WeddingCraft/types';
-import { Sparkles, Edit3, Volume2, VolumeX, Play, Pause, Heart } from 'lucide-react';
+import { 
+  Sparkles, 
+  Edit3, 
+  Play, 
+  Pause, 
+  Heart, 
+  Church, 
+  PartyPopper, 
+  Shirt, 
+  MessageSquareHeart, 
+  MapPin, 
+  Clock, 
+  Navigation, 
+  Copy, 
+  Check 
+} from 'lucide-react';
+import { useWedding } from '../../context/WeddingContext';
 
 interface SyncedInvitationHeroProps {
   document: WeddingDesignDocument;
@@ -48,10 +64,24 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
   const page = doc.pages?.[0];
   const elements = page ? [...page.elements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0)) : [];
 
+  const { openRsvpModal } = useWedding();
+
   const handleButtonClick = (el: CanvasElement) => {
     const content = el.content || {};
     const actionType = content.actionType;
     const linkUrl = content.linkUrl || '';
+    const buttonText = (content.text || '').toLowerCase();
+
+    // Open RSVP Full-Screen Modal if button is for RSVP confirmation
+    if (
+      actionType === 'rsvp' || 
+      linkUrl === '#rsvp-section' || 
+      buttonText.includes('confirmar') || 
+      buttonText.includes('rsvp')
+    ) {
+      openRsvpModal();
+      return;
+    }
 
     if (actionType === 'scroll-to-section' || (linkUrl && linkUrl.startsWith('#'))) {
       const targetId = linkUrl.replace('#', '');
@@ -73,7 +103,10 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
   };
 
   return (
-    <section className="relative overflow-hidden pt-6 pb-12 sm:pt-10 sm:pb-16 bg-[#EBEBEB]">
+    <section 
+      className="relative overflow-hidden pt-6 pb-12 sm:pt-10 sm:pb-16 transition-colors duration-300"
+      style={{ backgroundColor: doc.canvas?.webBackgroundColor || 'transparent' }}
+    >
       {/* Optional Top Floating Customizer Pill for Bride/Groom or Admin */}
       {showEditTrigger && onOpenEditor && (
         <div 
@@ -102,11 +135,11 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
       >
         <div
           ref={containerRef}
-          className="relative w-full overflow-hidden mx-auto"
+          className="relative w-full overflow-hidden mx-auto rounded-3xl shadow-[6px_6px_16px_rgba(0,0,0,0.06),-6px_-6px_16px_rgba(255,255,255,0.7)]"
           style={{
             height: `${canvasHeight * scale}px`,
             maxWidth: `${canvasWidth}px`,
-            backgroundColor: doc.canvas?.backgroundColor || 'transparent'
+            backgroundColor: doc.canvas?.backgroundColor || '#ffffff'
           }}
         >
           {/* Scaled Canvas Layer */}
@@ -117,7 +150,7 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
               height: `${canvasHeight}px`,
               transform: `scale(${scale})`,
               transformOrigin: 'top left',
-              backgroundColor: doc.canvas?.backgroundColor || 'transparent'
+              backgroundColor: doc.canvas?.backgroundColor || '#ffffff'
             }}
           >
             {elements.map((el) => {
@@ -342,6 +375,33 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({ element, onButtonClic
     );
   }
 
+  // 8. EVENT CEREMONY & RECEPTION CARDS
+  if (type === 'event-ceremony-card' || type === 'event-reception-card') {
+    return (
+      <div style={wrapperStyle}>
+        <SyncedEventCard element={element} />
+      </div>
+    );
+  }
+
+  // 9. DRESS CODE CARD
+  if (type === 'dress-code-card') {
+    return (
+      <div style={wrapperStyle}>
+        <SyncedDressCode element={element} />
+      </div>
+    );
+  }
+
+  // 10. WISHES WALL CARD
+  if (type === 'wishes-wall-card') {
+    return (
+      <div style={wrapperStyle}>
+        <SyncedWishesWall element={element} />
+      </div>
+    );
+  }
+
   return null;
 };
 
@@ -503,6 +563,511 @@ const SyncedAudioPlayer: React.FC<{ element: CanvasElement }> = ({ element }) =>
         {content.title || 'Música de Fondo'}
       </span>
       {content.src && <audio ref={audioRef} src={content.src} onEnded={() => setIsPlaying(false)} />}
+    </div>
+  );
+};
+
+// ==========================================
+// Event Details Card (Ceremony / Reception)
+// ==========================================
+
+const SyncedEventCard: React.FC<{ element: CanvasElement }> = ({ element }) => {
+  const { content = {}, style = {}, type } = element;
+  const isCeremony = type === 'event-ceremony-card';
+
+  const [copied, setCopied] = useState(false);
+
+  const bgColor = style.backgroundColor || '#FAF8F5';
+  const borderColor = style.borderColor || '#EADDCE';
+  const strokeWidth = style.strokeWidth ?? 1;
+  const titleColor = style.titleColor || '#2D2A26';
+  const textColor = style.color || '#524B42';
+  const accentColor = style.accentColor || (isCeremony ? '#8A9A86' : '#C5A880');
+  const radius = style.borderRadius ?? 20;
+
+  const titleFontFamily = style.titleFontFamily || style.fontFamily || 'Playfair Display, serif';
+  const bodyFontFamily = style.fontFamily || 'sans-serif';
+  const titleFontSize = style.titleFontSize || 18;
+  const bodyFontSize = style.bodyFontSize || 11;
+  const badgeFontSize = style.badgeFontSize || 11;
+  const textAlign = (style.align || style.textAlign || 'left') as 'left' | 'center' | 'right';
+
+  const badgeText = content.badge || (isCeremony ? 'Ceremonia Religiosa' : 'Recepción & Fiesta');
+  const venueTitle = content.venueName || (isCeremony ? 'Parroquia Nuestra Señora' : 'Hacienda Villa del Sol');
+  const timeText = content.time || (isCeremony ? '17:00 hrs (Puntual)' : '19:30 hrs');
+  const addressText = content.address || 'Av. Principal #123, Zona Colonial';
+  const googleMapsUrl = content.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueTitle + ' ' + addressText)}`;
+  const wazeUrl = content.wazeUrl || `https://waze.com/ul?q=${encodeURIComponent(venueTitle + ' ' + addressText)}`;
+
+  const handleCopyAddress = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(`${venueTitle} - ${addressText}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: bgColor,
+        borderRadius: `${radius}px`,
+        border: `${strokeWidth}px solid ${borderColor}`,
+        padding: '16px',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        textAlign: textAlign,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.06)'
+      }}
+    >
+      <div>
+        {/* Header Badge */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
+            gap: '6px',
+            backgroundColor: `${accentColor}25`,
+            color: accentColor,
+            padding: '4px 10px',
+            borderRadius: '12px',
+            fontSize: `${badgeFontSize}px`,
+            fontFamily: bodyFontFamily,
+            fontWeight: 700,
+            marginBottom: '8px'
+          }}
+        >
+          {isCeremony ? <Church className="w-3.5 h-3.5" /> : <PartyPopper className="w-3.5 h-3.5" />}
+          <span>{badgeText}</span>
+        </div>
+
+        {/* Venue Title */}
+        <h4
+          style={{
+            fontFamily: titleFontFamily,
+            fontSize: `${titleFontSize}px`,
+            fontWeight: 700,
+            color: titleColor,
+            lineHeight: 1.2,
+            margin: '0 0 6px 0',
+            textAlign: textAlign
+          }}
+        >
+          {venueTitle}
+        </h4>
+
+        {/* Time */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
+            gap: '6px',
+            color: accentColor,
+            fontSize: `${bodyFontSize + 1}px`,
+            fontFamily: bodyFontFamily,
+            fontWeight: 600,
+            marginBottom: '4px'
+          }}
+        >
+          <Clock className="w-3.5 h-3.5" />
+          <span>{timeText}</span>
+        </div>
+
+        {/* Address */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
+            gap: '6px',
+            color: textColor,
+            fontSize: `${bodyFontSize}px`,
+            fontFamily: bodyFontFamily,
+            lineHeight: 1.3
+          }}
+        >
+          <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 text-gray-400" />
+          <span>{addressText}</span>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+        <a
+          href={googleMapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            flex: 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '4px',
+            backgroundColor: '#FFFFFF',
+            border: '1px solid #CBD5E1',
+            borderRadius: '10px',
+            padding: '6px 8px',
+            fontSize: '10px',
+            fontWeight: 700,
+            color: '#2D3748',
+            textDecoration: 'none',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}
+        >
+          <Navigation className="w-3 h-3 text-blue-600" />
+          <span>Maps</span>
+        </a>
+
+        <a
+          href={wazeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            flex: 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '4px',
+            backgroundColor: '#FFFFFF',
+            border: '1px solid #CBD5E1',
+            borderRadius: '10px',
+            padding: '6px 8px',
+            fontSize: '10px',
+            fontWeight: 700,
+            color: '#2D3748',
+            textDecoration: 'none',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}
+        >
+          <Navigation className="w-3 h-3 text-cyan-600" />
+          <span>Waze</span>
+        </a>
+
+        <button
+          type="button"
+          onClick={handleCopyAddress}
+          title="Copiar Dirección"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#FFFFFF',
+            border: '1px solid #CBD5E1',
+            borderRadius: '10px',
+            padding: '6px 8px',
+            fontSize: '10px',
+            color: '#2D3748',
+            cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-gray-600" />}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// Dress Code Section Component
+// ==========================================
+
+const SyncedDressCode: React.FC<{ element: CanvasElement }> = ({ element }) => {
+  const { content = {}, style = {} } = element;
+
+  const bgColor = style.backgroundColor || '#FAF8F5';
+  const borderColor = style.borderColor || '#EADDCE';
+  const strokeWidth = style.strokeWidth ?? 1;
+  const titleColor = style.titleColor || '#2D2A26';
+  const textColor = style.color || '#524B42';
+  const accentColor = style.accentColor || '#C5A880';
+  const radius = style.borderRadius ?? 20;
+
+  const titleFontFamily = style.titleFontFamily || style.fontFamily || 'Playfair Display, serif';
+  const bodyFontFamily = style.fontFamily || 'sans-serif';
+  const titleFontSize = style.titleFontSize || 18;
+  const bodyFontSize = style.bodyFontSize || 11;
+  const badgeFontSize = style.badgeFontSize || 11;
+  const textAlign = (style.align || style.textAlign || 'left') as 'left' | 'center' | 'right';
+
+  const badgeText = content.badge || 'Código de Vestimenta';
+  const styleName = content.styleName || 'Formal Rigurosa';
+  const description = content.description || 'Damas: Vestido largo de gala en tonos tierra o pastel. Caballeros: Traje oscuro o smoking formal.';
+  const colors: Array<{ name: string; hex: string }> = content.suggestedColors || [
+    { name: 'Esmeralda', hex: '#2A4736' },
+    { name: 'Salvia', hex: '#8A9A86' },
+    { name: 'Champán', hex: '#D4AF37' },
+    { name: 'Arena', hex: '#C5A880' },
+  ];
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: bgColor,
+        borderRadius: `${radius}px`,
+        border: `${strokeWidth}px solid ${borderColor}`,
+        padding: '16px',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        textAlign: textAlign,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.06)'
+      }}
+    >
+      <div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
+            gap: '6px',
+            backgroundColor: `${accentColor}25`,
+            color: accentColor,
+            padding: '4px 10px',
+            borderRadius: '12px',
+            fontSize: `${badgeFontSize}px`,
+            fontFamily: bodyFontFamily,
+            fontWeight: 700,
+            marginBottom: '8px'
+          }}
+        >
+          <Shirt className="w-3.5 h-3.5" />
+          <span>{badgeText}</span>
+        </div>
+
+        <h4
+          style={{
+            fontFamily: titleFontFamily,
+            fontSize: `${titleFontSize}px`,
+            fontWeight: 700,
+            color: titleColor,
+            lineHeight: 1.2,
+            margin: '0 0 6px 0',
+            textAlign: textAlign
+          }}
+        >
+          {styleName}
+        </h4>
+
+        <p
+          style={{
+            fontSize: `${bodyFontSize}px`,
+            fontFamily: bodyFontFamily,
+            color: textColor,
+            lineHeight: 1.4,
+            margin: 0,
+            textAlign: textAlign
+          }}
+        >
+          {description}
+        </p>
+      </div>
+
+      {/* Suggested Colors */}
+      {colors.length > 0 && (
+        <div style={{ marginTop: '10px' }}>
+          <p
+            style={{
+              fontSize: '10px',
+              fontFamily: bodyFontFamily,
+              fontWeight: 700,
+              color: '#718096',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              margin: '0 0 6px 0',
+              textAlign: textAlign
+            }}
+          >
+            Paleta Sugerida:
+          </p>
+          <div style={{ 
+            display: 'flex', 
+            gap: '8px', 
+            alignItems: 'center',
+            justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start'
+          }}>
+            {colors.map((c, idx) => (
+              <div
+                key={idx}
+                title={c.name}
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  backgroundColor: c.hex,
+                  border: '2px solid #FFFFFF',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                  cursor: 'pointer'
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ==========================================
+// Wishes Wall Section Component
+// ==========================================
+
+const SyncedWishesWall: React.FC<{ element: CanvasElement }> = ({ element }) => {
+  const { content = {}, style = {} } = element;
+  const { guests } = useWedding();
+
+  const bgColor = style.backgroundColor || '#FAF8F5';
+  const borderColor = style.borderColor || '#EADDCE';
+  const strokeWidth = style.strokeWidth ?? 1;
+  const titleColor = style.titleColor || '#2D2A26';
+  const textColor = style.color || '#524B42';
+  const accentColor = style.accentColor || '#C5A880';
+  const radius = style.borderRadius ?? 20;
+
+  const titleFontFamily = style.titleFontFamily || style.fontFamily || 'Playfair Display, serif';
+  const bodyFontFamily = style.fontFamily || 'sans-serif';
+  const titleFontSize = style.titleFontSize || 18;
+  const bodyFontSize = style.bodyFontSize || 11;
+  const badgeFontSize = style.badgeFontSize || 11;
+  const textAlign = (style.align || style.textAlign || 'left') as 'left' | 'center' | 'right';
+
+  const badgeText = content.badge || 'Muro de los Deseos';
+  const title = content.title || 'Muro de los Deseos';
+  const subtitle = content.subtitle || 'Deseos y bendiciones de nuestros invitados';
+
+  // Extract confirmed wishes from guests or fall back to template wishes
+  const liveWishes = guests
+    .filter(g => g.congratulationMessage && g.congratulationMessage.trim().length > 0)
+    .map(g => ({
+      author: g.fullName,
+      message: g.congratulationMessage || ''
+    }));
+
+  const displayWishes = liveWishes.length > 0 
+    ? liveWishes.slice(0, 3)
+    : (content.wishes?.length > 0 ? content.wishes : [
+        { author: 'Familia Ramírez', message: '¡Que su hogar siempre rebose de alegría, paz y amor incondicional!' },
+        { author: 'Carlos y Sofía', message: '¡Felicitaciones en esta nueva etapa! Los queremos un montón.' }
+      ]);
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: bgColor,
+        borderRadius: `${radius}px`,
+        border: `${strokeWidth}px solid ${borderColor}`,
+        padding: '16px',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        textAlign: textAlign,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+        overflow: 'hidden'
+      }}
+    >
+      <div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
+            gap: '6px',
+            backgroundColor: `${accentColor}25`,
+            color: accentColor,
+            padding: '4px 10px',
+            borderRadius: '12px',
+            fontSize: `${badgeFontSize}px`,
+            fontFamily: bodyFontFamily,
+            fontWeight: 700,
+            marginBottom: '6px'
+          }}
+        >
+          <MessageSquareHeart className="w-3.5 h-3.5" />
+          <span>{badgeText}</span>
+        </div>
+
+        <h4
+          style={{
+            fontFamily: titleFontFamily,
+            fontSize: `${titleFontSize}px`,
+            fontWeight: 700,
+            color: titleColor,
+            lineHeight: 1.2,
+            margin: '0 0 4px 0',
+            textAlign: textAlign
+          }}
+        >
+          {title}
+        </h4>
+
+        <p
+          style={{
+            fontSize: `${bodyFontSize}px`,
+            fontFamily: bodyFontFamily,
+            color: textColor,
+            lineHeight: 1.3,
+            margin: '0 0 10px 0',
+            textAlign: textAlign
+          }}
+        >
+          {subtitle}
+        </p>
+
+        {/* Wishes List */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {displayWishes.map((w: any, idx: number) => (
+            <div
+              key={idx}
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '12px',
+                padding: '8px 10px',
+                border: '1px solid #E2E8F0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <div
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  backgroundColor: idx === 0 ? '#E8DCCF' : '#D1E0D7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: '#2D3748',
+                  flexShrink: 0
+                }}
+              >
+                {w.author?.[0] || '❤️'}
+              </div>
+              <div style={{ minWidth: 0, flex: 1, textAlign: 'left' }}>
+                <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, color: '#2D3748' }}>
+                  {w.author}
+                </p>
+                <p style={{ margin: 0, fontSize: '10px', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  "{w.message}"
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

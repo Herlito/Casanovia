@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { Settings2, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Group as GroupIcon, Copy, Trash2, Image as ImageIcon, Layers, Upload, X, Ungroup, Sparkles, Square, Circle, Heart } from 'lucide-react';
+import { Settings2, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Group as GroupIcon, Copy, Trash2, Image as ImageIcon, Layers, Upload, X, Ungroup, Sparkles, Square, Circle, Heart, Church, PartyPopper, Shirt, MessageSquare, Plus, Palette, Type, MapPin, Clock, Navigation, Globe, RotateCcw, Check } from 'lucide-react';
 import { FontPicker } from './FontPicker';
+import { processImageTransparency } from '../lib/imageTransparency';
 
 
 
@@ -180,26 +181,242 @@ export const PropertiesPanel: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Alto (px)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Alto (px)</label>
+              <div className="flex space-x-1">
+                <button
+                  type="button"
+                  onClick={() => updateCanvas({ height: Math.max(400, (canvasConfig.height || 812) - 100) })}
+                  className="px-1.5 py-0.5 rounded text-[10px] bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium"
+                  title="Restar 100px"
+                >
+                  -100
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateCanvas({ height: Math.min(6000, (canvasConfig.height || 812) + 100) })}
+                  className="px-1.5 py-0.5 rounded text-[10px] bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium"
+                  title="Sumar 100px"
+                >
+                  +100
+                </button>
+              </div>
+            </div>
             <input 
               type="number"
+              step="50"
+              min="400"
+              max="6000"
               className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-[#EBEBEB] focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
-              value={canvasConfig.height || 0}
+              value={canvasConfig.height || ''}
               onChange={(e) => {
-                 updateCanvas({ height: parseInt(e.target.value) || 812 });
+                const val = e.target.value;
+                if (val === '') return;
+                const num = parseInt(val, 10);
+                if (!isNaN(num) && num > 0) {
+                  updateCanvas({ height: num });
+                }
               }}
             />
+            {/* Quick Presets */}
+            <div className="grid grid-cols-4 gap-1 mt-1.5">
+              {[
+                { label: '812', val: 812, title: 'Estándar (812px)' },
+                { label: '1200', val: 1200, title: 'Medio (1200px)' },
+                { label: '1800', val: 1800, title: 'Largo (1800px)' },
+                { label: '2400', val: 2400, title: 'Completo (2400px)' }
+              ].map(preset => (
+                <button
+                  key={preset.val}
+                  type="button"
+                  onClick={() => updateCanvas({ height: preset.val })}
+                  className={`py-1 px-1 rounded text-[10px] text-center font-medium transition-all ${
+                    canvasConfig.height === preset.val
+                      ? 'bg-[#2D3748] text-white shadow-xs'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
+                  title={preset.title}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color de Fondo</label>
-            <input 
-              type="color"
-              className="w-full h-8 p-0.5 border border-gray-200 rounded bg-gray-50/50 cursor-pointer"
-              value={canvasConfig.backgroundColor || '#ffffff'}
-              onChange={(e) => {
-                 updateCanvas({ backgroundColor: e.target.value });
-              }}
-            />
+          {/* Fondo del Canva (Lienzo Invitación) */}
+          <div className="space-y-2 p-3 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1.5">
+                <Palette className="w-3.5 h-3.5 text-amber-600" />
+                <span>Fondo del Canva (Lienzo)</span>
+              </label>
+              <span className="text-[10px] font-bold text-gray-500 font-mono uppercase">
+                {canvasConfig.backgroundColor || '#ffffff'}
+              </span>
+            </div>
+            <p className="text-[10px] text-gray-500 leading-tight">
+              Color del lienzo o tarjeta principal de la invitación.
+            </p>
+
+            <div className="flex items-center space-x-2">
+              <input 
+                type="color"
+                className="w-10 h-10 p-0.5 border-0 rounded-xl bg-transparent cursor-pointer shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]"
+                value={canvasConfig.backgroundColor?.startsWith('#') ? canvasConfig.backgroundColor : '#ffffff'}
+                onChange={(e) => updateCanvas({ backgroundColor: e.target.value })}
+              />
+              <input
+                type="text"
+                className="flex-1 px-3 py-2 text-xs font-mono rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] border-0 text-gray-800 outline-none"
+                value={canvasConfig.backgroundColor || '#ffffff'}
+                placeholder="#ffffff"
+                onChange={(e) => updateCanvas({ backgroundColor: e.target.value })}
+              />
+            </div>
+
+            {/* Presets Canva */}
+            <div className="pt-1">
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Tonos Recomendados:</span>
+              <div className="grid grid-cols-6 gap-1.5">
+                {[
+                  { name: 'Blanco', color: '#FFFFFF' },
+                  { name: 'Marfil', color: '#FAF8F5' },
+                  { name: 'Crema', color: '#F5EFEB' },
+                  { name: 'Nude', color: '#EFE8E1' },
+                  { name: 'Neumórfico', color: '#EBEBEB' },
+                  { name: 'Salvia', color: '#F0F4F1' },
+                  { name: 'Rosa Suave', color: '#FFF1F2' },
+                  { name: 'Arena', color: '#F4ECE1' },
+                  { name: 'Champagne', color: '#F9F4EC' },
+                  { name: 'Cielo', color: '#F0F7FF' },
+                  { name: 'Perla', color: '#E2E8F0' },
+                  { name: 'Noche', color: '#18181B' }
+                ].map(p => (
+                  <button
+                    key={p.color}
+                    type="button"
+                    onClick={() => updateCanvas({ backgroundColor: p.color })}
+                    className={`h-7 rounded-lg border flex items-center justify-center transition-all ${
+                      (canvasConfig.backgroundColor || '#ffffff').toLowerCase() === p.color.toLowerCase()
+                        ? 'ring-2 ring-amber-500 scale-105 shadow-sm'
+                        : 'border-black/10 hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: p.color }}
+                    title={`${p.name} (${p.color})`}
+                  >
+                    {(canvasConfig.backgroundColor || '#ffffff').toLowerCase() === p.color.toLowerCase() && (
+                      <Check className={`w-3.5 h-3.5 ${p.color === '#18181B' ? 'text-white' : 'text-amber-600'}`} />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-1 flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => updateCanvas({ backgroundColor: 'transparent' })}
+                className="text-[11px] py-1 px-2.5 rounded-lg bg-white/70 hover:bg-white text-gray-700 font-semibold shadow-2xs transition-colors cursor-pointer"
+              >
+                Lienzo Transparente
+              </button>
+              <button
+                type="button"
+                onClick={() => updateCanvas({ backgroundColor: '#FFFFFF' })}
+                className="text-[11px] py-1 px-2.5 rounded-lg bg-white/70 hover:bg-white text-gray-700 font-semibold shadow-2xs transition-colors cursor-pointer"
+              >
+                Blanco Puro
+              </button>
+            </div>
+          </div>
+
+          {/* Background de "Web Invitados" */}
+          <div className="space-y-2 p-3 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1.5">
+                <Globe className="w-3.5 h-3.5 text-blue-600" />
+                <span>Background "Web Invitados"</span>
+              </label>
+              <span className="text-[10px] font-bold text-blue-600 font-mono uppercase">
+                {canvasConfig.webBackgroundColor || '#EBEBEB'}
+              </span>
+            </div>
+            <p className="text-[10px] text-gray-500 leading-tight">
+              Color de fondo que verán los invitados en toda la página web pública.
+            </p>
+
+            <div className="flex items-center space-x-2">
+              <input 
+                type="color"
+                className="w-10 h-10 p-0.5 border-0 rounded-xl bg-transparent cursor-pointer shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]"
+                value={(canvasConfig.webBackgroundColor || '#EBEBEB').startsWith('#') ? (canvasConfig.webBackgroundColor || '#EBEBEB') : '#EBEBEB'}
+                onChange={(e) => updateCanvas({ webBackgroundColor: e.target.value })}
+              />
+              <input
+                type="text"
+                className="flex-1 px-3 py-2 text-xs font-mono rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] border-0 text-gray-800 outline-none"
+                value={canvasConfig.webBackgroundColor || '#EBEBEB'}
+                placeholder="#EBEBEB"
+                onChange={(e) => updateCanvas({ webBackgroundColor: e.target.value })}
+              />
+            </div>
+
+            {/* Presets Web Invitados */}
+            <div className="pt-1">
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Tonos Recomendados:</span>
+              <div className="grid grid-cols-6 gap-1.5">
+                {[
+                  { name: 'Neumórfico Base', color: '#EBEBEB' },
+                  { name: 'Blanco Editorial', color: '#FFFFFF' },
+                  { name: 'Marfil Cálido', color: '#FAF8F5' },
+                  { name: 'Crema Nupcial', color: '#F5EFEB' },
+                  { name: 'Arena Suave', color: '#EFE6DC' },
+                  { name: 'Salvia Pálido', color: '#EDF2EE' },
+                  { name: 'Champagne', color: '#F9F4EC' },
+                  { name: 'Gris Perla', color: '#F1F5F9' },
+                  { name: 'Rosa Cuarzo', color: '#FDF2F4' },
+                  { name: 'Lila Claro', color: '#F5F3FF' },
+                  { name: 'Carbón', color: '#18181B' },
+                  { name: 'Medianoche', color: '#0F172A' }
+                ].map(p => (
+                  <button
+                    key={p.color}
+                    type="button"
+                    onClick={() => updateCanvas({ webBackgroundColor: p.color })}
+                    className={`h-7 rounded-lg border flex items-center justify-center transition-all ${
+                      (canvasConfig.webBackgroundColor || '#EBEBEB').toLowerCase() === p.color.toLowerCase()
+                        ? 'ring-2 ring-blue-500 scale-105 shadow-sm'
+                        : 'border-black/10 hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: p.color }}
+                    title={`${p.name} (${p.color})`}
+                  >
+                    {(canvasConfig.webBackgroundColor || '#EBEBEB').toLowerCase() === p.color.toLowerCase() && (
+                      <Check className={`w-3.5 h-3.5 ${['#18181B', '#0F172A'].includes(p.color) ? 'text-white' : 'text-blue-600'}`} />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-1 flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => updateCanvas({ webBackgroundColor: canvasConfig.backgroundColor || '#ffffff' })}
+                className="flex-1 text-[11px] py-1.5 px-2 rounded-xl bg-white/80 hover:bg-white text-gray-700 font-semibold shadow-2xs transition-colors flex items-center justify-center space-x-1 cursor-pointer"
+                title="Aplica el mismo color del canva a toda la página de invitados"
+              >
+                <Copy className="w-3 h-3 text-gray-500" />
+                <span>Igualar al Canva</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => updateCanvas({ webBackgroundColor: '#EBEBEB' })}
+                className="text-[11px] py-1.5 px-2.5 rounded-xl bg-white/80 hover:bg-white text-gray-700 font-semibold shadow-2xs transition-colors cursor-pointer"
+                title="Restablecer al color neumórfico original"
+              >
+                Restablecer (#EBEBEB)
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -227,6 +444,15 @@ export const PropertiesPanel: React.FC = () => {
           content: textOrObj 
         });
     }
+  };
+
+  const handleUpdateContentKey = (key: string, value: any) => {
+    const state = useEditorStore.getState();
+    const el = state.document.pages[0].elements.find(e => e.id === selectedElement.id);
+    if (!el) return;
+    updateElement(selectedElement.id, { 
+      content: { ...(el.content || {}), [key]: value } 
+    });
   };
 
   return (
@@ -286,46 +512,697 @@ export const PropertiesPanel: React.FC = () => {
           </div>
         )}
 
-        <div>
-          <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color</label>
-          <div className="flex items-center space-x-2 mb-2">
-            <input 
-              type="color" 
-              className="w-8 h-8 rounded cursor-pointer border-0 p-0"
-              value={selectedElement.style.fill || '#000000'}
-              onChange={(e) => {
-                handleUpdateStyle('fill', e.target.value);
-                handleUpdateStyle('isDefaultStyle', false);
-              }}
-            />
-            <input 
-              type="text" 
-              className="flex-1 text-xs p-1.5 border border-[#D9CEBF] rounded uppercase font-mono text-gray-900"
-              value={selectedElement.style.fill || '#000000'}
-              onChange={(e) => {
-                handleUpdateStyle('fill', e.target.value);
-                handleUpdateStyle('isDefaultStyle', false);
-              }}
-            />
+        {!['event-ceremony-card', 'event-reception-card', 'dress-code-card', 'wishes-wall-card', 'countdown-widget', 'interactive-button', 'image', 'image-frame', 'audio-player'].includes(selectedElement.type) && (
+          <div>
+            <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color</label>
+            <div className="flex items-center space-x-2 mb-2">
+              <input 
+                type="color" 
+                className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                value={selectedElement.style.fill || '#000000'}
+                onChange={(e) => {
+                  handleUpdateStyle('fill', e.target.value);
+                  handleUpdateStyle('isDefaultStyle', false);
+                }}
+              />
+              <input 
+                type="text" 
+                className="flex-1 text-xs p-1.5 border border-[#D9CEBF] rounded uppercase font-mono text-gray-900"
+                value={selectedElement.style.fill || '#000000'}
+                onChange={(e) => {
+                  handleUpdateStyle('fill', e.target.value);
+                  handleUpdateStyle('isDefaultStyle', false);
+                }}
+              />
+            </div>
+            <div className="flex space-x-1">
+               {[
+                 { id: 'primary', color: document.theme.palette.primary },
+                 { id: 'secondary', color: document.theme.palette.secondary },
+                 { id: 'text', color: document.theme.palette.text },
+                 { id: 'muted', color: document.theme.palette.muted },
+                 { id: 'accent', color: document.theme.palette.accent }
+               ].map(swatch => (
+                 <button 
+                   key={swatch.id}
+                   className="w-6 h-6 rounded border border-gray-200"
+                   style={{ backgroundColor: swatch.color }}
+                   title={swatch.id}
+                   onClick={() => handleUpdateStyle('fill', swatch.color)}
+                 />
+               ))}
+            </div>
           </div>
-          <div className="flex space-x-1">
-             {[
-               { id: 'primary', color: document.theme.palette.primary },
-               { id: 'secondary', color: document.theme.palette.secondary },
-               { id: 'text', color: document.theme.palette.text },
-               { id: 'muted', color: document.theme.palette.muted },
-               { id: 'accent', color: document.theme.palette.accent }
-             ].map(swatch => (
-               <button 
-                 key={swatch.id}
-                 className="w-6 h-6 rounded border border-gray-200"
-                 style={{ backgroundColor: swatch.color }}
-                 title={swatch.id}
-                 onClick={() => handleUpdateStyle('fill', swatch.color)}
-               />
-             ))}
-          </div>
-        </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* CARD PROPS: Event Details, Dress Code, Wishes Wall        */}
+        {/* ========================================================= */}
+        {['event-ceremony-card', 'event-reception-card', 'dress-code-card', 'wishes-wall-card'].includes(selectedElement.type) && (() => {
+          const isCeremony = selectedElement.type === 'event-ceremony-card';
+          const isReception = selectedElement.type === 'event-reception-card';
+          const isDressCode = selectedElement.type === 'dress-code-card';
+          const isWishesWall = selectedElement.type === 'wishes-wall-card';
+          const content = selectedElement.content || {};
+          const style = selectedElement.style || {};
+          const align = (style.align || style.textAlign || 'left') as 'left' | 'center' | 'right';
+
+          return (
+            <div className="space-y-4">
+              {/* SECTION 1: CONTENIDO DE LA FICHA */}
+              <div className="p-3 bg-white/70 rounded-2xl border border-gray-200/80 shadow-xs space-y-3">
+                <div className="flex items-center space-x-1.5 border-b border-gray-200/60 pb-2">
+                  {isCeremony && <Church className="w-4 h-4 text-emerald-700" />}
+                  {isReception && <PartyPopper className="w-4 h-4 text-amber-700" />}
+                  {isDressCode && <Shirt className="w-4 h-4 text-indigo-700" />}
+                  {isWishesWall && <MessageSquare className="w-4 h-4 text-rose-700" />}
+                  <span className="text-[11px] font-bold text-gray-800 uppercase tracking-wider">
+                    {isCeremony ? 'Contenido Ceremonia' :
+                     isReception ? 'Contenido Recepción' :
+                     isDressCode ? 'Contenido Vestimenta' : 'Contenido Muro Deseos'}
+                  </span>
+                </div>
+
+                {/* Event Ceremony & Reception Card Fields */}
+                {(isCeremony || isReception) && (
+                  <div className="space-y-2.5">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Etiqueta / Distintivo
+                      </label>
+                      <input 
+                        type="text"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none"
+                        value={content.badge ?? (isCeremony ? '⛪ Ceremonia Religiosa' : '🥂 Recepción & Fiesta')}
+                        onChange={(e) => handleUpdateContentKey('badge', e.target.value)}
+                        placeholder="Ej. Ceremonia Religiosa"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Lugar / Templo / Salón
+                      </label>
+                      <input 
+                        type="text"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none"
+                        value={content.venueName ?? (isCeremony ? 'Parroquia Nuestra Señora' : 'Hacienda Villa del Sol')}
+                        onChange={(e) => handleUpdateContentKey('venueName', e.target.value)}
+                        placeholder="Ej. Parroquia San José"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Horario / Hora
+                      </label>
+                      <input 
+                        type="text"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none"
+                        value={content.time ?? (isCeremony ? '17:00 hrs (Puntual)' : '19:30 hrs')}
+                        onChange={(e) => handleUpdateContentKey('time', e.target.value)}
+                        placeholder="Ej. 17:00 hrs (Puntual)"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Dirección Completa
+                      </label>
+                      <textarea 
+                        rows={2}
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none resize-none"
+                        value={content.address ?? 'Av. Principal #123, Zona Colonial'}
+                        onChange={(e) => handleUpdateContentKey('address', e.target.value)}
+                        placeholder="Ej. Av. Principal #123, Centro Histórico"
+                      />
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-100 space-y-2">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Enlaces de Navegación</p>
+                      <div>
+                        <label className="block text-[9px] font-semibold text-gray-500 uppercase mb-0.5">Enlace Google Maps</label>
+                        <input 
+                          type="text"
+                          className="w-full text-[11px] p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white outline-none"
+                          value={content.googleMapsUrl || ''}
+                          onChange={(e) => handleUpdateContentKey('googleMapsUrl', e.target.value)}
+                          placeholder="https://maps.google.com/?q=..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-semibold text-gray-500 uppercase mb-0.5">Enlace Waze</label>
+                        <input 
+                          type="text"
+                          className="w-full text-[11px] p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white outline-none"
+                          value={content.wazeUrl || ''}
+                          onChange={(e) => handleUpdateContentKey('wazeUrl', e.target.value)}
+                          placeholder="https://waze.com/ul?q=..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Dress Code Card Fields */}
+                {isDressCode && (
+                  <div className="space-y-2.5">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Etiqueta / Distintivo
+                      </label>
+                      <input 
+                        type="text"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none"
+                        value={content.badge ?? '👔 Código de Vestimenta'}
+                        onChange={(e) => handleUpdateContentKey('badge', e.target.value)}
+                        placeholder="Ej. Código de Vestimenta"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Estilo / Título (Código)
+                      </label>
+                      <input 
+                        type="text"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none"
+                        value={content.styleName ?? 'Formal Rigurosa'}
+                        onChange={(e) => handleUpdateContentKey('styleName', e.target.value)}
+                        placeholder="Ej. Formal Rigurosa / Black Tie"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Indicaciones y Descripción
+                      </label>
+                      <textarea 
+                        rows={3}
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none resize-none"
+                        value={content.description ?? 'Damas: Vestido largo de gala en tonos tierra o pastel. Caballeros: Traje oscuro o smoking formal.'}
+                        onChange={(e) => handleUpdateContentKey('description', e.target.value)}
+                        placeholder="Indicaciones para damas y caballeros..."
+                      />
+                    </div>
+
+                    {/* Color Palette List */}
+                    <div className="pt-2 border-t border-gray-100">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                          Paleta Sugerida
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const curColors = content.suggestedColors || [
+                              { name: 'Esmeralda', hex: '#2A4736' },
+                              { name: 'Salvia', hex: '#8A9A86' },
+                              { name: 'Champán', hex: '#D4AF37' },
+                              { name: 'Arena', hex: '#C5A880' },
+                            ];
+                            handleUpdateContentKey('suggestedColors', [
+                              ...curColors,
+                              { name: 'Color ' + (curColors.length + 1), hex: '#C5A880' }
+                            ]);
+                          }}
+                          className="inline-flex items-center space-x-1 text-[10px] text-blue-700 font-semibold hover:text-blue-900"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>Agregar Color</span>
+                        </button>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {(content.suggestedColors || [
+                          { name: 'Esmeralda', hex: '#2A4736' },
+                          { name: 'Salvia', hex: '#8A9A86' },
+                          { name: 'Champán', hex: '#D4AF37' },
+                          { name: 'Arena', hex: '#C5A880' },
+                        ]).map((col: { name: string; hex: string }, idx: number) => (
+                          <div key={idx} className="flex items-center space-x-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200/80">
+                            <input 
+                              type="color" 
+                              className="w-6 h-6 rounded cursor-pointer border-0 p-0 shrink-0"
+                              value={col.hex}
+                              onChange={(e) => {
+                                const cur = [...(content.suggestedColors || [
+                                  { name: 'Esmeralda', hex: '#2A4736' },
+                                  { name: 'Salvia', hex: '#8A9A86' },
+                                  { name: 'Champán', hex: '#D4AF37' },
+                                  { name: 'Arena', hex: '#C5A880' },
+                                ])];
+                                cur[idx] = { ...cur[idx], hex: e.target.value };
+                                handleUpdateContentKey('suggestedColors', cur);
+                              }}
+                            />
+                            <input 
+                              type="text"
+                              className="flex-1 text-[11px] p-1 text-gray-900 border border-gray-200 rounded bg-white"
+                              value={col.name}
+                              placeholder="Nombre color"
+                              onChange={(e) => {
+                                const cur = [...(content.suggestedColors || [
+                                  { name: 'Esmeralda', hex: '#2A4736' },
+                                  { name: 'Salvia', hex: '#8A9A86' },
+                                  { name: 'Champán', hex: '#D4AF37' },
+                                  { name: 'Arena', hex: '#C5A880' },
+                                ])];
+                                cur[idx] = { ...cur[idx], name: e.target.value };
+                                handleUpdateContentKey('suggestedColors', cur);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = [...(content.suggestedColors || [
+                                  { name: 'Esmeralda', hex: '#2A4736' },
+                                  { name: 'Salvia', hex: '#8A9A86' },
+                                  { name: 'Champán', hex: '#D4AF37' },
+                                  { name: 'Arena', hex: '#C5A880' },
+                                ])];
+                                cur.splice(idx, 1);
+                                handleUpdateContentKey('suggestedColors', cur);
+                              }}
+                              className="p-1 text-gray-400 hover:text-rose-600 rounded"
+                              title="Eliminar color"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Wishes Wall Card Fields */}
+                {isWishesWall && (
+                  <div className="space-y-2.5">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Etiqueta / Distintivo
+                      </label>
+                      <input 
+                        type="text"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none"
+                        value={content.badge ?? '💌 Muro de los Deseos'}
+                        onChange={(e) => handleUpdateContentKey('badge', e.target.value)}
+                        placeholder="Ej. Muro de los Deseos"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Título Principal
+                      </label>
+                      <input 
+                        type="text"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none"
+                        value={content.title ?? 'Muro de los Deseos'}
+                        onChange={(e) => handleUpdateContentKey('title', e.target.value)}
+                        placeholder="Ej. Muro de los Deseos"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Subtítulo / Instrucción
+                      </label>
+                      <textarea 
+                        rows={2}
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 focus:bg-white focus:border-blue-400 outline-none resize-none"
+                        value={content.subtitle ?? 'Deseos y bendiciones de nuestros invitados'}
+                        onChange={(e) => handleUpdateContentKey('subtitle', e.target.value)}
+                        placeholder="Mensaje de invitación a dejar deseos..."
+                      />
+                    </div>
+
+                    {/* Wishes sample items */}
+                    <div className="pt-2 border-t border-gray-100">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                          Deseos de Ejemplo
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const curWishes = content.wishes?.length > 0 ? content.wishes : [
+                              { author: 'Familia Ramírez', message: '¡Que su hogar siempre rebose de alegría, paz y amor incondicional!' },
+                              { author: 'Carlos y Sofía', message: '¡Felicitaciones en esta nueva etapa! Los queremos un montón.' }
+                            ];
+                            handleUpdateContentKey('wishes', [
+                              ...curWishes,
+                              { author: 'Invitado', message: '¡Muchas felicidades y bendiciones!' }
+                            ]);
+                          }}
+                          className="inline-flex items-center space-x-1 text-[10px] text-blue-700 font-semibold hover:text-blue-900"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>Agregar Deseo</span>
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {(content.wishes?.length > 0 ? content.wishes : [
+                          { author: 'Familia Ramírez', message: '¡Que su hogar siempre rebose de alegría, paz y amor incondicional!' },
+                          { author: 'Carlos y Sofía', message: '¡Felicitaciones en esta nueva etapa! Los queremos un montón.' }
+                        ]).map((w: { author: string; message: string }, idx: number) => (
+                          <div key={idx} className="bg-gray-50 p-2 rounded-lg border border-gray-200/80 space-y-1 relative">
+                            <div className="flex items-center justify-between">
+                              <input 
+                                type="text"
+                                className="text-[11px] p-1 font-bold text-gray-900 border border-gray-200 rounded bg-white w-2/3"
+                                value={w.author}
+                                placeholder="Autor"
+                                onChange={(e) => {
+                                  const cur = [...(content.wishes || [
+                                    { author: 'Familia Ramírez', message: '¡Que su hogar siempre rebose de alegría, paz y amor incondicional!' },
+                                    { author: 'Carlos y Sofía', message: '¡Felicitaciones en esta nueva etapa! Los queremos un montón.' }
+                                  ])];
+                                  cur[idx] = { ...cur[idx], author: e.target.value };
+                                  handleUpdateContentKey('wishes', cur);
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const cur = [...(content.wishes || [
+                                    { author: 'Familia Ramírez', message: '¡Que su hogar siempre rebose de alegría, paz y amor incondicional!' },
+                                    { author: 'Carlos y Sofía', message: '¡Felicitaciones en esta nueva etapa! Los queremos un montón.' }
+                                  ])];
+                                  cur.splice(idx, 1);
+                                  handleUpdateContentKey('wishes', cur);
+                                }}
+                                className="p-1 text-gray-400 hover:text-rose-600 rounded"
+                                title="Eliminar deseo"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            <textarea 
+                              rows={2}
+                              className="w-full text-[11px] p-1 text-gray-700 border border-gray-200 rounded bg-white resize-none"
+                              value={w.message}
+                              placeholder="Mensaje de felicitación..."
+                              onChange={(e) => {
+                                const cur = [...(content.wishes || [
+                                  { author: 'Familia Ramírez', message: '¡Que su hogar siempre rebose de alegría, paz y amor incondicional!' },
+                                  { author: 'Carlos y Sofía', message: '¡Felicitaciones en esta nueva etapa! Los queremos un montón.' }
+                                ])];
+                                cur[idx] = { ...cur[idx], message: e.target.value };
+                                handleUpdateContentKey('wishes', cur);
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 2: TIPOGRAFÍA, TAMAÑOS Y ALINEADO */}
+              <div className="p-3 bg-white/70 rounded-2xl border border-gray-200/80 shadow-xs space-y-3">
+                <div className="flex items-center space-x-1.5 border-b border-gray-200/60 pb-2">
+                  <Type className="w-4 h-4 text-gray-700" />
+                  <span className="text-[11px] font-bold text-gray-800 uppercase tracking-wider">
+                    Tipografía y Textos
+                  </span>
+                </div>
+
+                {/* Title Font */}
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    Tipografía del Título
+                  </label>
+                  <FontPicker 
+                    value={style.titleFontFamily || style.fontFamily || 'Playfair Display, serif'}
+                    onChange={(font) => handleUpdateStyle('titleFontFamily', font)}
+                  />
+                </div>
+
+                {/* Body Font */}
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    Tipografía de Textos / Cuerpo
+                  </label>
+                  <FontPicker 
+                    value={style.fontFamily || 'sans-serif'}
+                    onChange={(font) => handleUpdateStyle('fontFamily', font)}
+                  />
+                </div>
+
+                {/* Text Alignment */}
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    Alineación de Textos
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdateStyle('align', 'left');
+                        handleUpdateStyle('textAlign', 'left');
+                      }}
+                      className={`flex items-center justify-center space-x-1 py-1.5 px-2 rounded-lg border text-xs font-medium transition-all ${
+                        align === 'left'
+                          ? 'bg-[#2D3748] text-white border-[#2D3748] shadow-xs'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <AlignLeft className="w-3.5 h-3.5" />
+                      <span>Izquierda</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdateStyle('align', 'center');
+                        handleUpdateStyle('textAlign', 'center');
+                      }}
+                      className={`flex items-center justify-center space-x-1 py-1.5 px-2 rounded-lg border text-xs font-medium transition-all ${
+                        align === 'center'
+                          ? 'bg-[#2D3748] text-white border-[#2D3748] shadow-xs'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <AlignCenter className="w-3.5 h-3.5" />
+                      <span>Centro</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdateStyle('align', 'right');
+                        handleUpdateStyle('textAlign', 'right');
+                      }}
+                      className={`flex items-center justify-center space-x-1 py-1.5 px-2 rounded-lg border text-xs font-medium transition-all ${
+                        align === 'right'
+                          ? 'bg-[#2D3748] text-white border-[#2D3748] shadow-xs'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <AlignRight className="w-3.5 h-3.5" />
+                      <span>Derecha</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Font Sizes Grid */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      Título (px)
+                    </label>
+                    <input 
+                      type="number"
+                      min="12"
+                      max="40"
+                      className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
+                      value={style.titleFontSize || 18}
+                      onChange={(e) => handleUpdateStyle('titleFontSize', parseInt(e.target.value) || 18)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      Cuerpo (px)
+                    </label>
+                    <input 
+                      type="number"
+                      min="8"
+                      max="24"
+                      className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
+                      value={style.bodyFontSize || 11}
+                      onChange={(e) => handleUpdateStyle('bodyFontSize', parseInt(e.target.value) || 11)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      Badge (px)
+                    </label>
+                    <input 
+                      type="number"
+                      min="8"
+                      max="20"
+                      className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
+                      value={style.badgeFontSize || 11}
+                      onChange={(e) => handleUpdateStyle('badgeFontSize', parseInt(e.target.value) || 11)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: COLORES Y FONDO DE LA TARJETA */}
+              <div className="p-3 bg-white/70 rounded-2xl border border-gray-200/80 shadow-xs space-y-3">
+                <div className="flex items-center space-x-1.5 border-b border-gray-200/60 pb-2">
+                  <Palette className="w-4 h-4 text-purple-700" />
+                  <span className="text-[11px] font-bold text-gray-800 uppercase tracking-wider">
+                    Colores y Fondo
+                  </span>
+                </div>
+
+                {/* Background color */}
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    Color de Fondo de la Ficha
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="color" 
+                      className="w-8 h-8 rounded cursor-pointer border-0 p-0 shrink-0"
+                      value={style.backgroundColor || '#FAF8F5'}
+                      onChange={(e) => handleUpdateStyle('backgroundColor', e.target.value)}
+                    />
+                    <input 
+                      type="text" 
+                      className="flex-1 text-xs p-1.5 border border-gray-200 rounded-lg uppercase font-mono text-gray-900 bg-white"
+                      value={style.backgroundColor || '#FAF8F5'}
+                      onChange={(e) => handleUpdateStyle('backgroundColor', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Title and Body Text Colors in 2 cols */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      Color del Título
+                    </label>
+                    <div className="flex items-center space-x-1.5">
+                      <input 
+                        type="color" 
+                        className="w-7 h-7 rounded cursor-pointer border-0 p-0 shrink-0"
+                        value={style.titleColor || '#2D2A26'}
+                        onChange={(e) => handleUpdateStyle('titleColor', e.target.value)}
+                      />
+                      <input 
+                        type="text" 
+                        className="flex-1 text-[11px] p-1 border border-gray-200 rounded uppercase font-mono text-gray-900 bg-white"
+                        value={style.titleColor || '#2D2A26'}
+                        onChange={(e) => handleUpdateStyle('titleColor', e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      Color de Textos
+                    </label>
+                    <div className="flex items-center space-x-1.5">
+                      <input 
+                        type="color" 
+                        className="w-7 h-7 rounded cursor-pointer border-0 p-0 shrink-0"
+                        value={style.color || '#524B42'}
+                        onChange={(e) => handleUpdateStyle('color', e.target.value)}
+                      />
+                      <input 
+                        type="text" 
+                        className="flex-1 text-[11px] p-1 border border-gray-200 rounded uppercase font-mono text-gray-900 bg-white"
+                        value={style.color || '#524B42'}
+                        onChange={(e) => handleUpdateStyle('color', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Badge and Border Colors in 2 cols */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      Color Distintivo / Acento
+                    </label>
+                    <div className="flex items-center space-x-1.5">
+                      <input 
+                        type="color" 
+                        className="w-7 h-7 rounded cursor-pointer border-0 p-0 shrink-0"
+                        value={style.accentColor || (isCeremony ? '#8A9A86' : '#C5A880')}
+                        onChange={(e) => handleUpdateStyle('accentColor', e.target.value)}
+                      />
+                      <input 
+                        type="text" 
+                        className="flex-1 text-[11px] p-1 border border-gray-200 rounded uppercase font-mono text-gray-900 bg-white"
+                        value={style.accentColor || (isCeremony ? '#8A9A86' : '#C5A880')}
+                        onChange={(e) => handleUpdateStyle('accentColor', e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      Color de Borde
+                    </label>
+                    <div className="flex items-center space-x-1.5">
+                      <input 
+                        type="color" 
+                        className="w-7 h-7 rounded cursor-pointer border-0 p-0 shrink-0"
+                        value={style.borderColor || '#EADDCE'}
+                        onChange={(e) => handleUpdateStyle('borderColor', e.target.value)}
+                      />
+                      <input 
+                        type="text" 
+                        className="flex-1 text-[11px] p-1 border border-gray-200 rounded uppercase font-mono text-gray-900 bg-white"
+                        value={style.borderColor || '#EADDCE'}
+                        onChange={(e) => handleUpdateStyle('borderColor', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Border width and corner radius */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      Grosor Borde (px)
+                    </label>
+                    <input 
+                      type="number"
+                      min="0"
+                      max="12"
+                      className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
+                      value={style.strokeWidth ?? 1}
+                      onChange={(e) => handleUpdateStyle('strokeWidth', parseInt(e.target.value) || 0)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      Redondeo (px)
+                    </label>
+                    <input 
+                      type="number"
+                      min="0"
+                      max="40"
+                      className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
+                      value={style.borderRadius ?? 20}
+                      onChange={(e) => handleUpdateStyle('borderRadius', parseInt(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
 
         {selectedElement.type === 'image' && (
@@ -393,53 +1270,159 @@ export const PropertiesPanel: React.FC = () => {
               </div>
             </div>
 
-            {/* Smart Background Removal / Transparency Button */}
-            <div className="pt-2 border-t border-gray-200">
-              <button
-                onClick={() => {
-                  const src = selectedElement.content?.src || selectedElement.content?.originalSrc;
-                  if (!src) return;
-                  const img = new Image();
-                  img.crossOrigin = 'anonymous';
-                  img.onload = () => {
-                    const canvas = window.document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    if (!ctx) return;
-                    ctx.drawImage(img, 0, 0);
-                    const imgData = ctx.getImageData(0, 0, img.width, img.height);
-                    const data = imgData.data;
-                    const cornerR = data[0];
-                    const cornerG = data[1];
-                    const cornerB = data[2];
-                    for (let i = 0; i < data.length; i += 4) {
-                      const r = data[i];
-                      const g = data[i+1];
-                      const b = data[i+2];
-                      const isNearWhite = r > 230 && g > 230 && b > 230;
-                      const dist = Math.sqrt(Math.pow(r - cornerR, 2) + Math.pow(g - cornerG, 2) + Math.pow(b - cornerB, 2));
-                      if (isNearWhite || dist < 35) {
-                        data[i+3] = 0;
-                      }
-                    }
-                    ctx.putImageData(imgData, 0, 0);
-                    const transparentPng = canvas.toDataURL('image/png');
+            {/* Smart Background Removal with White Halo Reduction */}
+            <div className="pt-3 border-t border-gray-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Fondo Transparente y Halo</span>
+                </label>
+                {selectedElement.content?.isTransparent && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                    Transparencia Activa
+                  </span>
+                )}
+              </div>
+
+              {!selectedElement.content?.isTransparent ? (
+                <button
+                  onClick={async () => {
+                    const rawSrc = selectedElement.content?.unprocessedSrc || selectedElement.content?.originalSrc || selectedElement.content?.src;
+                    if (!rawSrc) return;
+                    const tol = selectedElement.content?.bgRemovalTolerance ?? 35;
+                    const halo = selectedElement.content?.bgRemovalHalo ?? 2;
+                    const transparentPng = await processImageTransparency(rawSrc, {
+                      tolerance: tol,
+                      haloReduction: halo,
+                      smoothEdges: true,
+                      edgeDefringe: true
+                    });
                     handleUpdateContent({
                       ...selectedElement.content,
                       src: transparentPng,
-                      originalSrc: transparentPng,
-                      isTransparent: true
+                      unprocessedSrc: rawSrc,
+                      originalSrc: rawSrc,
+                      isTransparent: true,
+                      bgRemovalTolerance: tol,
+                      bgRemovalHalo: halo,
+                      bgRemovalSmooth: true
                     });
-                  };
-                  img.src = src;
-                }}
-                className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-[#EBEBEB] hover:bg-white text-gray-700 text-xs font-semibold shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] transition-all"
-                title="Elimina fondos blancos u opacos para hacer la imagen transparente"
-              >
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>Hacer Fondo Transparente</span>
-              </button>
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 py-2.5 px-3 rounded-2xl bg-[#EBEBEB] hover:bg-white text-gray-800 text-xs font-semibold shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transition-all cursor-pointer"
+                  title="Elimina el fondo blanco u opaco de la imagen eliminando halos"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>Hacer Fondo Transparente</span>
+                </button>
+              ) : (
+                <div className="space-y-3 p-3 rounded-2xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]">
+                  {/* Halo Reduction Slider */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-gray-700">Disminución de Halo Blanco</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white/80 text-gray-800 shadow-2xs font-mono">
+                        {selectedElement.content?.bgRemovalHalo ?? 2} px
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="6"
+                      step="1"
+                      value={selectedElement.content?.bgRemovalHalo ?? 2}
+                      onChange={async (e) => {
+                        const newHalo = Number(e.target.value);
+                        const rawSrc = selectedElement.content?.unprocessedSrc || selectedElement.content?.originalSrc || selectedElement.content?.src;
+                        const tol = selectedElement.content?.bgRemovalTolerance ?? 35;
+                        const transparentPng = await processImageTransparency(rawSrc, {
+                          tolerance: tol,
+                          haloReduction: newHalo,
+                          smoothEdges: true,
+                          edgeDefringe: true
+                        });
+                        handleUpdateContent({
+                          ...selectedElement.content,
+                          src: transparentPng,
+                          unprocessedSrc: rawSrc,
+                          originalSrc: rawSrc,
+                          isTransparent: true,
+                          bgRemovalHalo: newHalo
+                        });
+                      }}
+                      className="w-full accent-amber-600 cursor-pointer h-1.5 bg-gray-300 rounded-lg"
+                    />
+                    <div className="flex justify-between text-[9px] text-gray-400 font-medium">
+                      <span>0px (Suave)</span>
+                      <span>2px (Recomendado)</span>
+                      <span>6px (Máximo)</span>
+                    </div>
+                    <p className="text-[10px] text-gray-500 leading-tight">
+                      Reduce y desvanece el contorno o halo blanco remanente alrededor de la figura.
+                    </p>
+                  </div>
+
+                  {/* Tolerance Slider */}
+                  <div className="space-y-1.5 pt-2 border-t border-gray-300/40">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-gray-700">Tolerancia de Fondo</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-white/80 text-gray-800 shadow-2xs font-mono">
+                        {selectedElement.content?.bgRemovalTolerance ?? 35}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="10"
+                      max="80"
+                      step="5"
+                      value={selectedElement.content?.bgRemovalTolerance ?? 35}
+                      onChange={async (e) => {
+                        const newTol = Number(e.target.value);
+                        const rawSrc = selectedElement.content?.unprocessedSrc || selectedElement.content?.originalSrc || selectedElement.content?.src;
+                        const halo = selectedElement.content?.bgRemovalHalo ?? 2;
+                        const transparentPng = await processImageTransparency(rawSrc, {
+                          tolerance: newTol,
+                          haloReduction: halo,
+                          smoothEdges: true,
+                          edgeDefringe: true
+                        });
+                        handleUpdateContent({
+                          ...selectedElement.content,
+                          src: transparentPng,
+                          unprocessedSrc: rawSrc,
+                          originalSrc: rawSrc,
+                          isTransparent: true,
+                          bgRemovalTolerance: newTol
+                        });
+                      }}
+                      className="w-full accent-amber-600 cursor-pointer h-1.5 bg-gray-300 rounded-lg"
+                    />
+                    <div className="flex justify-between text-[9px] text-gray-400 font-medium">
+                      <span>10% (Estricto)</span>
+                      <span>35% (Normal)</span>
+                      <span>80% (Amplio)</span>
+                    </div>
+                  </div>
+
+                  {/* Restore Original Button */}
+                  <div className="pt-2 flex items-center space-x-2">
+                    <button
+                      onClick={() => {
+                        const rawSrc = selectedElement.content?.unprocessedSrc || selectedElement.content?.originalSrc;
+                        if (!rawSrc) return;
+                        handleUpdateContent({
+                          ...selectedElement.content,
+                          src: rawSrc,
+                          isTransparent: false
+                        });
+                      }}
+                      className="flex-1 flex items-center justify-center space-x-1.5 py-1.5 px-2 rounded-xl bg-white hover:bg-gray-100 text-gray-700 text-[11px] font-semibold shadow-xs transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-gray-500" />
+                      <span>Restaurar Fondo Original</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

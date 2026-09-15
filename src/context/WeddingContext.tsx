@@ -236,6 +236,12 @@ interface WeddingContextType {
   showWeddingCraftModal: boolean;
   setShowWeddingCraftModal: (show: boolean) => void;
 
+  // RSVP Full-Screen Modal
+  isRsvpModalOpen: boolean;
+  setIsRsvpModalOpen: (show: boolean) => void;
+  openRsvpModal: () => void;
+  closeRsvpModal: () => void;
+
   // Navigation & URL status
   hasWeddingUrlParam: boolean;
   isPublicHomeLanding: boolean;
@@ -329,6 +335,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [showUploadedImagesModal, setShowUploadedImagesModal] = useState(false);
   const [showFloorPlanModal, setShowFloorPlanModal] = useState(false);
   const [showWeddingCraftModal, setShowWeddingCraftModal] = useState(false);
+  const [isRsvpModalOpen, setIsRsvpModalOpen] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<UploadedImageRecord[]>([]);
 
   // Helper to extract requested wedding from URL query parameters or pathname/hash
@@ -2834,6 +2841,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setShowFloorPlanModal,
         showWeddingCraftModal,
         setShowWeddingCraftModal,
+        isRsvpModalOpen,
+        setIsRsvpModalOpen,
+        openRsvpModal: () => setIsRsvpModalOpen(true),
+        closeRsvpModal: () => setIsRsvpModalOpen(false),
         saveUploadedImage,
         deleteUploadedImage,
         hasWeddingUrlParam: Boolean(getRequestedWeddingIdFromUrl()),

@@ -13,22 +13,25 @@ export const CanvasInteractiveButton: React.FC<{
   const groupRef = useRef<any>(null);
 
   const isOutline = el.style.variant === 'outline';
+  const w = Math.max(10, el.transform.width);
+  const h = Math.max(10, el.transform.height);
+  const cornerRadius = Math.max(0, Math.min(el.style.borderRadius ?? 8, w / 2, h / 2));
 
   return (
     <Group {...commonProps} ref={groupRef}>
       <Rect
-        width={el.transform.width}
-        height={el.transform.height}
+        width={w}
+        height={h}
         fill={isOutline ? 'transparent' : (!el.style.gradientEnabled ? getCol(theme?.palette.primary, el.style.backgroundColor || '#000') : undefined)}
-        {...(isOutline ? {} : getGradientProps(el.style, el.transform.width, el.transform.height))}
+        {...(isOutline ? {} : getGradientProps(el.style, w, h))}
         stroke={getCol(theme?.palette.primary, el.style.backgroundColor || '#000')}
         strokeWidth={isOutline ? 2 : 0}
-        cornerRadius={Math.max(0, el.style.borderRadius ?? 8)}
+        cornerRadius={cornerRadius}
       />
       <KonvaText
         text={el.content.text || 'Botón'}
-        width={el.transform.width}
-        height={el.transform.height}
+        width={w}
+        height={h}
         align="center"
         verticalAlign="middle"
         fontSize={el.style.fontSize || 16}

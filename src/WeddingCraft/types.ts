@@ -7,6 +7,25 @@ export interface EventDataInput {
   romanticQuote?: string;
   currentTheme?: string;
   isReadOnly?: boolean;
+  ceremonyVenue?: {
+    name: string;
+    address: string;
+    time: string;
+    googleMapsUrl?: string;
+    wazeUrl?: string;
+  };
+  receptionVenue?: {
+    name: string;
+    address: string;
+    time: string;
+    googleMapsUrl?: string;
+    wazeUrl?: string;
+  };
+  hasReligiousCeremony?: boolean;
+  dressCodeStyle?: string;
+  dressCodeDescription?: string;
+  suggestedColors?: Array<{ name: string; hex: string }>;
+  sampleWishes?: Array<{ author: string; message: string; protocolRoleTitle?: string }>;
   onSyncSettings?: (updates: {
     coupleNames?: string;
     brideName?: string;
@@ -30,6 +49,7 @@ export interface WeddingDesignDocument {
     height: number;
     backgroundColor: string;
     backgroundImage?: string;
+    webBackgroundColor?: string;
   };
   theme: any;
   customThemes?: any[];
@@ -60,9 +80,23 @@ export interface AnimationConfig {
   intensity?: number;
 }
 
+export type CanvasElementType = 
+  | 'text' 
+  | 'image' 
+  | 'svg-shape' 
+  | 'countdown-widget' 
+  | 'decorative-element' 
+  | 'interactive-button' 
+  | 'audio-player' 
+  | 'image-frame'
+  | 'event-ceremony-card'
+  | 'event-reception-card'
+  | 'dress-code-card'
+  | 'wishes-wall-card';
+
 export interface CanvasElement {
   id: string;
-  type: 'text' | 'image' | 'svg-shape' | 'countdown-widget' | 'decorative-element' | 'interactive-button' | 'audio-player' | 'image-frame';
+  type: CanvasElementType;
   transform: {
     x: number;
     y: number;
@@ -94,6 +128,12 @@ export interface ElementStyle {
   numberColor?: string;
   labelColor?: string;
   titleColor?: string;
+  titleFontFamily?: string;
+  titleFontSize?: number;
+  bodyFontSize?: number;
+  badgeFontSize?: number;
+  textAlign?: 'left' | 'center' | 'right' | 'justify';
+  accentColor?: string;
   backgroundColor?: string;
   containerBackgroundColor?: string;
   containerOpacity?: number;

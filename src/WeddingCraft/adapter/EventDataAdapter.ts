@@ -26,6 +26,13 @@ export class EventDataAdapter {
       venueName: rawData.venue?.name || rawData.venueName || undefined,
       venueAddress: rawData.venue?.address || rawData.venueAddress || undefined,
       romanticQuote: rawData.romanticQuote || undefined,
+      ceremonyVenue: rawData.ceremonyVenue,
+      receptionVenue: rawData.receptionVenue,
+      hasReligiousCeremony: rawData.hasReligiousCeremony,
+      dressCodeStyle: rawData.dressCodeStyle,
+      dressCodeDescription: rawData.dressCodeDescription,
+      suggestedColors: rawData.suggestedColors,
+      sampleWishes: rawData.sampleWishes,
       onSyncSettings: typeof this.externalAPI.syncSettings === 'function' ? this.externalAPI.syncSettings : undefined,
       isReadOnly: false,
     };

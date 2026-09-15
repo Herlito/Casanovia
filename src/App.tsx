@@ -17,6 +17,7 @@ import { UserManagementModal } from './components/modals/UserManagementModal';
 import { ShareWeddingModal } from './components/modals/ShareWeddingModal';
 import { AdminUploadedImagesModal } from './components/modals/AdminUploadedImagesModal';
 import { FloorPlanDesignerModal } from './components/floorplan/FloorPlanDesignerModal';
+import { RsvpFullScreenModal } from './components/modals/RsvpFullScreenModal';
 import { PublicFooter } from './components/public/PublicFooter';
 import { WeddingCraftEditor } from './WeddingCraft/components/WeddingCraftEditor';
 import { WeddingThemeWrapper } from './components/public/WeddingThemeWrapper';
@@ -42,7 +43,10 @@ const MainLayout: React.FC = () => {
     setShowFloorPlanModal,
     updateSettings,
     activeWedding,
-    activeWeddingId
+    activeWeddingId,
+    guests,
+    isRsvpModalOpen,
+    closeRsvpModal
   } = useWedding();
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
@@ -133,6 +137,10 @@ const MainLayout: React.FC = () => {
         isOpen={showFloorPlanModal}
         onClose={() => setShowFloorPlanModal(false)}
       />
+      <RsvpFullScreenModal
+        isOpen={isRsvpModalOpen}
+        onClose={closeRsvpModal}
+      />
       {showWeddingCraftModal && (
         <WeddingCraftEditor
           externalAPI={{
@@ -147,6 +155,17 @@ const MainLayout: React.FC = () => {
                 venueName: settings?.ceremonyVenue?.name || 'Lugar',
                 venueAddress: settings?.ceremonyVenue?.address || '',
                 romanticQuote: settings?.romanticQuote || '',
+                ceremonyVenue: settings?.ceremonyVenue,
+                receptionVenue: settings?.receptionVenue,
+                hasReligiousCeremony: settings?.hasReligiousCeremony,
+                dressCodeStyle: settings?.dressCodeStyle,
+                dressCodeDescription: settings?.dressCodeDescription,
+                suggestedColors: settings?.suggestedColors,
+                sampleWishes: guests.filter(g => g.congratulationMessage && g.congratulationMessage.trim().length > 0).map(g => ({
+                  author: g.fullName,
+                  message: g.congratulationMessage || '',
+                  protocolRoleTitle: g.protocolRoleTitle
+                }))
               };
             },
             syncSettings: async (updates: any) => {

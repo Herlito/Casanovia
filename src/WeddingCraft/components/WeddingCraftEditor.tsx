@@ -63,7 +63,13 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
           }
           
           const draftKey = `wedding_design_draft_${eventData.eventId}`;
-          const savedDraft = await get(draftKey);
+          let savedDraft = await get(draftKey);
+          if (!savedDraft) {
+            try {
+              const localStr = localStorage.getItem(draftKey);
+              if (localStr) savedDraft = JSON.parse(localStr);
+            } catch (e) {}
+          }
           if (savedDraft) {
             // Support both stringified and plain objects depending on how it was saved
             try {
@@ -125,18 +131,26 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
 
     init();
 
-    // Auto-save effect logic using IndexedDB
-    const saveInterval = setInterval(() => {
+    // Auto-save effect logic using IndexedDB & localStorage
+    const saveCurrentDraft = () => {
       const state = useEditorStore.getState();
-      if (state.eventData) {
+      if (state.eventData?.eventId) {
         const draftKey = `wedding_design_draft_${state.eventData.eventId}`;
-        set(draftKey, JSON.stringify(state.document)).catch(e => {
+        set(draftKey, state.document).catch(e => {
             console.warn('Failed to save draft to IndexedDB:', e);
         });
+        try {
+          localStorage.setItem(draftKey, JSON.stringify(state.document));
+        } catch (e) {}
       }
-    }, 30000); // 30s autosave
+    };
 
-    return () => clearInterval(saveInterval);
+    const saveInterval = setInterval(saveCurrentDraft, 15000);
+
+    return () => {
+      clearInterval(saveInterval);
+      saveCurrentDraft();
+    };
   }, [externalAPI, initialDocument, setEventData, initializeDocument]);
 
   if (isLoading) {
@@ -201,9 +215,19 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
       
       {/* Close button float */}
       <button 
-        onClick={onClose}
+        onClick={() => {
+          const state = useEditorStore.getState();
+          if (state.eventData?.eventId) {
+            const draftKey = `wedding_design_draft_${state.eventData.eventId}`;
+            set(draftKey, state.document).catch(() => {});
+            try {
+              localStorage.setItem(draftKey, JSON.stringify(state.document));
+            } catch (e) {}
+          }
+          onClose();
+        }}
         className="absolute top-16 right-4 p-2 bg-[#EBEBEB] rounded-full shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] border border-transparent hover:bg-red-50 text-red-500 transition-colors z-50"
-        title="Cerrar Editor (Limpiar memoria)"
+        title="Cerrar Editor (Guardar cambios y salir)"
       >
         <X className="w-5 h-5" />
       </button>

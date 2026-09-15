@@ -15,16 +15,142 @@ import {
   ChevronDown,
   ChevronRight,
   Sparkles,
-  Minus
+  Minus,
+  Church,
+  PartyPopper,
+  Shirt,
+  MessageSquareHeart,
+  CalendarDays
 } from 'lucide-react';
 import { LayersPanel } from './LayersPanel';
 
 export const ToolsPanel: React.FC = () => {
-  const { addElement, document } = useEditorStore();
+  const { addElement, document, eventData } = useEditorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [shapesExpanded, setShapesExpanded] = useState(false);
   const [containerShapesExpanded, setContainerShapesExpanded] = useState(false);
+  const [eventDetailsExpanded, setEventDetailsExpanded] = useState(true);
   const [layersExpanded, setLayersExpanded] = useState(true);
+
+  const handleAddCeremonyCard = () => {
+    const venue = eventData?.ceremonyVenue;
+    const vName = venue?.name || eventData?.venueName || 'Parroquia Nuestra Señora';
+    const vAddress = venue?.address || eventData?.venueAddress || 'Av. Principal #123, Zona Colonial';
+    const vTime = venue?.time || '17:00 hrs (Puntual)';
+    const gMaps = venue?.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(vName + ' ' + vAddress)}`;
+    const waze = venue?.wazeUrl || `https://waze.com/ul?q=${encodeURIComponent(vName + ' ' + vAddress)}`;
+
+    addElement({
+      type: 'event-ceremony-card',
+      content: {
+        badge: 'Ceremonia Religiosa',
+        venueName: vName,
+        time: vTime,
+        address: vAddress,
+        googleMapsUrl: gMaps,
+        wazeUrl: waze
+      },
+      style: {
+        backgroundColor: '#FAF8F5',
+        borderColor: '#EADDCE',
+        titleColor: '#2D2A26',
+        color: '#524B42',
+        accentColor: '#8A9A86',
+        borderRadius: 20
+      },
+      transform: { x: 40, y: 160, width: 340, height: 180, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: document.pages[0].elements.length,
+      locked: false,
+      visible: true
+    });
+  };
+
+  const handleAddReceptionCard = () => {
+    const venue = eventData?.receptionVenue;
+    const vName = venue?.name || 'Hacienda Villa del Sol';
+    const vAddress = venue?.address || 'Carretera Los Olivos Km 4.5';
+    const vTime = venue?.time || '19:30 hrs';
+    const gMaps = venue?.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(vName + ' ' + vAddress)}`;
+    const waze = venue?.wazeUrl || `https://waze.com/ul?q=${encodeURIComponent(vName + ' ' + vAddress)}`;
+
+    addElement({
+      type: 'event-reception-card',
+      content: {
+        badge: 'Recepción & Fiesta',
+        venueName: vName,
+        time: vTime,
+        address: vAddress,
+        googleMapsUrl: gMaps,
+        wazeUrl: waze
+      },
+      style: {
+        backgroundColor: '#FAF8F5',
+        borderColor: '#EADDCE',
+        titleColor: '#2D2A26',
+        color: '#524B42',
+        accentColor: '#C5A880',
+        borderRadius: 20
+      },
+      transform: { x: 40, y: 360, width: 340, height: 180, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: document.pages[0].elements.length,
+      locked: false,
+      visible: true
+    });
+  };
+
+  const handleAddDressCode = () => {
+    addElement({
+      type: 'dress-code-card',
+      content: {
+        styleName: eventData?.dressCodeStyle || 'Formal Rigurosa',
+        description: eventData?.dressCodeDescription || 'Damas: Vestido largo de gala en tonos tierra o pastel. Caballeros: Traje oscuro o smoking formal.',
+        suggestedColors: eventData?.suggestedColors || [
+          { name: 'Esmeralda', hex: '#2A4736' },
+          { name: 'Salvia', hex: '#8A9A86' },
+          { name: 'Champán', hex: '#D4AF37' },
+          { name: 'Arena', hex: '#C5A880' }
+        ]
+      },
+      style: {
+        backgroundColor: '#FAF8F5',
+        borderColor: '#EADDCE',
+        titleColor: '#2D2A26',
+        color: '#524B42',
+        accentColor: '#C5A880',
+        borderRadius: 20
+      },
+      transform: { x: 40, y: 560, width: 340, height: 190, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: document.pages[0].elements.length,
+      locked: false,
+      visible: true
+    });
+  };
+
+  const handleAddWishesWall = () => {
+    addElement({
+      type: 'wishes-wall-card',
+      content: {
+        title: 'Muro de los Deseos',
+        subtitle: 'Deseos y bendiciones de nuestros invitados',
+        wishes: eventData?.sampleWishes || [
+          { author: 'Familia Ramírez', message: '¡Que su hogar siempre rebose de alegría, paz y amor incondicional!' },
+          { author: 'Carlos y Sofía', message: '¡Felicitaciones en esta nueva etapa! Los queremos un montón.' }
+        ]
+      },
+      style: {
+        backgroundColor: '#FAF8F5',
+        borderColor: '#EADDCE',
+        titleColor: '#2D2A26',
+        color: '#524B42',
+        accentColor: '#C5A880',
+        borderRadius: 20
+      },
+      transform: { x: 40, y: 770, width: 340, height: 230, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: document.pages[0].elements.length,
+      locked: false,
+      visible: true
+    });
+  };
 
   const handleAddText = () => {
     addElement({
@@ -400,7 +526,60 @@ export const ToolsPanel: React.FC = () => {
         <span>Ubicación</span>
       </button>
 
-      {/* 9. Capas */}
+      {/* 9. Detalles del Evento (Ceremonia Religiosa & Recepción) */}
+      <div className="rounded-2xl p-2.5 bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2 border border-slate-200/50">
+        <div 
+          onClick={() => setEventDetailsExpanded(!eventDetailsExpanded)}
+          className="flex items-center justify-between cursor-pointer px-1 text-[#2D3748]"
+        >
+          <div className="flex items-center space-x-2">
+            <CalendarDays className="w-4 h-4 text-[#8A9A86]" />
+            <span className="text-xs font-bold text-gray-800">Detalles del Evento</span>
+          </div>
+          {eventDetailsExpanded ? <ChevronDown className="w-3.5 h-3.5 text-gray-500" /> : <ChevronRight className="w-3.5 h-3.5 text-gray-500" />}
+        </div>
+        
+        {eventDetailsExpanded && (
+          <div className="space-y-1.5 pt-1">
+            <button
+              onClick={handleAddCeremonyCard}
+              className="w-full flex items-center space-x-2.5 px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Insertar tarjeta de Ceremonia Religiosa con mapa y ubicación"
+            >
+              <Church className="w-4 h-4 text-[#8A9A86] shrink-0" />
+              <span>Ceremonia Religiosa</span>
+            </button>
+            <button
+              onClick={handleAddReceptionCard}
+              className="w-full flex items-center space-x-2.5 px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Insertar tarjeta de Recepción & Fiesta con mapa y ubicación"
+            >
+              <PartyPopper className="w-4 h-4 text-[#C5A880] shrink-0" />
+              <span>Recepción & Fiesta</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 10. Código de Vestimenta (Dress Code) */}
+      <button 
+        onClick={handleAddDressCode} 
+        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer"
+      >
+        <Shirt className="w-4 h-4 text-[#C5A880]" />
+        <span>Código de Vestimenta</span>
+      </button>
+
+      {/* 11. Muro de los Deseos */}
+      <button 
+        onClick={handleAddWishesWall} 
+        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer"
+      >
+        <MessageSquareHeart className="w-4 h-4 text-rose-500" />
+        <span>Muro de los Deseos</span>
+      </button>
+
+      {/* 12. Capas */}
       <div className="rounded-2xl p-2.5 bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2 border border-slate-200/50">
         <div 
           onClick={() => setLayersExpanded(!layersExpanded)}
