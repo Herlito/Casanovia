@@ -1,6 +1,7 @@
 -- ==========================================================
 -- Base de Datos para Casanovia (casanovia.pe)
 -- Compatible con cPanel / MySQL / MariaDB / phpMyAdmin
+-- Soporte 100% para Bodas, Usuarios, Plantillas, Biblioteca de Objetos, Diseños y Planos
 -- ==========================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -8,16 +9,17 @@ START TRANSACTION;
 SET time_zone = "+00:00";
 
 -- --------------------------------------------------------
--- 1. Tabla de Usuarios del Sistema (Administradores y Novios)
+-- 1. Tabla de Usuarios del Sistema (Super Admin, Planners, Anfitriones, Observadores)
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `users` (
   `id` varchar(64) NOT NULL,
-  `email` varchar(191) NOT NULL UNIQUE,
-  `password_hash` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `role` enum('super_admin','admin','novios','guest') NOT NULL DEFAULT 'novios',
-  `avatar_url` text DEFAULT NULL,
-  `assigned_wedding_id` varchar(64) DEFAULT NULL,
+  `username` varchar(191) NOT NULL UNIQUE,
+  `clave` varchar(255) NOT NULL,
+  `level` int(11) NOT NULL DEFAULT 2,
+  `role_title` varchar(255) NOT NULL,
+  `assigned_wedding_ids` text DEFAULT NULL,
+  `created_wedding_ids` text DEFAULT NULL,
+  `is_system_default` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -28,13 +30,14 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `weddings` (
   `id` varchar(64) NOT NULL,
-  `user_id` varchar(64) NOT NULL,
+  `user_id` varchar(64) DEFAULT NULL,
   `title` varchar(255) NOT NULL,
   `couple_names` varchar(255) NOT NULL,
   `slug` varchar(100) NOT NULL UNIQUE,
   `wedding_date` date DEFAULT NULL,
   `wedding_time` varchar(20) DEFAULT NULL,
   `settings_json` longtext NOT NULL,
+  `wedding_data_json` longtext DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -62,6 +65,7 @@ CREATE TABLE IF NOT EXISTS `guests` (
   `is_family` tinyint(1) NOT NULL DEFAULT 0,
   `notes` text DEFAULT NULL,
   `protocol_pass_code` varchar(64) DEFAULT NULL,
+  `raw_data_json` longtext DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -99,7 +103,7 @@ CREATE TABLE IF NOT EXISTS `wishes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 6. Tabla de Diseños de Invitación (WeddingCraft)
+-- 6. Tabla de Diseños de Invitación (WeddingCraft Publicados y Borradores)
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `weddingcraft_designs` (
   `id` varchar(64) NOT NULL,
@@ -115,7 +119,52 @@ CREATE TABLE IF NOT EXISTS `weddingcraft_designs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 7. Tabla de Imágenes y Archivos Subidos
+-- 7. Tabla de Plantillas de Invitación (WeddingCraft Templates)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `weddingcraft_templates` (
+  `id` varchar(64) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `author` varchar(255) DEFAULT 'WeddingCraft',
+  `template_json` longtext NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 8. Tabla de Biblioteca de Objetos y Elementos de Diseño
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `weddingcraft_library` (
+  `id` varchar(64) NOT NULL,
+  `template_name` varchar(255) NOT NULL,
+  `element_json` longtext NOT NULL,
+  `saved_by` varchar(255) DEFAULT 'WeddingCraft Studio',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 9. Tabla de Planos de Distribución de Mesas (Floor Plans)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `floor_plans` (
+  `wedding_id` varchar(64) NOT NULL,
+  `plan_json` longtext NOT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`wedding_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 10. Tabla de Configuraciones del Sistema (Tokens, Pasarelas)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `system_config` (
+  `key` varchar(64) NOT NULL,
+  `value` longtext NOT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 11. Tabla de Imágenes y Archivos Subidos
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `uploaded_files` (
   `id` varchar(64) NOT NULL,

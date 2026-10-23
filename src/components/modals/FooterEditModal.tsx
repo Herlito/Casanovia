@@ -133,7 +133,7 @@ export const FooterEditModal: React.FC<FooterEditModalProps> = ({ isOpen, onClos
           <div>
             <label className="block text-xs font-semibold text-[#524B42] mb-1.5 flex items-center space-x-1.5">
               <Quote className="w-3.5 h-3.5 text-[#2D3748]" />
-              <span>Frase Romántica / Lema de la Boda</span>
+              <span>Frase Romántica / Lema del Evento</span>
             </label>
             <textarea
               rows={2}

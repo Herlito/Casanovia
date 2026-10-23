@@ -26,6 +26,7 @@ import {
   Edit2,
   Check,
   ChevronDown,
+  ChevronUp,
   Palette
 } from 'lucide-react';
 
@@ -131,6 +132,64 @@ const DEFAULT_BUILTIN_ROLES: RoleOption[] = [
   },
 ];
 
+// Roles protocolares exclusivos para Fiesta de Promoción
+const PROMOTION_BUILTIN_ROLES: RoleOption[] = [
+  {
+    id: 'comision_organizadora',
+    label: 'Comisión (Comisión Organizadora)',
+    shortLabel: 'Comisión',
+    desc: 'Comisión Organizadora (gestión de cuotas, pagos y coordinación)',
+    icon: Crown,
+    activeColor: 'bg-purple-700 text-white border-purple-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    badgeClass: 'bg-purple-100 text-purple-800 border-purple-300',
+  },
+  {
+    id: 'padres_familia',
+    label: 'Padres de Familia (Padre de familia)',
+    shortLabel: 'Padres',
+    desc: 'Padres de familia o apoderados titulares responsables de cuotas',
+    icon: Heart,
+    activeColor: 'bg-amber-700 text-white border-amber-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
+  },
+  {
+    id: 'alumnos',
+    label: 'Alumnos',
+    shortLabel: 'Alumnos',
+    desc: 'Alumnos y graduandos de la promoción',
+    icon: Sparkles,
+    activeColor: 'bg-emerald-700 text-white border-emerald-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  },
+  {
+    id: 'parejas',
+    label: 'Parejas',
+    shortLabel: 'Parejas',
+    desc: 'Parejas y acompañantes de los graduandos / invitados',
+    icon: User,
+    activeColor: 'bg-pink-700 text-white border-pink-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    badgeClass: 'bg-pink-100 text-pink-800 border-pink-200',
+  },
+  {
+    id: 'familiares',
+    label: 'Familiares',
+    shortLabel: 'Familiares',
+    desc: 'Familiares e invitados de los graduandos',
+    icon: Users,
+    activeColor: 'bg-sky-700 text-white border-sky-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
+  },
+  {
+    id: 'proveedor',
+    label: 'Proveedor',
+    shortLabel: 'Proveedor',
+    desc: 'Fotografía, sonido, luces, banquete, animación',
+    icon: Briefcase,
+    activeColor: 'bg-blue-700 text-white border-blue-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]',
+    badgeClass: 'bg-blue-100 text-blue-800 border-blue-200',
+  },
+];
+
 const COLOR_THEMES = [
   { id: 'rose', name: 'Vino / Rosa', activeColor: 'bg-rose-700 text-white border-rose-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-rose-100 text-rose-800 border-rose-200' },
   { id: 'purple', name: 'Púrpura', activeColor: 'bg-purple-700 text-white border-purple-800 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]', badgeClass: 'bg-purple-100 text-purple-800 border-purple-200' },
@@ -161,7 +220,13 @@ export const GuestModal: React.FC<GuestModalProps> = ({
     isLevel1Admin,
     isHostUser,
     isLevel3Planner,
+    activeWedding,
   } = useWedding();
+
+  const isPromotionEvent = 
+    (settings?.eventType?.toLowerCase().includes('promoc') || 
+     activeWedding?.settings?.eventType?.toLowerCase().includes('promoc') ||
+     activeWedding?.coupleNames?.toLowerCase().includes('promoc'));
 
   // Permission check: Only Administrator (Level 1), Host/Anfitrión (Level 2), and Wedding Planner (Level 3) can manage roles
   const canManageRoles = isLevel1Admin || isHostUser || isLevel3Planner || (currentUser && [1, 2, 3].includes(currentUser.level));
@@ -190,11 +255,16 @@ export const GuestModal: React.FC<GuestModalProps> = ({
   const [isTimelinePickerOpen, setIsTimelinePickerOpen] = useState(false);
   const timelinePickerRef = useRef<HTMLDivElement>(null);
 
+  // Accordion state for optional protocol details (dressCode, accessory, photoshoot)
+  const [isProtocolDetailsOpen, setIsProtocolDetailsOpen] = useState(false);
+
+  const defaultCategory = isPromotionEvent ? 'alumnos' : 'invitado';
+
   const [formData, setFormData] = useState<Partial<Guest>>({
     fullName: '',
     email: '',
     phone: '',
-    category: 'invitado',
+    category: defaultCategory,
     protocolRoleTitle: '',
     isProtocolParticipant: false,
     specialArrivalTime: '',
@@ -212,8 +282,9 @@ export const GuestModal: React.FC<GuestModalProps> = ({
     congratulationMessage: '',
   });
 
-  // Combined roles list: default + custom
+  // Combined roles list: default + custom (switches to promotion roles for Fiesta de Promoción)
   const allRoles: RoleOption[] = useMemo(() => {
+    const baseRoles = isPromotionEvent ? PROMOTION_BUILTIN_ROLES : DEFAULT_BUILTIN_ROLES;
     const customList: RoleOption[] = (settings.customGuestRoles || []).map((cr) => {
       const theme = COLOR_THEMES.find(t => t.id === cr.colorClass) || COLOR_THEMES[0];
       return {
@@ -227,8 +298,8 @@ export const GuestModal: React.FC<GuestModalProps> = ({
         isCustom: true,
       };
     });
-    return [...DEFAULT_BUILTIN_ROLES, ...customList];
-  }, [settings.customGuestRoles]);
+    return [...baseRoles, ...customList];
+  }, [settings.customGuestRoles, isPromotionEvent]);
 
   // Close timeline popover when clicking outside
   useEffect(() => {
@@ -266,7 +337,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({
         fullName: '',
         email: '',
         phone: '',
-        category: 'invitado',
+        category: defaultCategory,
         protocolRoleTitle: '',
         isProtocolParticipant: false,
         specialArrivalTime: '',
@@ -288,6 +359,13 @@ export const GuestModal: React.FC<GuestModalProps> = ({
     setCompanionActionMessage(null);
     setIsRoleManagerOpen(false);
     setIsTimelinePickerOpen(false);
+    setIsProtocolDetailsOpen(
+      Boolean(
+        guestToEdit?.photoshootSchedule || 
+        guestToEdit?.dressCodeNote || 
+        guestToEdit?.accessoryAssigned
+      )
+    );
   }, [guestToEdit, isOpen]);
 
   // Quitar acompañante de esta mesa (desvincularlo)
@@ -463,475 +541,193 @@ export const GuestModal: React.FC<GuestModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-[#EBEBEB] rounded-2xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border border-transparent my-6 relative max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-[#EBEBEB] rounded-3xl w-full max-w-lg md:max-w-4xl lg:max-w-5xl p-3.5 sm:p-4.5 md:p-5 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-transparent my-1 sm:my-2 relative max-h-[94vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-[#8C827A] hover:text-[#2D2A26] p-1.5 rounded-lg hover:bg-[#EFEAE2] transition-colors cursor-pointer"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-500 hover:text-gray-900 p-2 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all cursor-pointer z-10"
+          title="Cerrar"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        {/* Title */}
-        <div className="flex items-center space-x-3 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] flex items-center justify-center shadow-xs">
-            <Crown className="w-5 h-5" />
+        {/* Title Header */}
+        <div className="flex items-center space-x-2.5 sm:space-x-3 mb-2.5 sm:mb-3">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] text-gray-800 flex items-center justify-center shrink-0">
+            <Crown className="w-4 h-4 text-amber-700" />
           </div>
           <div>
-            <h3 className="font-serif-display text-xl font-bold text-[#2D2A26]">
+            <h3 className="font-serif-display text-base sm:text-lg font-bold text-gray-900 leading-tight">
               {guestToEdit ? 'Editar Invitado / Rol' : 'Agregar Nuevo Invitado'}
             </h3>
-            <p className="text-xs text-[#7A7268]">
-              Define su rol (Anfitrión, Invitado, Familia Directa, Wedding Planner, Cortejo de Honor, Damita, Paje, Niño/a o Proveedor)
+            <p className="text-[10px] sm:text-[11px] text-gray-500 hidden sm:block">
+              Organiza datos personales, asignación de mesa, confirmaciones y rol protocolar
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-          
-          {/* 1. Datos Personales */}
-          <div className="bg-[#EBEBEB] p-4 rounded-xl border border-transparent space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-1.5">
-                <User className="w-3.5 h-3.5" />
-                <span>1. Datos Personales</span>
-              </h4>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Nombre Completo <span className="text-[#2D3748]">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.fullName || ''}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  placeholder="Ej. Carlos Mendoza Garza"
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:outline-hidden focus:ring-2 focus:ring-[#d1d1d1]/20"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Teléfono / WhatsApp
-                </label>
-                <div className="relative">
-                  <Phone className="w-3.5 h-3.5 text-[#8C8276] absolute left-3 top-3" />
-                  <input
-                    type="tel"
-                    value={formData.phone || ''}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+52 81 8394 1122"
-                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Correo Electrónico
-                </label>
-                <div className="relative">
-                  <Mail className="w-3.5 h-3.5 text-[#8C8276] absolute left-3 top-3" />
-                  <input
-                    type="email"
-                    value={formData.email || ''}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="carlos@ejemplo.com"
-                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Mesa & Asistencia */}
-          <div className="bg-[#EBEBEB] p-4 rounded-xl border border-transparent space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-1.5">
-                <Users className="w-3.5 h-3.5" />
-                <span>2. Mesa & Asistencia</span>
-              </h4>
-
-              {/* + Acompañante Button (available when editing guest or having a registered guest) */}
-              {guestToEdit && (
-                <button
-                  type="button"
-                  onClick={() => setIsCompanionModalOpen(true)}
-                  className="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
-                  title="Vincular o registrar un acompañante para este invitado"
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>+ Acompañante</span>
-                </button>
-              )}
-            </div>
-
-            {/* Notification when a companion was just added */}
-            {lastAddedCompanion && (
-              <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center space-x-2 animate-fadeIn">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>
-                  Acompañante <strong>{lastAddedCompanion}</strong> registrado(a) con <strong>{formData.assignedTable || 'Mesa por asignar'}</strong>.
-                </span>
-              </div>
-            )}
-
-            {/* Notification when a companion was removed/unlinked */}
-            {companionActionMessage && (
-              <div className="p-2.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg text-xs flex items-center justify-between animate-fadeIn shadow-2xs">
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>{companionActionMessage}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCompanionActionMessage(null)}
-                  className="text-amber-700 hover:text-amber-900 p-0.5"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-
-            {/* Table Companions Interactive Management List */}
-            {guestToEdit && linkedCompanions.length > 0 && (
-              <div className="p-3 bg-[#FAF8F5] border border-transparent rounded-xl text-xs space-y-2.5 shadow-2xs">
-                <div className="flex items-center justify-between border-b border-transparent pb-1.5">
-                  <span className="font-bold text-[#7A7268] flex items-center space-x-1.5">
-                    <Users className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>Acompañantes vinculados ({linkedCompanions.length} de {maxAllowedCompanions} permitidos):</span>
-                  </span>
-                  <span className="text-[10px] text-stone-500 italic">
-                    {formData.assignedTable || 'Mesa por asignar'}
-                  </span>
-                </div>
-
-                <div className="space-y-1.5">
-                  {linkedCompanions.map((comp) => (
-                    <div
-                      key={comp.id}
-                      className="p-2 bg-[#EBEBEB] border border-[#D9CEBF] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs hover:border-transparent transition-all"
-                    >
-                      <div className="flex items-center space-x-2 min-w-0">
-                        <div className="w-6 h-6 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center text-[10px] font-bold shrink-0">
-                          {comp.fullName.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <span className="font-bold text-[#2D2A26] block truncate">
-                            {comp.fullName}
-                          </span>
-                          <div className="flex items-center space-x-1.5 text-[10px] text-[#7A7268]">
-                            <span className="text-stone-500 font-mono">{comp.code}</span>
-                            <span>•</span>
-                            <span className="text-emerald-700 font-medium">
-                              {comp.category === 'invitado' ? 'Invitado' : comp.category}
-                            </span>
-                            <span>•</span>
-                            <span className="text-[#8C8276] italic">Pase de acompañante</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action buttons to remove companion */}
-                      <div className="flex items-center space-x-1.5 shrink-0 self-end sm:self-auto">
-                        <button
-                          type="button"
-                          disabled={isProcessingCompanion}
-                          onClick={() => handleRemoveCompanionFromTable(comp)}
-                          className="px-2 py-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-semibold flex items-center space-x-1 transition-colors cursor-pointer disabled:opacity-50"
-                          title="Quitar de esta mesa y enviarlo a 'Mesa por asignar' sin borrarlo de la lista"
-                        >
-                          <UserMinus className="w-3 h-3 text-amber-700" />
-                          <span>Desvincular</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          disabled={isProcessingCompanion}
-                          onClick={() => handleDeleteCompanionGuest(comp)}
-                          className="p-1 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] transition-colors cursor-pointer disabled:opacity-50"
-                          title="Eliminar este acompañante de la lista de invitados"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Nombre de Mesa.
-                </label>
-                <select
-                  value={formData.assignedTable || 'Mesa por asignar'}
-                  onChange={(e) => setFormData({ ...formData, assignedTable: e.target.value })}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] text-[#2D2A26] cursor-pointer font-medium"
-                >
-                  <option value="Mesa por asignar">Mesa por asignar</option>
-                  {tables?.map((t) => (
-                    <option key={t.id} value={t.name}>
-                      {t.name} (Capacidad: {t.capacity} pax)
-                    </option>
-                  ))}
-                  {formData.assignedTable &&
-                    formData.assignedTable.trim().toLowerCase() !== 'mesa por asignar' &&
-                    !tables?.some((t) => t.name.trim().toLowerCase() === formData.assignedTable?.trim().toLowerCase()) && (
-                      <option value={formData.assignedTable}>{formData.assignedTable}</option>
-                  )}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Pases Asignados
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={formData.totalPasses !== undefined ? formData.totalPasses : 1}
-                  onChange={(e) => setFormData({ ...formData, totalPasses: Number(e.target.value) })}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Estado RSVP
-                </label>
-                <select
-                  value={formData.rsvpStatus || 'pending'}
-                  onChange={(e) => {
-                    const status = e.target.value as RsvpStatus;
-                    setFormData({ 
-                      ...formData, 
-                      rsvpStatus: status,
-                      confirmedPasses: status === 'confirmed' ? (formData.confirmedPasses || formData.totalPasses || 1) : 0
-                    });
-                  }}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] font-medium"
-                >
-                  <option value="pending">⏳ Pendiente</option>
-                  <option value="confirmed">✅ Confirmado</option>
-                  <option value="declined">❌ Declinado</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Pases Confirmados Reales
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max={formData.totalPasses || 20}
-                  value={formData.confirmedPasses || 0}
-                  onChange={(e) => setFormData({ ...formData, confirmedPasses: Number(e.target.value) })}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Restricciones Dietarias / Alergias
-                </label>
-                <input
-                  type="text"
-                  value={formData.dietaryRestrictions || ''}
-                  onChange={(e) => setFormData({ ...formData, dietaryRestrictions: e.target.value })}
-                  placeholder="Ej. Celíaco, Vegano, Menú infantil, Sin nueces..."
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Role Selection & Management */}
-          <div className="bg-[#EBEBEB] p-4 rounded-xl border border-transparent space-y-3">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h4 className="text-xs font-bold text-[#2D3748] uppercase tracking-wider flex items-center space-x-1.5">
-                <Crown className="w-3.5 h-3.5" />
-                <span>3. Rol en la Boda (Selecciona uno)</span>
-              </h4>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {/* Main 2-Column Grid on PC (md:), 1-Column on Mobile */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 sm:gap-3.5 items-start">
+            
+            {/* ===================== COLUMNA IZQUIERDA (md:col-span-6) ===================== */}
+            <div className="md:col-span-6 space-y-2.5 sm:space-y-3">
               
-              {/* Role Management Button (Restricted to Admin, Planner, Anfitrión) */}
-              {canManageRoles ? (
-                <button
-                  type="button"
-                  onClick={() => setIsRoleManagerOpen(!isRoleManagerOpen)}
-                  className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${
-                    isRoleManagerOpen
-                      ? 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] border-[#2D3748]'
-                      : 'bg-[#FAF8F5] text-[#524B42] border-[#D9CEBF] hover:bg-[#EFEAE2]'
-                  }`}
-                  title="Administrar roles: Añadir, editar o borrar roles de la boda (Admin, Planner, Anfitrión)"
-                >
-                  <Settings className="w-3.5 h-3.5" />
-                  <span>{isRoleManagerOpen ? 'Ocultar Gestor' : '⚙️ Gestionar Roles'}</span>
-                </button>
-              ) : (
-                <span className="text-[10px] text-stone-500 bg-stone-100 px-2 py-0.5 rounded border border-stone-200" title="Solo el Administrador, Wedding Planner o Anfitrión pueden crear, editar o borrar roles">
-                  🔒 Edición de roles reservada a Admin / Planner / Anfitrión
-                </span>
-              )}
-            </div>
-
-            {/* Role Manager Sub-Panel */}
-            {isRoleManagerOpen && (
-              <div className="p-3.5 bg-[#F9F6F0] rounded-xl border border-[#E4D7C8] space-y-3 animate-fadeIn">
-                <div className="flex items-center justify-between border-b border-[#E4D7C8] pb-2">
-                  <div className="flex items-center space-x-1.5">
-                    <Palette className="w-4 h-4 text-[#2D3748]" />
-                    <span className="text-xs font-bold text-[#2D2A26]">
-                      {editingRoleId ? 'Editar Rol' : 'Añadir / Personalizar Roles de la Boda'}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-[#7A7268]">
-                    Permitido para Administrador, Planner y Anfitrión
-                  </span>
+              {/* 1. Datos Personales */}
+              <div className="bg-[#EBEBEB] p-2.5 sm:p-3 rounded-2xl shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2">
+                <div className="flex items-center justify-between border-b border-gray-300/40 pb-1">
+                  <h4 className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1.5">
+                    <User className="w-3.5 h-3.5 text-gray-600" />
+                    <span>1. Datos Personales</span>
+                  </h4>
                 </div>
 
-                {/* Form to Add / Edit Role */}
-                <div className="bg-[#EBEBEB] p-3 rounded-lg border border-[#D9CEBF] space-y-2.5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-[#524B42] mb-0.5">
-                        Nombre del Rol <span className="text-[#2D3748]">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={roleForm.label}
-                        onChange={(e) => setRoleForm({ ...roleForm, label: e.target.value })}
-                        placeholder="Ej. Damita de Honor, Músico, Testigo..."
-                        className="w-full px-2.5 py-1.5 text-xs rounded-md border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                      />
-                    </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                    Nombre Completo <span className="text-rose-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.fullName || ''}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    placeholder="Ej. Carlos Mendoza Garza"
+                    className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-[#EBEBEB] text-gray-800 placeholder-gray-400 border border-gray-300/40 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-hidden focus:shadow-[inset_4px_4px_8px_#c8c8c8,inset_-4px_-4px_8px_#ffffff] transition-all"
+                  />
+                </div>
 
-                    <div>
-                      <label className="block text-[11px] font-semibold text-[#524B42] mb-0.5">
-                        Etiqueta Corta (Badge)
-                      </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                      Teléfono / WhatsApp
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2" />
                       <input
-                        type="text"
-                        value={roleForm.shortLabel}
-                        onChange={(e) => setRoleForm({ ...roleForm, shortLabel: e.target.value })}
-                        placeholder="Ej. Damita, Músico, Testigo"
-                        className="w-full px-2.5 py-1.5 text-xs rounded-md border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
+                        type="tel"
+                        value={formData.phone || ''}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="+52 81 8394 1122"
+                        className="w-full pl-8 pr-2 py-1.5 text-xs rounded-xl bg-[#EBEBEB] text-gray-800 placeholder-gray-400 border border-gray-300/40 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-hidden focus:shadow-[inset_4px_4px_8px_#c8c8c8,inset_-4px_-4px_8px_#ffffff] transition-all"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#524B42] mb-0.5">
-                      Descripción del Rol
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                      Correo Electrónico
                     </label>
-                    <input
-                      type="text"
-                      value={roleForm.desc}
-                      onChange={(e) => setRoleForm({ ...roleForm, desc: e.target.value })}
-                      placeholder="Ej. Acompañamiento en cortejo y ramo infantil"
-                      className="w-full px-2.5 py-1.5 text-xs rounded-md border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#524B42] mb-1">
-                      Color / Tema Visual
-                    </label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {COLOR_THEMES.map((th, idx) => (
-                        <button
-                          key={th.id}
-                          type="button"
-                          onClick={() => setRoleForm({ ...roleForm, themeIndex: idx })}
-                          className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-all cursor-pointer ${
-                            roleForm.themeIndex === idx
-                              ? `${th.badgeClass} ring-2 ring-[#d1d1d1]`
-                              : 'bg-[#EBEBEB] text-stone-600 border-stone-200 hover:bg-stone-50'
-                          }`}
-                        >
-                          {th.name}
-                        </button>
-                      ))}
+                    <div className="relative">
+                      <Mail className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2" />
+                      <input
+                        type="email"
+                        value={formData.email || ''}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="carlos@ejemplo.com"
+                        className="w-full pl-8 pr-2 py-1.5 text-xs rounded-xl bg-[#EBEBEB] text-gray-800 placeholder-gray-400 border border-gray-300/40 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-hidden focus:shadow-[inset_4px_4px_8px_#c8c8c8,inset_-4px_-4px_8px_#ffffff] transition-all"
+                      />
                     </div>
                   </div>
+                </div>
+              </div>
 
-                  <div className="flex items-center justify-end space-x-2 pt-1">
-                    {editingRoleId && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingRoleId(null);
-                          setRoleForm({ label: '', shortLabel: '', desc: '', themeIndex: 0 });
-                        }}
-                        className="px-2.5 py-1 text-xs text-stone-500 hover:text-stone-700"
-                      >
-                        Cancelar Edición
-                      </button>
-                    )}
+              {/* 2. Mesa & Asistencia */}
+              <div className="bg-[#EBEBEB] p-2.5 sm:p-3 rounded-2xl shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2">
+                <div className="flex items-center justify-between border-b border-gray-300/40 pb-1">
+                  <h4 className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1.5">
+                    <Users className="w-3.5 h-3.5 text-gray-600" />
+                    <span>2. Mesa & Asistencia</span>
+                  </h4>
+
+                  {guestToEdit && (
                     <button
                       type="button"
-                      onClick={handleSaveCustomRole}
-                      disabled={!roleForm.label.trim()}
-                      className="px-3 py-1.5 rounded-md bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold hover:bg-[#EBEBEB] transition-all disabled:opacity-50 flex items-center space-x-1 cursor-pointer"
+                      onClick={() => setIsCompanionModalOpen(true)}
+                      className="inline-flex items-center space-x-1 px-2 py-0.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[10px] font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                      title="Vincular o registrar un acompañante para este invitado"
                     >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>{editingRoleId ? 'Guardar Rol' : '+ Añadir Rol'}</span>
+                      <UserPlus className="w-3 h-3" />
+                      <span>+ Acompañante</span>
                     </button>
-                  </div>
+                  )}
                 </div>
 
-                {/* List of Custom Roles */}
-                {(settings.customGuestRoles && settings.customGuestRoles.length > 0) && (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] font-bold text-[#7A7268]">Roles Personalizados Activos:</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                      {settings.customGuestRoles.map((cr) => (
+                {/* Notifications */}
+                {lastAddedCompanion && (
+                  <div className="p-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center space-x-1.5 animate-fadeIn">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span className="text-[11px]">
+                      Acompañante <strong>{lastAddedCompanion}</strong> registrado(a) con <strong>{formData.assignedTable || 'Mesa por asignar'}</strong>.
+                    </span>
+                  </div>
+                )}
+
+                {companionActionMessage && (
+                  <div className="p-1.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs flex items-center justify-between animate-fadeIn shadow-2xs">
+                    <div className="flex items-center space-x-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <span className="text-[11px]">{companionActionMessage}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCompanionActionMessage(null)}
+                      className="text-amber-700 hover:text-amber-900 p-0.5 cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Companions interactive list */}
+                {guestToEdit && linkedCompanions.length > 0 && (
+                  <div className="p-2 bg-[#FAF8F5] border border-gray-300/40 rounded-xl text-xs space-y-1 shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                      <span className="font-bold text-gray-700 flex items-center space-x-1 text-[10px]">
+                        <Users className="w-3 h-3 text-emerald-700" />
+                        <span>Acompañantes ({linkedCompanions.length} de {maxAllowedCompanions}):</span>
+                      </span>
+                      <span className="text-[9px] text-gray-500 italic">
+                        {formData.assignedTable || 'Mesa por asignar'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1 max-h-20 overflow-y-auto pr-0.5">
+                      {linkedCompanions.map((comp) => (
                         <div
-                          key={cr.id}
-                          className="p-2 bg-[#EBEBEB] rounded-lg border border-[#D9CEBF] flex items-center justify-between text-xs"
+                          key={comp.id}
+                          className="p-1 px-1.5 bg-[#EBEBEB] border border-gray-300/40 rounded-lg flex items-center justify-between gap-1 shadow-2xs"
                         >
-                          <div className="min-w-0 pr-1">
-                            <span className="font-bold text-[#2D2A26] block truncate">{cr.label}</span>
-                            <span className="text-[10px] text-[#7A7268] block truncate">{cr.desc || 'Sin descripción'}</span>
+                          <div className="flex items-center space-x-1.5 min-w-0">
+                            <div className="w-4 h-4 rounded-full bg-stone-200 text-stone-700 flex items-center justify-center text-[9px] font-bold shrink-0">
+                              {comp.fullName.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="font-bold text-gray-800 truncate text-[11px]">
+                              {comp.fullName}
+                            </span>
                           </div>
+
                           <div className="flex items-center space-x-1 shrink-0">
                             <button
                               type="button"
-                              onClick={() => {
-                                setEditingRoleId(cr.id);
-                                const themeIdx = COLOR_THEMES.findIndex(t => t.id === cr.colorClass);
-                                setRoleForm({
-                                  label: cr.label,
-                                  shortLabel: cr.shortLabel || cr.label,
-                                  desc: cr.desc || '',
-                                  themeIndex: themeIdx >= 0 ? themeIdx : 0,
-                                });
-                              }}
-                              className="p-1 text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded"
-                              title="Editar rol"
+                              disabled={isProcessingCompanion}
+                              onClick={() => handleRemoveCompanionFromTable(comp)}
+                              className="px-1.5 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[9px] font-semibold flex items-center space-x-0.5 transition-colors cursor-pointer disabled:opacity-50"
+                              title="Desvincular de esta mesa"
                             >
-                              <Edit2 className="w-3 h-3" />
+                              <UserMinus className="w-2.5 h-2.5 text-amber-700" />
+                              <span>Desvincular</span>
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleDeleteCustomRole(cr.id, cr.label)}
-                              className="p-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded"
-                              title="Eliminar rol"
+                              disabled={isProcessingCompanion}
+                              onClick={() => handleDeleteCompanionGuest(comp)}
+                              className="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[9px] transition-colors cursor-pointer disabled:opacity-50"
+                              title="Eliminar de invitados"
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <Trash2 className="w-2.5 h-2.5" />
                             </button>
                           </div>
                         </div>
@@ -939,90 +735,363 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                     </div>
                   </div>
                 )}
+
+                {/* Mesa, Pases Total, Estado RSVP */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                      Nombre de Mesa
+                    </label>
+                    <select
+                      value={formData.assignedTable || 'Mesa por asignar'}
+                      onChange={(e) => setFormData({ ...formData, assignedTable: e.target.value })}
+                      className="w-full px-2 py-1.5 text-xs rounded-xl bg-[#EBEBEB] text-gray-800 border border-gray-300/40 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-hidden focus:shadow-[inset_4px_4px_8px_#c8c8c8,inset_-4px_-4px_8px_#ffffff] transition-all cursor-pointer font-medium"
+                    >
+                      <option value="Mesa por asignar">Mesa por asignar</option>
+                      {tables?.map((t) => (
+                        <option key={t.id} value={t.name}>
+                          {t.name} ({t.capacity} pax)
+                        </option>
+                      ))}
+                      {formData.assignedTable &&
+                        formData.assignedTable.trim().toLowerCase() !== 'mesa por asignar' &&
+                        !tables?.some((t) => t.name.trim().toLowerCase() === formData.assignedTable?.trim().toLowerCase()) && (
+                          <option value={formData.assignedTable}>{formData.assignedTable}</option>
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                      Pases Asignados
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={formData.totalPasses !== undefined ? formData.totalPasses : 1}
+                      onChange={(e) => setFormData({ ...formData, totalPasses: Number(e.target.value) })}
+                      className="w-full px-2 py-1.5 text-xs rounded-xl bg-[#EBEBEB] text-gray-800 border border-gray-300/40 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-hidden focus:shadow-[inset_4px_4px_8px_#c8c8c8,inset_-4px_-4px_8px_#ffffff] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                      Estado RSVP
+                    </label>
+                    <select
+                      value={formData.rsvpStatus || 'pending'}
+                      onChange={(e) => {
+                        const status = e.target.value as RsvpStatus;
+                        setFormData({ 
+                          ...formData, 
+                          rsvpStatus: status,
+                          confirmedPasses: status === 'confirmed' ? (formData.confirmedPasses || formData.totalPasses || 1) : 0
+                        });
+                      }}
+                      className="w-full px-2 py-1.5 text-xs rounded-xl bg-[#EBEBEB] text-gray-800 border border-gray-300/40 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-hidden focus:shadow-[inset_4px_4px_8px_#c8c8c8,inset_-4px_-4px_8px_#ffffff] transition-all font-medium cursor-pointer"
+                    >
+                      <option value="pending">⏳ Pendiente</option>
+                      <option value="confirmed">✅ Confirmado</option>
+                      <option value="declined">❌ Declinado</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Confirmados Reales y Restricciones */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                      Pases Confirmados Reales
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max={formData.totalPasses || 20}
+                      value={formData.confirmedPasses || 0}
+                      onChange={(e) => setFormData({ ...formData, confirmedPasses: Number(e.target.value) })}
+                      className="w-full px-2 py-1.5 text-xs rounded-xl bg-[#EBEBEB] text-gray-800 border border-gray-300/40 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-hidden focus:shadow-[inset_4px_4px_8px_#c8c8c8,inset_-4px_-4px_8px_#ffffff] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                      Restricciones / Alergias
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.dietaryRestrictions || ''}
+                      onChange={(e) => setFormData({ ...formData, dietaryRestrictions: e.target.value })}
+                      placeholder="Ej. Celíaco, Vegano, Menú infantil..."
+                      className="w-full px-2 py-1.5 text-xs rounded-xl bg-[#EBEBEB] text-gray-800 placeholder-gray-400 border border-gray-300/40 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-hidden focus:shadow-[inset_4px_4px_8px_#c8c8c8,inset_-4px_-4px_8px_#ffffff] transition-all"
+                    />
+                  </div>
+                </div>
               </div>
-            )}
 
-            {/* Roles Grid: Standard + Custom */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {allRoles.map((opt) => {
-                const Icon = opt.icon;
-                const isSelected = formData.category === opt.id || 
-                  (opt.id === 'invitado' && (formData.category as string) === 'invitado_general') ||
-                  (opt.id === 'cortejo_honor' && (formData.category as string) === 'programa_evento');
-
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => handleCategoryChange(opt.id)}
-                    className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
-                      isSelected
-                        ? opt.activeColor
-                        : 'bg-[#FAF8F5] text-[#524B42] border-[#D9CEBF] hover:bg-[#EFEAE2]'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-1.5 mb-1">
-                      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-stone-700'}`} />
-                      <span className={`text-xs font-bold truncate ${isSelected ? 'text-white' : 'text-stone-800'}`}>{opt.label}</span>
-                    </div>
-                    <span className={`text-[10px] leading-tight line-clamp-2 ${isSelected ? 'text-white/90' : 'text-[#7A7268]'}`}>
-                      {opt.desc}
-                    </span>
-                  </button>
-                );
-              })}
             </div>
 
-            {/* Role Title / Specific Details & Timeline Milestone Link */}
-            <div className="pt-2 space-y-3 border-t border-[#F2ECE3]">
-              <div>
-                <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                  Título / Detalle Específico del Rol
-                </label>
-                <input
-                  type="text"
-                  value={formData.protocolRoleTitle || ''}
-                  onChange={(e) => setFormData({ ...formData, protocolRoleTitle: e.target.value })}
-                  placeholder="Ej. Damita de Honor, Paje de Anillos, Padrino de Velación, Niño de Boda, Fotógrafo..."
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                />
-              </div>
+            {/* ===================== COLUMNA DERECHA (md:col-span-6) ===================== */}
+            <div className="md:col-span-6 space-y-2.5 sm:space-y-3">
+              
+              {/* 3. Rol en la Boda & Protocolo */}
+              <div className="bg-[#EBEBEB] p-2.5 sm:p-3 rounded-2xl shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2">
+                <div className="flex items-center justify-between border-b border-gray-300/40 pb-1">
+                  <h4 className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1.5">
+                    <Crown className="w-3.5 h-3.5 text-gray-600" />
+                    <span>3. Rol en la Boda</span>
+                  </h4>
 
-              {/* Horario Especial de Llegada with Cronograma Integration */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {canManageRoles ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsRoleManagerOpen(!isRoleManagerOpen)}
+                      className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                        isRoleManagerOpen
+                          ? 'bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-900 border border-gray-400'
+                          : 'bg-[#EBEBEB] text-gray-700 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff]'
+                      }`}
+                      title="Administrar roles: Añadir, editar o borrar roles de la boda"
+                    >
+                      <Settings className="w-3 h-3" />
+                      <span>{isRoleManagerOpen ? 'Cerrar Gestor' : '⚙️ Gestionar Roles'}</span>
+                    </button>
+                  ) : (
+                    <span className="text-[9px] text-gray-500">
+                      🔒 Rol predeterminado
+                    </span>
+                  )}
+                </div>
+
+                {/* Sub-Panel de Gestión de Roles */}
+                {isRoleManagerOpen && (
+                  <div className="p-2.5 bg-[#FAF8F5] rounded-xl border border-gray-300/60 space-y-2 animate-fadeIn shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-gray-200 pb-1">
+                      <div className="flex items-center space-x-1.5">
+                        <Palette className="w-3.5 h-3.5 text-gray-700" />
+                        <span className="text-[11px] font-bold text-gray-800">
+                          {editingRoleId ? 'Editar Rol' : 'Añadir / Personalizar Roles'}
+                        </span>
+                      </div>
+                      <span className="text-[9px] text-gray-500">Admin, Planner & Anfitrión</span>
+                    </div>
+
+                    <div className="bg-[#EBEBEB] p-2 rounded-lg border border-gray-300/40 space-y-1.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                            Nombre del Rol <span className="text-rose-600">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={roleForm.label}
+                            onChange={(e) => setRoleForm({ ...roleForm, label: e.target.value })}
+                            placeholder="Ej. Damita de Honor"
+                            className="w-full px-2 py-1 text-xs rounded-lg bg-[#EBEBEB] text-gray-800 border border-gray-300/40 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] focus:outline-hidden"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                            Etiqueta Corta (Badge)
+                          </label>
+                          <input
+                            type="text"
+                            value={roleForm.shortLabel}
+                            onChange={(e) => setRoleForm({ ...roleForm, shortLabel: e.target.value })}
+                            placeholder="Ej. Damita"
+                            className="w-full px-2 py-1 text-xs rounded-lg bg-[#EBEBEB] text-gray-800 border border-gray-300/40 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] focus:outline-hidden"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                          Descripción del Rol
+                        </label>
+                        <input
+                          type="text"
+                          value={roleForm.desc}
+                          onChange={(e) => setRoleForm({ ...roleForm, desc: e.target.value })}
+                          placeholder="Ej. Acompañamiento en cortejo y ramo infantil"
+                          className="w-full px-2 py-1 text-xs rounded-lg bg-[#EBEBEB] text-gray-800 border border-gray-300/40 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] focus:outline-hidden"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                          Color / Tema Visual
+                        </label>
+                        <div className="flex flex-wrap gap-1">
+                          {COLOR_THEMES.map((th, idx) => (
+                            <button
+                              key={th.id}
+                              type="button"
+                              onClick={() => setRoleForm({ ...roleForm, themeIndex: idx })}
+                              className={`px-1.5 py-0.5 rounded text-[9px] font-bold border transition-all cursor-pointer ${
+                                roleForm.themeIndex === idx
+                                  ? `${th.badgeClass} ring-2 ring-gray-400`
+                                  : 'bg-[#EBEBEB] text-stone-600 border-stone-200 hover:bg-stone-50'
+                              }`}
+                            >
+                              {th.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end space-x-2 pt-0.5">
+                        {editingRoleId && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingRoleId(null);
+                              setRoleForm({ label: '', shortLabel: '', desc: '', themeIndex: 0 });
+                            }}
+                            className="px-2 py-0.5 text-xs text-stone-500 hover:text-stone-700 cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleSaveCustomRole}
+                          disabled={!roleForm.label.trim()}
+                          className="px-2.5 py-1 rounded-lg bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] text-gray-800 text-xs font-bold hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all disabled:opacity-50 flex items-center space-x-1 cursor-pointer"
+                        >
+                          <Check className="w-3 h-3" />
+                          <span>{editingRoleId ? 'Guardar Rol' : '+ Añadir Rol'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Roles personalizados activos */}
+                    {(settings.customGuestRoles && settings.customGuestRoles.length > 0) && (
+                      <div className="space-y-1 pt-0.5 max-h-24 overflow-y-auto pr-0.5">
+                        <span className="text-[10px] font-bold text-gray-600 block">Roles Personalizados Activos:</span>
+                        {settings.customGuestRoles.map((cr) => (
+                          <div
+                            key={cr.id}
+                            className="p-1 px-1.5 bg-[#EBEBEB] rounded-lg border border-gray-300/40 flex items-center justify-between text-xs shadow-2xs"
+                          >
+                            <div className="min-w-0 pr-1">
+                              <span className="font-bold text-gray-800 block truncate text-[11px]">{cr.label}</span>
+                              <span className="text-[9px] text-gray-500 block truncate">{cr.desc || 'Sin descripción'}</span>
+                            </div>
+                            <div className="flex items-center space-x-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingRoleId(cr.id);
+                                  const themeIdx = COLOR_THEMES.findIndex(t => t.id === cr.colorClass);
+                                  setRoleForm({
+                                    label: cr.label,
+                                    shortLabel: cr.shortLabel || cr.label,
+                                    desc: cr.desc || '',
+                                    themeIndex: themeIdx >= 0 ? themeIdx : 0,
+                                  });
+                                }}
+                                className="p-1 text-stone-500 hover:text-stone-800 rounded cursor-pointer"
+                                title="Editar rol"
+                              >
+                                <Edit2 className="w-2.5 h-2.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCustomRole(cr.id, cr.label)}
+                                className="p-1 text-rose-600 hover:text-rose-800 rounded cursor-pointer"
+                                title="Eliminar rol"
+                              >
+                                <Trash2 className="w-2.5 h-2.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* SELECTOR DE ROLES: Píldoras Horizontales Compactas */}
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                    Selecciona Rol / Categoría
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-0.5">
+                    {allRoles.map((opt) => {
+                      const Icon = opt.icon;
+                      const isSelected = formData.category === opt.id || 
+                        (opt.id === 'invitado' && (formData.category as string) === 'invitado_general') ||
+                        (opt.id === 'cortejo_honor' && (formData.category as string) === 'programa_evento');
+
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => handleCategoryChange(opt.id)}
+                          title={`${opt.label}: ${opt.desc}`}
+                          className={`group flex items-center space-x-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                            isSelected
+                              ? `${opt.activeColor} shadow-[inset_2px_2px_4px_rgba(0,0,0,0.3)] ring-1 ring-black/15`
+                              : 'bg-[#EBEBEB] text-gray-700 border-gray-300/40 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]'
+                          }`}
+                        >
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-gray-600 group-hover:text-gray-900'}`} />
+                          <span className={`truncate text-[11px] ${isSelected ? 'text-white font-bold' : 'text-gray-800'}`}>
+                            {opt.shortLabel || opt.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Título / Detalle Específico del Rol */}
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                    Título / Detalle Específico del Rol
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.protocolRoleTitle || ''}
+                    onChange={(e) => setFormData({ ...formData, protocolRoleTitle: e.target.value })}
+                    placeholder="Ej. Damita de Honor, Padrino de Velación, Paje de Anillos..."
+                    className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-[#EBEBEB] text-gray-800 placeholder-gray-400 border border-gray-300/40 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-hidden focus:shadow-[inset_4px_4px_8px_#c8c8c8,inset_-4px_-4px_8px_#ffffff] transition-all"
+                  />
+                </div>
+
+                {/* Horario Especial de Llegada con Popover de Cronograma */}
                 <div className="relative" ref={timelinePickerRef}>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-semibold text-[#524B42]">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                       Horario Especial de Llegada
                     </label>
-
-                    {/* Timeline Quick Picker Button */}
                     <button
                       type="button"
                       onClick={() => setIsTimelinePickerOpen(!isTimelinePickerOpen)}
-                      className="text-[11px] text-[#2D3748] hover:text-[#2D3748] font-semibold flex items-center space-x-1 cursor-pointer bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/20 px-2 py-0.5 rounded-md transition-colors"
-                      title="Seleccionar horario desde un hito del Cronograma de la boda"
+                      className="text-[10px] text-gray-700 font-bold flex items-center space-x-1 cursor-pointer bg-[#EBEBEB] shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] hover:shadow-[3px_3px_6px_#c8c8c8,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] px-2 py-0.5 rounded-lg transition-all"
+                      title="Seleccionar horario desde el Cronograma de la boda"
                     >
-                      <Calendar className="w-3 h-3" />
-                      <span>{timeline && timeline.length > 0 ? `Cronograma (${timeline.length})` : 'Elegir hito'}</span>
-                      <ChevronDown className="w-3 h-3" />
+                      <Calendar className="w-3 h-3 text-gray-600" />
+                      <span>{timeline && timeline.length > 0 ? `Hitos (${timeline.length})` : 'Elegir hito'}</span>
+                      <ChevronDown className="w-3 h-3 text-gray-500" />
                     </button>
                   </div>
 
                   <div className="relative">
-                    <Clock className="w-3.5 h-3.5 text-[#8C8276] absolute left-3 top-2.5" />
+                    <Clock className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2" />
                     <input
                       type="text"
                       value={formData.specialArrivalTime || ''}
                       onChange={(e) => setFormData({ ...formData, specialArrivalTime: e.target.value })}
                       placeholder={timeline && timeline.length > 0 ? "Ej. 16:30 hrs (Ceremonia) o escribe manual" : "Ej. 15:30 hrs (Recepción)"}
-                      className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
+                      className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl bg-[#EBEBEB] text-gray-800 placeholder-gray-400 border border-gray-300/40 shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-hidden focus:shadow-[inset_4px_4px_8px_#c8c8c8,inset_-4px_-4px_8px_#ffffff] transition-all"
                     />
                     {formData.specialArrivalTime && (
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, specialArrivalTime: '', assignedMilestone: '' })}
-                        className="absolute right-2.5 top-2 text-stone-400 hover:text-stone-700 p-0.5"
+                        className="absolute right-2 top-1.5 text-gray-400 hover:text-gray-700 p-0.5 cursor-pointer"
                         title="Limpiar horario"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -1030,63 +1099,62 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                     )}
                   </div>
 
-                  {/* Timeline Milestones Dropdown Popover */}
+                  {/* Dropdown Popover de Hitos del Cronograma */}
                   {isTimelinePickerOpen && (
-                    <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-[#EBEBEB] rounded-xl shadow-xl border border-[#D9CEBF] p-3 space-y-2 max-h-64 overflow-y-auto animate-fadeIn">
-                      <div className="flex items-center justify-between border-b border-[#F0EAE1] pb-1.5">
-                        <span className="text-[11px] font-bold text-[#2D3748] flex items-center space-x-1">
-                          <Calendar className="w-3.5 h-3.5" />
+                    <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-[#EBEBEB] rounded-2xl shadow-[6px_6px_16px_#b8b8b8,-6px_-6px_16px_#ffffff] border border-gray-300/40 p-2.5 space-y-1.5 max-h-52 overflow-y-auto animate-fadeIn">
+                      <div className="flex items-center justify-between border-b border-gray-300/40 pb-1">
+                        <span className="text-[11px] font-bold text-gray-700 flex items-center space-x-1">
+                          <Calendar className="w-3.5 h-3.5 text-gray-600" />
                           <span>Hitos del Cronograma ({timeline?.length || 0})</span>
                         </span>
-                        <span className="text-[10px] text-[#7A7268]">Clic para asignar</span>
+                        <span className="text-[10px] text-gray-500">Clic para asignar</span>
                       </div>
 
                       {timeline && timeline.length > 0 ? (
-                        <div className="space-y-1.5">
+                        <div className="space-y-1">
                           {timeline.map((m) => (
                             <div
                               key={m.id}
-                              className="p-2 rounded-lg border border-transparent hover:border-transparent hover:bg-[#FAF8F5] transition-all text-xs flex flex-col gap-1"
+                              className="p-1.5 rounded-xl border border-transparent hover:border-gray-300/40 hover:bg-[#FAF8F5] transition-all text-xs flex flex-col gap-0.5"
                             >
                               <div className="flex items-center justify-between">
-                                <span className="font-bold text-[#2D2A26] flex items-center space-x-1.5">
-                                  <span className="px-1.5 py-0.5 rounded bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] text-[11px] font-mono font-bold">
+                                <span className="font-bold text-gray-800 flex items-center space-x-1.5">
+                                  <span className="px-1.5 py-0.5 rounded-md bg-[#EBEBEB] shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] text-gray-900 text-[10px] font-mono font-bold">
                                     {m.time}
                                   </span>
-                                  <span className="truncate">{m.title}</span>
+                                  <span className="truncate text-xs">{m.title}</span>
                                 </span>
                                 {m.location && (
-                                  <span className="text-[10px] text-stone-500 truncate max-w-[120px]">{m.location}</span>
+                                  <span className="text-[9px] text-gray-500 truncate max-w-[120px]">{m.location}</span>
                                 )}
                               </div>
 
-                              {/* Quick offset selection buttons */}
                               <div className="flex flex-wrap items-center gap-1 pt-0.5">
                                 <button
                                   type="button"
                                   onClick={() => handleSelectMilestone(m, 0)}
-                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] text-[10px] font-semibold text-stone-700 transition-colors"
+                                  className="px-1.5 py-0.5 rounded-md bg-[#EBEBEB] hover:shadow-[2px_2px_4px_#c8c8c8,-2px_-2px_4px_#ffffff] text-gray-700 text-[9px] font-semibold transition-colors cursor-pointer"
                                 >
                                   A la hora ({m.time})
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSelectMilestone(m, -15)}
-                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] text-[10px] font-semibold text-stone-700 transition-colors"
+                                  className="px-1.5 py-0.5 rounded-md bg-[#EBEBEB] hover:shadow-[2px_2px_4px_#c8c8c8,-2px_-2px_4px_#ffffff] text-gray-700 text-[9px] font-semibold transition-colors cursor-pointer"
                                 >
                                   -15 min
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSelectMilestone(m, -30)}
-                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] text-[10px] font-semibold text-stone-700 transition-colors"
+                                  className="px-1.5 py-0.5 rounded-md bg-[#EBEBEB] hover:shadow-[2px_2px_4px_#c8c8c8,-2px_-2px_4px_#ffffff] text-gray-700 text-[9px] font-semibold transition-colors cursor-pointer"
                                 >
                                   -30 min
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSelectMilestone(m, -60)}
-                                  className="px-2 py-0.5 rounded bg-stone-100 hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] text-[10px] font-semibold text-stone-700 transition-colors"
+                                  className="px-1.5 py-0.5 rounded-md bg-[#EBEBEB] hover:shadow-[2px_2px_4px_#c8c8c8,-2px_-2px_4px_#ffffff] text-gray-700 text-[9px] font-semibold transition-colors cursor-pointer"
                                 >
                                   -1 hora
                                 </button>
@@ -1095,71 +1163,103 @@ export const GuestModal: React.FC<GuestModalProps> = ({
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-3 text-stone-500 text-xs">
+                        <div className="text-center py-2 text-gray-500 text-xs">
                           <p className="font-medium">No hay hitos en el Cronograma aún.</p>
-                          <p className="text-[10px] text-stone-400 mt-0.5">Puedes ingresar el horario de forma manual en el campo.</p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">Puedes ingresar el horario de forma manual en el campo.</p>
                         </div>
                       )}
                     </div>
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                    Sesión de Fotos / Ensayo
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.photoshootSchedule || ''}
-                    onChange={(e) => setFormData({ ...formData, photoshootSchedule: e.target.value })}
-                    placeholder="Ej. Sábado 16:00 hrs en Jardines"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                  />
+                {/* SECCIÓN COLAPSABLE: Detalles Adicionales de Protocolo (Vestuario, Accesorio, Fotos) */}
+                <div className="pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsProtocolDetailsOpen(!isProtocolDetailsOpen)}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[4px_4px_8px_#c8c8c8,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-semibold text-gray-700 transition-all cursor-pointer"
+                  >
+                    <span className="flex items-center space-x-1.5 text-[11px] font-bold text-gray-600 uppercase tracking-wider">
+                      <Sparkles className="w-3.5 h-3.5 text-gray-500" />
+                      <span>Detalles Adicionales de Protocolo</span>
+                      {(formData.photoshootSchedule || formData.dressCodeNote || formData.accessoryAssigned) && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block ml-1" title="Contiene detalles guardados" />
+                      )}
+                    </span>
+                    {isProtocolDetailsOpen ? (
+                      <ChevronUp className="w-3.5 h-3.5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-gray-600" />
+                    )}
+                  </button>
+
+                  {isProtocolDetailsOpen && (
+                    <div className="mt-2 p-2.5 bg-[#FAF8F5] rounded-xl border border-gray-300/40 space-y-2 animate-fadeIn shadow-2xs">
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                          Sesión de Fotos / Ensayo
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.photoshootSchedule || ''}
+                          onChange={(e) => setFormData({ ...formData, photoshootSchedule: e.target.value })}
+                          placeholder="Ej. Sábado 16:00 hrs en Jardines"
+                          className="w-full px-2.5 py-1 text-xs rounded-lg bg-[#EBEBEB] text-gray-800 placeholder-gray-400 border border-gray-300/40 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] focus:outline-hidden"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                            Nota de Vestuario / Paleta
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.dressCodeNote || ''}
+                            onChange={(e) => setFormData({ ...formData, dressCodeNote: e.target.value })}
+                            placeholder="Ej. Corbata Champagne Dorado"
+                            className="w-full px-2.5 py-1 text-xs rounded-lg bg-[#EBEBEB] text-gray-800 placeholder-gray-400 border border-gray-300/40 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] focus:outline-hidden"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
+                            Accesorio / Boutonniere
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.accessoryAssigned || ''}
+                            onChange={(e) => setFormData({ ...formData, accessoryAssigned: e.target.value })}
+                            placeholder="Ej. Boutonniere Rosa Blanca #1"
+                            className="w-full px-2.5 py-1 text-xs rounded-lg bg-[#EBEBEB] text-gray-800 placeholder-gray-400 border border-gray-300/40 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] focus:outline-hidden"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                    Nota de Vestuario / Paleta Asignada
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.dressCodeNote || ''}
-                    onChange={(e) => setFormData({ ...formData, dressCodeNote: e.target.value })}
-                    placeholder="Ej. Corbata Champagne Dorado / Smoking"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#524B42] mb-1">
-                    Accesorio / Corsage / Boutonniere
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.accessoryAssigned || ''}
-                    onChange={(e) => setFormData({ ...formData, accessoryAssigned: e.target.value })}
-                    placeholder="Ej. Boutonniere Rosa Blanca #1, Corona floral"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB]"
-                  />
-                </div>
               </div>
+
             </div>
+
           </div>
 
-          {/* Modal Actions */}
-          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-transparent">
+          {/* Modal Actions Footer */}
+          <div className="flex items-center justify-end space-x-2.5 pt-2 sm:pt-2.5 border-t border-gray-300/40">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-[#7A7268] hover:bg-[#EFEAE2] transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-2xl text-xs font-semibold text-gray-600 hover:text-gray-900 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] hover:shadow-[5px_5px_10px_#c8c8c8,-5px_-5px_10px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl text-xs font-bold text-[#2D3748] bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] transition-colors shadow-xs cursor-pointer"
+              className="px-5 sm:px-6 py-2 rounded-2xl text-xs font-bold text-gray-900 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all cursor-pointer flex items-center space-x-1.5"
             >
-              Guardar Cambios
+              <Check className="w-4 h-4 text-emerald-600" />
+              <span>Guardar Cambios</span>
             </button>
           </div>
         </form>

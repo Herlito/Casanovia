@@ -1,5 +1,3 @@
-import { db } from '../../lib/firebase';
-import { collection, getDocs, getDoc, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { create } from 'zustand';
 import { produce } from 'immer';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,6 +7,18 @@ import { get as idbGet, set as idbSet } from 'idb-keyval';
 import { sanitizeForFirestore } from '../lib/libraryService';
 import { createDefaultWebInvitationDocument, reflowCanvasElements } from '../lib/defaultWebTemplate';
 import { generateDocumentSquareThumbnail } from '../lib/templateThumbnail';
+import { normalizeCanvasDocument, normalizeCanvasElement } from '../lib/canvasElementUtils';
+import { optimizeDocumentImagesForPublish } from '../lib/imageOptimization';
+import {
+  saveTemplateToHosting,
+  deleteTemplateFromHosting,
+  savePublishedDesignToHosting,
+  fetchPublishedDesignFromHosting
+} from '../../services/hostingStorage';
+import { saveWeddingToHost } from '../../lib/selfHostedApi';
+import { processAndOptimizeImage } from '../../lib/storageUtils';
+import { uploadImageToHost } from '../../lib/selfHostedApi';
+import { registerPublishedDesignInMemory } from '../../hooks/useSyncedInvitationDesign';
 
 export interface TemplateItem {
   id: string;
@@ -33,6 +43,8 @@ interface EditorState {
   currentTemplateId: string | null;
   currentTemplateName: string | null;
   lastSavedHash: string | null;
+  publishedThumbnail: string | null;
+  setPublishedThumbnail: (thumb: string | null) => void;
   setCurrentTemplate: (id: string | null, name: string | null) => void;
   setLastSavedHash: (hash: string | null) => void;
   hasUnsavedChanges: () => boolean;
@@ -49,6 +61,12 @@ interface EditorState {
   zoom: number;
   magnetEnabled: boolean;
   setMagnetEnabled: (enabled: boolean) => void;
+  gridEnabled: boolean;
+  setGridEnabled: (enabled: boolean) => void;
+  leftSidebarCollapsed: boolean;
+  setLeftSidebarCollapsed: (collapsed: boolean) => void;
+  rightSidebarCollapsed: boolean;
+  setRightSidebarCollapsed: (collapsed: boolean) => void;
   libraryVersion: number;
   triggerLibraryUpdate: () => void;
   
@@ -73,7 +91,7 @@ interface EditorState {
   initializeDocument: (doc: WeddingDesignDocument) => void;
   
   // Element Manipulation
-  addElement: (element: Omit<CanvasElement, 'id'>) => void;
+  addElement: (element: Omit<CanvasElement, 'id'> & { id?: string }) => void;
   updateElement: (id: string, updates: Partial<CanvasElement>) => void;
   updateCanvas: (updates: Partial<WeddingDesignDocument['canvas']>) => void;
   deleteElements: (ids: string[]) => void;
@@ -93,6 +111,7 @@ interface EditorState {
   sendToBack: (id: string) => void;
   bringForward: (id: string) => void;
   sendBackward: (id: string) => void;
+  reorderElement: (id: string, targetIndex: number) => void;
 
   
   // Theme actions
@@ -110,6 +129,64 @@ const computeDocHash = (doc: WeddingDesignDocument) => {
   });
 };
 
+// Synchronize and normalize element zIndex values to guarantee consistent layer hierarchy
+export const syncElementZIndexes = (elements: CanvasElement[]) => {
+  if (!elements || !Array.isArray(elements)) return;
+  elements.forEach((el, index) => {
+    el.zIndex = index + 1;
+  });
+};
+
+// Cloud image optimizer: converts heavy base64 images into 72 DPI permanent Cloud Storage URLs while strictly maintaining alpha transparency
+async function optimizeDesignImagesForCloud(doc: WeddingDesignDocument, eventId: string): Promise<WeddingDesignDocument> {
+  if (!doc?.pages?.[0]?.elements) return doc;
+  try {
+    const optimized = await optimizeDocumentImagesForPublish(doc, eventId);
+    return optimized;
+  } catch (err) {
+    console.warn('Image optimization notice:', err);
+    syncElementZIndexes(doc.pages[0].elements);
+    return doc;
+  }
+}
+
+export const syncDocumentWithEventData = (doc: any, eventData?: any) => {
+  if (!doc?.pages?.[0]?.elements || !eventData) return doc;
+  const liveVenue = (eventData.receptionVenue?.name?.trim() && eventData.receptionVenue.name.trim().toLowerCase() !== 'lugar')
+    ? eventData.receptionVenue.name.trim()
+    : ((eventData.venueName && eventData.venueName.trim().toLowerCase() !== 'lugar')
+      ? eventData.venueName.trim()
+      : (eventData.receptionVenue?.name?.trim() || ''));
+  if (!liveVenue) return doc;
+
+  doc.pages[0].elements = doc.pages[0].elements.map((el: any) => {
+    const isLugarText = el.type === 'text' && (el.content?.text || '').trim().toLowerCase() === 'lugar';
+    if (el.dataBinding?.field === 'venueName' || isLugarText) {
+      return {
+        ...el,
+        content: { ...(el.content || {}), text: liveVenue },
+        dataBinding: { ...(el.dataBinding || {}), field: 'venueName' }
+      };
+    }
+    return el;
+  });
+  return doc;
+};
+
+let autoSaveDraftTimer: any = null;
+const persistDraftToStorage = (state: EditorState) => {
+  if (!state.eventData?.eventId) return;
+  if (autoSaveDraftTimer) clearTimeout(autoSaveDraftTimer);
+  autoSaveDraftTimer = setTimeout(() => {
+    try {
+      const draftKey = `wedding_design_draft_${state.eventData?.eventId}`;
+      const docClean = sanitizeForFirestore(state.document);
+      idbSet(draftKey, docClean).catch(() => {});
+      localStorage.setItem(draftKey, JSON.stringify(docClean));
+    } catch (e) {}
+  }, 400);
+};
+
 export const useEditorStore = create<EditorState>()((set, get) => ({
   eventData: null,
   isLinkedToWedding: true,
@@ -119,7 +196,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     id: uuidv4(),
     parentEventId: '',
     metadata: { createdAt: Date.now(), lastModified: Date.now(), version: '1.0.0' },
-    canvas: { width: 375, height: 812, backgroundColor: predefinedThemes[0].palette.background },
+    canvas: { width: 720, height: 980, backgroundColor: '#EBEBEB' },
     theme: predefinedThemes[0],
     pages: [{ id: 'cover', name: 'Portada', elements: [] }],
     assetReferences: []
@@ -128,6 +205,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   currentTemplateId: null,
   currentTemplateName: null,
   lastSavedHash: null,
+  publishedThumbnail: null,
+  setPublishedThumbnail: (thumb) => set({ publishedThumbnail: thumb }),
   setCurrentTemplate: (id, name) => set({ currentTemplateId: id, currentTemplateName: name }),
   setLastSavedHash: (hash) => set({ lastSavedHash: hash }),
   hasUnsavedChanges: () => {
@@ -158,6 +237,12 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   zoom: 1,
   magnetEnabled: true,
   setMagnetEnabled: (enabled) => set({ magnetEnabled: enabled }),
+  gridEnabled: false,
+  setGridEnabled: (enabled) => set({ gridEnabled: enabled }),
+  leftSidebarCollapsed: false,
+  setLeftSidebarCollapsed: (collapsed) => set({ leftSidebarCollapsed: collapsed }),
+  rightSidebarCollapsed: false,
+  setRightSidebarCollapsed: (collapsed) => set({ rightSidebarCollapsed: collapsed }),
   libraryVersion: 0,
   triggerLibraryUpdate: () => set(state => ({ libraryVersion: state.libraryVersion + 1 })),
   
@@ -181,8 +266,13 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
 
   loadTemplateToCanvas: (template: TemplateItem) => {
-    const docCopy = JSON.parse(JSON.stringify(template.document));
+    const docCopy = normalizeCanvasDocument(JSON.parse(JSON.stringify(template.document)));
     docCopy.id = template.id;
+    const state = get();
+    syncDocumentWithEventData(docCopy, state.eventData);
+    if (docCopy.pages?.[0]?.elements) {
+      syncElementZIndexes(docCopy.pages[0].elements);
+    }
     const docHash = computeDocHash(docCopy);
     
     set({
@@ -251,11 +341,11 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       console.warn('Error saving templates locally:', localErr);
     }
 
-    // 3. Save to Firestore (Shared across Romina & Herly Lizarazo)
+    // 3. Save to Hosting Backend API & SQLite/JSON
     try {
-      await setDoc(doc(db, 'weddingcraft_templates', targetId), templateData);
-    } catch (cloudErr) {
-      console.warn('Error saving template to Firestore:', cloudErr);
+      await saveTemplateToHosting(templateData);
+    } catch (hostErr) {
+      console.warn('Error saving template to hosting storage:', hostErr);
     }
 
     return { success: true, id: targetId, name: templateData.name };
@@ -264,22 +354,104 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   publishDesign: async () => {
     const state = get();
     const eventId = state.eventData?.eventId || 'default_wedding';
-    const docToPublish = sanitizeForFirestore(state.document);
+    const cleanEvt = eventId.replace(/^(\d{4}-|boda-|wedding-)/i, '').toLowerCase();
+    const cleanEvtNoSuffix = cleanEvt.replace(/[-_]\d+$/, '');
+    
+    // 1. Optimize images and guarantee normalized layers before publishing
+    const optimizedDoc = await optimizeDesignImagesForCloud(state.document, eventId);
+    const docToPublish = sanitizeForFirestore(optimizedDoc);
+
+    // Stamp with authoritative publishedAt timestamp
+    const now = Date.now();
+    docToPublish.metadata = {
+      ...docToPublish.metadata,
+      lastModified: now,
+      publishedAt: now,
+      version: (docToPublish.metadata?.version || 1) + 1,
+    };
+
+    // Update in-memory state with optimized cloud references
+    set({ document: optimizedDoc });
 
     try {
-      // 1. Save published document locally
-      localStorage.setItem(`weddingcraft_published_${eventId}`, JSON.stringify(docToPublish));
-      await idbSet(`weddingcraft_published_${eventId}`, docToPublish);
+      // 0. Register in dynamic in-memory registry immediately (0ms synchronous access)
+      registerPublishedDesignInMemory(eventId, docToPublish);
+      registerPublishedDesignInMemory(cleanEvt, docToPublish);
+      registerPublishedDesignInMemory(cleanEvtNoSuffix, docToPublish);
 
-      // 2. Persist published document to Firestore under weddingcraft_published collection
-      await setDoc(doc(db, 'weddingcraft_published', eventId), {
+      // 1. Save published document locally with all alias keys to guarantee instant retrieval
+      const docStr = JSON.stringify(docToPublish);
+      const aliasKeys = [
         eventId,
-        publishedAt: Date.now(),
-        document: docToPublish,
-        author: 'WeddingCraft Studio'
-      });
+        cleanEvt,
+        cleanEvtNoSuffix,
+        `boda-${cleanEvt}`,
+        `boda-${cleanEvtNoSuffix}`
+      ];
 
-      // 3. Dispatch reactive broadcast event for instant in-page synchronization
+      for (const key of aliasKeys) {
+        try {
+          localStorage.setItem(`weddingcraft_published_${key}`, docStr);
+          localStorage.setItem(`casanovia_published_design_${key}`, docStr);
+          localStorage.setItem(`wedding_design_draft_${key}`, docStr);
+          await idbSet(`weddingcraft_published_${key}`, docToPublish);
+          await idbSet(`casanovia_published_design_${key}`, docToPublish);
+          await idbSet(`wedding_design_draft_${key}`, docToPublish);
+        } catch {}
+      }
+
+      // Update the persistent dictionary registry
+      try {
+        const stored = localStorage.getItem('casanovia_published_registry');
+        const reg = stored ? JSON.parse(stored) : {};
+        for (const key of aliasKeys) {
+          reg[key] = docToPublish;
+        }
+        localStorage.setItem('casanovia_published_registry', JSON.stringify(reg));
+      } catch {}
+
+      // Package JSON into project base registry (writes to src/data/publishedDesignsData.json on server)
+      try {
+        await fetch('/api/publish-design-to-project', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventId, document: docToPublish })
+        }).catch(() => null);
+      } catch (pkgErr) {}
+
+      // 2. Persist published document to Hosting Backend (api/data/weddingcraft/published/)
+      try {
+        await savePublishedDesignToHosting(eventId, docToPublish);
+        if (cleanEvt !== eventId) {
+          await savePublishedDesignToHosting(cleanEvt, docToPublish);
+        }
+      } catch (hostErr) {
+        console.warn('Could not save published design to hosting backend:', hostErr);
+      }
+
+      // Also update local cache and hosting database for the wedding so that weddings.php contains weddingCraftDesign
+      try {
+        const storedWeddings = localStorage.getItem('casanovia_all_weddings');
+        if (storedWeddings) {
+          const list = JSON.parse(storedWeddings);
+          if (Array.isArray(list)) {
+            const updatedWedding = list.find((w: any) => 
+              w.id === eventId || 
+              w.id === cleanEvt ||
+              (w.coupleNames && eventId.includes(w.coupleNames.toLowerCase().replace(/[^a-z0-9]/g, '')))
+            );
+            if (updatedWedding) {
+              updatedWedding.weddingCraftDesign = docToPublish;
+              updatedWedding.updatedAt = new Date().toISOString();
+              const updatedList = list.map((w: any) => w.id === updatedWedding.id ? updatedWedding : w);
+              localStorage.setItem('casanovia_all_weddings', JSON.stringify(updatedList));
+              await saveWeddingToHost(updatedWedding).catch(() => null);
+            }
+          }
+        }
+      } catch (locErr) {}
+
+      // 4. Dispatch reactive broadcast event for instant in-page synchronization
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('weddingcraft_design_updated', {
           detail: { eventId, document: docToPublish }
@@ -288,17 +460,12 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
 
       // Update last saved hash and draft
       const publishedHash = computeDocHash(docToPublish);
-      set({ lastSavedHash: publishedHash });
-      const draftKey = `wedding_design_draft_${eventId}`;
-      await idbSet(draftKey, docToPublish);
-      try {
-        localStorage.setItem(draftKey, JSON.stringify(docToPublish));
-      } catch (e) {}
+      const thumbnail = generateDocumentSquareThumbnail(docToPublish, 320);
+      set({ lastSavedHash: publishedHash, publishedThumbnail: thumbnail });
 
       return { success: true };
     } catch (err: any) {
       console.error('Error publishing WeddingCraft design:', err);
-      // Even if offline/Firestore issues occur, local storage succeeded
       return { success: true };
     }
   },
@@ -309,41 +476,43 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
 
     // Helper to sanitize & modernize document layout
     const sanitizeDoc = (doc: any) => {
-      if (doc?.canvas) {
-        if (doc.canvas.backgroundColor === '#FAF8F5') {
-          doc.canvas.backgroundColor = '#EBEBEB';
+      const normalized = normalizeCanvasDocument(doc);
+      if (normalized?.canvas) {
+        if (normalized.canvas.backgroundColor === '#FAF8F5') {
+          normalized.canvas.backgroundColor = '#EBEBEB';
         }
-        if (doc.canvas.width === 375) {
-          doc.canvas.width = 720;
-          if (doc.pages?.[0]?.elements) {
-            doc.pages[0].elements = reflowCanvasElements(doc.pages[0].elements, 720, 375);
+        if (normalized.canvas.width === 375) {
+          normalized.canvas.width = 720;
+          if (normalized.pages?.[0]?.elements) {
+            normalized.pages[0].elements = reflowCanvasElements(normalized.pages[0].elements, 720, 375);
           }
         }
       }
-      return doc;
+      syncDocumentWithEventData(normalized, state.eventData);
+      if (normalized?.pages?.[0]?.elements) {
+        syncElementZIndexes(normalized.pages[0].elements);
+      }
+      return normalized;
     };
 
-    // 1. Try to load from Firestore published document
+    // 1. Try to load from Hosting Backend (api/data/weddingcraft/published/)
     try {
-      const snap = await getDoc(doc(db, 'weddingcraft_published', eventId));
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data && data.document) {
-          const docCopy = sanitizeDoc(JSON.parse(JSON.stringify(data.document)));
-          const docHash = computeDocHash(docCopy);
-          set({
-            document: docCopy,
-            currentTemplateId: `web_invitados_${eventId}`,
-            currentTemplateName: 'Web Invitados (Publicada)',
-            lastSavedHash: docHash,
-            history: { past: [], future: [] },
-            selectedElementIds: []
-          });
-          return { success: true, source: 'published' };
-        }
+      const hostingDoc = await fetchPublishedDesignFromHosting(eventId);
+      if (hostingDoc) {
+        const docCopy = sanitizeDoc(JSON.parse(JSON.stringify(hostingDoc)));
+        const docHash = computeDocHash(docCopy);
+        set({
+          document: docCopy,
+          currentTemplateId: `web_invitados_${eventId}`,
+          currentTemplateName: 'Web Invitados (Publicada)',
+          lastSavedHash: docHash,
+          history: { past: [], future: [] },
+          selectedElementIds: []
+        });
+        return { success: true, source: 'published' };
       }
-    } catch (cloudErr) {
-      console.warn('Error reading published design from Firestore:', cloudErr);
+    } catch (hostErr) {
+      console.warn('Error reading published design from hosting storage:', hostErr);
     }
 
     // 2. Try to load from local storage
@@ -448,9 +617,9 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     } catch (e) {}
 
     try {
-      await setDoc(doc(db, 'weddingcraft_templates', newId), duplicatedTemplate);
-    } catch (cloudErr) {
-      console.warn('Error duplicating template to Firestore:', cloudErr);
+      await saveTemplateToHosting(duplicatedTemplate);
+    } catch (hostErr) {
+      console.warn('Error duplicating template to hosting storage:', hostErr);
     }
 
     return true;
@@ -472,16 +641,30 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     } catch (e) {}
 
     try {
-      await deleteDoc(doc(db, 'weddingcraft_templates', templateId));
-    } catch (cloudErr) {
-      console.warn('Error deleting template from Firestore:', cloudErr);
+      await deleteTemplateFromHosting(templateId);
+    } catch (hostErr) {
+      console.warn('Error deleting template from hosting storage:', hostErr);
     }
 
     return true;
   },
-  setEventData: (data) => set({ eventData: data }),
+  setEventData: (data) => {
+    set(state => {
+      const updatedDoc = JSON.parse(JSON.stringify(state.document));
+      syncDocumentWithEventData(updatedDoc, data);
+      return { eventData: data, document: updatedDoc };
+    });
+  },
   
-  initializeDocument: (doc) => set({ document: doc, history: { past: [], future: [] } }),
+  initializeDocument: (doc) => {
+    const normalized = normalizeCanvasDocument(doc);
+    const state = get();
+    syncDocumentWithEventData(normalized, state.eventData);
+    if (normalized?.pages?.[0]?.elements) {
+      syncElementZIndexes(normalized.pages[0].elements);
+    }
+    set({ document: normalized, history: { past: [], future: [] } });
+  },
 
   commitHistory: () => set(produce((state: EditorState) => {
     // Keep max 20 history states
@@ -494,10 +677,13 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   addElement: (element) => {
     get().commitHistory();
     set(produce((state: EditorState) => {
-      const newElem = { ...element, id: uuidv4() } as CanvasElement;
+      const newElem = normalizeCanvasElement(element, state.document.pages[0]?.elements.length || 0);
       state.document.pages[0].elements.push(newElem);
+      syncElementZIndexes(state.document.pages[0].elements);
       state.selectedElementIds = [newElem.id];
+      state.document.metadata.lastModified = Date.now();
     }));
+    persistDraftToStorage(get());
   },
 
   updateCanvas: (updates) => {
@@ -513,37 +699,57 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
           updates.width,
           oldWidth
         );
+        syncElementZIndexes(state.document.pages[0].elements);
       }
     }));
 
-    // Immediately persist draft so changes to canvas dimensions/background are never lost
-    const currentState = get();
-    if (currentState.eventData?.eventId) {
-      const draftKey = `wedding_design_draft_${currentState.eventData.eventId}`;
-      const docClean = sanitizeForFirestore(currentState.document);
-      idbSet(draftKey, docClean).catch(e => console.warn('idbSet canvas draft error:', e));
-      try {
-        localStorage.setItem(draftKey, JSON.stringify(docClean));
-      } catch (e) {}
-    }
+    persistDraftToStorage(get());
   },
   
   updateElement: (id, updates) => {
     set(produce((state: EditorState) => {
       const el = state.document.pages[0].elements.find(e => e.id === id);
       if (el) {
-        Object.assign(el, updates);
+        if (updates.transform) {
+          el.transform = { ...el.transform, ...updates.transform };
+        }
+        if (updates.style) {
+          el.style = { ...el.style, ...updates.style };
+        }
+        if (updates.content) {
+          if (typeof updates.content === 'object' && updates.content !== null && !Array.isArray(updates.content)) {
+            el.content = { ...(el.content || {}), ...updates.content };
+          } else {
+            el.content = updates.content;
+          }
+        }
+        if (updates.dataBinding !== undefined) {
+          el.dataBinding = updates.dataBinding;
+        }
+        if (updates.animation) {
+          el.animation = { ...(el.animation || {}), ...updates.animation };
+        }
+        if (updates.locked !== undefined) el.locked = updates.locked;
+        if (updates.visible !== undefined) el.visible = updates.visible;
+        if (updates.zIndex !== undefined) el.zIndex = updates.zIndex;
+        if (updates.type !== undefined) el.type = updates.type;
+        if (updates.parentGroup !== undefined) el.parentGroup = updates.parentGroup;
+
         state.document.metadata.lastModified = Date.now();
       }
     }));
+    persistDraftToStorage(get());
   },
 
   deleteElements: (ids) => {
     get().commitHistory();
     set(produce((state: EditorState) => {
       state.document.pages[0].elements = state.document.pages[0].elements.filter(e => !ids.includes(e.id));
+      syncElementZIndexes(state.document.pages[0].elements);
       state.selectedElementIds = state.selectedElementIds.filter(id => !ids.includes(id));
+      state.document.metadata.lastModified = Date.now();
     }));
+    persistDraftToStorage(get());
   },
 
   duplicateElements: (ids) => {
@@ -557,7 +763,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       const groupMap: Record<string, string> = {};
       const newIds: string[] = [];
 
-      targetElements.forEach((el, idx) => {
+      targetElements.forEach((el) => {
         const newId = uuidv4();
         newIds.push(newId);
 
@@ -574,11 +780,11 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         clone.parentGroup = newGroup;
         clone.transform.x = (clone.transform.x || 0) + 20;
         clone.transform.y = (clone.transform.y || 0) + 20;
-        clone.zIndex = elements.length + idx + 1;
 
         elements.push(clone);
       });
 
+      syncElementZIndexes(elements);
       state.selectedElementIds = newIds;
       state.document.metadata.lastModified = Date.now();
     }));
@@ -644,6 +850,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       if (index > -1 && index < elements.length - 1) {
         const [el] = elements.splice(index, 1);
         elements.push(el);
+        syncElementZIndexes(elements);
+        state.document.metadata.lastModified = Date.now();
       }
     }));
   },
@@ -655,6 +863,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       if (index > 0) {
         const [el] = elements.splice(index, 1);
         elements.unshift(el);
+        syncElementZIndexes(elements);
+        state.document.metadata.lastModified = Date.now();
       }
     }));
   },
@@ -667,6 +877,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         const el = elements[index];
         elements[index] = elements[index + 1];
         elements[index + 1] = el;
+        syncElementZIndexes(elements);
+        state.document.metadata.lastModified = Date.now();
       }
     }));
   },
@@ -679,7 +891,21 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         const el = elements[index];
         elements[index] = elements[index - 1];
         elements[index - 1] = el;
+        syncElementZIndexes(elements);
+        state.document.metadata.lastModified = Date.now();
       }
+    }));
+  },
+  reorderElement: (id, targetIndex) => {
+    get().commitHistory();
+    set(produce((state: EditorState) => {
+      const elements = state.document.pages[0].elements;
+      const currentIndex = elements.findIndex(el => el.id === id);
+      if (currentIndex === -1 || targetIndex < 0 || targetIndex >= elements.length || currentIndex === targetIndex) return;
+      const [el] = elements.splice(currentIndex, 1);
+      elements.splice(targetIndex, 0, el);
+      syncElementZIndexes(elements);
+      state.document.metadata.lastModified = Date.now();
     }));
   },
   setTheme: (theme) => {

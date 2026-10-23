@@ -1,6 +1,7 @@
 import { WeddingDesignDocument, CanvasElement } from '../types';
 import { predefinedThemes } from '../themes';
 import { v4 as uuidv4 } from 'uuid';
+import { parseDateSafe, formatSpanishDateLong } from '../../lib/dateUtils';
 
 /**
  * Responsive reflow function that reorganizes elements fluidly across any canvas width.
@@ -53,7 +54,7 @@ export function reflowCanvasElements(
     }
 
     // 5. Venue Name
-    if (el.dataBinding?.field === 'venueName' || (el.type === 'text' && (el.content?.text || '').includes('Iglesia'))) {
+    if (el.dataBinding?.field === 'venueName' || (el.type === 'text' && ((el.content?.text || '').includes('Iglesia') || (el.content?.text || '').trim().toLowerCase() === 'lugar'))) {
       const w = Math.min(newWidth - 40, 480);
       return {
         ...el,
@@ -94,6 +95,7 @@ export function reflowCanvasElements(
   // Re-align and stack action buttons
   const buttons = updated.filter(el => el.type === 'interactive-button');
   if (buttons.length > 0) {
+    
     const btnWidth = Math.min(newWidth - 80, 460);
     const startY = isMobile ? 476 : 474;
     const gap = 12;
@@ -126,15 +128,15 @@ export function createDefaultWebInvitationDocument(options: {
 }): WeddingDesignDocument {
   const couple1 = options.coupleNames?.[0] || 'Luciana';
   const couple2 = options.coupleNames?.[1] || 'Mateo';
-  const rawDate = options.eventDate ? new Date(options.eventDate) : new Date('2027-07-16T18:00:00');
+  const rawDate = options.eventDate ? parseDateSafe(options.eventDate) : parseDateSafe('2027-07-16T18:00:00');
   const targetIsoDate = !isNaN(rawDate.getTime()) ? rawDate.toISOString() : '2027-07-16T18:00:00.000Z';
 
-  // Formatting date for text elements
+  // Formatting date for text elements - guaranteed to preserve exact configuration day
   const dateFormatted = options.eventDate
-    ? rawDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-    : 'sábado, 16 de Julio de 2027';
+    ? formatSpanishDateLong(options.eventDate)
+    : 'sábado, 16 de julio de 2027';
   
-  const venue = options.venueName || 'Iglesia San Francisco';
+  const venue = (options.venueName && options.venueName !== 'Lugar') ? options.venueName : 'Hacienda Villa del Sol';
   const quote = options.romanticQuote || 'Y recuerda, tal y como estaba escrito, que querer a otra persona es ver la cara de Dios. Querer a alguien y que nos quieran es la sensación más gratificante que podemos sentir los seres humanos';
 
   const theme = predefinedThemes[0] || {
@@ -163,7 +165,7 @@ export function createDefaultWebInvitationDocument(options: {
   const footerWidth = Math.min(canvasWidth - 40, 480);
 
   const elements: CanvasElement[] = [
-    // 1. Sección de Encabezado (Hero): Decorative Header Tag
+    // 1. Header Tag ("NUESTRA BODA")
     {
       id: uuidv4(),
       type: 'text',
@@ -183,8 +185,7 @@ export function createDefaultWebInvitationDocument(options: {
       visible: true,
       dataBinding: { field: 'headerTag' }
     },
-
-    // 2. Sección de Encabezado (Hero): Couple Names in Elegant Serif
+    // 2. Nombre del Evento (Hero)
     {
       id: uuidv4(),
       type: 'text',
@@ -203,18 +204,17 @@ export function createDefaultWebInvitationDocument(options: {
       visible: true,
       dataBinding: { field: 'coupleNames', format: '{{0}} & {{1}}' }
     },
-
-    // 3. Cuerpo de Texto y Detalles: Romantic Quote
+    // 3. Frase Romántica
     {
       id: uuidv4(),
       type: 'text',
       content: { text: `"${quote}"` },
       style: {
         fontFamily: 'Cormorant Garamond',
-        fontStyle: 'italic',
         fontSize: 16,
         color: '#6B6358',
         align: 'center',
+        fontStyle: 'italic',
         lineHeight: 1.45,
         opacity: 1
       },
@@ -224,8 +224,7 @@ export function createDefaultWebInvitationDocument(options: {
       visible: true,
       dataBinding: { field: 'romanticQuote' }
     },
-
-    // 4. Cuerpo de Texto y Detalles: Elegant Date Line
+    // 4. Fecha
     {
       id: uuidv4(),
       type: 'text',
@@ -244,8 +243,7 @@ export function createDefaultWebInvitationDocument(options: {
       visible: true,
       dataBinding: { field: 'eventDate' }
     },
-
-    // 5. Cuerpo de Texto y Detalles: Venue Name
+    // 5. Lugar
     {
       id: uuidv4(),
       type: 'text',
@@ -263,8 +261,7 @@ export function createDefaultWebInvitationDocument(options: {
       visible: true,
       dataBinding: { field: 'venueName' }
     },
-
-    // 6. Sección de Llamadas a la Acción (CTA) y Cuenta Regresiva: Real-Time Countdown Widget
+    // 6. Cuenta Regresiva
     {
       id: uuidv4(),
       type: 'countdown-widget',
@@ -293,8 +290,7 @@ export function createDefaultWebInvitationDocument(options: {
       locked: false,
       visible: true
     },
-
-    // 7. Botón de Acción 1: Confirmar Asistencia (RSVP)
+    // 7. Confirmar Asistencia
     {
       id: uuidv4(),
       type: 'interactive-button',
@@ -317,142 +313,21 @@ export function createDefaultWebInvitationDocument(options: {
       locked: false,
       visible: true
     },
-
-    // 8. Botón de Acción 2: Mi Pase & Ubicación de Mesa
-    {
-      id: uuidv4(),
-      type: 'interactive-button',
-      content: {
-        text: '👑 Mi Pase & Ubicación de Mesa',
-        actionType: 'scroll-to-section',
-        linkUrl: '#protocol-lookup-section'
-      },
-      style: {
-        backgroundColor: '#D4AF37',
-        color: '#FFFFFF',
-        variant: 'solid',
-        borderRadius: 16,
-        fontSize: 14,
-        fontFamily: 'Montserrat',
-        opacity: 1
-      },
-      transform: { x: centerX(btnWidth), y: 532, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 8,
-      locked: false,
-      visible: true
-    },
-
-    // 9. Botón de Acción 3: Cómo Llegar & Itinerario
-    {
-      id: uuidv4(),
-      type: 'interactive-button',
-      content: {
-        text: '📍 Cómo Llegar & Itinerario',
-        actionType: 'scroll-to-section',
-        linkUrl: '#event-details-section'
-      },
-      style: {
-        backgroundColor: '#4A5568',
-        color: '#FFFFFF',
-        variant: 'solid',
-        borderRadius: 16,
-        fontSize: 14,
-        fontFamily: 'Montserrat',
-        opacity: 1
-      },
-      transform: { x: centerX(btnWidth), y: 590, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 9,
-      locked: false,
-      visible: true
-    },
-
-    // 10. Botón de Acción 4: Código de Vestimenta
-    {
-      id: uuidv4(),
-      type: 'interactive-button',
-      content: {
-        text: '👗 Código de Vestimenta',
-        actionType: 'scroll-to-section',
-        linkUrl: '#dress-code-section'
-      },
-      style: {
-        backgroundColor: '#718096',
-        color: '#FFFFFF',
-        variant: 'solid',
-        borderRadius: 16,
-        fontSize: 14,
-        fontFamily: 'Montserrat',
-        opacity: 1
-      },
-      transform: { x: centerX(btnWidth), y: 648, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 10,
-      locked: false,
-      visible: true
-    },
-
-    // 11. Botón de Acción 5: Mesa de Regalos
-    {
-      id: uuidv4(),
-      type: 'interactive-button',
-      content: {
-        text: '🎁 Mesa de Regalos',
-        actionType: 'scroll-to-section',
-        linkUrl: '#gift-registry-section'
-      },
-      style: {
-        backgroundColor: '#8C8276',
-        color: '#FFFFFF',
-        variant: 'solid',
-        borderRadius: 16,
-        fontSize: 14,
-        fontFamily: 'Montserrat',
-        opacity: 1
-      },
-      transform: { x: centerX(btnWidth), y: 706, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 11,
-      locked: false,
-      visible: true
-    },
-
-    // 12. Botón de Acción 6: Muro de Deseos & Bendiciones
-    {
-      id: uuidv4(),
-      type: 'interactive-button',
-      content: {
-        text: '💌 Muro de Deseos & Bendiciones',
-        actionType: 'scroll-to-section',
-        linkUrl: '#wishes-wall-section'
-      },
-      style: {
-        backgroundColor: '#94A3B8',
-        color: '#FFFFFF',
-        variant: 'solid',
-        borderRadius: 16,
-        fontSize: 14,
-        fontFamily: 'Montserrat',
-        opacity: 1
-      },
-      transform: { x: centerX(btnWidth), y: 764, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 12,
-      locked: false,
-      visible: true
-    },
-
-    // 13. Texto de Cierre
+    // 8. Mensaje de despedida / Footer
     {
       id: uuidv4(),
       type: 'text',
       content: { text: '¡Esperamos celebrar este gran día contigo!' },
       style: {
         fontFamily: 'Playfair Display',
-        fontStyle: 'italic',
         fontSize: 15,
         color: '#718096',
         align: 'center',
+        fontStyle: 'italic',
         opacity: 1
       },
       transform: { x: centerX(footerWidth), y: 846, width: footerWidth, height: 36, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 13,
+      zIndex: 8,
       locked: false,
       visible: true,
       dataBinding: { field: 'footerGreeting' }
@@ -470,7 +345,8 @@ export function createDefaultWebInvitationDocument(options: {
     canvas: {
       width: canvasWidth,
       height: canvasHeight,
-      backgroundColor: '#EBEBEB'
+      backgroundColor: '#EBEBEB',
+      borderRadius: 0
     },
     theme,
     pages: [

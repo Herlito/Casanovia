@@ -1,27 +1,57 @@
 # ==========================================================
-# Configuración Apache / cPanel para Casanovia (casanovia.pe)
+# Configuración Apache / cPanel / LiteSpeed para Casanovia (casanovia.pe)
 # ==========================================================
 
+DirectoryIndex index.html index.php
+
+# 1. Asegurar tipos MIME correctos para ES Modules, Estilos y Fuentes
+<IfModule mod_mime.c>
+  AddType application/javascript .js .mjs
+  AddType text/javascript .js
+  AddType text/css .css
+  AddType image/svg+xml .svg .svgz
+  AddType application/json .json
+  AddType font/ttf .ttf
+  AddType font/woff .woff
+  AddType font/woff2 .woff2
+  AddType image/webp .webp
+</IfModule>
+
+# 2. Habilitar mod_rewrite para Single Page Application (SPA)
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
 
-  # Permitir acceso directo a archivos existentes, carpetas y uploads
+  # Si el archivo o directorio existe físicamente, servirlo directamente sin reescribir
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Permitir acceso a la API en PHP
+  # Excluir rutas directas a la API y archivos estáticos
   RewriteRule ^api/(.*)$ api/$1 [L]
+  RewriteRule ^uploads/(.*)$ uploads/$1 [L]
+  RewriteRule ^assets/(.*)$ assets/$1 [L]
 
-  # Redireccionar el resto de las rutas al index.html de React (SPA)
-  RewriteRule ^ index.html [L]
+  # Si la ruta no es un archivo ni directorio, redirigir a index.html (Enrutamiento React)
+  RewriteCond %{REQUEST_URI} !\.(css|js|mjs|json|svg|png|jpg|jpeg|gif|webp|woff|woff2|ttf|ico|pdf|zip|php)$ [NC]
+  RewriteRule ^ index.html [QSA,L]
 </IfModule>
 
-# Habilitar compresión Gzip para mayor velocidad
+# 3. Compresión GZIP para máxima velocidad de carga
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json image/svg+xml
 </IfModule>
 
-# Seguridad: Evitar listar directorios
+# 4. Control de Caché: index.html SIEMPRE fresco, assets con hash cacheados
+<IfModule mod_headers.c>
+  <FilesMatch "^(index\.html|)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+  <FilesMatch "\.(css|js|woff2|ttf|svg|webp|png|jpg)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# 5. Seguridad: Desactivar listado de directorios
 Options -Indexes

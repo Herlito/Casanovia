@@ -13,6 +13,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { FontPicker } from './FontPicker';
+import { recolorSvg, extractSvgTextFromSrc } from '../lib/svgUtils';
 
 export const FloatingPropertiesToolbar: React.FC = () => {
   const { 
@@ -25,7 +26,7 @@ export const FloatingPropertiesToolbar: React.FC = () => {
 
   if (selectedElementIds.length === 0) return null;
 
-  const elements = document.pages[0]?.elements || [];
+  const elements = document.pages?.[0]?.elements || [];
   const selectedElement = elements.find(el => el.id === selectedElementIds[0]);
   if (!selectedElement) return null;
 
@@ -39,6 +40,31 @@ export const FloatingPropertiesToolbar: React.FC = () => {
         style: {
           ...el.style,
           [key]: val
+        }
+      });
+    });
+  };
+
+  const handleSvgColorChange = (color: string) => {
+    selectedElementIds.forEach(id => {
+      const el = elements.find(e => e.id === id);
+      if (!el) return;
+      const currentContent = el.content || {};
+      const rawSvg = currentContent.rawSvgText || currentContent.svgText || extractSvgTextFromSrc(currentContent.src) || '';
+      if (!rawSvg) {
+        updateElement(id, { style: { ...el.style, fill: color } });
+        return;
+      }
+      const { svgText: newSvg, dataUrl: newSrc } = recolorSvg(rawSvg, color);
+      updateElement(id, {
+        style: { ...el.style, fill: color },
+        content: {
+          ...currentContent,
+          isSvg: true,
+          rawSvgText: currentContent.rawSvgText || rawSvg,
+          svgText: newSvg,
+          src: newSrc,
+          originalSrc: currentContent.originalSrc || newSrc
         }
       });
     });
@@ -58,7 +84,7 @@ export const FloatingPropertiesToolbar: React.FC = () => {
     >
       {/* Element Type Pill */}
       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-600 shrink-0">
-        {isMulti ? `${selectedElementIds.length} elem.` : isText ? 'Texto' : isButton ? 'Botón' : isCountdown ? 'Cuenta Reg.' : isFrame ? 'Contenedor' : isShape ? 'Forma' : isImage ? 'Imagen' : 'Elemento'}
+        {isMulti ? `${selectedElementIds.length} elem.` : isText ? 'Texto' : isButton ? 'Botón' : isCountdown ? 'Cuenta Reg.' : isFrame ? 'Contenedor' : isShape ? (selectedElement.style?.variant === 'line' ? 'Línea' : 'Forma') : (isImage && selectedElement.content?.isSvg ? 'Vector SVG' : isImage ? 'Imagen' : 'Elemento')}
       </span>
 
       <div className="w-px h-5 bg-gray-300 shrink-0 mx-0.5" />
@@ -174,8 +200,53 @@ export const FloatingPropertiesToolbar: React.FC = () => {
         </>
       )}
 
+      {/* Line Shape Specific Quick Controls */}
+      {isShape && selectedElement.style?.variant === 'line' && (
+        <>
+          <label className="shrink-0 flex items-center cursor-pointer gap-1" title="Color de Línea">
+            <span className="text-[10px] text-gray-500 font-bold">Línea:</span>
+            <input 
+              type="color"
+              value={selectedElement.style?.stroke || '#2D3748'}
+              onChange={(e) => handleUpdateStyle('stroke', e.target.value)}
+              className="w-6 h-6 rounded-lg cursor-pointer border-0 bg-transparent p-0"
+            />
+          </label>
+          <div className="flex items-center gap-1 shrink-0" title="Grosor de Línea">
+            <span className="text-[10px] text-gray-500 font-bold">Grosor:</span>
+            <input 
+              type="number"
+              min={1}
+              max={50}
+              value={selectedElement.style?.strokeWidth ?? 2}
+              onChange={(e) => handleUpdateStyle('strokeWidth', parseInt(e.target.value) || 1)}
+              className="w-12 text-xs py-1 px-1 text-center bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-lg font-bold text-gray-800 outline-none"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const isVert = selectedElement.style?.orientation === 'vertical';
+              handleUpdateStyle('orientation', isVert ? 'horizontal' : 'vertical');
+              updateElement(selectedElement.id, {
+                transform: {
+                  ...selectedElement.transform,
+                  width: isVert ? Math.max(selectedElement.transform.height, 120) : 24,
+                  height: isVert ? 24 : Math.max(selectedElement.transform.width, 120)
+                }
+              });
+            }}
+            className="px-2 py-1 text-[10px] font-bold bg-[#EBEBEB] shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] rounded-lg text-gray-700 hover:text-black transition-all"
+            title="Alternar orientación horizontal/vertical"
+          >
+            {selectedElement.style?.orientation === 'vertical' ? '↕ Vert' : '↔ Horiz'}
+          </button>
+          <div className="w-px h-5 bg-gray-300 shrink-0 mx-0.5" />
+        </>
+      )}
+
       {/* Shape / Container fill & border quick colors */}
-      {(isShape || isFrame) && (
+      {((isShape && selectedElement.style?.variant !== 'line') || isFrame) && (
         <>
           <label className="shrink-0 flex items-center cursor-pointer gap-1" title="Color de Relleno">
             <span className="text-[10px] text-gray-500 font-bold">Relleno:</span>
@@ -192,6 +263,22 @@ export const FloatingPropertiesToolbar: React.FC = () => {
               type="color"
               value={selectedElement.style?.stroke || '#94a3b8'}
               onChange={(e) => handleUpdateStyle('stroke', e.target.value)}
+              className="w-6 h-6 rounded-lg cursor-pointer border-0 bg-transparent p-0"
+            />
+          </label>
+          <div className="w-px h-5 bg-gray-300 shrink-0 mx-0.5" />
+        </>
+      )}
+
+      {/* SVG Vector Quick Fill Color */}
+      {isImage && selectedElement.content?.isSvg && (
+        <>
+          <label className="shrink-0 flex items-center cursor-pointer gap-1.5" title="Color de Relleno del Vector SVG">
+            <span className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">Relleno SVG:</span>
+            <input 
+              type="color"
+              value={selectedElement.style?.fill || '#2D3748'}
+              onChange={(e) => handleSvgColorChange(e.target.value)}
               className="w-6 h-6 rounded-lg cursor-pointer border-0 bg-transparent p-0"
             />
           </label>

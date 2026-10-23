@@ -14,7 +14,9 @@ import {
   Sparkles,
   Tag,
   Users,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Trash2,
+  Plus
 } from 'lucide-react';
 
 interface VendorModalProps {
@@ -67,6 +69,7 @@ export const VendorModal: React.FC<VendorModalProps> = ({
   const [receptionAttendeesCount, setReceptionAttendeesCount] = useState<string>('1');
   const [totalCostInput, setTotalCostInput] = useState<string>('0');
   const [paidAmountInput, setPaidAmountInput] = useState<string>('0');
+  const [partialPayments, setPartialPayments] = useState<any[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -88,6 +91,7 @@ export const VendorModal: React.FC<VendorModalProps> = ({
       );
       setTotalCostInput(vendorToEdit.totalCost !== undefined ? String(vendorToEdit.totalCost) : '0');
       setPaidAmountInput(vendorToEdit.paidAmount !== undefined ? String(vendorToEdit.paidAmount) : '0');
+      setPartialPayments(vendorToEdit.partialPayments || []);
     } else {
       setFormData({
         name: '',
@@ -158,6 +162,7 @@ export const VendorModal: React.FC<VendorModalProps> = ({
       paidAmount: paid,
       attendingReception,
       receptionAttendeesCount: attendingReception ? Math.max(1, parseInt(receptionAttendeesCount, 10) || 1) : 0,
+      partialPayments,
     };
 
     if (vendorToEdit) {
@@ -211,12 +216,12 @@ export const VendorModal: React.FC<VendorModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="p-4 overflow-y-auto space-y-2 text-xs">
           
           {/* Row 1: Nombre & Categoría */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs font-bold text-[#2D2A26] mb-1">
+              <label className="block text-xs font-bold text-[#2D2A26] mb-0.5">
                 Nombre del Proveedor / Empresa *
               </label>
               <div className="relative">
@@ -225,23 +230,23 @@ export const VendorModal: React.FC<VendorModalProps> = ({
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Ej: Lumière Visual Studio"
-                  className={`w-full px-3 py-2 rounded-xl bg-[#FAF8F5] border ${
+                  className={`w-full px-3 py-1.5 rounded-xl bg-[#FAF8F5] border ${
                     errors.name ? 'border-rose-400 focus:ring-rose-200' : 'border-[#D9CEBF] focus:border-transparent'
                   } text-xs text-[#2D2A26] focus:outline-none focus:ring-2`}
                   required
                 />
               </div>
-              {errors.name && <p className="text-[10px] text-rose-600 mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-[10px] text-rose-600 mt-0.5">{errors.name}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#2D2A26] mb-1">
+              <label className="block text-xs font-bold text-[#2D2A26] mb-0.5">
                 Categoría del Servicio *
               </label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-transparent cursor-pointer"
+                className="w-full px-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-transparent cursor-pointer"
               >
                 {CATEGORY_OPTIONS.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -251,9 +256,9 @@ export const VendorModal: React.FC<VendorModalProps> = ({
           </div>
 
           {/* Row 2: Contacto & Teléfono */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs font-bold text-[#2D2A26] mb-1">
+              <label className="block text-xs font-bold text-[#2D2A26] mb-0.5">
                 Persona de Contacto / Asesor
               </label>
               <div className="relative">
@@ -262,14 +267,14 @@ export const VendorModal: React.FC<VendorModalProps> = ({
                   type="text"
                   value={formData.contactPerson}
                   onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-                  placeholder="Ej: David Castro / Lic. Morales"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-transparent"
+                  placeholder="Ej: David Castro"
+                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-transparent"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#2D2A26] mb-1">
+              <label className="block text-xs font-bold text-[#2D2A26] mb-0.5">
                 Teléfono / WhatsApp
               </label>
               <div className="relative">
@@ -279,16 +284,16 @@ export const VendorModal: React.FC<VendorModalProps> = ({
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="Ej: +51 987 123 456"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-transparent"
+                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-transparent"
                 />
               </div>
             </div>
           </div>
 
           {/* Row 3: Email & Estado */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs font-bold text-[#2D2A26] mb-1">
+              <label className="block text-xs font-bold text-[#2D2A26] mb-0.5">
                 Correo Electrónico
               </label>
               <div className="relative">
@@ -298,19 +303,19 @@ export const VendorModal: React.FC<VendorModalProps> = ({
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="Ej: contacto@proveedor.pe"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-transparent"
+                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-transparent"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#2D2A26] mb-1">
+              <label className="block text-xs font-bold text-[#2D2A26] mb-0.5">
                 Estado de Contratación
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="w-full px-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-transparent cursor-pointer"
+                className="w-full px-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] text-xs text-[#2D2A26] focus:outline-none focus:border-transparent cursor-pointer"
               >
                 <option value="en_proceso">En Cotización / Propuesta</option>
                 <option value="contratado">Contratado / Anticipo dado</option>
@@ -374,6 +379,63 @@ export const VendorModal: React.FC<VendorModalProps> = ({
               <span className={`font-bold ${pendingBalance === 0 ? 'text-emerald-700' : 'text-[#2D3748]'}`}>
                 {formatCurrency(pendingBalance)}
               </span>
+            </div>
+
+            {/* List of payments */}
+            <div className="pt-3 border-t border-[#EFE8DE] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#524B42]">Pagos realizados:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPartialPayments([...partialPayments, { id: Date.now().toString(), amount: 0, date: new Date().toISOString().split('T')[0] }]);
+                  }}
+                  className="flex items-center space-x-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Añadir Pago</span>
+                </button>
+              </div>
+              <div className="space-y-1.5">
+                {partialPayments.map((payment, index) => (
+                  <div key={payment.id} className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={payment.amount}
+                      onChange={(e) => {
+                        const newPayments = [...partialPayments];
+                        newPayments[index].amount = parseFloat(e.target.value) || 0;
+                        setPartialPayments(newPayments);
+                        setPaidAmountInput(String(newPayments.reduce((sum, p) => sum + p.amount, 0)));
+                      }}
+                      className="w-full px-2 py-1 rounded-lg bg-[#EBEBEB] border border-[#D9CEBF] text-[11px] text-[#2D2A26] focus:outline-none"
+                      placeholder="Monto"
+                    />
+                    <input
+                      type="date"
+                      value={payment.date}
+                      onChange={(e) => {
+                        const newPayments = [...partialPayments];
+                        newPayments[index].date = e.target.value;
+                        setPartialPayments(newPayments);
+                      }}
+                      className="w-full px-2 py-1 rounded-lg bg-[#EBEBEB] border border-[#D9CEBF] text-[11px] text-[#2D2A26] focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newPayments = partialPayments.filter((_, i) => i !== index);
+                        setPartialPayments(newPayments);
+                        setPaidAmountInput(String(newPayments.reduce((sum, p) => sum + p.amount, 0)));
+                      }}
+                      className="text-stone-400 hover:text-rose-600 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

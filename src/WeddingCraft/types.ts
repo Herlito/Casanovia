@@ -1,6 +1,9 @@
 export interface EventDataInput {
   eventId: string;
   coupleNames: [string, string];
+  coupleNamesText?: string;
+  brideName?: string;
+  groomName?: string;
   eventDate: string; // ISO Date
   venueName?: string;
   venueAddress?: string;
@@ -21,6 +24,16 @@ export interface EventDataInput {
     googleMapsUrl?: string;
     wazeUrl?: string;
   };
+  additionalVenues?: Array<{
+    id?: string;
+    name: string;
+    type?: string;
+    address?: string;
+    time?: string;
+    googleMapsUrl?: string;
+    wazeUrl?: string;
+    notes?: string;
+  }>;
   hasReligiousCeremony?: boolean;
   dressCodeStyle?: string;
   dressCodeDescription?: string;
@@ -203,4 +216,7 @@ export interface ElementStyle {
     blur?: number;
     sepia?: number;
   };
+  lineStyle?: 'solid' | 'dashed' | 'dotted';
+  lineCap?: 'round' | 'butt' | 'square';
+  orientation?: 'horizontal' | 'vertical';
 }

@@ -1,15 +1,19 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  collection, 
-  doc, 
-  onSnapshot, 
-  setDoc, 
-  deleteDoc, 
-  getDocs,
-  writeBatch 
-} from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { cleanFirestoreData } from '../lib/firestoreUtils';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import {
+  saveWeddingToHosting,
+  fetchWeddingsFromHosting,
+  fetchWeddingByIdFromHosting,
+  deleteWeddingFromHosting,
+  saveUserToHosting,
+  saveUsersBulkToHosting,
+  fetchUsersFromHosting,
+  deleteUserFromHosting,
+  saveSystemConfigToHosting,
+  fetchSystemConfigFromHosting,
+  saveFloorPlanToHosting,
+  deleteFloorPlanFromHosting,
+  sanitizeData as cleanFirestoreData,
+} from '../services/hostingStorage';
 import { 
   Guest, 
   TimelineMilestone, 
@@ -26,7 +30,9 @@ import {
   TokensPaymentConfig,
   UploadedImageRecord,
   WeddingCustomTheme,
-  DressCodeColor
+  DressCodeColor,
+  PromotionFeeQuota,
+  PartialPayment
 } from '../types';
 import { 
   initialGuests, 
@@ -35,50 +41,361 @@ import {
   initialWeddingSettings, 
   initialDefaultWedding,
   initialWeddingsList,
+  initialJuanJuanaWedding,
+  initialErikaWedding,
   INITIAL_SYSTEM_USERS,
   generateMasterTasksForWedding,
   initialVendors,
   initialTables,
   INITIAL_TOKENS_PAYMENT_CONFIG
 } from '../data/initialData';
-import { sortWeddingsByDate, sortTimelineMilestones } from '../lib/dateUtils';
+import publishedDesignsData from '../data/publishedDesignsData.json';
+import { sortWeddingsByDate, sortTimelineMilestones, isRsvpDeadlinePassed } from '../lib/dateUtils';
 import { syncVendorsIntoBudget, buildBudgetDirectlyFromVendors } from '../lib/budgetSyncUtils';
-import { formatAltibajas } from '../lib/formatUtils';
+import { formatAltibajas, setActiveCurrencyCountry } from '../lib/formatUtils';
 import { generateWeddingTheme, getDefaultWeddingTheme } from '../lib/themeUtils';
+import { generateEventSlug, sanitizeEventNameForSlug, getCanonicalEventKey } from '../lib/slugUtils';
 
 export const LEVEL_1_USER = {
+  id: 'user-herly-lizarazo',
   username: 'Herly Lizarazo',
   clave: '00448157',
   level: 1,
   roleTitle: 'Director de Bodas & Protocolo (Nivel 1 - Super Admin)',
 };
 
-export const LEVEL_3_DEMO_USER = {
-  username: 'Guest Planner',
-  clave: '952341165',
-  level: 3,
-  roleTitle: 'Wedding Planner (Nivel 3 - Wedding Planner)',
-  assignedWeddingIds: ['boda-sofia-alejandro', 'boda-valentina-mateo'],
-  createdWeddingIds: ['boda-sofia-alejandro', 'boda-valentina-mateo'],
-};
+export const DEPRECATED_OR_DELETED_WEDDING_IDS = new Set([
+  'boda-sofia-alejandro',
+  'boda-valentina-mateo',
+]);
 
-export const LEVEL_2_DEMO_USER = {
-  username: 'Zenaida Anahua',
-  clave: '70242438',
-  level: 2,
-  roleTitle: 'Anfitriona de Boda (Nivel 2 - Anfitrión)',
-  assignedWeddingIds: ['boda-zenaida-ronny', 'boda-zenaida-ronald'],
-};
+export function getDeletedWeddingIdsSet(): Set<string> {
+  const set = new Set<string>([
+    'boda-sofia-alejandro',
+    'boda-valentina-mateo',
+  ]);
+  try {
+    const stored = localStorage.getItem('casanovia_deleted_wedding_ids');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        parsed.forEach((id: string) => {
+          if (id && typeof id === 'string') {
+            const clean = id.toLowerCase().trim();
+            // Prevent false-positive generic strings or corrupted entries
+            if (clean && clean !== 'evento' && clean !== '0101-evento') {
+              set.add(clean);
+            }
+          }
+        });
+      }
+    }
+  } catch {}
+  return set;
+}
 
-export const LEVEL_5_DEMO_USER = {
-  username: 'Observador Invitado',
-  clave: '55555555',
-  level: 5 as const,
-  roleTitle: 'Observador (Nivel 5 - Solo Lectura)',
-  assignedWeddingIds: ['boda-sofia-alejandro', 'boda-valentina-mateo', 'boda-zenaida-ronny'],
-};
+export function markWeddingAsDeletedLocally(weddingId: string, slug?: string) {
+  const set = getDeletedWeddingIdsSet();
+  if (weddingId) {
+    const wClean = weddingId.toLowerCase().trim();
+    if (wClean && wClean !== 'evento' && wClean !== '0101-evento') {
+      set.add(wClean);
+    }
+  }
+  if (slug) {
+    const sClean = slug.toLowerCase().trim();
+    if (sClean && sClean !== 'evento' && sClean !== '0101-evento') {
+      set.add(sClean);
+    }
+  }
+  try {
+    localStorage.setItem('casanovia_deleted_wedding_ids', JSON.stringify(Array.from(set)));
+  } catch {}
+}
 
-const DEFAULT_ANONYMOUS_USER: AuthUser = {
+export function isWeddingDeleted(w: Wedding | string, deletedSet?: Set<string>): boolean {
+  const set = deletedSet || getDeletedWeddingIdsSet();
+  if (typeof w === 'string') {
+    const cleanStr = w.toLowerCase().trim();
+    return set.has(cleanStr);
+  }
+
+  if (!w || !w.id) return false;
+  const wId = (w.id || '').toLowerCase().trim();
+  const wSlug = (w.slug || '').toLowerCase().trim();
+  if (set.has(wId) || (wSlug && set.has(wSlug))) return true;
+
+  return false;
+}
+
+/**
+ * Consolidates an array of wedding objects from multiple sources (SQLite, JSON files, seeds, imports)
+ * into clean, unique records under the canonical slug format "MMDD-nombreevento" without the letter "y".
+ * 
+ * Merges:
+ * - Guests: combines all unique guests, keeping RSVPs, table seatings, and contact details without losing anyone.
+ * - Tables: combines table arrangements and seatings.
+ * - Timeline: combines schedule milestones chronologically.
+ * - Tasks, budget, and vendors.
+ * - Published invitation designs.
+ */
+export function consolidateWeddingsList(rawList: Wedding[]): Wedding[] {
+  if (!Array.isArray(rawList) || rawList.length === 0) return [];
+
+  // Filter valid objects
+  const validList = rawList.filter(
+    (w) => w && typeof w === 'object' && (w.id || w.coupleNames || w.title || w.settings?.coupleNames)
+  );
+
+  // Group by canonical event key (e.g. 0919-anaedu, 0912-zenaidaronny, 0919-juanjuana)
+  const grouped = new Map<string, Wedding[]>();
+
+  for (const item of validList) {
+    const canonSlug = getCanonicalEventKey(item);
+    if (!canonSlug) continue;
+
+    if (!grouped.has(canonSlug)) {
+      grouped.set(canonSlug, []);
+    }
+    grouped.get(canonSlug)!.push(item);
+  }
+
+  const consolidated: Wedding[] = [];
+
+  for (const [canonSlug, entries] of grouped.entries()) {
+    // Sort entries so the most complete one is prioritized
+    entries.sort((a, b) => {
+      const scoreA = (a.guests?.length || 0) * 10 + (a.tables?.length || 0) * 5 + (a.weddingCraftDesign ? 50 : 0) + (a.coupleNames && !a.coupleNames.startsWith('0101-') ? 20 : 0);
+      const scoreB = (b.guests?.length || 0) * 10 + (b.tables?.length || 0) * 5 + (b.weddingCraftDesign ? 50 : 0) + (b.coupleNames && !b.coupleNames.startsWith('0101-') ? 20 : 0);
+      return scoreB - scoreA;
+    });
+
+    const bestEntry = entries[0];
+
+    // Pick cleanest coupleNames from entries (avoid "0101-...", "boda-...")
+    let bestCoupleNames = bestEntry.coupleNames || bestEntry.title || bestEntry.settings?.coupleNames || '';
+    for (const e of entries) {
+      const name = e.coupleNames || e.title || e.settings?.coupleNames || '';
+      if (name && !name.startsWith('0101-') && !name.toLowerCase().startsWith('boda-') && !name.match(/^\d{4}-/)) {
+        bestCoupleNames = name;
+        break;
+      }
+    }
+    if (!bestCoupleNames) {
+      bestCoupleNames = bestEntry.coupleNames || bestEntry.title || canonSlug;
+    }
+
+    // Pick best weddingDate
+    let bestWeddingDate = bestEntry.weddingDate || bestEntry.settings?.weddingDate || '';
+    for (const e of entries) {
+      const d = e.weddingDate || e.settings?.weddingDate || '';
+      if (d && !d.includes('01-01') && !d.includes('0101')) {
+        bestWeddingDate = d;
+        break;
+      }
+    }
+    if (!bestWeddingDate) {
+      bestWeddingDate = bestEntry.weddingDate || '2026-09-19';
+    }
+
+    // Merge Settings
+    let mergedSettings: WeddingSettings = {
+      ...(bestEntry.settings || initialWeddingSettings),
+      coupleNames: bestCoupleNames,
+      weddingDate: bestWeddingDate,
+    };
+    for (const e of entries) {
+      if (e.settings) {
+        mergedSettings = {
+          ...mergedSettings,
+          ...Object.fromEntries(Object.entries(e.settings).filter(([_, v]) => v !== undefined && v !== null && v !== '')),
+          coupleNames: bestCoupleNames,
+          weddingDate: bestWeddingDate,
+        };
+      }
+    }
+
+    // Merge Guests comprehensively
+    const guestMap = new Map<string, Guest>();
+    for (const e of entries) {
+      if (Array.isArray(e.guests)) {
+        for (const g of e.guests) {
+          if (!g) continue;
+          const normName = (g.fullName || '').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          const key = g.id || normName || g.phone || g.email;
+          if (!key) continue;
+
+          if (!guestMap.has(key)) {
+            const existingByName = normName ? Array.from(guestMap.values()).find(
+              (eg) => (eg.fullName || '').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === normName
+            ) : null;
+
+            if (existingByName) {
+              const mergedG: Guest = {
+                ...existingByName,
+                ...g,
+                rsvpStatus: g.rsvpStatus === 'confirmed' ? 'confirmed' : (existingByName.rsvpStatus || g.rsvpStatus),
+                assignedTable: g.assignedTable || existingByName.assignedTable,
+                totalPasses: Math.max(g.totalPasses || 1, existingByName.totalPasses || 1),
+                confirmedPasses: Math.max(g.confirmedPasses || 0, existingByName.confirmedPasses || 0),
+                dietaryRestrictions: g.dietaryRestrictions || existingByName.dietaryRestrictions,
+                notes: g.notes || existingByName.notes,
+              };
+              guestMap.set(existingByName.id || key, mergedG);
+            } else {
+              guestMap.set(key, { ...g });
+            }
+          } else {
+            const existing = guestMap.get(key)!;
+            const mergedG: Guest = {
+              ...existing,
+              ...g,
+              rsvpStatus: g.rsvpStatus === 'confirmed' ? 'confirmed' : (existing.rsvpStatus || g.rsvpStatus),
+              assignedTable: g.assignedTable || existing.assignedTable,
+              totalPasses: Math.max(g.totalPasses || 1, existing.totalPasses || 1),
+              confirmedPasses: Math.max(g.confirmedPasses || 0, existing.confirmedPasses || 0),
+              dietaryRestrictions: g.dietaryRestrictions || existing.dietaryRestrictions,
+              notes: g.notes || existing.notes,
+            };
+            guestMap.set(key, mergedG);
+          }
+        }
+      }
+    }
+
+    // Merge Tables
+    const tableMap = new Map<string, WeddingTable>();
+    for (const e of entries) {
+      if (Array.isArray(e.tables)) {
+        for (const tb of e.tables) {
+          if (!tb) continue;
+          const tbKey = tb.id || (tb.name ? tb.name.toLowerCase().trim() : '');
+          if (!tbKey) continue;
+          if (!tableMap.has(tbKey)) {
+            tableMap.set(tbKey, { ...tb });
+          } else {
+            const existingTb = tableMap.get(tbKey)!;
+            tableMap.set(tbKey, {
+              ...existingTb,
+              ...tb,
+              capacity: Math.max(existingTb.capacity || 10, tb.capacity || 10),
+            });
+          }
+        }
+      }
+    }
+
+    // Merge Timeline
+    const timelineMap = new Map<string, TimelineMilestone>();
+    for (const e of entries) {
+      if (Array.isArray(e.timeline)) {
+        for (const tm of e.timeline) {
+          if (!tm) continue;
+          const tmKey = tm.id || `${tm.time || ''}-${(tm.title || '').toLowerCase().trim()}`;
+          if (!tmKey) continue;
+          if (!timelineMap.has(tmKey)) {
+            timelineMap.set(tmKey, { ...tm });
+          }
+        }
+      }
+    }
+
+    // Merge Tasks
+    const taskMap = new Map<string, WeddingTask>();
+    for (const e of entries) {
+      if (Array.isArray(e.tasks)) {
+        for (const tk of e.tasks) {
+          if (!tk) continue;
+          const tkKey = tk.id || (tk.title ? tk.title.toLowerCase().trim() : '');
+          if (!tkKey) continue;
+          if (!taskMap.has(tkKey)) {
+            taskMap.set(tkKey, { ...tk });
+          } else {
+            const existingTk = taskMap.get(tkKey)!;
+            taskMap.set(tkKey, {
+              ...existingTk,
+              ...tk,
+              isCompleted: existingTk.isCompleted || (tk as any).isCompleted || (tk as any).completed || false,
+            });
+          }
+        }
+      }
+    }
+
+    // Merge Budget
+    const budgetMap = new Map<string, BudgetItem>();
+    for (const e of entries) {
+      if (Array.isArray(e.budget)) {
+        for (const bg of e.budget) {
+          if (!bg) continue;
+          const bgConcept = bg.concept || (bg as any).name || (bg as any).item || '';
+          const bgKey = bg.id || `${bg.category || ''}-${bgConcept.toLowerCase().trim()}`;
+          if (!bgKey) continue;
+          if (!budgetMap.has(bgKey)) {
+            budgetMap.set(bgKey, { ...bg });
+          }
+        }
+      }
+    }
+
+    // Merge Vendors
+    const vendorMap = new Map<string, VendorItem>();
+    for (const e of entries) {
+      if (Array.isArray(e.vendors)) {
+        for (const vd of e.vendors) {
+          if (!vd) continue;
+          const vdKey = vd.id || (vd.name ? vd.name.toLowerCase().trim() : '');
+          if (!vdKey) continue;
+          if (!vendorMap.has(vdKey)) {
+            vendorMap.set(vdKey, { ...vd });
+          }
+        }
+      }
+    }
+
+    // Merge WeddingCraft Design
+    let bestDesign: any = null;
+    for (const e of entries) {
+      if (e.weddingCraftDesign && (e.weddingCraftDesign.pages?.length || e.weddingCraftDesign.elements?.length)) {
+        bestDesign = e.weddingCraftDesign;
+        break;
+      }
+    }
+    if (!bestDesign && (publishedDesignsData as Record<string, any>)[canonSlug]) {
+      bestDesign = (publishedDesignsData as Record<string, any>)[canonSlug];
+    }
+
+    const mergedWedding: Wedding = {
+      ...bestEntry,
+      id: canonSlug,
+      slug: canonSlug,
+      title: bestCoupleNames,
+      coupleNames: bestCoupleNames,
+      weddingDate: bestWeddingDate,
+      settings: mergedSettings,
+      guests: Array.from(guestMap.values()),
+      tables: Array.from(tableMap.values()),
+      timeline: Array.from(timelineMap.values()).sort((a, b) => (a.time || '').localeCompare(b.time || '')),
+      tasks: taskMap.size > 0 ? Array.from(taskMap.values()) : generateMasterTasksForWedding(),
+      budget: Array.from(budgetMap.values()),
+      vendors: Array.from(vendorMap.values()),
+      weddingCraftDesign: bestDesign || bestEntry.weddingCraftDesign,
+    };
+
+    consolidated.push(mergedWedding);
+  }
+
+  return sortWeddingsByDate(consolidated);
+}
+
+export function deduplicateAndFilterWeddingsList(rawList: Wedding[]): Wedding[] {
+  if (!Array.isArray(rawList) || rawList.length === 0) return [];
+  const deletedSet = getDeletedWeddingIdsSet();
+  const validList = rawList.filter((w) => w && w.id && !isWeddingDeleted(w, deletedSet));
+  return consolidateWeddingsList(validList);
+}
+
+export const DEFAULT_ANONYMOUS_USER: AuthUser = {
   username: 'Invitado',
   level: 0,
   roleTitle: 'Visitante / Invitado',
@@ -87,12 +404,12 @@ const DEFAULT_ANONYMOUS_USER: AuthUser = {
 
 interface WeddingContextType {
   // Navigation & View
-  viewMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual';
-  appTheme: 'neumorphic' | 'classic';
-  setAppTheme: (theme: 'neumorphic' | 'classic') => void;
-  setViewMode: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual') => void;
-  activeView: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual';
-  setActiveView: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual') => void;
+  viewMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens';
+  appTheme: 'neumorphic' | 'classic' | 'minimalist';
+  setAppTheme: (theme: 'neumorphic' | 'classic' | 'minimalist') => void;
+  setViewMode: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens') => void;
+  activeView: 'public' | 'private' | 'new_wedding_tasks' | 'tokens';
+  setActiveView: (view: 'public' | 'private' | 'new_wedding_tasks' | 'tokens') => void;
   
   // Auth & RBAC
   currentUser: AuthUser;
@@ -101,12 +418,19 @@ interface WeddingContextType {
   isLevel1Admin: boolean;
   isHostUser: boolean;
   isLevel3Planner: boolean;
+  isLevel4Free: boolean;
   isLevel5Observer: boolean;
   canPrint: boolean;
   isPlannerOrAdmin: boolean;
   canCreateWedding: boolean;
   canManageUsers: boolean;
   canEditActiveWedding: boolean;
+  isLevel4TrialExpired: boolean;
+  level4DaysRemaining: number;
+  level4RegistrationDateStr: string;
+  upgradeNotice: { isOpen: boolean; featureTitle: string; message: string };
+  showUpgradeNotice: (featureTitle?: string, message?: string) => void;
+  closeUpgradeNotice: () => void;
   showAuthModal: boolean;
   setShowAuthModal: (show: boolean) => void;
   showNewWeddingModal: boolean;
@@ -172,12 +496,23 @@ interface WeddingContextType {
   addMilestone: (milestone: Omit<TimelineMilestone, 'id'>) => Promise<void>;
   updateMilestone: (id: string, updates: Partial<TimelineMilestone>) => Promise<void>;
   deleteMilestone: (id: string) => Promise<void>;
+  setTimeline: (newTimeline: TimelineMilestone[]) => Promise<void>;
   
   budget: BudgetItem[];
   addBudgetItem: (item: Omit<BudgetItem, 'id'>) => Promise<void>;
   updateBudgetItem: (id: string, updates: Partial<BudgetItem>) => Promise<void>;
   deleteBudgetItem: (id: string) => Promise<void>;
   syncBudgetWithVendors: () => Promise<void>;
+  
+  // Finanzas Fiesta de Promoción (Cuotas y Pagos Parciales Padres de Familia)
+  promotionQuotas: PromotionFeeQuota[];
+  addPromotionQuota: (quota: Omit<PromotionFeeQuota, 'id' | 'createdAt' | 'updatedAt' | 'partialPayments' | 'status'> & { partialPayments?: PartialPayment[] }) => Promise<void>;
+  updatePromotionQuota: (id: string, updates: Partial<PromotionFeeQuota>) => Promise<void>;
+  deletePromotionQuota: (id: string) => Promise<void>;
+  addPartialPaymentToQuota: (quotaId: string, payment: Omit<PartialPayment, 'id' | 'createdAt'>) => Promise<void>;
+  deletePartialPaymentFromQuota: (quotaId: string, paymentId: string) => Promise<void>;
+  assignGlobalPromotionQuota: (globalTargetAmount: number, notes?: string) => Promise<{ updatedCount: number; createdCount: number }>;
+  isPromotionComisionUser: boolean;
   
   tasks: WeddingTask[];
   addTask: (task: Omit<WeddingTask, 'id'>) => Promise<void>;
@@ -247,16 +582,44 @@ interface WeddingContextType {
   // Navigation & URL status
   hasWeddingUrlParam: boolean;
   isPublicHomeLanding: boolean;
+  isNoviasLanding: boolean;
   getRequestedWeddingIdFromUrl: () => string;
 
   // Firebase status
   isFirebaseLoading: boolean;
   isFirebaseConnected: boolean;
+
+  // Precarga de la app (al ingresar y al cerrar sesión)
+  isAppLoading: boolean;
+  setIsAppLoading: (loading: boolean) => void;
 }
 
 const WeddingContext = createContext<WeddingContextType | undefined>(undefined);
 
 export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Helper to check if URL explicitly requests the /novias landing page
+  const isNoviasUrlRequested = (): boolean => {
+    try {
+      if (typeof window !== 'undefined') {
+        const path = (window.location.pathname || '').toLowerCase();
+        const search = (window.location.search || '').toLowerCase();
+        const hash = (window.location.hash || '').toLowerCase();
+        return (
+          path === '/novias' ||
+          path === '/novias/' ||
+          path.startsWith('/novias/') ||
+          search.includes('novias') ||
+          search.includes('page=novias') ||
+          search.includes('page=Novias') ||
+          hash.includes('novias')
+        );
+      }
+    } catch {
+      // ignore
+    }
+    return false;
+  };
+
   // Helper to check if URL explicitly requests the /precios (or legacy /tokens) query
   const isTokensUrlRequested = (): boolean => {
     try {
@@ -285,15 +648,16 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   
-  const [appTheme, setAppThemeState] = useState<'neumorphic' | 'classic'>(() => {
+  const [appTheme, setAppThemeState] = useState<'neumorphic' | 'classic' | 'minimalist'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('casanovia_app_theme');
+      if (saved === 'minimalist') return 'minimalist';
       if (saved === 'classic') return 'classic';
     }
     return 'neumorphic';
   });
 
-  const setAppTheme = (theme: 'neumorphic' | 'classic') => {
+  const setAppTheme = (theme: 'neumorphic' | 'classic' | 'minimalist') => {
     setAppThemeState(theme);
     if (typeof window !== 'undefined') {
       localStorage.setItem('casanovia_app_theme', theme);
@@ -309,7 +673,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [appTheme]);
 
 
-  const [viewMode, setViewModeState] = useState<'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual'>(() => {
+  const [viewMode, setViewModeState] = useState<'public' | 'private' | 'new_wedding_tasks' | 'tokens'>(() => {
     if (isTokensUrlRequested()) {
       return 'tokens';
     }
@@ -321,7 +685,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const savedAuth = sessionStorage.getItem('wedding_hub_auth');
       if (savedAuth) {
-        return JSON.parse(savedAuth);
+        const parsed = JSON.parse(savedAuth);
+        return parsed;
       }
     } catch {
       // ignore
@@ -347,35 +712,66 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const urlParams = new URLSearchParams(window.location.search);
         const bodaParam =
           urlParams.get('boda') ||
+          urlParams.get('evento') ||
+          urlParams.get('event') ||
           urlParams.get('wedding') ||
           urlParams.get('w') ||
           urlParams.get('id') ||
           urlParams.get('b') ||
           urlParams.get('novios') ||
-          urlParams.get('slug');
+          urlParams.get('slug') ||
+          urlParams.get('invitacion') ||
+          urlParams.get('invitado') ||
+          urlParams.get('guest') ||
+          urlParams.get('code') ||
+          urlParams.get('c') ||
+          urlParams.get('token') ||
+          urlParams.get('pase');
+
+        if (isNoviasUrlRequested()) {
+          return '';
+        }
 
         if (bodaParam) {
           return decodeURIComponent(bodaParam).trim();
         }
 
+        // Check if query string is a raw slug directly: e.g. "?1128-erikayemar"
+        const rawSearch = window.location.search.replace(/^\?/, '').trim();
+        if (rawSearch && !rawSearch.includes('=')) {
+          const decoded = decodeURIComponent(rawSearch).trim();
+          if (decoded && !['precios', 'tokens', 'admin', 'login', 'portal', 'home', 'novias'].includes(decoded.toLowerCase())) {
+            return decoded;
+          }
+        }
+
         if (window.location.hash) {
           const hash = decodeURIComponent(window.location.hash.replace(/^#\/?/, '')).trim();
           if (hash) {
-            const cleanHash = hash.replace(/^(boda\/|wedding\/)/, 'boda-');
-            if (cleanHash && !cleanHash.includes('page=') && !cleanHash.includes('precios') && !cleanHash.includes('tokens')) {
+            const cleanHash = hash.replace(/^(boda\/|wedding\/|evento\/)/, '');
+            if (cleanHash && !cleanHash.includes('page=') && !cleanHash.includes('precios') && !cleanHash.includes('tokens') && !cleanHash.includes('novias')) {
               return cleanHash;
             }
           }
         }
 
-        // Check pathname segments e.g. /boda/boda-zenaida-ronny or /boda-zenaida-ronny
+        // Check pathname segments e.g. /1128-erikayemar, /boda/1128-erikayemar, /boda-erika-yemar-6398
         const pathSegments = window.location.pathname.split('/').filter(Boolean);
         for (const seg of pathSegments) {
           const cleanSeg = decodeURIComponent(seg).trim();
           if (
+            cleanSeg.toLowerCase() === 'novias' ||
+            cleanSeg.toLowerCase() === 'precios' ||
+            cleanSeg.toLowerCase() === 'tokens' ||
+            cleanSeg.toLowerCase() === 'admin'
+          ) {
+            continue;
+          }
+          if (
             cleanSeg.startsWith('boda-') ||
             cleanSeg.startsWith('wedding-') ||
-            (cleanSeg.includes('-') && !['precios', 'tokens', 'api', 'assets'].includes(cleanSeg.toLowerCase()))
+            /^\d{4}-/.test(cleanSeg) ||
+            (cleanSeg.includes('-') && !['precios', 'tokens', 'api', 'assets', 'admin', 'login', 'novias'].includes(cleanSeg.toLowerCase()))
           ) {
             return cleanSeg;
           }
@@ -423,8 +819,15 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const cleanReq = decodeURIComponent(requested).trim().toLowerCase();
     if (!cleanReq) return undefined;
 
+    // 0. Match by standardized slug (e.g. "0919-juanyjuana")
+    let found = weddingsList.find((w) => {
+      const slug = generateEventSlug(w.coupleNames || '', w.weddingDate || w.settings?.weddingDate).toLowerCase();
+      return slug === cleanReq || slug.replace(/y/g, '') === cleanReq.replace(/y/g, '');
+    });
+    if (found) return found;
+
     // 1. Exact ID match (case-insensitive)
-    let found = weddingsList.find((w) => w.id.toLowerCase() === cleanReq);
+    found = weddingsList.find((w) => w.id.toLowerCase() === cleanReq);
     if (found) return found;
 
     // 2. ID match without 'boda-' or 'wedding-' prefix
@@ -434,15 +837,26 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
     if (found) return found;
 
-    // 3. Match against normalized couple names (e.g. "zenaida-ronny" -> "Zenaida & Ronny")
+    // 2.5 Match stripping trailing random numeric suffix (e.g. "boda-erika-yemar-6398" <-> "boda-erika-yemar")
+    const stripSuffix = (s: string) => s.replace(/[-_]\d+$/, '').replace(/^(boda-|wedding-)/, '');
+    const cleanReqNoSuffix = stripSuffix(cleanReq);
+    found = weddingsList.find((w) => stripSuffix(w.id.toLowerCase()) === cleanReqNoSuffix);
+    if (found) return found;
+
+    // 3. Match against normalized couple names (e.g. "zenaida-ronny" -> "Zenaida & Ronny", "erika-yemar-6398" -> "Erika & Yemar")
     found = weddingsList.find((w) => {
       const coupleLower = (w.coupleNames || '').toLowerCase();
       const coupleClean = coupleLower.replace(/[^a-z0-9]/g, '');
       const reqClean = cleanReq.replace(/[^a-z0-9]/g, '');
+      const reqNoDigits = cleanReq.replace(/[^a-z]/g, '');
       const unPrefClean = unPrefixedReq.replace(/[^a-z0-9]/g, '');
+      const unPrefNoDigits = unPrefixedReq.replace(/[^a-z]/g, '');
+      const coupleNoDigits = coupleLower.replace(/[^a-z]/g, '');
       return (
         (coupleClean && coupleClean === reqClean) ||
-        (coupleClean && coupleClean === unPrefClean)
+        (coupleClean && coupleClean === unPrefClean) ||
+        (coupleNoDigits && coupleNoDigits === reqNoDigits) ||
+        (coupleNoDigits && coupleNoDigits === unPrefNoDigits)
       );
     });
     if (found) return found;
@@ -454,11 +868,23 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const groom = (w.settings?.groomName || '').toLowerCase();
       return (
         coupleLower.includes(unPrefixedReq) ||
+        coupleLower.includes(cleanReqNoSuffix) ||
         coupleLower.includes(cleanReq) ||
         bride.includes(unPrefixedReq) ||
         groom.includes(unPrefixedReq)
       );
     });
+    if (found) return found;
+
+    // 5. Match by guest code, phone, or guest ID
+    found = weddingsList.find((w) =>
+      w.guests?.some(
+        (g) =>
+          (g.code && g.code.toLowerCase() === cleanReq) ||
+          (g.id && g.id.toLowerCase() === cleanReq) ||
+          (g.phone && g.phone.replace(/[^0-9]/g, '') === cleanReq.replace(/[^0-9]/g, ''))
+      )
+    );
     if (found) return found;
 
     return undefined;
@@ -467,29 +893,36 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Helper to generate public shareable guest wedding URL
   const getShareableWeddingUrl = (weddingId?: string): string => {
     const targetId = weddingId || activeWeddingId;
-    try {
-      if (typeof window !== 'undefined' && window.location) {
-        const origin = window.location.origin;
-        const pathname = window.location.pathname;
-        return `${origin}${pathname}?boda=${encodeURIComponent(targetId)}`;
-      }
-    } catch {
-      // ignore
+    const targetWedding = weddings.find(w => w.id === targetId) || activeWedding;
+    let finalSlug = '0919-juanjuana';
+    if (targetWedding?.id && !targetWedding.id.startsWith('boda-')) {
+      finalSlug = targetWedding.id;
+    } else if (targetId && !targetId.startsWith('boda-')) {
+      finalSlug = targetId;
+    } else if (targetWedding?.coupleNames) {
+      finalSlug = generateEventSlug(targetWedding.coupleNames, targetWedding.weddingDate || targetWedding.settings?.weddingDate, weddings, targetWedding.id);
     }
-    return `https://weddinghub.app/?boda=${targetId}`;
+    return `https://www.casanovia.pe/?boda=${encodeURIComponent(finalSlug)}`;
   };
 
   // Helper to update URL param without reloading
   const updateUrlWeddingParam = (weddingId: string) => {
     try {
       if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
-        const url = new URL(window.location.href);
-        if (weddingId) {
-          url.searchParams.set('boda', weddingId);
+        if (viewMode === 'public') {
+          const url = new URL(window.location.href);
+          if (weddingId) {
+            url.searchParams.set('boda', weddingId);
+          } else {
+            url.searchParams.delete('boda');
+          }
+          window.history.replaceState({}, '', url.toString());
+        } else if (viewMode === 'tokens') {
+          window.history.replaceState({}, '', '/precios');
         } else {
-          url.searchParams.delete('boda');
+          // Keep URL clean as root for private administration
+          window.history.replaceState({}, '', window.location.origin + '/');
         }
-        window.history.replaceState({}, '', url.toString());
       }
     } catch (err) {
       console.error('Error updating URL search params:', err);
@@ -585,15 +1018,17 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (local) {
         const parsed = JSON.parse(local);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const remoteIds = new Set(parsed.map((w: Wedding) => w.id));
-          const missingDefaults = initialWeddingsList.filter((def) => !remoteIds.has(def.id));
-          return sortWeddingsByDate([...parsed, ...missingDefaults]);
+          const combined = deduplicateAndFilterWeddingsList([...parsed, ...initialWeddingsList]);
+          try {
+            localStorage.setItem('casanovia_all_weddings', JSON.stringify(combined));
+          } catch {}
+          return combined;
         }
       }
     } catch {
       // ignore
     }
-    return initialWeddingsList;
+    return deduplicateAndFilterWeddingsList(initialWeddingsList);
   });
 
   // Automatically persist weddings to localStorage as resilient offline backup
@@ -607,38 +1042,92 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [weddings]);
 
+  // Synchronize WeddingCraft design changes in real time across the entire app
+  React.useEffect(() => {
+    const handleDesignUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ eventId: string; document: any }>;
+      if (customEvent.detail?.eventId && customEvent.detail?.document) {
+        const { eventId, document } = customEvent.detail;
+        const cleanEvt = eventId.replace(/^(\d{4}-|boda-|wedding-)/i, '').toLowerCase();
+        const cleanEvtNoSuffix = cleanEvt.replace(/[-_]\d+$/, '');
+
+        setWeddings((prev) => {
+          const updated = prev.map((w) => {
+            const cleanW = w.id.replace(/^(\d{4}-|boda-|wedding-)/i, '').toLowerCase();
+            const cleanWNoSuffix = cleanW.replace(/[-_]\d+$/, '');
+            if (w.id === eventId || cleanW === cleanEvt || cleanWNoSuffix === cleanEvtNoSuffix) {
+              return { ...w, weddingCraftDesign: document, updatedAt: new Date().toISOString() };
+            }
+            return w;
+          });
+          try {
+            localStorage.setItem('casanovia_all_weddings', JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
+      }
+    };
+    window.addEventListener('weddingcraft_design_updated', handleDesignUpdate);
+    return () => window.removeEventListener('weddingcraft_design_updated', handleDesignUpdate);
+  }, []);
+
   // Self-hosted seed loader (if running on casanovia.pe or Apache with api/data/seed.json)
   React.useEffect(() => {
     const checkSelfHostedSeed = async () => {
       try {
-        const res = await fetch('/api/data/seed.json');
-        if (res.ok) {
-          const seed = await res.json();
-          if (seed && Array.isArray(seed.weddings) && seed.weddings.length > 0) {
+        let seed: any = null;
+        try {
+          const sRes = await fetch('/api/seed.php');
+          if (sRes.ok) seed = await sRes.json();
+        } catch {}
+
+        if (!seed) {
+          try {
+            const dRes = await fetch('/api/data/seed.json');
+            if (dRes.ok) seed = await dRes.json();
+          } catch {}
+        }
+
+        if (seed && Array.isArray(seed.weddings) && seed.weddings.length > 0) {
             setWeddings((prev) => {
-              const prevIds = new Set(prev.map(w => w.id));
-              const missingFromSeed = seed.weddings.filter((w: Wedding) => !prevIds.has(w.id));
-              if (missingFromSeed.length > 0) {
-                const merged = sortWeddingsByDate([...prev, ...missingFromSeed]);
-                try { localStorage.setItem('casanovia_all_weddings', JSON.stringify(merged)); } catch {}
-                return merged;
-              }
-              return prev;
+              const merged = deduplicateAndFilterWeddingsList([...prev, ...seed.weddings]);
+              try { localStorage.setItem('casanovia_all_weddings', JSON.stringify(merged)); } catch {}
+              return merged;
             });
+
+            // Store published WeddingCraft designs in localStorage for instant guest view
+            if (seed.publishedDesigns && typeof seed.publishedDesigns === 'object') {
+              Object.entries(seed.publishedDesigns).forEach(([eId, des]) => {
+                try {
+                  localStorage.setItem(`weddingcraft_published_${eId}`, JSON.stringify(des));
+                } catch (e) {}
+              });
+            }
+
+            // Immediately check and align URL parameter after seed load
+            const requestedUrlId = getRequestedWeddingIdFromUrl();
+            if (requestedUrlId) {
+              const match = findWeddingByRequestedParam(seed.weddings, requestedUrlId);
+              if (match) {
+                setActiveWeddingId(match.id);
+                persistIndicatedWeddingId(match.id);
+              }
+            }
           }
           if (seed && Array.isArray(seed.systemUsers) && seed.systemUsers.length > 0) {
             setSystemUsers((prev) => {
-              const prevIds = new Set(prev.map(u => u.id));
-              const missingUsers = seed.systemUsers.filter((u: SystemUser) => !prevIds.has(u.id));
-              if (missingUsers.length > 0) {
-                const merged = [...prev, ...missingUsers];
-                try { localStorage.setItem('casanovia_system_users', JSON.stringify(merged)); } catch {}
-                return merged;
-              }
-              return prev;
+              const userMap = new Map<string, SystemUser>();
+              prev.forEach(u => userMap.set(u.id, u));
+              seed.systemUsers.forEach((u: SystemUser) => userMap.set(u.id, { ...userMap.get(u.id), ...u }));
+              const merged = Array.from(userMap.values());
+              try { localStorage.setItem('casanovia_system_users', JSON.stringify(merged)); } catch {}
+              return merged;
             });
           }
-        }
+          if (seed && seed.tokensPaymentConfig) {
+            setTokensPaymentConfig((prev) => ({ ...prev, ...seed.tokensPaymentConfig }));
+            try { localStorage.setItem('casanovia_tokens_payment_config', JSON.stringify(seed.tokensPaymentConfig)); } catch {}
+          }
       } catch {
         // ignore
       }
@@ -647,21 +1136,47 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
   const [activeWeddingId, setActiveWeddingId] = useState<string>(() => {
     const fromUrl = getRequestedWeddingIdFromUrl();
-    if (fromUrl) {
+    if (fromUrl && !DEPRECATED_OR_DELETED_WEDDING_IDS.has(fromUrl)) {
+      try {
+        const stored = localStorage.getItem('casanovia_all_weddings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const match = findWeddingByRequestedParam(parsed, fromUrl);
+            if (match && !DEPRECATED_OR_DELETED_WEDDING_IDS.has(match.id)) {
+              persistIndicatedWeddingId(match.id);
+              return match.id;
+            }
+          }
+        }
+      } catch {}
       const match = findWeddingByRequestedParam(initialWeddingsList, fromUrl);
-      if (match) {
+      if (match && !DEPRECATED_OR_DELETED_WEDDING_IDS.has(match.id)) {
         persistIndicatedWeddingId(match.id);
         return match.id;
       }
       return fromUrl;
     }
     const fromStored = getStoredIndicatedWeddingId();
-    if (fromStored) {
+    if (fromStored && !DEPRECATED_OR_DELETED_WEDDING_IDS.has(fromStored)) {
+      try {
+        const stored = localStorage.getItem('casanovia_all_weddings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const match = findWeddingByRequestedParam(parsed, fromStored);
+            if (match && !DEPRECATED_OR_DELETED_WEDDING_IDS.has(match.id)) return match.id;
+          }
+        }
+      } catch {}
       const match = findWeddingByRequestedParam(initialWeddingsList, fromStored);
-      if (match) return match.id;
+      if (match && !DEPRECATED_OR_DELETED_WEDDING_IDS.has(match.id)) return match.id;
       return fromStored;
     }
-    return initialWeddingsList[0]?.id || '';
+    const defaultWedding = initialWeddingsList.find(w => w.id === '1128-erikayemar') || initialWeddingsList[0];
+    const defaultId = defaultWedding?.id || '';
+    if (defaultId) persistIndicatedWeddingId(defaultId);
+    return defaultId;
   });
 
   // Selected Guest for Guide
@@ -671,129 +1186,159 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isFirebaseLoading, setIsFirebaseLoading] = useState<boolean>(false);
   const [isFirebaseConnected, setIsFirebaseConnected] = useState<boolean>(false);
 
+  // Sin pantalla de precarga al iniciar: la aplicación y las invitaciones cargan directamente
+  const [isAppLoading, setIsAppLoading] = useState<boolean>(false);
+
   const isLevel1Admin = currentUser.isAuthenticated && currentUser.level === 1;
   const isHostUser = currentUser.isAuthenticated && currentUser.level === 2;
   const isLevel3Planner = currentUser.isAuthenticated && currentUser.level === 3;
+  const isLevel4Free = currentUser.isAuthenticated && currentUser.level === 4;
   const isLevel5Observer = currentUser.isAuthenticated && currentUser.level === 5;
-  const canPrint = !isLevel5Observer;
-  const canCreateWedding = currentUser.isAuthenticated && (currentUser.level === 1 || currentUser.level === 3);
+  const canPrint = !isLevel5Observer && !isLevel4Free;
+
+  // Level 4 limitation: only 1 event allowed
+  const level4EventsCount = useMemo(() => {
+    if (!isLevel4Free) return 0;
+    return weddings.filter(w => 
+      w.createdByUserId === currentUser.id ||
+      w.createdByUserId === currentUser.username ||
+      (currentUser.createdWeddingIds && currentUser.createdWeddingIds.includes(w.id))
+    ).length;
+  }, [isLevel4Free, weddings, currentUser]);
+
+  const isLevel4AtEventLimit = isLevel4Free && level4EventsCount >= 1;
+
+  const canCreateWedding = currentUser.isAuthenticated && (
+    currentUser.level === 1 || 
+    currentUser.level === 3 || 
+    (currentUser.level === 4 && !isLevel4AtEventLimit)
+  );
   const canManageUsers = currentUser.isAuthenticated && (currentUser.level === 1 || currentUser.level === 3);
 
-  // Real-time Firestore Synchronization for System Users
+  // Level 4: 48-hour trial period calculation (2 days / 48 hours from creation)
+  const level4CreatedAt = useMemo(() => {
+    if (!isLevel4Free) return undefined;
+    if (currentUser.createdAt) return currentUser.createdAt;
+    const found = systemUsers.find(
+      u => u.id === currentUser.id || u.username.toLowerCase() === currentUser.username.toLowerCase()
+    );
+    return found?.createdAt || undefined;
+  }, [isLevel4Free, currentUser, systemUsers]);
+
+  const level4TrialStatus = useMemo(() => {
+    if (!level4CreatedAt) {
+      return { isExpired: false, hoursRemaining: 48, daysRemaining: 2, daysElapsed: 0, registrationDateFormatted: 'Fecha de registro' };
+    }
+    const regDate = new Date(level4CreatedAt);
+    const now = new Date();
+    const diffMs = now.getTime() - regDate.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    const isExpired = diffHours >= 48;
+    const hoursRemaining = Math.max(0, Math.ceil(48 - diffHours));
+    const daysRemaining = Math.max(0, Math.ceil((48 - diffHours) / 24));
+    const registrationDateFormatted = regDate.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    return {
+      isExpired,
+      hoursRemaining,
+      daysRemaining,
+      diffHours,
+      registrationDateFormatted,
+    };
+  }, [level4CreatedAt]);
+
+  const isLevel4TrialExpired = isLevel4Free && level4TrialStatus.isExpired;
+  const level4DaysRemaining = level4TrialStatus.daysRemaining;
+  const level4RegistrationDateStr = level4TrialStatus.registrationDateFormatted;
+
+  // Upgrade notice modal state
+  const [upgradeNotice, setUpgradeNotice] = useState<{
+    isOpen: boolean;
+    featureTitle: string;
+    message: string;
+  }>({
+    isOpen: false,
+    featureTitle: '',
+    message: '',
+  });
+
+  const showUpgradeNotice = (featureTitle?: string, message?: string) => {
+    setUpgradeNotice({
+      isOpen: true,
+      featureTitle: featureTitle || 'Subir de Nivel',
+      message: message || 'Esta función no está disponible en la cuenta Nivel 4 (Plan Gratuito). Sube de nivel para acceder a todas las funciones sin restricciones.',
+    });
+  };
+
+  const closeUpgradeNotice = () => {
+    setUpgradeNotice(prev => ({ ...prev, isOpen: false }));
+  };
+
+  // Hosting Backend Synchronization for System Users, Tokens Config, and Uploaded Images
   useEffect(() => {
-    let unsubscribeUsers: (() => void) | undefined;
+    let isMounted = true;
 
-    const initUsersSync = () => {
+    const initUsersSync = async () => {
       try {
-        const usersColl = collection(db, 'system_users');
+        const list = await fetchUsersFromHosting();
+        if (!isMounted) return;
 
-        unsubscribeUsers = onSnapshot(
-          usersColl,
-          async (querySnapshot) => {
-            // Auto-seed default system users if collection is empty from server
-            if (querySnapshot.empty && !querySnapshot.metadata.hasPendingWrites && !querySnapshot.metadata.fromCache) {
-              try {
-                const batch = writeBatch(db);
-                for (const user of INITIAL_SYSTEM_USERS) {
-                  const uDoc = doc(db, 'system_users', user.id);
-                  batch.set(uDoc, user);
-                }
-                await batch.commit();
-              } catch (seedErr) {
-                console.warn('[Firestore] Users seeding skipped/deferred:', seedErr);
-              }
-              return;
-            }
-
-            const list: SystemUser[] = [];
-            querySnapshot.forEach((docSnap) => {
-              const data = docSnap.data() as SystemUser;
-              list.push({
-                ...data,
-                id: docSnap.id,
-              });
-            });
-
-            if (list.length > 0) {
-              const remoteIds = new Set(list.map((u) => u.id));
-              const missingDefaults = INITIAL_SYSTEM_USERS.filter((def) => !remoteIds.has(def.id));
-              const merged = [...list, ...missingDefaults];
-              setSystemUsers(merged);
-              try {
-                localStorage.setItem('casanovia_system_users', JSON.stringify(merged));
-              } catch {
-                // ignore
-              }
-            }
-          },
-          (error) => {
-            if ((error as any)?.code === 'unavailable') {
-              console.info('[Firestore] system_users listener running in offline mode.');
-            } else {
-              handleFirestoreError(error, OperationType.LIST, 'system_users');
-            }
+        if (!list || list.length === 0) {
+          // Auto-seed default system user (Herly Lizarazo) if hosting is empty
+          try {
+            await saveUsersBulkToHosting(INITIAL_SYSTEM_USERS);
+          } catch (seedErr) {
+            console.warn('[Hosting] Users seeding skipped/deferred:', seedErr);
           }
-        );
+          setSystemUsers(INITIAL_SYSTEM_USERS);
+          try {
+            localStorage.setItem('casanovia_system_users', JSON.stringify(INITIAL_SYSTEM_USERS));
+          } catch {}
+          return;
+        }
+
+        setSystemUsers(list);
+        try {
+          localStorage.setItem('casanovia_system_users', JSON.stringify(list));
+        } catch {}
       } catch (err) {
-        console.error('[Firestore] Error conectando a system_users:', err);
+        console.info('[Hosting] Note loading system users:', err);
       }
     };
 
-    let unsubscribeTokensConfig: (() => void) | undefined;
-    const initTokensConfigSync = () => {
+    const initTokensConfigSync = async () => {
       try {
-        const configDoc = doc(db, 'system_configs', 'tokens_payment');
-        unsubscribeTokensConfig = onSnapshot(
-          configDoc,
-          (snap) => {
-            if (snap.exists()) {
-              const data = snap.data() as TokensPaymentConfig;
-              setTokensPaymentConfig(prev => ({ ...prev, ...data }));
-              try {
-                localStorage.setItem('casanovia_tokens_payment_config', JSON.stringify(data));
-              } catch {
-                // ignore
-              }
-            }
-          },
-          (err) => {
-            console.info('[Firestore] tokens_payment listener note:', err);
-          }
-        );
+        const data = await fetchSystemConfigFromHosting<TokensPaymentConfig>('tokens_payment');
+        if (isMounted && data) {
+          setTokensPaymentConfig(prev => ({ ...prev, ...data }));
+          try {
+            localStorage.setItem('casanovia_tokens_payment_config', JSON.stringify(data));
+          } catch {}
+        }
       } catch (err) {
-        console.error('[Firestore] Error conectando a tokens_payment:', err);
+        console.info('[Hosting] Note loading tokens_payment config:', err);
+      }
+    };
+
+    const initUploadedImagesSync = async () => {
+      try {
+        const data = await fetchSystemConfigFromHosting<UploadedImageRecord[]>('uploaded_images');
+        if (isMounted && data && Array.isArray(data)) {
+          const list = [...data].sort((a, b) => new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime());
+          setUploadedImages(list);
+        }
+      } catch (err) {
+        console.info('[Hosting] Note loading uploaded_images:', err);
       }
     };
 
     initUsersSync();
     initTokensConfigSync();
-
-    let unsubscribeUploadedImages: (() => void) | undefined;
-    const initUploadedImagesSync = () => {
-      try {
-        const imagesColl = collection(db, 'uploaded_images');
-        unsubscribeUploadedImages = onSnapshot(
-          imagesColl,
-          (snapshot) => {
-            const list: UploadedImageRecord[] = [];
-            snapshot.forEach((docSnap) => {
-              const data = docSnap.data();
-              list.push({
-                id: docSnap.id,
-                ...data,
-              } as UploadedImageRecord);
-            });
-            list.sort((a, b) => new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime());
-            setUploadedImages(list);
-          },
-          (err) => {
-            console.info('[Firestore] uploaded_images listener note:', err);
-          }
-        );
-      } catch (err) {
-        console.error('[Firestore] Error conectando a uploaded_images:', err);
-      }
-    };
     initUploadedImagesSync();
 
     // Listen to browser forward/back or hash changes for URL routing
@@ -816,16 +1361,22 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     window.addEventListener('hashchange', handleUrlNav);
 
     return () => {
-      if (unsubscribeUsers) unsubscribeUsers();
-      if (unsubscribeTokensConfig) unsubscribeTokensConfig();
-      if (unsubscribeUploadedImages) unsubscribeUploadedImages();
+      isMounted = false;
       window.removeEventListener('popstate', handleUrlNav);
       window.removeEventListener('hashchange', handleUrlNav);
     };
   }, []);
 
   // View switch interceptor
-  const setViewMode = (newMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens' | 'manual') => {
+  const setViewMode = (newMode: 'public' | 'private' | 'new_wedding_tasks' | 'tokens') => {
+    if (newMode === 'public' && currentUser.isAuthenticated && currentUser.level === 4) {
+      showUpgradeNotice(
+        'Web Invitados',
+        'El acceso a la "Web Invitados" no está disponible para cuentas de Nivel 4 (Plan Gratuito). Por favor sube de nivel para activar la web interactiva para tus invitados.'
+      );
+      return;
+    }
+
     if (newMode === 'private' || newMode === 'new_wedding_tasks') {
       let isAuth = currentUser.isAuthenticated;
       if (!isAuth && typeof window !== 'undefined') {
@@ -844,18 +1395,19 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
     setViewModeState(newMode);
     try {
-      if (typeof window !== 'undefined' && window.history && window.history.pushState) {
-        const url = new URL(window.location.href);
+      if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
         if (newMode === 'tokens') {
-          // Clean URL: casanovia.vercel.app/?page=precios
-          url.search = '?page=precios';
-        } else {
-          url.searchParams.delete('page');
-          if (activeWeddingId && activeWeddingId !== 'default' && !url.searchParams.get('boda')) {
+          window.history.replaceState({}, '', '/precios');
+        } else if (newMode === 'public') {
+          const url = new URL(window.location.href);
+          if (activeWeddingId && activeWeddingId !== 'default') {
             url.searchParams.set('boda', activeWeddingId);
           }
+          window.history.replaceState({}, '', url.toString());
+        } else {
+          // Clean URL: casanovia.pe/ without extra params or path
+          window.history.replaceState({}, '', window.location.origin + '/');
         }
-        window.history.pushState({}, '', url.toString());
       }
     } catch (err) {
       console.error('Error updating URL for view mode:', err);
@@ -876,6 +1428,18 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
 
     if (foundUser) {
+      if (foundUser.level === 4) {
+        const regDate = new Date(foundUser.createdAt || new Date().toISOString());
+        const now = new Date();
+        const diffMs = now.getTime() - regDate.getTime();
+        const diffHours = diffMs / (1000 * 60 * 60);
+        if (diffHours >= 48) {
+          return {
+            success: false,
+            message: 'Ha finalizado tu plazo de prueba gratuito de 48 horas (2 días). Tu acceso a la plataforma se encuentra cerrado. Por favor sube a un plan de pago para continuar.',
+          };
+        }
+      }
       const assigned = foundUser.assignedWeddingIds || [];
       const created = foundUser.createdWeddingIds || [];
       const authObj: AuthUser = {
@@ -886,6 +1450,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isAuthenticated: true,
         assignedWeddingIds: assigned,
         createdWeddingIds: created,
+        createdAt: foundUser.createdAt,
       };
       setCurrentUser(authObj);
       try {
@@ -919,6 +1484,20 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         } else {
           setActiveWeddingId('');
         }
+      } else if (foundUser.level === 4) {
+        // For Level 4 Novia Free: ONLY weddings created by or assigned to this user
+        const uCreated = weddings.filter(w => 
+          created.includes(w.id) || 
+          assigned.includes(w.id) ||
+          w.createdByUserId === foundUser.id ||
+          w.createdByUserId === foundUser.username ||
+          (w.createdByUserName && w.createdByUserName.trim().toLowerCase() === foundUser.username.trim().toLowerCase())
+        );
+        if (uCreated.length > 0) {
+          setActiveWeddingId(uCreated[0].id);
+        } else {
+          setActiveWeddingId('');
+        }
       } else if (foundUser.level === 5) {
         if (assigned.length > 0) {
           const target = weddings.find(w => assigned.includes(w.id));
@@ -932,6 +1511,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (foundUser.level === 1) welcomeRole = 'Nivel 1 (Super Administrador)';
       else if (foundUser.level === 3) welcomeRole = 'Nivel 3 (Wedding Planner)';
       else if (foundUser.level === 2) welcomeRole = 'Nivel 2 (Anfitrión)';
+      else if (foundUser.level === 4) welcomeRole = 'Nivel 4 (Novia Free)';
       else if (foundUser.level === 5) welcomeRole = 'Nivel 5 (Observador)';
 
       return {
@@ -965,104 +1545,6 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       };
     }
 
-    if (
-      (trimmedUser === LEVEL_3_DEMO_USER.username.toLowerCase() || trimmedUser === 'planner guest' || trimmedUser.includes('planner') || trimmedUser.includes('mariana')) &&
-      (trimmedClave === LEVEL_3_DEMO_USER.clave || trimmedClave === '952341165' || trimmedClave === '88442200' || trimmedClave === '88776655')
-    ) {
-      const authObj: AuthUser = {
-        id: 'user-planner-guest',
-        username: LEVEL_3_DEMO_USER.username,
-        level: 3,
-        roleTitle: LEVEL_3_DEMO_USER.roleTitle,
-        isAuthenticated: true,
-        assignedWeddingIds: LEVEL_3_DEMO_USER.assignedWeddingIds,
-        createdWeddingIds: LEVEL_3_DEMO_USER.createdWeddingIds,
-      };
-      setCurrentUser(authObj);
-      try {
-        sessionStorage.setItem('wedding_hub_auth', JSON.stringify(authObj));
-      } catch {
-        // ignore
-      }
-      setShowAuthModal(false);
-      setViewModeState('private');
-
-      // Auto-switch to Sofia & Alejandro wedding if exists among created weddings
-      const sWedding = weddings.find(w => w.id === 'boda-sofia-alejandro') || weddings[0];
-      if (sWedding) {
-        setActiveWeddingId(sWedding.id);
-      }
-
-      return {
-        success: true,
-        message: `¡Bienvenido(a) ${LEVEL_3_DEMO_USER.username}! Acceso concedido como Wedding Planner (Nivel 3).`,
-      };
-    }
-
-    if (
-      (trimmedUser === LEVEL_2_DEMO_USER.username.toLowerCase() || trimmedUser.includes('zenaida')) &&
-      trimmedClave === LEVEL_2_DEMO_USER.clave
-    ) {
-      const authObj: AuthUser = {
-        username: LEVEL_2_DEMO_USER.username,
-        level: 2,
-        roleTitle: LEVEL_2_DEMO_USER.roleTitle,
-        isAuthenticated: true,
-        assignedWeddingIds: ['boda-zenaida-ronny', 'boda-zenaida-ronald'],
-      };
-      setCurrentUser(authObj);
-      try {
-        sessionStorage.setItem('wedding_hub_auth', JSON.stringify(authObj));
-      } catch {
-        // ignore
-      }
-      setShowAuthModal(false);
-      setViewModeState('private');
-
-      // Auto-switch to Zenaida & Ronny wedding
-      const zWedding = weddings.find(w => w.id.includes('zenaida') || w.coupleNames.toLowerCase().includes('zenaida'));
-      if (zWedding) {
-        setActiveWeddingId(zWedding.id);
-      }
-
-      return {
-        success: true,
-        message: `¡Bienvenida ${LEVEL_2_DEMO_USER.username}! Acceso concedido como Anfitriona de Boda (Zenaida & Ronny).`,
-      };
-    }
-
-    if (
-      (trimmedUser === LEVEL_5_DEMO_USER.username.toLowerCase() || trimmedUser.includes('observador')) &&
-      trimmedClave === LEVEL_5_DEMO_USER.clave
-    ) {
-      const authObj: AuthUser = {
-        id: 'user-observador',
-        username: LEVEL_5_DEMO_USER.username,
-        level: 5,
-        roleTitle: LEVEL_5_DEMO_USER.roleTitle,
-        isAuthenticated: true,
-        assignedWeddingIds: LEVEL_5_DEMO_USER.assignedWeddingIds,
-      };
-      setCurrentUser(authObj);
-      try {
-        sessionStorage.setItem('wedding_hub_auth', JSON.stringify(authObj));
-      } catch {
-        // ignore
-      }
-      setShowAuthModal(false);
-      setViewModeState('private');
-
-      const firstAccessible = weddings.find(w => LEVEL_5_DEMO_USER.assignedWeddingIds.includes(w.id)) || weddings[0];
-      if (firstAccessible) {
-        setActiveWeddingId(firstAccessible.id);
-      }
-
-      return {
-        success: true,
-        message: `¡Bienvenido(a) ${LEVEL_5_DEMO_USER.username}! Acceso concedido como Observador (Nivel 5 - Solo Lectura).`,
-      };
-    }
-
     return {
       success: false,
       message: 'Credenciales no válidas. Verifica el usuario y la clave ingresada.',
@@ -1078,12 +1560,20 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
     setShowAuthModal(false);
     setViewModeState('public');
+
+    // Activar la precarga al cerrar sesión
+    setIsAppLoading(true);
+    setTimeout(() => {
+      setIsAppLoading(false);
+    }, 1500);
+
     try {
       if (typeof window !== 'undefined') {
-        window.location.href = 'index.html';
+        const cleanPath = window.location.pathname.endsWith('.html') ? window.location.pathname : '/';
+        window.history.replaceState(null, '', cleanPath);
       }
     } catch (err) {
-      console.error('Error al cargar index.html:', err);
+      console.error('Error al resetear URL en logout:', err);
     }
   };
 
@@ -1096,11 +1586,14 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       createdAt: new Date().toISOString(),
     };
     try {
-      await setDoc(doc(db, 'system_users', newUserId), cleanFirestoreData(newUser));
+      await saveUserToHosting(newUser);
       setSystemUsers(prev => [newUser, ...prev]);
+      try {
+        localStorage.setItem('casanovia_system_users', JSON.stringify([newUser, ...systemUsers]));
+      } catch {}
       return newUser;
     } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `system_users/${newUserId}`);
+      console.warn('Error saving user to hosting:', err);
       throw err;
     }
   };
@@ -1111,20 +1604,34 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         ...updates,
         updatedAt: new Date().toISOString(),
       };
-      await setDoc(doc(db, 'system_users', id), cleanFirestoreData(updatedData), { merge: true });
-      setSystemUsers(prev => prev.map(u => u.id === id ? { ...u, ...updatedData } : u));
+      const existing = systemUsers.find(u => u.id === id);
+      const mergedUser = existing ? { ...existing, ...updatedData } : { id, ...updatedData };
+      await saveUserToHosting(mergedUser);
+      setSystemUsers(prev => {
+        const next = prev.map(u => u.id === id ? { ...u, ...updatedData } : u);
+        try {
+          localStorage.setItem('casanovia_system_users', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `system_users/${id}`);
+      console.warn('Error updating user on hosting:', err);
       throw err;
     }
   };
 
   const deleteSystemUser = async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'system_users', id));
-      setSystemUsers(prev => prev.filter(u => u.id !== id));
+      await deleteUserFromHosting(id);
+      setSystemUsers(prev => {
+        const next = prev.filter(u => u.id !== id);
+        try {
+          localStorage.setItem('casanovia_system_users', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
     } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `system_users/${id}`);
+      console.warn('Error deleting user from hosting:', err);
       throw err;
     }
   };
@@ -1140,13 +1647,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         // ignore
       }
 
-      // Also persist to Firestore if available
-      try {
-        const configDoc = doc(db, 'system_configs', 'tokens_payment');
-        await setDoc(configDoc, cleanFirestoreData(mergedConfig), { merge: true });
-      } catch (fErr) {
-        console.info('[Firestore] Persisted tokens payment config locally (offline mode fallback).', fErr);
-      }
+      await saveSystemConfigToHosting('tokens_payment', mergedConfig);
     } catch (err) {
       console.error('Error updating tokens payment config:', err);
       throw err;
@@ -1163,169 +1664,115 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       id,
       uploadedAt,
     };
+    const updated = [fullRecord, ...uploadedImages.filter((item) => item.id !== id)];
+    setUploadedImages(updated);
     try {
-      const docRef = doc(db, 'uploaded_images', id);
-      await setDoc(docRef, cleanFirestoreData(fullRecord));
+      await saveSystemConfigToHosting('uploaded_images', updated);
     } catch (e) {
-      console.warn('[Firestore] Error saving uploaded image:', e);
+      console.warn('[Hosting] Error saving uploaded image config:', e);
     }
-    setUploadedImages((prev) => {
-      const filtered = prev.filter((item) => item.id !== id);
-      return [fullRecord, ...filtered];
-    });
     return id;
   };
 
   const deleteUploadedImage = async (id: string): Promise<void> => {
+    const updated = uploadedImages.filter((item) => item.id !== id);
+    setUploadedImages(updated);
     try {
-      const docRef = doc(db, 'uploaded_images', id);
-      await deleteDoc(docRef);
+      await saveSystemConfigToHosting('uploaded_images', updated);
     } catch (e) {
-      console.warn('[Firestore] Error deleting uploaded image:', e);
+      console.warn('[Hosting] Error deleting uploaded image config:', e);
     }
-    setUploadedImages((prev) => prev.filter((item) => item.id !== id));
   };
 
   // -------------------------------------------------------------
-  // Real-time Firestore Synchronization for Multi-Weddings
+  // Hosting Backend Synchronization for Multi-Weddings
   // -------------------------------------------------------------
   useEffect(() => {
-    let unsubscribeWeddings: (() => void) | undefined;
-    let fallbackTimer: NodeJS.Timeout | undefined;
+    let isMounted = true;
 
-    const initFirestoreSync = () => {
+    const initHostingWeddingsSync = async () => {
       try {
-        const weddingsColl = collection(db, 'weddings');
+        const fetchedList = await fetchWeddingsFromHosting();
+        if (!isMounted) return;
 
-        fallbackTimer = setTimeout(() => {
-          setIsFirebaseLoading((prev) => {
-            if (prev) {
-              console.info('[Firestore] Fallback timer reached.');
-              return false;
-            }
-            return false;
-          });
-        }, 4000);
-
-        // Setup real-time listener for all weddings
-        unsubscribeWeddings = onSnapshot(
-          weddingsColl,
-          async (querySnapshot) => {
-            if (fallbackTimer) clearTimeout(fallbackTimer);
-            // Auto-seed initial weddings if collection is confirmed empty on server
-            if (querySnapshot.empty && !querySnapshot.metadata.hasPendingWrites && !querySnapshot.metadata.fromCache) {
-              try {
-                const batch = writeBatch(db);
-                for (const wedding of initialWeddingsList) {
-                  const wDoc = doc(db, 'weddings', wedding.id);
-                  batch.set(wDoc, cleanFirestoreData(wedding));
-                }
-                await batch.commit();
-              } catch (seedErr) {
-                console.warn('[Firestore] Weddings seeding skipped/deferred:', seedErr);
-              }
-              setIsFirebaseLoading(false);
-              setIsFirebaseConnected(true);
-              return;
-            }
-
-            const list: Wedding[] = [];
-            querySnapshot.forEach((docSnap) => {
-              const data = docSnap.data() as Wedding;
-              list.push({
-                ...data,
-                id: docSnap.id,
-              });
-            });
-
-            if (list.length > 0) {
-              const remoteIds = new Set(list.map((w) => w.id));
-              const missingDefaults = initialWeddingsList.filter((def) => !remoteIds.has(def.id));
-              const combinedList = [...list, ...missingDefaults];
-              const sortedList = sortWeddingsByDate(combinedList);
-              setWeddings(sortedList);
-              try {
-                localStorage.setItem('casanovia_all_weddings', JSON.stringify(sortedList));
-              } catch {
-                // ignore
-              }
-              // ensure activeWeddingId respects URL parameter if requested or remains valid with indicated wedding
-              setActiveWeddingId((prev) => {
-                const requestedId = getRequestedWeddingIdFromUrl();
-                if (requestedId) {
-                  const match = findWeddingByRequestedParam(sortedList, requestedId);
-                  if (match) {
-                    persistIndicatedWeddingId(match.id);
-                    return match.id;
-                  }
-                  if (sortedList.some((w) => w.id === requestedId)) {
-                    persistIndicatedWeddingId(requestedId);
-                    return requestedId;
-                  }
-                  return requestedId;
-                }
-
-                // In absence of URL parameter: maintain the previously indicated/active wedding
-                if (prev) {
-                  const prevMatch = findWeddingByRequestedParam(sortedList, prev);
-                  if (prevMatch) {
-                    persistIndicatedWeddingId(prevMatch.id);
-                    return prevMatch.id;
-                  }
-                  if (sortedList.some((w) => w.id === prev)) {
-                    persistIndicatedWeddingId(prev);
-                    return prev;
-                  }
-                }
-
-                // Check stored indicated wedding in localStorage
-                const storedIndicated = getStoredIndicatedWeddingId();
-                if (storedIndicated) {
-                  const storedMatch = findWeddingByRequestedParam(sortedList, storedIndicated);
-                  if (storedMatch) {
-                    persistIndicatedWeddingId(storedMatch.id);
-                    return storedMatch.id;
-                  }
-                  if (sortedList.some((w) => w.id === storedIndicated)) {
-                    persistIndicatedWeddingId(storedIndicated);
-                    return storedIndicated;
-                  }
-                }
-
-                // If nothing was indicated, maintain the existing state or first available
-                const fallbackId = prev || sortedList[0]?.id || '';
-                if (fallbackId) {
-                  persistIndicatedWeddingId(fallbackId);
-                }
-                return fallbackId;
-              });
-            }
-            setIsFirebaseLoading(false);
-            setIsFirebaseConnected(true);
-          },
-          (error) => {
-            if (fallbackTimer) clearTimeout(fallbackTimer);
-            if ((error as any)?.code === 'unavailable') {
-              console.info('[Firestore] weddings listener running with offline cache.');
-            } else {
-              handleFirestoreError(error, OperationType.LIST, 'weddings');
-            }
-            setIsFirebaseLoading(false);
-            setIsFirebaseConnected(false);
-          }
-        );
-      } catch (err) {
-        if (fallbackTimer) clearTimeout(fallbackTimer);
-        console.error('[Firestore] Error conectando a weddings:', err);
+        // Use strictly the weddings present on the hosting backend
+        const hostingWeddings = Array.isArray(fetchedList) ? fetchedList : [];
+        const sortedList = deduplicateAndFilterWeddingsList(hostingWeddings);
         setIsFirebaseLoading(false);
+        setIsFirebaseConnected(true);
+
+        if (sortedList.length > 0) {
+          setWeddings(sortedList);
+          try {
+            localStorage.setItem('casanovia_all_weddings', JSON.stringify(sortedList));
+          } catch {
+            // ignore
+          }
+          // ensure activeWeddingId respects URL parameter if requested or remains valid with indicated wedding
+          setActiveWeddingId((prev) => {
+            const requestedId = getRequestedWeddingIdFromUrl();
+            if (requestedId && !isWeddingDeleted(requestedId)) {
+              const match = findWeddingByRequestedParam(sortedList, requestedId);
+              if (match && !isWeddingDeleted(match.id)) {
+                persistIndicatedWeddingId(match.id);
+                return match.id;
+              }
+              if (sortedList.some((w) => w.id === requestedId)) {
+                persistIndicatedWeddingId(requestedId);
+                return requestedId;
+              }
+              return requestedId;
+            }
+
+            // In absence of URL parameter: maintain the previously indicated/active wedding if not deprecated
+            if (prev && !isWeddingDeleted(prev)) {
+              const prevMatch = findWeddingByRequestedParam(sortedList, prev);
+              if (prevMatch && !isWeddingDeleted(prevMatch.id)) {
+                persistIndicatedWeddingId(prevMatch.id);
+                return prevMatch.id;
+              }
+              if (sortedList.some((w) => w.id === prev)) {
+                persistIndicatedWeddingId(prev);
+                return prev;
+              }
+            }
+
+            // Check stored indicated wedding in localStorage
+            const storedIndicated = getStoredIndicatedWeddingId();
+            if (storedIndicated && !isWeddingDeleted(storedIndicated)) {
+              const storedMatch = findWeddingByRequestedParam(sortedList, storedIndicated);
+              if (storedMatch && !isWeddingDeleted(storedMatch.id)) {
+                persistIndicatedWeddingId(storedMatch.id);
+                return storedMatch.id;
+              }
+              if (sortedList.some((w) => w.id === storedIndicated)) {
+                persistIndicatedWeddingId(storedIndicated);
+                return storedIndicated;
+              }
+            }
+
+            // If nothing was indicated, maintain Erika & Yemar or first available
+            const defaultW = sortedList.find(w => w.id === '1128-erikayemar') || sortedList[0];
+            const fallbackId = defaultW?.id || '';
+            if (fallbackId) {
+              persistIndicatedWeddingId(fallbackId);
+            }
+            return fallbackId;
+          });
+        }
+        setIsFirebaseLoading(false);
+        setIsFirebaseConnected(true);
+      } catch (err) {
+        console.warn('[Hosting] Weddings fetch error, using cached weddings:', err);
+        setIsFirebaseLoading(false);
+        setIsFirebaseConnected(true);
       }
     };
 
-    initFirestoreSync();
+    initHostingWeddingsSync();
 
     return () => {
-      if (fallbackTimer) clearTimeout(fallbackTimer);
-      if (unsubscribeWeddings) unsubscribeWeddings();
+      isMounted = false;
     };
   }, []);
 
@@ -1361,6 +1808,21 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return userCreatedWeddings;
     }
 
+    // Level 4: Novia Free has access to ONLY weddings created by or assigned to her! (New users start with 0 events)
+    if (currentUser.level === 4) {
+      const assignedIds = currentUser.assignedWeddingIds || [];
+      const createdIds = currentUser.createdWeddingIds || [];
+      const uName = (currentUser.username || '').trim().toLowerCase();
+      const uId = currentUser.id;
+      const own = weddings.filter((w) =>
+        assignedIds.includes(w.id) ||
+        createdIds.includes(w.id) ||
+        (w.createdByUserId && (w.createdByUserId === uId || w.createdByUserId === currentUser.username)) ||
+        (w.createdByUserName && w.createdByUserName.trim().toLowerCase() === uName)
+      );
+      return own;
+    }
+
     // Level 5: Observador has view access to assigned weddings (or all weddings if none specified)
     if (currentUser.level === 5) {
       const assignedIds = currentUser.assignedWeddingIds || [];
@@ -1386,10 +1848,108 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Compute active wedding object
   const activeWedding = React.useMemo(() => {
+    // 0. Priority: URL parameter if explicitly provided in URL
+    const requestedFromUrl = getRequestedWeddingIdFromUrl();
+    if (requestedFromUrl) {
+      const urlMatch =
+        findWeddingByRequestedParam(weddings, requestedFromUrl) ||
+        findWeddingByRequestedParam(initialWeddingsList, requestedFromUrl);
+      if (urlMatch) return urlMatch;
+
+      // Parse slug if formatted as "MMDD-name" or "boda-name"
+      let parsedDate = '2026-09-19T18:00:00';
+      let rawNames = requestedFromUrl;
+
+      const mmddMatch = requestedFromUrl.match(/^(\d{2})(\d{2})-([a-z0-9-_]+)/i);
+      if (mmddMatch) {
+        const mm = mmddMatch[1];
+        const dd = mmddMatch[2];
+        rawNames = mmddMatch[3];
+        parsedDate = `2026-${mm}-${dd}T18:00:00`;
+      } else {
+        rawNames = requestedFromUrl
+          .replace(/^(boda-|wedding-)/, '')
+          .replace(/[-_]\d+$/, '');
+      }
+
+      // Convert rawNames (e.g. "juanyjuana" or "juan-juana" or "juan y juana") to "Juan & Juana"
+      let formattedNames = rawNames
+        .replace(/[-_]/g, ' ')
+        .replace(/y/gi, ' & ')
+        .replace(/and/gi, ' & ')
+        .split(' ')
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ')
+        .replace(/\s*&\s*/g, ' & ');
+
+      // If string is "Juanyjuana" without spaces
+      if (!formattedNames.includes('&')) {
+        const ySplit = rawNames.split(/y/i);
+        if (ySplit.length === 2 && ySplit[0] && ySplit[1]) {
+          const p1 = ySplit[0].charAt(0).toUpperCase() + ySplit[0].slice(1).toLowerCase();
+          const p2 = ySplit[1].charAt(0).toUpperCase() + ySplit[1].slice(1).toLowerCase();
+          formattedNames = `${p1} & ${p2}`;
+        }
+      }
+
+      const coupleNames = formattedNames || 'Juan & Juana';
+      const brideName = coupleNames.split('&')[1]?.trim() || coupleNames.split('&')[0]?.trim() || 'Juana';
+      const groomName = coupleNames.split('&')[0]?.trim() || 'Juan';
+
+      const virtualRequestedWedding: Wedding = {
+        id: requestedFromUrl,
+        coupleNames,
+        weddingDate: parsedDate,
+        locationSummary: 'Arequipa, Perú',
+        status: 'planning',
+        settings: {
+          ...initialWeddingSettings,
+          coupleNames,
+          brideName,
+          groomName,
+          weddingDate: parsedDate,
+          weddingTime: '18:00',
+          locationSummary: 'Arequipa, Perú',
+          ceremonyVenue: {
+            name: 'Parroquia Nuestra Señora de la Asunción',
+            address: 'Calle Real 140, Yanahuara, Arequipa',
+            time: '18:00 hrs',
+            googleMapsUrl: '',
+            wazeUrl: '',
+            notes: '',
+          },
+          receptionVenue: {
+            name: 'Jardines de Sabandia',
+            address: 'Arequipa',
+            time: '19:30 hrs',
+            googleMapsUrl: '',
+            wazeUrl: '',
+            notes: '',
+          },
+        },
+        guests: [],
+        timeline: [],
+        budget: [],
+        tasks: [],
+        tables: [],
+        vendors: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      return virtualRequestedWedding;
+    }
+
     // If Level 3 Planner: MUST be one of their created weddings
     if (currentUser.isAuthenticated && currentUser.level === 3) {
       if (userCreatedWeddings.length === 0) return null;
       return userCreatedWeddings.find((w) => w.id === activeWeddingId) || userCreatedWeddings[0];
+    }
+
+    // If Level 4 Novia Free: MUST be one of their created/assigned weddings
+    if (currentUser.isAuthenticated && currentUser.level === 4) {
+      if (accessibleWeddings.length === 0) return null;
+      return accessibleWeddings.find((w) => w.id === activeWeddingId) || accessibleWeddings[0];
     }
 
     // If Level 5 Observador: MUST be one of accessible weddings
@@ -1414,16 +1974,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (match) return match;
     }
 
-    // 3. Fallback check from current URL parameter directly
-    const requestedFromUrl = getRequestedWeddingIdFromUrl();
-    if (requestedFromUrl) {
-      const urlMatch =
-        findWeddingByRequestedParam(weddings, requestedFromUrl) ||
-        findWeddingByRequestedParam(initialWeddingsList, requestedFromUrl);
-      if (urlMatch) return urlMatch;
-    }
-
-    // 4. Match from stored indicated wedding in localStorage
+    // 3. Match from stored indicated wedding in localStorage
     const storedIndicated = getStoredIndicatedWeddingId();
     if (storedIndicated) {
       const storedMatch =
@@ -1437,7 +1988,20 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Auto-align activeWeddingId when user logs in, accessibleWeddings changes, or activeWedding is resolved
   useEffect(() => {
-    if (currentUser.isAuthenticated && (currentUser.level === 3 || currentUser.level === 5)) {
+    const requestedFromUrl = getRequestedWeddingIdFromUrl();
+    if (requestedFromUrl) {
+      const matched =
+        findWeddingByRequestedParam(weddings, requestedFromUrl) ||
+        findWeddingByRequestedParam(initialWeddingsList, requestedFromUrl);
+      const targetId = matched ? matched.id : requestedFromUrl;
+      if (activeWeddingId !== targetId) {
+        setActiveWeddingId(targetId);
+        persistIndicatedWeddingId(targetId);
+      }
+      return;
+    }
+
+    if (currentUser.isAuthenticated && (currentUser.level === 3 || currentUser.level === 4 || currentUser.level === 5)) {
       if (accessibleWeddings.length > 0) {
         if (!accessibleWeddings.some(w => w.id === activeWeddingId)) {
           setActiveWeddingId(accessibleWeddings[0].id);
@@ -1450,7 +2014,57 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } else if (activeWedding && activeWedding.id && activeWedding.id !== activeWeddingId) {
       setActiveWeddingId(activeWedding.id);
     }
-  }, [currentUser, accessibleWeddings, activeWeddingId, activeWedding]);
+  }, [currentUser, accessibleWeddings, activeWeddingId, activeWedding, weddings]);
+
+  // Proactively fetch requested wedding from Firestore and self-hosted backend if opened directly by URL
+  useEffect(() => {
+    const requested = getRequestedWeddingIdFromUrl();
+    if (!requested) return;
+
+    let isMounted = true;
+    const existing = findWeddingByRequestedParam(weddings, requested);
+    if (existing && existing.weddingDate && existing.settings?.ceremonyVenue) {
+      return;
+    }
+
+    const fetchSpecificWedding = async () => {
+      // Direct host backend API (cPanel casanovia.pe)
+      try {
+        const apiDomain = (typeof window !== 'undefined' && window.location.hostname.includes('casanovia.pe'))
+          ? ''
+          : 'https://www.casanovia.pe';
+          
+        let res = await fetch(`${apiDomain}/api/weddings.php?slug=${encodeURIComponent(requested)}&public=1`).catch(() => null);
+        if (!res || !res.ok) {
+          res = await fetch(`${apiDomain}/api/weddings.php?id=${encodeURIComponent(requested)}&public=1`).catch(() => null);
+        }
+
+        if (res && res.ok && isMounted) {
+          const resData = await res.json();
+          if (resData?.success && resData?.wedding) {
+            const wData = resData.wedding;
+            setWeddings((prev) => {
+              const index = prev.findIndex((w) => w.id === wData.id);
+              if (index >= 0) {
+                const updated = [...prev];
+                updated[index] = { ...updated[index], ...wData };
+                return updated;
+              }
+              return sortWeddingsByDate([wData, ...prev]);
+            });
+            setActiveWeddingId(wData.id);
+            persistIndicatedWeddingId(wData.id);
+          }
+        }
+      } catch {}
+    };
+
+    fetchSpecificWedding();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [weddings.length]);
 
   // Compute permission to edit active wedding
   const canEditActiveWedding = React.useMemo(() => {
@@ -1464,6 +2078,19 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Level 3: Wedding Planner has edit permissions ONLY for weddings created by them
     if (currentUser.level === 3) {
       return isWeddingAccessibleByPlanner(activeWedding, currentUser);
+    }
+
+    // Level 4: Novia Free has edit permissions on her weddings
+    if (currentUser.level === 4) {
+      const uName = currentUser.username.trim().toLowerCase();
+      const assignedIds = currentUser.assignedWeddingIds || [];
+      const createdIds = currentUser.createdWeddingIds || [];
+      const isOwner = assignedIds.includes(activeWedding.id) ||
+                      createdIds.includes(activeWedding.id) ||
+                      activeWedding.createdByUserId === currentUser.id ||
+                      (activeWedding.createdByUserName && activeWedding.createdByUserName.trim().toLowerCase() === uName) ||
+                      activeWedding?.coupleNames?.toLowerCase().includes(uName);
+      return Boolean(isOwner || (!activeWedding.createdByUserId && weddings.length === 1) || (!currentUser.createdWeddingIds?.length && !currentUser.assignedWeddingIds?.length));
     }
 
     if (currentUser.level === 2) {
@@ -1503,18 +2130,48 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [currentUser]);
 
   // Active Wedding Sub-entities
-  const settings: WeddingSettings = activeWedding?.settings || initialWeddingSettings;
+  const emptySettings: WeddingSettings = {
+    ...initialWeddingSettings,
+    coupleNames: '',
+    brideName: '',
+    groomName: '',
+    weddingDate: '',
+    weddingTime: '',
+    locationSummary: '',
+  };
+
+  const settings: WeddingSettings = activeWedding?.settings || (!activeWedding && (currentUser.level === 4 || currentUser.level === 3) ? emptySettings : initialWeddingSettings);
+
+  useEffect(() => {
+    setActiveCurrencyCountry(settings?.countryCurrency || 'PE');
+  }, [settings?.countryCurrency]);
   const guests: Guest[] = activeWedding?.guests || [];
   const timeline: TimelineMilestone[] = React.useMemo(() => {
+    if (!activeWedding) return [];
     const raw = activeWedding?.timeline !== undefined ? activeWedding.timeline : initialTimeline;
     return sortTimelineMilestones<TimelineMilestone>(raw);
-  }, [activeWedding?.timeline]);
+  }, [activeWedding?.timeline, activeWedding]);
   const budget: BudgetItem[] = activeWedding?.budget || [];
+  const promotionQuotas: PromotionFeeQuota[] = activeWedding?.promotionQuotas || [];
+  
+  // Permission for Comisión role in Fiesta de Promoción
+  const isPromotionComisionUser = React.useMemo(() => {
+    if (!currentUser.isAuthenticated) return false;
+    if (currentUser.level === 1 || currentUser.level === 3) return true; // Super Admin or Planner
+    const roleLower = (currentUser.roleTitle || '').toLowerCase();
+    const userLower = (currentUser.username || '').toLowerCase();
+    const promRole = (currentUser.promotionRole || '').toLowerCase();
+    return promRole.includes('comision') ||
+           promRole.includes('comisión') ||
+           roleLower.includes('comision') ||
+           roleLower.includes('comisión') ||
+           userLower.includes('comision') ||
+           userLower.includes('comisión');
+  }, [currentUser]);
+
   const tasks: WeddingTask[] = activeWedding?.tasks || [];
-  const vendors: VendorItem[] = activeWedding?.vendors !== undefined ? activeWedding.vendors : initialVendors;
-  const tables: WeddingTable[] = activeWedding?.tables !== undefined
-    ? activeWedding.tables
-    : initialTables;
+  const vendors: VendorItem[] = activeWedding ? (activeWedding.vendors !== undefined ? activeWedding.vendors : initialVendors) : [];
+  const tables: WeddingTable[] = activeWedding ? (activeWedding.tables !== undefined ? activeWedding.tables : initialTables) : [];
 
   // Helper to persist changes to active wedding in Firestore
   const updateActiveWeddingDoc = async (partialWedding: Partial<Wedding>) => {
@@ -1546,10 +2203,17 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         })
       );
 
-      await setDoc(doc(db, 'weddings', targetWeddingId), updatedData, { merge: true });
+      // Save to Hosting Backend
+      try {
+        const fullWedding = weddings.find(w => w.id === targetWeddingId);
+        if (fullWedding) {
+          await saveWeddingToHosting({ ...fullWedding, ...updatedData });
+        }
+      } catch (hostErr) {
+        console.warn('[Hosting Storage] update wedding warning:', hostErr);
+      }
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `weddings/${targetWeddingId}`);
-      throw err;
+      console.warn('Update wedding error:', err);
     }
   };
 
@@ -1586,13 +2250,27 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     receptionVenueName?: string;
     emptyFields?: boolean;
   }): Promise<string> => {
+    // For Level 4 Novia Free: limit to only 1 event
+    if (currentUser.level === 4) {
+      const userCreatedWeddings = weddings.filter(w => 
+        w.createdByUserId === currentUser.id ||
+        w.createdByUserId === currentUser.username ||
+        (currentUser.createdWeddingIds && currentUser.createdWeddingIds.includes(w.id))
+      );
+      if (userCreatedWeddings.length >= 1) {
+        showUpgradeNotice('Crear Nuevo Evento', 'Tu cuenta Nivel 4 (Plan Gratuito) ya ha creado su único evento permitido. Sube de nivel para crear y gestionar eventos ilimitados.');
+        throw new Error('Límite de 1 evento alcanzado para Nivel 4');
+      }
+    }
+
     const isBlank = Boolean(data.emptyFields);
     const coupleNames = data.coupleNames.trim() || (isBlank ? 'Nuevo Evento' : 'Nueva Pareja');
-    const slug = coupleNames
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '') || 'evento';
-    const newWeddingId = `boda-${slug}-${Date.now().toString().slice(-4)}`;
+    // For Level 4 Novia Free: Always force eventType to 'Boda' (blocking other event types)
+    const effectiveEventType = currentUser.level === 4 ? 'Boda' : (data.eventType || 'Boda');
+    // Generate event slug using the exact required rule: "MMDD-nombreevento" (e.g. "1128-erikayemar")
+    // If collision, appends year: "1128-erikayemar-2026"
+    const newWeddingId = generateEventSlug(coupleNames, data.weddingDate, weddings);
+    const slug = newWeddingId.replace(/[^a-zA-Z0-9]/g, '');
 
     const brideName = isBlank
       ? (data.brideName?.trim() || '')
@@ -1603,7 +2281,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const newSettings: WeddingSettings = isBlank
       ? {
-          eventType: data.eventType || 'Boda',
+          eventType: effectiveEventType,
           coupleNames,
           brideName,
           groomName,
@@ -1652,7 +2330,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       : {
           ...initialWeddingSettings,
-          eventType: data.eventType || 'Boda',
+          eventType: effectiveEventType,
           coupleNames,
           brideName,
           groomName,
@@ -1750,12 +2428,18 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     try {
-      await setDoc(doc(db, 'weddings', newWeddingId), cleanFirestoreData(newWedding));
-      setWeddings((prev) => [newWedding, ...prev]);
+      // Save to Hosting Backend
+      try {
+        await saveWeddingToHosting(newWedding);
+      } catch (hostErr) {
+        console.warn('[Hosting Storage] create wedding warning:', hostErr);
+      }
+
+      setWeddings((prev) => deduplicateAndFilterWeddingsList([newWedding, ...prev]));
       setActiveWeddingId(newWeddingId);
 
-      // If active user is Wedding Planner, associate this new wedding with their account
-      if (currentUser.level === 3) {
+      // If active user is Wedding Planner or Novia Free, associate this new wedding with their account
+      if (currentUser.level === 3 || currentUser.level === 4) {
         const updatedCreatedIds = [...(currentUser.createdWeddingIds || []), newWeddingId];
         const updatedAssignedIds = [...(currentUser.assignedWeddingIds || []), newWeddingId];
         const updatedAuth: AuthUser = {
@@ -1770,16 +2454,12 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           // ignore
         }
 
-        // Persist to user record in Firestore if ID exists
+        // Persist to user record in Hosting if ID exists
         if (currentUser.id) {
           try {
-            await setDoc(doc(db, 'system_users', currentUser.id), cleanFirestoreData({
-              createdWeddingIds: updatedCreatedIds,
-              assignedWeddingIds: updatedAssignedIds,
-              updatedAt: new Date().toISOString(),
-            }), { merge: true });
+            await saveUserToHosting(updatedAuth);
           } catch (uErr) {
-            console.warn('[Firestore] No se pudo actualizar weddingIds en usuario:', uErr);
+            console.warn('[Hosting] No se pudo actualizar weddingIds en usuario:', uErr);
           }
         }
       }
@@ -1787,10 +2467,19 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setShowNewWeddingModal(false);
       // Automatically present the interactive task checklist screen for the new wedding
       setViewModeState('new_wedding_tasks');
+
+      // When Level 4 creates their event, notify them about the 48-hour trial period
+      if (currentUser.level === 4) {
+        showUpgradeNotice(
+          'Plazo de Prueba (48 Horas)',
+          '¡Evento creado exitosamente! Recuerda que tu cuenta de Nivel 4 (Novia Free) dispone de un plazo de 48 horas (2 días) para usar la plataforma sin acceso a descargas PDF ni impresión de archivos. Para descargar e imprimir, sube a un plan de pago.'
+        );
+      }
+
       return newWeddingId;
     } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `weddings/${newWeddingId}`);
-      throw err;
+      console.warn('Create wedding warning:', err);
+      return newWeddingId;
     }
   };
 
@@ -1801,17 +2490,33 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return;
     }
     try {
-      await deleteDoc(doc(db, 'weddings', weddingId));
-      setWeddings((prev) => prev.filter((w) => w.id !== weddingId));
-      if (activeWeddingId === weddingId) {
-        const remaining = weddings.filter((w) => w.id !== weddingId);
-        if (remaining.length > 0) {
-          setActiveWeddingId(remaining[0].id);
+      const targetW = weddings.find((w) => w.id === weddingId || w.slug === weddingId);
+      markWeddingAsDeletedLocally(weddingId, targetW?.slug);
+
+      try {
+        await deleteWeddingFromHosting(weddingId);
+        if (targetW?.slug && targetW.slug !== weddingId) {
+          await deleteWeddingFromHosting(targetW.slug);
+        }
+      } catch (hostErr) {
+        console.warn('[Hosting Storage] delete wedding warning:', hostErr);
+      }
+
+      const cleanRemaining = weddings.filter((w) => w.id !== weddingId && w.slug !== weddingId);
+      setWeddings(cleanRemaining);
+      try {
+        localStorage.setItem('casanovia_all_weddings', JSON.stringify(cleanRemaining));
+      } catch {}
+
+      if (activeWeddingId === weddingId || activeWeddingId === targetW?.slug) {
+        if (cleanRemaining.length > 0) {
+          setActiveWeddingId(cleanRemaining[0].id);
+          persistIndicatedWeddingId(cleanRemaining[0].id);
+          updateUrlWeddingParam(cleanRemaining[0].id);
         }
       }
     } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `weddings/${weddingId}`);
-      throw err;
+      console.warn('Delete wedding warning:', err);
     }
   };
 
@@ -1886,10 +2591,20 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
 
+    const coupleNames = (updatedSettings.coupleNames || currentWedding?.coupleNames || 'Sofía & Alejandro').trim();
+    const weddingDate = updatedSettings.weddingDate || currentWedding?.weddingDate || '2026-10-24T17:00:00';
+    const oldWeddingId = currentWedding?.id || activeWeddingId;
+    
+    // Generate the clean canonical slug without connectors (e.g. 0912-zenaidaronny)
+    const newCanonicalSlug = generateEventSlug(coupleNames, weddingDate, weddings, oldWeddingId);
+
     const payload: Partial<Wedding> = {
+      id: newCanonicalSlug,
+      slug: newCanonicalSlug,
       settings: updatedSettings,
-      coupleNames: updatedSettings.coupleNames || currentWedding?.coupleNames || 'Sofía & Alejandro',
-      weddingDate: updatedSettings.weddingDate || currentWedding?.weddingDate || '2026-10-24T17:00:00',
+      coupleNames: coupleNames,
+      title: coupleNames,
+      weddingDate: weddingDate,
       locationSummary: updatedSettings.locationSummary || currentWedding?.locationSummary || '',
     };
 
@@ -1897,7 +2612,81 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       payload.guests = updatedGuests;
     }
 
-    await updateActiveWeddingDoc(payload);
+    if (newCanonicalSlug && oldWeddingId && newCanonicalSlug !== oldWeddingId) {
+      try {
+        await deleteWeddingFromHosting(oldWeddingId);
+      } catch (e) {
+        console.warn('Old wedding deletion warning on slug change:', e);
+      }
+
+      const fullUpdated: Wedding = {
+        guests: currentWedding?.guests || [],
+        tables: currentWedding?.tables || [],
+        timeline: currentWedding?.timeline || [],
+        tasks: currentWedding?.tasks || [],
+        budget: currentWedding?.budget || [],
+        vendors: currentWedding?.vendors || [],
+        status: currentWedding?.status || 'planning',
+        createdAt: currentWedding?.createdAt || new Date().toISOString(),
+        ...(currentWedding || {}),
+        ...payload,
+        id: newCanonicalSlug,
+        slug: newCanonicalSlug,
+        coupleNames,
+        title: coupleNames,
+        weddingDate,
+        locationSummary: updatedSettings.locationSummary || currentWedding?.locationSummary || '',
+        settings: updatedSettings,
+        updatedAt: new Date().toISOString(),
+      };
+
+      setWeddings((prev) => {
+        const list = prev
+          .filter((w) => w.id !== oldWeddingId && w.id !== newCanonicalSlug)
+          .concat(fullUpdated);
+        const consolidated = consolidateWeddingsList(list);
+        try {
+          localStorage.setItem('casanovia_all_weddings', JSON.stringify(consolidated));
+        } catch {}
+        return consolidated;
+      });
+
+      setActiveWeddingId(newCanonicalSlug);
+      persistIndicatedWeddingId(newCanonicalSlug);
+      updateUrlWeddingParam(newCanonicalSlug);
+
+      try {
+        await saveWeddingToHosting(fullUpdated);
+      } catch (e) {
+        console.warn('Error saving updated wedding to hosting:', e);
+      }
+
+      setSystemUsers((prevUsers) => {
+        let changed = false;
+        const newUsers = prevUsers.map((u) => {
+          const uAssigned = u.assignedWeddingIds || [];
+          const uCreated = u.createdWeddingIds || [];
+          if (uAssigned.includes(oldWeddingId) || uCreated.includes(oldWeddingId)) {
+            changed = true;
+            return {
+              ...u,
+              assignedWeddingIds: uAssigned.map((id) => (id === oldWeddingId ? newCanonicalSlug : id)),
+              createdWeddingIds: uCreated.map((id) => (id === oldWeddingId ? newCanonicalSlug : id)),
+            };
+          }
+          return u;
+        });
+        if (changed) {
+          try {
+            localStorage.setItem('casanovia_system_users', JSON.stringify(newUsers));
+            saveUsersBulkToHosting(newUsers);
+          } catch {}
+        }
+        return newUsers;
+      });
+    } else {
+      await updateActiveWeddingDoc(payload);
+    }
   };
 
   const addAdditionalVenue = async (venueData: Omit<AdditionalVenue, 'id'>): Promise<AdditionalVenue> => {
@@ -1971,6 +2760,12 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addGuest = async (guestData: Omit<Guest, 'id'>): Promise<Guest> => {
     const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
     const currentGuests = currentWedding?.guests || guests || [];
+
+    // Nivel 4: Novia Free (Límite máximo de 20 invitados)
+    if (currentUser.level === 4 && currentGuests.length >= 20) {
+      alert('Plan Novia Free (Nivel 4): Has alcanzado el límite máximo de 20 invitados permitidos.');
+      throw new Error('Límite de 20 invitados alcanzado para el Plan Novia Free.');
+    }
 
     // Format full name to Altibajas automatically
     const cleanFullName = formatAltibajas(guestData.fullName);
@@ -2192,8 +2987,28 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     let finalGuests: Guest[] = [];
     const nowIso = new Date().toISOString().split('T')[0];
 
+    // Nivel 4: Novia Free - Límite de 20 invitados: solo se importan los primeros hasta completar 20, descartando los demás
+    let effectiveNewGuests = newGuests;
+    if (currentUser.level === 4) {
+      if (mode === 'replace') {
+        effectiveNewGuests = newGuests.slice(0, 20);
+      } else {
+        const availableSlots = Math.max(0, 20 - guests.length);
+        effectiveNewGuests = newGuests.slice(0, availableSlots);
+      }
+      if (newGuests.length > effectiveNewGuests.length) {
+        showUpgradeNotice(
+          'Límite de 20 Invitados (Nivel 4)',
+          `El sistema solo importó los primeros ${effectiveNewGuests.length} invitados (límite máximo de 20 invitados para cuentas Nivel 4). Los demás invitados fueron descartados. Por favor sube de nivel para tener invitados ilimitados.`
+        );
+        try {
+          alert(`Plan Novia Free (Nivel 4): El sistema solo importó los primeros ${effectiveNewGuests.length} invitados (límite máximo de 20 invitados). Los demás invitados fueron descartados.`);
+        } catch (_) {}
+      }
+    }
+
     if (mode === 'replace') {
-      finalGuests = newGuests.map((g, idx) => {
+      finalGuests = effectiveNewGuests.map((g, idx) => {
         const cleanName = formatAltibajas(g.fullName || `Invitado ${idx + 1}`);
         const cleanNameCode = cleanName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'INV';
         return {
@@ -2222,7 +3037,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Append mode: merge ensuring unique IDs and codes
       const existingIds = new Set(guests.map((g) => g.id));
       const existingCodes = new Set(guests.map((g) => g.code.toUpperCase()));
-      const sanitizedNewGuests = newGuests.map((g, idx) => {
+      const sanitizedNewGuests = effectiveNewGuests.map((g, idx) => {
         const cleanName = formatAltibajas(g.fullName || `Invitado ${idx + 1}`);
         const cleanNameCode = cleanName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'INV';
         let code = g.code;
@@ -2350,6 +3165,13 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addMilestone = async (milestone: Omit<TimelineMilestone, 'id'>) => {
     const currentWedding = weddings.find((w) => w.id === activeWeddingId);
     const currentTimeline = currentWedding?.timeline || timeline || [];
+
+    // Nivel 4: Novia Free (Crear hasta 5 hitos en el cronograma)
+    if (currentUser.level === 4 && currentTimeline.length >= 5) {
+      alert('Plan Novia Free (Nivel 4): Has alcanzado el límite máximo de 5 hitos en el cronograma.');
+      return;
+    }
+
     const newMilestone: TimelineMilestone = {
       ...milestone,
       id: `tm-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
@@ -2379,6 +3201,11 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const currentWedding = weddings.find((w) => w.id === activeWeddingId);
     const currentTimeline = currentWedding?.timeline || timeline || [];
     const updated = currentTimeline.filter((item) => item.id !== id);
+    await updateActiveWeddingDoc({ timeline: updated });
+  };
+
+  const setTimeline = async (newTimeline: TimelineMilestone[]) => {
+    const updated: TimelineMilestone[] = sortTimelineMilestones<TimelineMilestone>(newTimeline);
     await updateActiveWeddingDoc({ timeline: updated });
   };
 
@@ -2430,6 +3257,211 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         totalRealBudget: newTarget,
       },
     });
+  };
+
+  // -------------------------------------------------------------
+  // Finanzas Fiesta de Promoción (Cuotas & Pagos Parciales Padres de Familia)
+  // -------------------------------------------------------------
+  const addPromotionQuota = async (quotaData: Omit<PromotionFeeQuota, 'id' | 'createdAt' | 'updatedAt' | 'partialPayments' | 'status'> & { partialPayments?: PartialPayment[] }) => {
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
+    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+
+    const now = new Date().toISOString();
+    const payments = quotaData.partialPayments || [];
+    const totalPaid = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const target = Number(quotaData.totalTargetAmount) || 0;
+
+    let status: 'pendiente' | 'parcial' | 'completado' = 'pendiente';
+    if (totalPaid >= target && target > 0) {
+      status = 'completado';
+    } else if (totalPaid > 0) {
+      status = 'parcial';
+    }
+
+    const newQuota: PromotionFeeQuota = {
+      id: `quota-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+      parentName: quotaData.parentName,
+      studentName: quotaData.studentName || '',
+      parentId: quotaData.parentId || '',
+      totalTargetAmount: target,
+      partialPayments: payments,
+      status,
+      notes: quotaData.notes || '',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const updated = [...currentQuotas, newQuota];
+    await updateActiveWeddingDoc({ promotionQuotas: updated });
+  };
+
+  const updatePromotionQuota = async (id: string, updates: Partial<PromotionFeeQuota>) => {
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
+    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+
+    const now = new Date().toISOString();
+    const updated = currentQuotas.map((q) => {
+      if (q.id !== id) return q;
+      const merged = { ...q, ...updates, updatedAt: now };
+      const target = Number(merged.totalTargetAmount) || 0;
+      const totalPaid = (merged.partialPayments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+      
+      let status: 'pendiente' | 'parcial' | 'completado' = 'pendiente';
+      if (totalPaid >= target && target > 0) {
+        status = 'completado';
+      } else if (totalPaid > 0) {
+        status = 'parcial';
+      }
+      merged.status = status;
+      return merged;
+    });
+
+    await updateActiveWeddingDoc({ promotionQuotas: updated });
+  };
+
+  const deletePromotionQuota = async (id: string) => {
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
+    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+
+    const updated = currentQuotas.filter((q) => q.id !== id);
+    await updateActiveWeddingDoc({ promotionQuotas: updated });
+  };
+
+  const addPartialPaymentToQuota = async (quotaId: string, paymentData: Omit<PartialPayment, 'id' | 'createdAt'>) => {
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
+    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+
+    const newPayment: PartialPayment = {
+      id: `pay-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+      concept: paymentData.concept,
+      amount: Number(paymentData.amount) || 0,
+      date: paymentData.date || new Date().toISOString().split('T')[0],
+      registeredBy: currentUser.username || 'Comisión',
+      notes: paymentData.notes || '',
+      receiptUrl: paymentData.receiptUrl || '',
+      createdAt: new Date().toISOString(),
+    };
+
+    const updated = currentQuotas.map((q) => {
+      if (q.id !== quotaId) return q;
+      const newPayments = [...(q.partialPayments || []), newPayment];
+      const totalPaid = newPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+      const target = Number(q.totalTargetAmount) || 0;
+
+      let status: 'pendiente' | 'parcial' | 'completado' = 'pendiente';
+      if (totalPaid >= target && target > 0) {
+        status = 'completado';
+      } else if (totalPaid > 0) {
+        status = 'parcial';
+      }
+
+      return {
+        ...q,
+        partialPayments: newPayments,
+        status,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    await updateActiveWeddingDoc({ promotionQuotas: updated });
+  };
+
+  const deletePartialPaymentFromQuota = async (quotaId: string, paymentId: string) => {
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
+    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+
+    const updated = currentQuotas.map((q) => {
+      if (q.id !== quotaId) return q;
+      const newPayments = (q.partialPayments || []).filter((p) => p.id !== paymentId);
+      const totalPaid = newPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+      const target = Number(q.totalTargetAmount) || 0;
+
+      let status: 'pendiente' | 'parcial' | 'completado' = 'pendiente';
+      if (totalPaid >= target && target > 0) {
+        status = 'completado';
+      } else if (totalPaid > 0) {
+        status = 'parcial';
+      }
+
+      return {
+        ...q,
+        partialPayments: newPayments,
+        status,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    await updateActiveWeddingDoc({ promotionQuotas: updated });
+  };
+
+  const assignGlobalPromotionQuota = async (globalTargetAmount: number, notes?: string): Promise<{ updatedCount: number; createdCount: number }> => {
+    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
+    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+    const currentGuests = currentWedding?.guests || guests || [];
+    const now = new Date().toISOString();
+    const target = Number(globalTargetAmount) || 0;
+
+    const padres = currentGuests.filter((g) =>
+      g.category === 'padres_familia' ||
+      (g.protocolRoleTitle && g.protocolRoleTitle.toLowerCase().includes('padre'))
+    );
+
+    let updatedCount = 0;
+    let createdCount = 0;
+
+    const updatedExistingQuotas: PromotionFeeQuota[] = currentQuotas.map((q) => {
+      updatedCount++;
+      const totalPaid = (q.partialPayments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+      let status: 'pendiente' | 'parcial' | 'completado' = 'pendiente';
+      if (totalPaid >= target && target > 0) {
+        status = 'completado';
+      } else if (totalPaid > 0) {
+        status = 'parcial';
+      }
+      return {
+        ...q,
+        totalTargetAmount: target,
+        notes: notes !== undefined ? (notes ? notes.trim() : q.notes) : q.notes,
+        status,
+        updatedAt: now,
+      };
+    });
+
+    const newQuotasForUnassignedParents: PromotionFeeQuota[] = [];
+    for (const padre of padres) {
+      const alreadyExists = updatedExistingQuotas.some((q) =>
+        (q.parentId && q.parentId === padre.id) ||
+        (q.parentName && q.parentName.trim().toLowerCase() === padre.fullName.trim().toLowerCase())
+      );
+      if (!alreadyExists) {
+        createdCount++;
+        let studentName = padre.childStudentName || '';
+        if (!studentName && padre.childStudentId) {
+          const child = currentGuests.find(g => g.id === padre.childStudentId);
+          if (child) studentName = child.fullName;
+        }
+        if (!studentName && padre.dressCodeNote) {
+          studentName = padre.dressCodeNote;
+        }
+
+        newQuotasForUnassignedParents.push({
+          id: `quota-${Date.now()}-${Math.floor(100 + Math.random() * 900)}-${createdCount}`,
+          parentName: padre.fullName,
+          studentName,
+          parentId: padre.id,
+          totalTargetAmount: target,
+          partialPayments: [],
+          status: 'pendiente',
+          notes: notes ? notes.trim() : 'Cuota General Asignada',
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+
+    const finalQuotasList = [...updatedExistingQuotas, ...newQuotasForUnassignedParents];
+    await updateActiveWeddingDoc({ promotionQuotas: finalQuotasList });
+    return { updatedCount, createdCount };
   };
 
   // -------------------------------------------------------------
@@ -2604,9 +3636,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
             if (hasPlanChanges) {
               localPlan.elements = updatedPlanElements;
               localStorage.setItem(storageKey, JSON.stringify(localPlan));
-              const fpDocRef = doc(db, 'floor_plans', activeWeddingId);
-              setDoc(fpDocRef, { elements: updatedPlanElements }, { merge: true }).catch((err) => {
-                console.warn('[WeddingContext] Error updating floor_plans doc:', err);
+              saveFloorPlanToHosting(activeWeddingId, localPlan).catch((err) => {
+                console.warn('[WeddingContext] Error updating floor_plans hosting doc:', err);
               });
             }
           }
@@ -2662,7 +3693,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // -------------------------------------------------------------
   const exportDataJson = () => {
     const exportObject = {
-      weddingHubVersion: '3.0.0-multi-wedding-firebase',
+      weddingHubVersion: '3.1.0-casanovia-hosting',
       exportDate: new Date().toISOString(),
       wedding: activeWedding,
       allWeddingsCount: weddings.length,
@@ -2722,6 +3753,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       if (Array.isArray(parsed.weddings)) {
         importedWeddings = parsed.weddings;
+      } else if (Array.isArray(parsed)) {
+        importedWeddings = parsed;
       } else if (parsed.wedding && parsed.wedding.id) {
         importedWeddings = [parsed.wedding];
       }
@@ -2736,80 +3769,98 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         } catch {}
       }
 
-      if (importedWeddings.length === 0 && importedUsers.length === 0 && parsed.settings && parsed.guests) {
-        // Legacy single wedding format
-        await updateActiveWeddingDoc({
-          settings: parsed.settings,
-          guests: parsed.guests || [],
-          timeline: parsed.timeline || [],
-          budget: parsed.budget || [],
-          tasks: parsed.tasks || [],
-        });
-        return { success: true, message: 'Boda actual restaurada exitosamente.', weddingsCount: 1, usersCount: 0 };
-      }
+      // 1. Gather all candidate weddings from imported JSON, active state, local storage, seeds, and initial data
+      let storedLocalWeddings: Wedding[] = [];
+      try {
+        const stored = localStorage.getItem('casanovia_all_weddings');
+        if (stored) storedLocalWeddings = JSON.parse(stored);
+      } catch {}
 
-      if (importedWeddings.length > 0) {
-        const sorted = sortWeddingsByDate(importedWeddings);
-        setWeddings(sorted);
+      let hostingWeddings: Wedding[] = [];
+      try {
+        const fetched = await fetchWeddingsFromHosting();
+        if (Array.isArray(fetched) && fetched.length > 0) {
+          hostingWeddings = fetched;
+        }
+      } catch {}
+
+      const allCandidateWeddings: Wedding[] = [
+        ...importedWeddings,
+        ...weddings,
+        ...storedLocalWeddings,
+        ...hostingWeddings,
+      ];
+
+      // 2. Consolidate and merge all records into canonical slugs (without "y" connector)
+      const consolidatedList = consolidateWeddingsList(allCandidateWeddings);
+
+      if (consolidatedList.length > 0) {
+        setWeddings(consolidatedList);
         try {
-          localStorage.setItem('casanovia_all_weddings', JSON.stringify(sorted));
+          localStorage.setItem('casanovia_all_weddings', JSON.stringify(consolidatedList));
         } catch {}
 
-        // If Firestore is available, batch write
+        // Persist all consolidated weddings to hosting backend
         try {
-          const batch = writeBatch(db);
-          for (const w of sorted) {
-            const wRef = doc(db, 'weddings', w.id);
-            batch.set(wRef, cleanFirestoreData(w), { merge: true });
+          for (const w of consolidatedList) {
+            await saveWeddingToHosting(w);
           }
-          await batch.commit();
         } catch (e) {
-          console.warn('[Firestore] Syncing imported weddings to cloud deferred:', e);
+          console.warn('[Hosting] Syncing consolidated weddings to hosting deferred:', e);
         }
 
-        if (sorted[0]?.id) {
-          setActiveWeddingId(sorted[0].id);
-          persistIndicatedWeddingId(sorted[0].id);
-        }
-      }
-
-      if (importedUsers.length > 0) {
-        setSystemUsers(importedUsers);
+        // Trigger backend sync & file cleanup if online
         try {
-          localStorage.setItem('casanovia_system_users', JSON.stringify(importedUsers));
+          await fetch('/api/sync_events.php', { method: 'POST' });
         } catch {}
 
-        // If Firestore is available, batch write
-        try {
-          const batch = writeBatch(db);
-          for (const u of importedUsers) {
-            const uRef = doc(db, 'system_users', u.id);
-            batch.set(uRef, cleanFirestoreData(u), { merge: true });
-          }
-          await batch.commit();
-        } catch (e) {
-          console.warn('[Firestore] Syncing imported users to cloud deferred:', e);
+        // Ensure active wedding is set to a valid consolidated wedding
+        const currentActive = consolidatedList.find(w => w.id === activeWeddingId || w.slug === activeWeddingId) || consolidatedList[0];
+        if (currentActive?.id) {
+          setActiveWeddingId(currentActive.id);
+          persistIndicatedWeddingId(currentActive.id);
         }
       }
 
+      // 3. Process Users
+      const allUsers = importedUsers.length > 0 ? importedUsers : (systemUsers.length > 0 ? systemUsers : INITIAL_SYSTEM_USERS);
+      setSystemUsers(allUsers);
+      try {
+        localStorage.setItem('casanovia_system_users', JSON.stringify(allUsers));
+      } catch {}
+      try {
+        await saveUsersBulkToHosting(allUsers);
+      } catch (e) {
+        console.warn('[Hosting] Syncing imported users to hosting deferred:', e);
+      }
+
+      // 4. Tokens config
       if (parsed.tokensPaymentConfig) {
         setTokensPaymentConfig(parsed.tokensPaymentConfig);
         try {
           localStorage.setItem('casanovia_tokens_payment_config', JSON.stringify(parsed.tokensPaymentConfig));
         } catch {}
+        try {
+          await saveSystemConfigToHosting('tokens_payment', parsed.tokensPaymentConfig);
+        } catch (e) {
+          console.warn('[Hosting] Syncing tokens config to hosting deferred:', e);
+        }
       }
+
+      const totalGuests = consolidatedList.reduce((acc, w) => acc + (w.guests?.length || 0), 0);
+      const totalTables = consolidatedList.reduce((acc, w) => acc + (w.tables?.length || 0), 0);
 
       return {
         success: true,
-        message: `¡Base de datos restaurada con éxito! Se cargaron ${importedWeddings.length} bodas y ${importedUsers.length} usuarios.`,
-        weddingsCount: importedWeddings.length,
-        usersCount: importedUsers.length,
+        message: `¡Restauración y consolidación completada con éxito! Se recolectaron y consolidaron ${consolidatedList.length} bodas (${totalGuests} invitados, ${totalTables} mesas) bajo sus slugs canónicos limpios. Ninguna boda se eliminó ni se perdió.`,
+        weddingsCount: consolidatedList.length,
+        usersCount: allUsers.length,
       };
     } catch (err) {
       console.error('Error importing full database JSON:', err);
       return {
         success: false,
-        message: 'El archivo JSON no tiene un formato válido.',
+        message: 'El archivo JSON no tiene un formato válido o ocurrió un error durante la consolidación.',
         weddingsCount: 0,
         usersCount: 0,
       };
@@ -2958,24 +4009,18 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         console.warn('[FloorPlan] Error clearing local storage:', e);
       }
 
-      // 3. Persistir en Firestore con límite de tiempo para evitar congelamientos si la red o Firestore tardan
-      const firestoreSyncPromise = (async () => {
-        try {
-          const cleaned = cleanFirestoreData(fullClearedWedding);
-          await setDoc(doc(db, 'weddings', targetId), cleaned);
-        } catch (wErr) {
-          console.warn('[Firestore] Error guardando boda limpia en Firestore:', wErr);
-        }
+      // 3. Persistir en Hosting Backend
+      try {
+        await saveWeddingToHosting(fullClearedWedding);
+      } catch (wErr) {
+        console.warn('[Hosting] Error guardando boda limpia en Hosting:', wErr);
+      }
 
-        try {
-          await deleteDoc(doc(db, 'floor_plans', targetId));
-        } catch (fpErr) {
-          console.warn('[Firestore] Error eliminando plano local en Firestore:', fpErr);
-        }
-      })();
-
-      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 3000));
-      await Promise.race([firestoreSyncPromise, timeoutPromise]);
+      try {
+        await deleteFloorPlanFromHosting(targetId);
+      } catch (fpErr) {
+        console.warn('[Hosting] Error eliminando plano en Hosting:', fpErr);
+      }
     } catch (err) {
       console.error('Error al limpiar los datos de la boda:', err);
       // No relanzamos error fatal para evitar bloquear o congelar la interfaz del usuario
@@ -2998,12 +4043,19 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isLevel1Admin,
         isHostUser,
         isLevel3Planner,
+        isLevel4Free,
         isLevel5Observer,
         canPrint,
         isPlannerOrAdmin,
         canCreateWedding,
         canManageUsers,
         canEditActiveWedding,
+        isLevel4TrialExpired,
+        level4DaysRemaining,
+        level4RegistrationDateStr,
+        upgradeNotice,
+        showUpgradeNotice,
+        closeUpgradeNotice,
         showAuthModal,
         setShowAuthModal,
         showNewWeddingModal,
@@ -3047,11 +4099,20 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addMilestone,
         updateMilestone,
         deleteMilestone,
+        setTimeline,
         budget,
         addBudgetItem,
         updateBudgetItem,
         deleteBudgetItem,
         syncBudgetWithVendors,
+        promotionQuotas,
+        addPromotionQuota,
+        updatePromotionQuota,
+        deletePromotionQuota,
+        addPartialPaymentToQuota,
+        deletePartialPaymentFromQuota,
+        assignGlobalPromotionQuota,
+        isPromotionComisionUser,
         tasks,
         addTask,
         toggleTask,
@@ -3094,15 +4155,23 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setShowWeddingCraftModal,
         isRsvpModalOpen,
         setIsRsvpModalOpen,
-        openRsvpModal: () => setIsRsvpModalOpen(true),
+        openRsvpModal: () => {
+          if (isRsvpDeadlinePassed(settings.rsvpDeadline)) {
+            return;
+          }
+          setIsRsvpModalOpen(true);
+        },
         closeRsvpModal: () => setIsRsvpModalOpen(false),
         saveUploadedImage,
         deleteUploadedImage,
         hasWeddingUrlParam: Boolean(getRequestedWeddingIdFromUrl()),
-        isPublicHomeLanding: !Boolean(getRequestedWeddingIdFromUrl()) && viewMode === 'public',
+        isPublicHomeLanding: !Boolean(getRequestedWeddingIdFromUrl()) && viewMode === 'public' && !currentUser.isAuthenticated && !isNoviasUrlRequested(),
+        isNoviasLanding: isNoviasUrlRequested(),
         getRequestedWeddingIdFromUrl,
         isFirebaseLoading,
         isFirebaseConnected,
+        isAppLoading,
+        setIsAppLoading,
       }}
     >
       {children}

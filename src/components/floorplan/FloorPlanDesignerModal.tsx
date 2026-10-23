@@ -54,7 +54,6 @@ import {
 import { FloorPlanCanvas } from './FloorPlanCanvas';
 import { FloorPlanToolbar, PRESET_COLORS } from './FloorPlanToolbar';
 import { FloorPlanGuestSidebar } from './FloorPlanGuestSidebar';
-import { FloorPlanPhpSqlModal } from './FloorPlanPhpSqlModal';
 import { renderPdfFirstPageToImage } from '../../lib/pdfUtils';
 import { exportFloorPlanToPdf } from './FloorPlanExportPdf';
 import {
@@ -66,9 +65,7 @@ import {
   getGuestGroupInfo,
   checkFloorPlanElementCapacityForGroup,
 } from './floorPlanSyncUtils';
-import { doc, getDoc, setDoc, deleteField, onSnapshot } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
-import { cleanFirestoreData } from '../../lib/firestoreUtils';
+import { saveFloorPlanToHosting, fetchFloorPlanFromHosting } from '../../services/hostingStorage';
 
 interface FloorPlanDesignerModalProps {
   isOpen: boolean;
@@ -90,6 +87,8 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     tables,
     settings,
     isLevel1Admin,
+    isLevel4Free,
+    showUpgradeNotice,
     updateGuest,
     updateTable,
   } = useWedding();
@@ -310,7 +309,6 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
   // Interactive Drag & Modal states
   const [draggedGuest, setDraggedGuest] = useState<Guest | null>(null);
-  const [showPhpSqlModal, setShowPhpSqlModal] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveSuccessNotice, setSaveSuccessNotice] = useState<boolean>(false);
   const [syncSuccessNotice, setSyncSuccessNotice] = useState<boolean>(false);
@@ -357,76 +355,68 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoadRef = useRef(true);
 
-  // Set up Real-time Firestore Listener with onSnapshot so all devices see changes in real time
+  // Load Floor Plan from Hosting Backend and Local Storage
   useEffect(() => {
     if (!isOpen || !activeWeddingId) return;
 
     let isMounted = true;
     isInitialLoadRef.current = true;
 
-    const docRef = doc(db, 'floor_plans', activeWeddingId);
-    const unsubscribe = onSnapshot(
-      docRef,
-      (docSnap) => {
-        if (!isMounted) return;
-
-        // Skip applying remote snapshot if this local client is currently performing a local write
-        if (docSnap.metadata.hasPendingWrites || isLocalSavingRef.current) {
-          return;
-        }
-
-        if (docSnap.exists()) {
-          const loadedData = docSnap.data();
-          const loadedElements = loadedData.elements;
-          if (loadedElements) {
-            // If autoSync is enabled, reconcile with registered tables and guests; otherwise keep loaded elements exactly as placed
-            if (autoSync) {
-              setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests, loadedElements), tables));
-            } else {
-              setElements(loadedElements);
-            }
-          }
-          if (loadedData.backgroundImageUrl !== undefined) setBackgroundImageUrl(loadedData.backgroundImageUrl || null);
-          if (loadedData.backgroundFileName !== undefined) setBackgroundFileName(loadedData.backgroundFileName || null);
-          if (loadedData.backgroundOpacity !== undefined) setBackgroundOpacity(loadedData.backgroundOpacity);
-          if (loadedData.scale) setScaleCalibration(loadedData.scale);
-          if (loadedData.gridSnap !== undefined) setGridSnap(loadedData.gridSnap);
-          if (loadedData.gridSize) setGridSize(loadedData.gridSize);
-          if (loadedData.canvasWidth) setCanvasWidth(loadedData.canvasWidth);
-          if (loadedData.canvasHeight) setCanvasHeight(loadedData.canvasHeight);
-          if (loadedData.canvasBackgroundColor) setCanvasBackgroundColor(loadedData.canvasBackgroundColor);
-        } else {
-          // Document doesn't exist yet in Firestore, try local storage fallback
-          try {
-            const localData = localStorage.getItem(`casanovia_floor_plan_${activeWeddingId}`);
-            if (localData) {
-              const parsed = JSON.parse(localData);
-              if (parsed.elements) {
-                setElements(parsed.elements);
-              }
-              if (parsed.backgroundImageUrl !== undefined) {
-                setBackgroundImageUrl(parsed.backgroundImageUrl || null);
-              }
-            } else {
-              setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
-              setBackgroundImageUrl(null);
-              setBackgroundFileName(null);
-            }
-          } catch (e) {
-            setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
-            setBackgroundImageUrl(null);
-            setBackgroundFileName(null);
+    const loadPlan = async () => {
+      // 1. Try local storage first for instant render
+      let loaded = false;
+      try {
+        const localData = localStorage.getItem(`casanovia_floor_plan_${activeWeddingId}`);
+        if (localData) {
+          const parsed = JSON.parse(localData);
+          if (parsed && isMounted) {
+            applyLoadedData(parsed);
+            loaded = true;
           }
         }
+      } catch (e) {}
 
-        setTimeout(() => {
-          if (isMounted) isInitialLoadRef.current = false;
-        }, 800);
-      },
-      (error) => {
-        console.info('[FloorPlan] Real-time snapshot info:', error);
+      // 2. Fetch from hosting backend
+      try {
+        const remotePlan = await fetchFloorPlanFromHosting(activeWeddingId);
+        if (remotePlan && isMounted) {
+          applyLoadedData(remotePlan);
+          loaded = true;
+        }
+      } catch (e) {}
+
+      if (!loaded && isMounted) {
+        setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests), tables));
+        setBackgroundImageUrl(null);
+        setBackgroundFileName(null);
       }
-    );
+
+      setTimeout(() => {
+        if (isMounted) isInitialLoadRef.current = false;
+      }, 800);
+    };
+
+    const applyLoadedData = (loadedData: any) => {
+      const loadedElements = loadedData.elements;
+      if (loadedElements) {
+        if (autoSync) {
+          setElements(ensureUniqueTableIdentities(buildFloorPlanFromWedding(tables, guests, loadedElements), tables));
+        } else {
+          setElements(loadedElements);
+        }
+      }
+      if (loadedData.backgroundImageUrl !== undefined) setBackgroundImageUrl(loadedData.backgroundImageUrl || null);
+      if (loadedData.backgroundFileName !== undefined) setBackgroundFileName(loadedData.backgroundFileName || null);
+      if (loadedData.backgroundOpacity !== undefined) setBackgroundOpacity(loadedData.backgroundOpacity);
+      if (loadedData.scale) setScaleCalibration(loadedData.scale);
+      if (loadedData.gridSnap !== undefined) setGridSnap(loadedData.gridSnap);
+      if (loadedData.gridSize) setGridSize(loadedData.gridSize);
+      if (loadedData.canvasWidth) setCanvasWidth(loadedData.canvasWidth);
+      if (loadedData.canvasHeight) setCanvasHeight(loadedData.canvasHeight);
+      if (loadedData.canvasBackgroundColor) setCanvasBackgroundColor(loadedData.canvasBackgroundColor);
+    };
+
+    loadPlan();
 
     const handlePlanCleared = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -440,7 +430,6 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
 
     return () => {
       isMounted = false;
-      unsubscribe();
       window.removeEventListener('casanovia_floor_plan_cleared', handlePlanCleared);
     };
   }, [isOpen, activeWeddingId]);
@@ -457,7 +446,6 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     autoSaveTimerRef.current = setTimeout(async () => {
       try {
         isLocalSavingRef.current = true;
-        const docRef = doc(db, 'floor_plans', activeWeddingId);
         const planPayload: WeddingFloorPlan = {
           id: activeWeddingId,
           weddingId: activeWeddingId,
@@ -475,14 +463,9 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         };
 
         localStorage.setItem(`casanovia_floor_plan_${activeWeddingId}`, JSON.stringify(planPayload));
-        const firestorePayload: any = cleanFirestoreData(planPayload);
-        if (!backgroundImageUrl) {
-          firestorePayload.backgroundImageUrl = deleteField();
-          firestorePayload.backgroundFileName = deleteField();
-        }
-        await setDoc(docRef, firestorePayload, { merge: true });
+        await saveFloorPlanToHosting(activeWeddingId, planPayload);
       } catch (err) {
-        console.info('[FloorPlan] Auto-sync to Firestore note:', err);
+        console.info('[FloorPlan] Auto-save note:', err);
       } finally {
         setTimeout(() => {
           isLocalSavingRef.current = false;
@@ -1540,18 +1523,8 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           delete parsed.backgroundImageUrl;
           delete parsed.backgroundFileName;
           localStorage.setItem(localKey, JSON.stringify(parsed));
+          await saveFloorPlanToHosting(activeWeddingId, parsed);
         }
-
-        const docRef = doc(db, 'floor_plans', activeWeddingId);
-        await setDoc(
-          docRef,
-          {
-            backgroundImageUrl: deleteField(),
-            backgroundFileName: deleteField(),
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
       } catch (err) {
         console.warn('Error al borrar plano importado en almacenamiento:', err);
       }
@@ -1586,11 +1559,10 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     setSyncSuccessNotice(true);
     setTimeout(() => setSyncSuccessNotice(false), 3500);
 
-    // Persist immediately to Firestore so other devices see the synchronized distribution in real-time
+    // Persist immediately to Hosting Backend and local storage
     if (activeWeddingId) {
       try {
         isLocalSavingRef.current = true;
-        const docRef = doc(db, 'floor_plans', activeWeddingId);
         const planPayload: WeddingFloorPlan = {
           id: activeWeddingId,
           weddingId: activeWeddingId,
@@ -1607,14 +1579,9 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
           updatedAt: new Date().toISOString(),
         };
         localStorage.setItem(`casanovia_floor_plan_${activeWeddingId}`, JSON.stringify(planPayload));
-        const firestorePayload: any = cleanFirestoreData(planPayload);
-        if (!backgroundImageUrl) {
-          firestorePayload.backgroundImageUrl = deleteField();
-          firestorePayload.backgroundFileName = deleteField();
-        }
-        await setDoc(docRef, firestorePayload, { merge: true });
+        await saveFloorPlanToHosting(activeWeddingId, planPayload);
       } catch (err) {
-        console.warn('Error sincronizando plano con Firestore:', err);
+        console.warn('Error sincronizando plano con hosting:', err);
       } finally {
         setTimeout(() => {
           isLocalSavingRef.current = false;
@@ -1623,7 +1590,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
     }
   };
 
-  // Save Distribution to Firestore and Local Storage
+  // Save Distribution to Hosting and Local Storage
   const handleSavePlan = async () => {
     if (!activeWeddingId) return;
     setIsSaving(true);
@@ -1652,20 +1619,13 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
       // Save locally
       localStorage.setItem(`casanovia_floor_plan_${activeWeddingId}`, JSON.stringify(planPayload));
 
-      // Save in Firestore
-      const docRef = doc(db, 'floor_plans', activeWeddingId);
-      const firestorePayload: any = cleanFirestoreData(planPayload);
-      if (!backgroundImageUrl) {
-        firestorePayload.backgroundImageUrl = deleteField();
-        firestorePayload.backgroundFileName = deleteField();
-      }
-      await setDoc(docRef, firestorePayload, { merge: true });
+      // Save in Hosting Backend
+      await saveFloorPlanToHosting(activeWeddingId, planPayload);
 
       setSaveSuccessNotice(true);
       setTimeout(() => setSaveSuccessNotice(false), 3000);
     } catch (err) {
-      console.warn('Error guardando plano en Firestore:', err);
-      // Still notify success because local persistence succeeded
+      console.warn('Error guardando plano en hosting:', err);
       setSaveSuccessNotice(true);
       setTimeout(() => setSaveSuccessNotice(false), 3000);
     } finally {
@@ -1679,6 +1639,10 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
   // Export PDF
   const handleExportPdf = async (mode: 'all' | 'plan_only' | 'list_only' = 'all') => {
     setShowExportMenu(false);
+    if (isLevel4Free) {
+      showUpgradeNotice('Descarga de Planos PDF', 'La descarga y exportación del Plano a PDF no está disponible para cuentas de Nivel 4 (Novia Free). Sube a un plan de pago para descargar e imprimir planos de alta calidad.');
+      return;
+    }
     const canvas = document.querySelector('canvas');
     if (!canvas) return;
 
@@ -1980,17 +1944,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
             <span className="hidden md:inline">Calibrar Escala</span>
           </button>
 
-          {/* PHP Endpoints & SQL view button */}
-          {isLevel1Admin && (
-            <button
-              onClick={() => setShowPhpSqlModal(true)}
-              className="flex items-center space-x-1 px-3 py-1.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-700 text-xs font-semibold border-none transition-all cursor-pointer"
-              title="Ver endpoints PHP y SQL"
-            >
-              <Server className="w-3.5 h-3.5 text-amber-700" />
-              <span className="hidden lg:inline">Endpoints PHP</span>
-            </button>
-          )}
+
 
           {/* Toggle Guest List Sidebar (Desktop/Tablet) */}
           <button
@@ -2876,11 +2830,7 @@ export const FloorPlanDesignerModal: React.FC<FloorPlanDesignerModalProps> = ({
         </div>
       )}
 
-      {/* 6. MODAL: PHP Endpoints & SQL Viewer */}
-      <FloorPlanPhpSqlModal
-        isOpen={showPhpSqlModal}
-        onClose={() => setShowPhpSqlModal(false)}
-      />
+
 
     </div>
   );

@@ -9,23 +9,26 @@ export const CanvasWishesWall: React.FC<{
 }> = ({ el, commonProps, theme }) => {
   const groupRef = useRef<any>(null);
 
-  const w = Math.max(180, el.transform.width);
-  const h = Math.max(150, el.transform.height);
+  const style = el?.style || {};
+  const transform = el?.transform || { width: 300, height: 200 };
 
-  const bgColor = el.style.backgroundColor || '#FAF8F5';
-  const borderColor = el.style.borderColor || '#EADDCE';
-  const strokeWidth = el.style.strokeWidth ?? 1;
-  const titleColor = el.style.titleColor || '#2D2A26';
-  const textColor = el.style.color || '#524B42';
-  const accentColor = el.style.accentColor || '#C5A880';
-  const cornerRadius = Math.max(0, Math.min(el.style.borderRadius ?? 20, w / 2, h / 2));
+  const w = Math.max(180, typeof transform.width === 'number' && !isNaN(transform.width) ? transform.width : 300);
+  const h = Math.max(150, typeof transform.height === 'number' && !isNaN(transform.height) ? transform.height : 200);
 
-  const titleFontFamily = el.style.titleFontFamily || el.style.fontFamily || 'Playfair Display, serif';
-  const bodyFontFamily = el.style.fontFamily || 'sans-serif';
-  const titleFontSize = el.style.titleFontSize || Math.min(20, Math.max(14, w * 0.055));
-  const bodyFontSize = el.style.bodyFontSize || 11;
-  const badgeFontSize = el.style.badgeFontSize || 11;
-  const align = (el.style.align || el.style.textAlign || 'left') as 'left' | 'center' | 'right';
+  const bgColor = style.backgroundColor === '#FAF8F5' ? '#EBEBEB' : (style.backgroundColor || '#FAF8F5');
+  const borderColor = style.borderColor || '#EADDCE';
+  const strokeWidth = style.strokeWidth ?? 1;
+  const titleColor = style.titleColor || '#2D2A26';
+  const textColor = style.color || '#524B42';
+  const accentColor = style.accentColor || '#C5A880';
+  const cornerRadius = Math.max(0, Math.min(style.borderRadius ?? 20, w / 2, h / 2));
+
+  const titleFontFamily = style.titleFontFamily || style.fontFamily || 'Playfair Display, serif';
+  const bodyFontFamily = style.fontFamily || 'sans-serif';
+  const titleFontSize = style.titleFontSize || Math.min(20, Math.max(14, w * 0.055));
+  const bodyFontSize = style.bodyFontSize || 11;
+  const badgeFontSize = style.badgeFontSize || 11;
+  const align = (style.align || style.textAlign || 'left') as 'left' | 'center' | 'right';
 
   const content = el.content || {};
   const badgeText = content.badge || '💌 Muro de los Deseos';

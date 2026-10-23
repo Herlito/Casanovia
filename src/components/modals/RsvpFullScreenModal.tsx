@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { RsvpStatus } from '../../types';
-import { isRsvpDeadlinePassed, formatRsvpCutoffDate } from '../../lib/dateUtils';
+import { isRsvpDeadlinePassed, formatRsvpCutoffDate, formatRsvpDeadline } from '../../lib/dateUtils';
 import { 
   Heart, 
   Send, 
@@ -30,10 +30,14 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
     settings,
     submitGuestRsvp, 
     selectedGuestForGuide, 
-    setSelectedGuestForGuide 
+    setSelectedGuestForGuide,
+    addGuest,
+    updateGuest,
+    deleteGuest
   } = useWedding();
 
   const [fullName, setFullName] = useState('');
+  const [invitationCode, setInvitationCode] = useState('');
   const [rsvpStatus, setRsvpStatus] = useState<RsvpStatus>('confirmed');
   const [confirmedPasses, setConfirmedPasses] = useState<number>(2);
   const [maxPassesAvailable, setMaxPassesAvailable] = useState<number>(2);
@@ -42,6 +46,7 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
   const [confirmedRehearsalPhotos, setConfirmedRehearsalPhotos] = useState<boolean>(true);
   const [message, setMessage] = useState('');
   const [songSuggestion, setSongSuggestion] = useState('');
+  const [companionNames, setCompanionNames] = useState<string[]>([]);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -77,6 +82,7 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
   useEffect(() => {
     if (selectedGuestForGuide) {
       setFullName(selectedGuestForGuide.fullName);
+      setInvitationCode(selectedGuestForGuide.code || '');
       setRsvpStatus(selectedGuestForGuide.rsvpStatus || 'confirmed');
       setConfirmedPasses(selectedGuestForGuide.confirmedPasses || selectedGuestForGuide.totalPasses || 1);
       setMaxPassesAvailable(selectedGuestForGuide.totalPasses || 2);
@@ -93,9 +99,33 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
     }
   }, [selectedGuestForGuide, isOpen]);
 
-  if (!isOpen) return null;
+  // Sync companionNames array when confirmedPasses or selectedGuestForGuide changes
+  useEffect(() => {
+    if (isOpen) {
+      const neededCompanions = Math.max(0, confirmedPasses - 1);
+      const existingComps = selectedGuestForGuide
+        ? guests.filter(g => g.mainGuestId === selectedGuestForGuide.id)
+        : [];
+
+      setCompanionNames(prev => {
+        const updated = [];
+        for (let i = 0; i < neededCompanions; i++) {
+          if (existingComps[i]) {
+            updated.push(existingComps[i].fullName);
+          } else if (prev[i] !== undefined) {
+            updated.push(prev[i]);
+          } else {
+            updated.push('');
+          }
+        }
+        return updated;
+      });
+    }
+  }, [selectedGuestForGuide, confirmedPasses, guests, isOpen]);
 
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
+
+  if (!isOpen || isDeadlinePassed) return null;
 
   // Filter guest suggestions for autocomplete
   const filteredSuggestions = searchQuery.trim().length >= 2 
@@ -105,6 +135,7 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
   const handleSelectGuest = (guest: typeof guests[0]) => {
     setSelectedGuestForGuide(guest);
     setFullName(guest.fullName);
+    setInvitationCode(guest.code || '');
     setSearchQuery('');
     setShowSuggestions(false);
     setMaxPassesAvailable(guest.totalPasses || 2);
@@ -114,6 +145,27 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
     }
     if (guest.congratulationMessage) {
       setMessage(guest.congratulationMessage);
+    }
+  };
+
+  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInvitationCode(val);
+    
+    if (val.trim()) {
+      const matched = guests.find(g => g.code && g.code.trim().toLowerCase() === val.trim().toLowerCase());
+      if (matched) {
+        setSelectedGuestForGuide(matched);
+        setFullName(matched.fullName);
+        setMaxPassesAvailable(matched.totalPasses || 1);
+        setConfirmedPasses(matched.confirmedPasses || matched.totalPasses || 1);
+        if (matched.rsvpStatus) setRsvpStatus(matched.rsvpStatus);
+      }
+    } else {
+      setSelectedGuestForGuide(null);
+      setFullName('');
+      setMaxPassesAvailable(2);
+      setConfirmedPasses(2);
     }
   };
 
@@ -127,6 +179,7 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
     const matched = guests.find(g => g.fullName.toLowerCase() === val.trim().toLowerCase());
     if (matched) {
       setSelectedGuestForGuide(matched);
+      setInvitationCode(matched.code || '');
       setMaxPassesAvailable(matched.totalPasses || 2);
       setConfirmedPasses(matched.confirmedPasses || matched.totalPasses || 1);
       if (matched.rsvpStatus) setRsvpStatus(matched.rsvpStatus);
@@ -143,6 +196,20 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
       return;
     }
 
+    // Verify companion names are provided and non-empty
+    if (rsvpStatus === 'confirmed' && confirmedPasses > 1) {
+      const neededCompanions = confirmedPasses - 1;
+      for (let i = 0; i < neededCompanions; i++) {
+        if (!companionNames[i] || !companionNames[i].trim()) {
+          setSubmissionFeedback({
+            type: 'error',
+            text: `Por favor ingresa el nombre de todos los acompañantes asignados (Acompañante ${i + 1} es obligatorio).`,
+          });
+          return;
+        }
+      }
+    }
+
     setIsSubmitting(true);
     setSubmissionFeedback(null);
 
@@ -153,7 +220,7 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
         ? `${message ? message.trim() + '\n\n' : ''}🎵 Canción sugerida: ${songSuggestion.trim()}`
         : message.trim();
 
-      const result = await submitGuestRsvp(fullName, {
+      const result = await submitGuestRsvp(invitationCode || fullName, {
         fullName: fullName.trim(),
         rsvpStatus,
         confirmedPasses: rsvpStatus === 'confirmed' ? Number(confirmedPasses) : 0,
@@ -163,6 +230,58 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
       });
 
       if (result.success) {
+        // Save companions if any, and if confirmed
+        if (rsvpStatus === 'confirmed' && result.guest) {
+          const mainGuestId = result.guest.id;
+          const existingComps = guests.filter(g => g.mainGuestId === mainGuestId);
+
+          for (let i = 0; i < companionNames.length; i++) {
+            const compName = companionNames[i]?.trim();
+            if (compName) {
+              if (existingComps[i]) {
+                // Update existing companion name and sync status
+                await updateGuest(existingComps[i].id, {
+                  fullName: compName,
+                  rsvpStatus: 'confirmed',
+                  confirmedPasses: 1,
+                  category: result.guest.category || 'invitado',
+                  assignedTable: result.guest.assignedTable || 'Mesa por asignar'
+                });
+              } else {
+                // Add new companion linked to this main guest
+                await addGuest({
+                  fullName: compName,
+                  code: '',
+                  category: result.guest.category || 'invitado',
+                  isProtocolParticipant: false,
+                  totalPasses: 1,
+                  confirmedPasses: 1,
+                  rsvpStatus: 'confirmed',
+                  mainGuestId: mainGuestId,
+                  assignedTable: result.guest.assignedTable || 'Mesa por asignar'
+                });
+              }
+            }
+          }
+
+          // If there were more companions historically, delete the unused ones
+          if (existingComps.length > companionNames.length) {
+            for (let i = companionNames.length; i < existingComps.length; i++) {
+              await deleteGuest(existingComps[i].id);
+            }
+          }
+        } else if (rsvpStatus === 'declined' && result.guest) {
+          // Sync decline to companions too
+          const mainGuestId = result.guest.id;
+          const existingComps = guests.filter(g => g.mainGuestId === mainGuestId);
+          for (const comp of existingComps) {
+            await updateGuest(comp.id, {
+              rsvpStatus: 'declined',
+              confirmedPasses: 0
+            });
+          }
+        }
+
         setIsSuccess(true);
         setSubmissionFeedback({
           type: 'success',
@@ -206,31 +325,32 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
       aria-modal="true"
     >
       {/* Sticky Top Bar (Neumorphic) */}
-      <header className="sticky top-0 z-30 bg-[#EBEBEB]/95 backdrop-blur-md px-4 sm:px-8 py-3.5 border-b border-gray-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.04)] flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center justify-center text-[#2D3748]">
-            <Heart className="w-5 h-5 fill-[#2D3748]" />
-          </div>
-          <div>
-            <h1 className="text-base sm:text-lg font-bold text-gray-900 leading-tight">
+      <header className="sticky top-0 z-30 bg-[#EBEBEB]/95 backdrop-blur-md px-4 sm:px-6 py-2 border-b border-gray-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.04)] relative flex items-center justify-center min-h-[56px]">
+        {/* Centered title, icon & event name */}
+        <div className="flex flex-col items-center justify-center text-center space-y-1">
+          <div className="flex items-center justify-center space-x-2">
+            <Heart className="w-4 h-4 fill-[#2D3748] text-[#2D3748]" />
+            <h1 className="text-base sm:text-lg font-bold text-gray-900 leading-none">
               Confirmar Asistencia (RSVP)
             </h1>
-            <p className="text-[11px] font-medium text-gray-500">
-              {settings.coupleNames ? `Boda ${settings.coupleNames}` : 'Invitación Oficial'}
-            </p>
           </div>
+          <p className="text-[11px] font-medium text-gray-500 leading-none">
+            {settings.coupleNames ? `Boda ${settings.coupleNames}` : 'Invitación Oficial'}
+          </p>
         </div>
 
-        {/* Close Button (Neumorphic) */}
-        <button
-          type="button"
-          id="btn-close-rsvp-fullscreen"
-          onClick={onClose}
-          className="px-4 py-2 rounded-2xl bg-[#EBEBEB] text-gray-700 font-bold text-xs tracking-wider uppercase transition-all duration-300 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center space-x-2 cursor-pointer"
-        >
-          <X className="w-4 h-4 text-gray-600" />
-          <span className="hidden sm:inline">Cerrar</span>
-        </button>
+        {/* Close Button (Neumorphic - X icon only) */}
+        <div className="absolute right-4 sm:right-8">
+          <button
+            type="button"
+            id="btn-close-rsvp-fullscreen"
+            onClick={onClose}
+            className="p-3 rounded-2xl bg-[#EBEBEB] text-gray-700 transition-all duration-300 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center cursor-pointer"
+            title="Cerrar"
+          >
+            <X className="w-4 h-4 text-gray-600" />
+          </button>
+        </div>
       </header>
 
       {/* Main Content Area */}
@@ -239,19 +359,15 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
           
           {/* Header Description */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold uppercase tracking-wider mb-3">
-              <CalendarCheck className="w-3.5 h-3.5" />
-              <span>Plazo de Confirmación</span>
-            </div>
             <h2 className="font-serif-display text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-              ¿Nos acompañas en nuestro gran día?
+              ¡Estás invitado a nuestro Gran Día!
             </h2>
-            <p className="text-xs sm:text-sm text-gray-600 max-w-lg mx-auto">
-              Por favor confirma tu presencia antes del{' '}
+            <p className="text-xs sm:text-sm text-gray-600 max-w-lg mx-auto leading-relaxed">
+              Favor de confirmar tu presencia antes del{' '}
               <span className="font-bold text-[#2D3748]">
-                {formatRsvpCutoffDate(settings.weddingDate, 7)}
+                {formatRsvpDeadline(settings.rsvpDeadline, settings.weddingDate)}
               </span>{' '}
-              para coordinar banquetes, lugares y protocolo oficial.
+              para brindarte la atención que mereces.
             </p>
           </div>
 
@@ -319,10 +435,30 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 
+                {/* Código de Invitación Input */}
+                <div className="relative w-full sm:w-1/2 max-w-sm mx-auto text-center">
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 text-center">
+                    Código de Invitación (Manual o Impreso)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={invitationCode}
+                      onChange={handleCodeChange}
+                      placeholder=""
+                      className="w-full px-5 py-4 text-sm font-medium rounded-2xl bg-white text-gray-800 shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] focus:outline-hidden focus:shadow-[inset_6px_6px_12px_#c8c8c8,inset_-6px_-6px_12px_#ffffff] transition-all uppercase text-center"
+                    />
+                    <Sparkles className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-1 text-center">
+                    Si tienes un código, escríbelo aquí para cargar tus pases automáticamente.
+                  </p>
+                </div>
+
                 {/* 1. Nombre Completo with live search suggestions */}
                 <div className="relative">
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Nombre Completo del Invitado(s) <span className="text-rose-600">*</span>
+                    Confirma tu nombre <span className="text-rose-600">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -334,7 +470,7 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
                       onFocus={() => {
                         if (searchQuery.trim().length >= 2) setShowSuggestions(true);
                       }}
-                      placeholder="Escribe tu nombre (Ej. Carlos Mendoza)"
+                      placeholder="Confirma tu nombre"
                       className="w-full px-5 py-4 text-sm font-medium rounded-2xl bg-[#EBEBEB] text-gray-800 shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] focus:outline-hidden focus:shadow-[inset_6px_6px_12px_#c8c8c8,inset_-6px_-6px_12px_#ffffff] transition-all"
                     />
                     <Search className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -446,6 +582,37 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
                         <Utensils className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
                     </div>
+
+                    {/* Companion Name Inputs (Only if confirmedPasses > 1) */}
+                    {confirmedPasses > 1 && (
+                      <div className="col-span-1 sm:col-span-2 space-y-4 p-5 rounded-3xl bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] animate-fadeIn mt-2">
+                        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center space-x-1.5">
+                          <Users className="w-4 h-4 text-gray-600" />
+                          <span>Nombres de tus Acompañantes</span>
+                        </p>
+                        <div className="space-y-3">
+                          {companionNames.map((name, index) => (
+                            <div key={index} className="relative">
+                              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                                Acompañante {index + 1}
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={name}
+                                onChange={(e) => {
+                                  const updated = [...companionNames];
+                                  updated[index] = e.target.value;
+                                  setCompanionNames(updated);
+                                }}
+                                placeholder={`Escribe el nombre del acompañante ${index + 1}`}
+                                className="w-full px-4 py-3 text-xs font-semibold rounded-xl bg-[#EBEBEB] text-gray-800 shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] focus:outline-hidden focus:shadow-[inset_5px_5px_10px_#c8c8c8,inset_-5px_-5px_10px_#ffffff] transition-all"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -478,28 +645,12 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
                   </div>
                 )}
 
-                {/* 4. Mensaje para los novios (Alimentará el Muro de los Deseos) */}
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
-                    <MessageSquareHeart className="w-3.5 h-3.5 text-[#2D3748]" />
-                    <span>Deseos & Felicitaciones (Muro de los Deseos)</span>
-                  </label>
-                  <textarea
-                    id="rsvp-modal-input-message"
-                    rows={3}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Dedica unas bellas palabras a los novios que aparecerán en el muro de los deseos..."
-                    className="w-full p-4 text-sm rounded-2xl bg-[#EBEBEB] text-gray-800 shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] focus:outline-hidden focus:shadow-[inset_6px_6px_12px_#c8c8c8,inset_-6px_-6px_12px_#ffffff] transition-all resize-none"
-                  />
-                </div>
-
                 {/* 5. Canción sugerida (opcional) */}
                 {rsvpStatus === 'confirmed' && (
                   <div>
                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
                       <Music className="w-3.5 h-3.5 text-gray-500" />
-                      <span>Canción que te gustaría bailar (Opcional)</span>
+                      <span>Canción que bailarás con nosotros (opcional)</span>
                     </label>
                     <input
                       type="text"
@@ -535,7 +686,7 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
                   className="w-full py-4 rounded-2xl bg-[#EBEBEB] text-gray-900 font-bold text-sm transition-all duration-300 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-60"
                 >
                   <Send className="w-4 h-4 text-gray-700" />
-                  <span>{isSubmitting ? 'Registrando en la nube...' : 'Confirmar Mi Asistencia Ahora'}</span>
+                  <span>{isSubmitting ? 'Registrando en la nube...' : 'Enviar'}</span>
                 </button>
               </form>
             </div>

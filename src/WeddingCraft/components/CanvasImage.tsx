@@ -14,10 +14,23 @@ export const CanvasImage: React.FC<{
 
   useEffect(() => {
     if (img && imgRef.current) {
-      if (el.style.filters) {
-        imgRef.current.cache();
+      const f = el.style.filters;
+      const hasActiveFilters = f && (
+        f.brightness !== 100 ||
+        f.contrast !== 100 ||
+        f.saturate !== 100 ||
+        f.grayscale !== 0 ||
+        f.blur !== 0 ||
+        f.sepia !== 0
+      );
+      if (hasActiveFilters) {
+        try {
+          imgRef.current.cache();
+        } catch (e) {}
       } else {
-        imgRef.current.clearCache();
+        try {
+          imgRef.current.clearCache();
+        } catch (e) {}
       }
     }
   }, [img, el.style.filters, el.transform.width, el.transform.height]);

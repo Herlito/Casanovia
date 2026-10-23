@@ -17,7 +17,7 @@ import {
   Users
 } from 'lucide-react';
 
-export const ShareWeddingModal: React.FC = () => {
+export default function ShareWeddingModal() {
   const { 
     showShareModal, 
     setShowShareModal, 

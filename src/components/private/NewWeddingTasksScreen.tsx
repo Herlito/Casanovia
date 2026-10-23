@@ -144,7 +144,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
             
             <div>
               <h1 className="font-serif-display text-2xl sm:text-4xl font-bold tracking-tight text-gray-900">
-                Lista de Tareas de la Boda
+                Lista de Tareas
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 mt-1 max-w-2xl font-light leading-relaxed">
                 Revisa y personaliza la lista cronológica de actividades para <strong className="text-gray-800 font-semibold">{settings.coupleNames}</strong>. 
@@ -161,7 +161,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
                 className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-2xl bg-[#EBEBEB] text-gray-800 font-bold text-xs sm:text-sm shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transition-all cursor-pointer transform hover:-translate-y-0.5"
               >
                 <LayoutDashboard className="w-4 h-4 text-gray-700" />
-                <span>Regresar al Dashboard de Novios</span>
+                <span>Regresar al Dashboard</span>
                 <ChevronRight className="w-4 h-4 text-gray-500" />
               </button>
             </div>
@@ -622,7 +622,7 @@ export const NewWeddingTasksScreen: React.FC = () => {
             className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-2xl bg-[#EBEBEB] text-gray-800 font-bold text-xs shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transition-all cursor-pointer"
           >
             <LayoutDashboard className="w-4 h-4 text-gray-700" />
-            <span>Listo, Regresar al Dashboard Novios</span>
+            <span>Listo, Regresar al Dashboard</span>
             <ChevronRight className="w-4 h-4 text-gray-500" />
           </button>
         </div>

@@ -4,6 +4,7 @@ import { Guest, ProtocolCategory, RsvpStatus } from '../../types';
 import { GuestModal } from './GuestModal';
 import { GuestImportModal } from './GuestImportModal';
 import { CompanionModal } from './CompanionModal';
+import { AssignChildModal } from './AssignChildModal';
 import { GuestRoleCell, GuestCompanionCell, GuestRsvpCell } from './GuestTableCells';
 import { sortGuestsWithCompanions } from './TableAssignmentModule';
 import { exportGuestsToExcel, ROLE_LABEL_MAP } from '../../lib/excelUtils';
@@ -80,10 +81,21 @@ export const GuestManagement: React.FC = () => {
     reorderGuests, 
     importGuests, 
     settings,
+    activeWedding,
     canEditActiveWedding,
-    canPrint
+    canPrint,
+    isLevel4Free,
+    showUpgradeNotice,
+    activeWeddingId,
+    getShareableWeddingUrl
   } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic';
+
+  const isPromotionEvent = Boolean(
+    (settings.eventType && settings.eventType.toLowerCase().includes('promoc')) ||
+    (activeWedding?.coupleNames && activeWedding.coupleNames.toLowerCase().includes('promoc')) ||
+    (settings.coupleNames && settings.coupleNames.toLowerCase().includes('promoc'))
+  );
 
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [rsvpFilter, setRsvpFilter] = useState<string>('all');
@@ -95,6 +107,7 @@ export const GuestManagement: React.FC = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
   const [companionModalGuest, setCompanionModalGuest] = useState<Guest | null>(null);
+  const [childModalGuest, setChildModalGuest] = useState<Guest | null>(null);
   const [copiedCodeForGuest, setCopiedCodeForGuest] = useState<string | null>(null);
 
   // Toggle visibility of invitation codes
@@ -273,6 +286,10 @@ export const GuestManagement: React.FC = () => {
   };
 
   const handleOpenAddModal = () => {
+    if (isLevel4Free && guests.length >= 20) {
+      showUpgradeNotice('Límite de Invitados', 'Plan Novia Free (Nivel 4): Has alcanzado el límite máximo de 20 invitados permitidos. Por favor sube de nivel para agregar invitados ilimitados.');
+      return;
+    }
     setEditingGuest(null);
     setIsModalOpen(true);
   };
@@ -315,7 +332,8 @@ export const GuestManagement: React.FC = () => {
   };
 
   const generateWhatsappMessage = (guest: Guest) => {
-    const webUrl = window.location.origin;
+    const baseUrl = getShareableWeddingUrl ? getShareableWeddingUrl(activeWeddingId) : `${window.location.origin}/?boda=${encodeURIComponent(activeWeddingId)}`;
+    const webUrl = `${baseUrl}&code=${encodeURIComponent(guest.code)}`;
     let text = `¡Hola ${guest.fullName}! Te compartimos con mucho cariño la invitación oficial a nuestra boda (${settings.coupleNames}).`;
     
     if (guest.category === 'cortejo_honor' || guest.category === 'wedding_planner' || guest.category === 'anfitrion') {
@@ -971,6 +989,7 @@ export const GuestManagement: React.FC = () => {
                             isCompanionOfSomeone={isCompanionOfSomeone}
                             mainGuest={mainGuest}
                             onOpenAssignCompanion={() => setCompanionModalGuest(guest)}
+                            onOpenAssignChild={isPromotionEvent ? () => setChildModalGuest(guest) : undefined}
                             onUnlinkCompanion={handleUnlinkCompanion}
                           />
                         </td>
@@ -1143,6 +1162,7 @@ export const GuestManagement: React.FC = () => {
                               isCompanionOfSomeone={isCompanionOfSomeone}
                               mainGuest={mainGuest}
                               onOpenAssignCompanion={() => setCompanionModalGuest(guest)}
+                              onOpenAssignChild={isPromotionEvent ? () => setChildModalGuest(guest) : undefined}
                               onUnlinkCompanion={handleUnlinkCompanion}
                             />
                           </div>
@@ -1243,7 +1263,7 @@ export const GuestManagement: React.FC = () => {
 
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             {/* Botón Exportar a Excel */}
-            {canPrint && (
+            {canPrint ? (
               <button
                 type="button"
                 id="btn-export-excel"
@@ -1254,7 +1274,19 @@ export const GuestManagement: React.FC = () => {
                 <Download className="w-4 h-4 text-emerald-700" />
                 <span>Exportar Excel</span>
               </button>
-            )}
+            ) : isLevel4Free ? (
+              <button
+                type="button"
+                id="btn-export-excel-locked"
+                onClick={() => showUpgradeNotice('Exportar a Excel', 'La exportación y descarga de la lista de invitados a Excel (.xlsx) requiere una cuenta de nivel superior. Sube de nivel para descargar tus listas completas.')}
+                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-amber-50/70 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold shadow-2xs transition-all cursor-pointer"
+                title="Subir de Nivel - Exportar Excel"
+              >
+                <Download className="w-4 h-4 text-amber-600" />
+                <span>Exportar Excel</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-bold">Subir de Nivel</span>
+              </button>
+            ) : null}
 
             {/* Botón Importar Datos Excel/CSV */}
             {canEditActiveWedding && (
@@ -1318,6 +1350,15 @@ export const GuestManagement: React.FC = () => {
           onCompanionAdded={(compName) => {
             // Context will automatically synchronize table between host and companions
           }}
+        />
+      )}
+
+      {/* Direct Assign Child Modal from Companion Column (Only for Bailes de Promoción) */}
+      {isPromotionEvent && childModalGuest && (
+        <AssignChildModal
+          isOpen={!!childModalGuest}
+          onClose={() => setChildModalGuest(null)}
+          parentGuest={childModalGuest}
         />
       )}
 

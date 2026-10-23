@@ -92,12 +92,12 @@ export const AdminUploadedImagesModal: React.FC<AdminUploadedImagesModalProps> =
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-fadeIn">
-        <div className="bg-[#EBEBEB] rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-transparent overflow-hidden">
+        <div className="bg-[#EBEBEB] rounded-2xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-xl border border-transparent overflow-hidden">
           
           {/* Header */}
-          <div className="p-4 sm:p-6 bg-[#EBEBEB] border-b border-transparent flex items-center justify-between shrink-0">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] flex items-center justify-center shadow-xs shrink-0">
+          <div className="p-3 bg-[#EBEBEB] border-b border-gray-300/40 flex items-center justify-between shrink-0">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-[#2D3748] flex items-center justify-center shadow-xs shrink-0">
                 <ImageIcon className="w-5 h-5" />
               </div>
               <div>

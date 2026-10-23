@@ -89,7 +89,9 @@ export const TableAssignmentModule: React.FC = () => {
     setShowFloorPlanModal,
     settings,
     canEditActiveWedding,
-    canPrint
+    canPrint,
+    isLevel4Free,
+    showUpgradeNotice
   } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic';
 
@@ -1042,7 +1044,7 @@ export const TableAssignmentModule: React.FC = () => {
             </button>
           )}
 
-          {canPrint && (
+          {canPrint ? (
             <button
               type="button"
               onClick={() => setIsPrintModalOpen(true)}
@@ -1051,7 +1053,18 @@ export const TableAssignmentModule: React.FC = () => {
               <Printer className="w-4 h-4" />
               <span>Imprimir</span>
             </button>
-          )}
+          ) : isLevel4Free ? (
+            <button
+              type="button"
+              onClick={() => showUpgradeNotice('Imprimir Mesas', 'La exportación e impresión de la distribución de mesas requiere una cuenta de nivel superior. Sube de nivel para desbloquear esta función.')}
+              className="px-3.5 py-2.5 rounded-2xl bg-amber-50/70 text-amber-900 border border-amber-300 text-xs font-semibold transition-all shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer"
+              title="Subir de Nivel - Imprimir Mesas"
+            >
+              <Printer className="w-4 h-4 text-amber-600" />
+              <span>Imprimir</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-bold">Subir de Nivel</span>
+            </button>
+          ) : null}
 
           <button
             type="button"
@@ -1623,7 +1636,7 @@ export const TableAssignmentModule: React.FC = () => {
           </button>
         )}
 
-        {canPrint && (
+        {canPrint ? (
           <button
             type="button"
             onClick={() => setIsPrintModalOpen(true)}
@@ -1633,7 +1646,17 @@ export const TableAssignmentModule: React.FC = () => {
           >
             <Printer className="w-4 h-4 text-gray-800" />
           </button>
-        )}
+        ) : isLevel4Free ? (
+          <button
+            type="button"
+            onClick={() => showUpgradeNotice('Imprimir Mesas', 'La exportación e impresión de la distribución de mesas requiere una cuenta de nivel superior. Sube de nivel para desbloquear esta función.')}
+            className="p-2 text-amber-800 hover:text-amber-900 rounded-full bg-amber-50 shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border border-amber-300 cursor-pointer flex items-center justify-center"
+            title="Subir de Nivel - Imprimir Mesas"
+            aria-label="Subir de Nivel - Imprimir Mesas"
+          >
+            <Printer className="w-4 h-4 text-amber-600" />
+          </button>
+        ) : null}
 
         <button
           type="button"

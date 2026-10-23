@@ -16,6 +16,19 @@ export const useKeyboardShortcuts = () => {
       const state = useEditorStore.getState();
       const selectedIds = state.selectedElementIds;
 
+      // Save: Ctrl+M or Cmd+M
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        
+        // Trigger save logic
+        if (state.currentTemplateId && state.currentTemplateName) {
+          state.directSaveCurrentTemplate();
+        } else {
+          state.openSaveModal('save_as');
+        }
+        return;
+      }
+
       // Undo: Ctrl+Z or Cmd+Z
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
         e.preventDefault();
@@ -59,6 +72,12 @@ export const useKeyboardShortcuts = () => {
         } else {
           state.groupElements(selectedIds);
         }
+        return;
+      }
+
+      // Toggle Grid: 'g' (without ctrl/meta)
+      if (e.key.toLowerCase() === 'g' && !e.ctrlKey && !e.metaKey) {
+        state.setGridEnabled(!state.gridEnabled);
         return;
       }
 

@@ -28,14 +28,67 @@ const MONTHS_LOWERCASE = [
 ];
 
 /**
+ * Safely parses any date string (YYYY-MM-DD, ISO, etc.) into a local Date object
+ * positioned at local noon (12:00:00) unless a specific time is given.
+ * This guarantees that negative UTC timezone offsets (e.g. UTC-5 in Peru)
+ * NEVER shift the date backwards to the previous day.
+ */
+export function parseDateSafe(dateStr?: string): Date {
+  if (!dateStr) return new Date();
+
+  // Match YYYY-MM-DD or YYYY/MM/DD
+  const match = String(dateStr).trim().match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+  if (match) {
+    const year = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    const day = parseInt(match[3], 10);
+
+    let hours = 12;
+    let minutes = 0;
+    let seconds = 0;
+    const timeMatch = String(dateStr).match(/[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (timeMatch) {
+      hours = parseInt(timeMatch[1], 10);
+      minutes = parseInt(timeMatch[2], 10);
+      if (timeMatch[3]) seconds = parseInt(timeMatch[3], 10);
+    }
+    return new Date(year, month, day, hours, minutes, seconds);
+  }
+
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? new Date() : d;
+}
+
+/**
+ * Formats a date string into long Spanish invitation format:
+ * e.g. "sábado, 28 de noviembre de 2026"
+ */
+export function formatSpanishDateLong(dateStr?: string, capitalizeFirst: boolean = false): string {
+  if (!dateStr) return 'sábado, 28 de noviembre de 2026';
+
+  const d = parseDateSafe(dateStr);
+  if (isNaN(d.getTime())) return 'sábado, 28 de noviembre de 2026';
+
+  const dayOfWeek = DAYS_OF_WEEK[d.getDay()].toLowerCase();
+  const dayNumber = d.getDate();
+  const monthName = MONTHS_LOWERCASE[d.getMonth()];
+  const year = d.getFullYear();
+
+  const formatted = `${dayOfWeek}, ${dayNumber} de ${monthName} de ${year}`;
+  if (capitalizeFirst) {
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  }
+  return formatted;
+}
+
+/**
  * Formats a wedding date into the cursive header style:
  * "Timing de Boda - 12 de setiembre"
  */
 export function formatTimingHeaderDate(dateStr?: string): string {
   if (!dateStr) return 'Timing de Boda - 12 de setiembre';
   try {
-    const cleanStr = dateStr.includes('T') ? dateStr : `${dateStr}T12:00:00`;
-    const d = new Date(cleanStr);
+    const d = parseDateSafe(dateStr);
     if (isNaN(d.getTime())) return 'Timing de Boda - 12 de setiembre';
     const dayNumber = d.getDate();
     const monthName = MONTHS_LOWERCASE[d.getMonth()] === 'septiembre' ? 'setiembre' : MONTHS_LOWERCASE[d.getMonth()];
@@ -54,10 +107,7 @@ export function formatWeddingDateCustom(dateStr?: string): string {
   if (!dateStr) return 'Sábado, 12 septiembre 2026';
 
   try {
-    // If dateStr is YYYY-MM-DD or ISO
-    const cleanStr = dateStr.includes('T') ? dateStr : `${dateStr}T12:00:00`;
-    const d = new Date(cleanStr);
-    
+    const d = parseDateSafe(dateStr);
     if (isNaN(d.getTime())) {
       return 'Sábado, 12 septiembre 2026';
     }
@@ -93,8 +143,7 @@ export function parseWeddingDateParts(dateStr?: string): {
   }
 
   try {
-    const cleanStr = dateStr.includes('T') ? dateStr : `${dateStr}T12:00:00`;
-    const d = new Date(cleanStr);
+    const d = parseDateSafe(dateStr);
     if (isNaN(d.getTime())) {
       return {
         dayOfWeek: 'Sábado',
@@ -237,14 +286,46 @@ export function formatRsvpCutoffDate(weddingDateStr?: string, daysBefore: number
 }
 
 /**
+ * Formats the RSVP deadline date set in Configuration to Spanish format:
+ * e.g., "5 de Septiembre de 2026"
+ * If no explicit deadline is set in Settings, falls back to daysBefore the weddingDate.
+ */
+export function formatRsvpDeadline(deadlineStr?: string, weddingDateStr?: string, fallbackDaysBefore: number = 7): string {
+  if (deadlineStr && deadlineStr.trim()) {
+    try {
+      const d = parseDateSafe(deadlineStr);
+      if (!isNaN(d.getTime())) {
+        const dayNumber = d.getDate();
+        const month = MONTHS_LOWERCASE[d.getMonth()];
+        const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+        const year = d.getFullYear();
+        return `${dayNumber} de ${capitalizedMonth} de ${year}`;
+      }
+    } catch {
+      // fallback
+    }
+  }
+
+  return formatRsvpCutoffDate(weddingDateStr, fallbackDaysBefore);
+}
+
+/**
  * Returns whether the RSVP deadline has passed (deadline date is before today).
  * If deadline is '2026-10-10', it allows confirmation until end of that day (23:59:59).
  */
 export function isRsvpDeadlinePassed(deadlineStr?: string): boolean {
-  if (!deadlineStr) return false;
+  if (!deadlineStr || !deadlineStr.trim()) return false;
   try {
-    // If deadlineStr is only YYYY-MM-DD, consider end of that day (23:59:59)
-    const cleanStr = deadlineStr.includes('T') ? deadlineStr : `${deadlineStr}T23:59:59`;
+    const trimmed = deadlineStr.trim();
+    if (/^\d{4}[/-]\d{1,2}[/-]\d{1,2}$/.test(trimmed)) {
+      const parts = trimmed.split(/[/-]/);
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const endOfDay = new Date(year, month, day, 23, 59, 59, 999).getTime();
+      return endOfDay < Date.now();
+    }
+    const cleanStr = trimmed.includes('T') ? trimmed : `${trimmed}T23:59:59`;
     const target = new Date(cleanStr).getTime();
     if (isNaN(target)) return false;
     return target < Date.now();

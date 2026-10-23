@@ -13,12 +13,32 @@ import {
   Sparkles 
 } from 'lucide-react';
 import { formatWeddingTimeCustom } from '../../lib/dateUtils';
+import { safeUrl } from '../../lib/safeUrl';
 
 export const EventDetails: React.FC = () => {
   const { settings } = useWedding();
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
 
+  const ceremonyVenue = settings?.ceremonyVenue || {
+    name: 'Capilla / Parroquia Principal',
+    time: '17:00',
+    address: 'Ubicación por definir',
+    googleMapsUrl: '#',
+    wazeUrl: '#',
+  };
+
+  const receptionVenue = settings?.receptionVenue || {
+    name: 'Hacienda / Fundo de Recepción',
+    time: '19:00',
+    address: 'Ubicación por definir',
+    googleMapsUrl: '#',
+    wazeUrl: '#',
+  };
+
+  const hasReligiousCeremony = settings?.hasReligiousCeremony !== false;
+
   const copyToClipboard = (text: string, type: 'ceremony' | 'reception') => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
     setCopiedAddress(type);
     setTimeout(() => setCopiedAddress(null), 2500);
@@ -38,20 +58,20 @@ export const EventDetails: React.FC = () => {
             Detalles del Evento
           </h2>
           <p className="text-xs sm:text-sm text-[#7A7268] max-w-lg mx-auto mt-2">
-            Acompaña cada momento especial. Consulta las ubicaciones, accesos y mapas de navegación directa.
+            AcompaÃ±a cada momento especial. Consulta las ubicaciones, accesos y mapas de navegaciÃ³n directa.
           </p>
         </div>
 
         {/* Venue Cards Grid (Adapts if hasReligiousCeremony is disabled) */}
-        <div className={settings.hasReligiousCeremony === false ? 'max-w-xl mx-auto' : 'grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8'}>
+        <div className={!hasReligiousCeremony ? 'max-w-xl mx-auto' : 'grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8'}>
           
           {/* 1. CEREMONIA RELIGIOSA (Solo si tiene ceremonia religiosa habilitada) */}
-          {settings.hasReligiousCeremony !== false && (
+          {hasReligiousCeremony && (
             <div className="rounded-2xl sm:rounded-3xl bg-[#EBEBEB] p-6 sm:p-8 border border-transparent shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-shadow relative flex flex-col justify-between">
               {/* Top Icon Badge */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/10 text-[#2D3748] flex items-center justify-center border border-transparent">
+                  <div className="w-12 h-12 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] flex items-center justify-center border border-transparent">
                     <Church className="w-6 h-6" />
                   </div>
                   <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#EBEBEB] text-[#2D3748] border border-transparent">
@@ -63,18 +83,18 @@ export const EventDetails: React.FC = () => {
                   Ceremonia Religiosa
                 </h3>
                 <p className="font-serif-display text-base text-[#524B42] font-semibold mb-3">
-                  {settings.ceremonyVenue.name}
+                  {ceremonyVenue.name}
                 </p>
 
                 {/* Time & Address */}
                 <div className="space-y-2 text-xs text-[#6B6358] mb-4">
                   <div className="flex items-start space-x-2">
                     <Clock className="w-4 h-4 text-[#2D3748] shrink-0 mt-0.5" />
-                    <span>{formatWeddingTimeCustom(settings.ceremonyVenue.time, '5:00 pm (Puntual)')}</span>
+                    <span>{formatWeddingTimeCustom(ceremonyVenue.time, '5:00 pm (Puntual)')}</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <MapPin className="w-4 h-4 text-[#8A9A86] shrink-0 mt-0.5" />
-                    <span>{settings.ceremonyVenue.address}</span>
+                    <span>{ceremonyVenue.address}</span>
                   </div>
                 </div>
 
@@ -85,7 +105,7 @@ export const EventDetails: React.FC = () => {
                       <Church className="w-4 h-4" />
                     </div>
                     <span className="text-[11px] font-bold text-[#2D2A26] mt-1 bg-[#EBEBEB]/90 px-2 py-0.5 rounded-full shadow-xs truncate max-w-[90%]">
-                      {settings.ceremonyVenue.name}
+                      {ceremonyVenue.name}
                     </span>
                   </div>
                 </div>
@@ -95,7 +115,7 @@ export const EventDetails: React.FC = () => {
               <div className="space-y-2 pt-2 border-t border-[#F2ECE3]">
                 <div className="grid grid-cols-2 gap-2">
                   <a
-                    href={settings.ceremonyVenue.googleMapsUrl}
+                    href={safeUrl(ceremonyVenue.googleMapsUrl) || undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-[#EBEBEB] text-[#2D2A26] border border-[#D9CEBF] text-xs font-semibold hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] hover:border-transparent transition-colors"
@@ -106,7 +126,7 @@ export const EventDetails: React.FC = () => {
                   </a>
 
                   <a
-                    href={settings.ceremonyVenue.wazeUrl}
+                    href={safeUrl(ceremonyVenue.wazeUrl) || undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-[#EBEBEB] text-[#2D2A26] border border-[#D9CEBF] text-xs font-semibold hover:bg-[#2C3E50] hover:text-[#2D3748] hover:border-[#2C3E50] transition-colors"
@@ -119,7 +139,7 @@ export const EventDetails: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => copyToClipboard(settings.ceremonyVenue.address, 'ceremony')}
+                  onClick={() => copyToClipboard(ceremonyVenue.address, 'ceremony')}
                   className="w-full py-2 px-3 rounded-xl text-xs text-[#7A7268] hover:text-[#2D2A26] hover:bg-[#EBEBEB] flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
                 >
                   {copiedAddress === 'ceremony' ? (
@@ -155,18 +175,18 @@ export const EventDetails: React.FC = () => {
                 Recepción & Fiesta
               </h3>
               <p className="font-serif-display text-base text-[#524B42] font-semibold mb-3">
-                {settings.receptionVenue.name}
+                {receptionVenue.name}
               </p>
 
               {/* Time & Address */}
               <div className="space-y-2 text-xs text-[#6B6358] mb-4">
                 <div className="flex items-start space-x-2">
                   <Clock className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                  <span>{settings.receptionVenue.time}</span>
+                  <span>{receptionVenue.time}</span>
                 </div>
                 <div className="flex items-start space-x-2">
                   <MapPin className="w-4 h-4 text-[#8A9A86] shrink-0 mt-0.5" />
-                  <span>{settings.receptionVenue.address}</span>
+                  <span>{receptionVenue.address}</span>
                 </div>
               </div>
 
@@ -177,7 +197,7 @@ export const EventDetails: React.FC = () => {
                     <PartyPopper className="w-4 h-4" />
                   </div>
                   <span className="text-[11px] font-bold text-[#2D2A26] mt-1 bg-[#EBEBEB]/90 px-2 py-0.5 rounded-full shadow-xs">
-                    {settings.receptionVenue.name}
+                    {receptionVenue.name}
                   </span>
                 </div>
               </div>
@@ -187,7 +207,7 @@ export const EventDetails: React.FC = () => {
             <div className="space-y-2 pt-2 border-t border-[#F2ECE3]">
               <div className="grid grid-cols-2 gap-2">
                 <a
-                  href={settings.receptionVenue.googleMapsUrl}
+                  href={safeUrl(receptionVenue.googleMapsUrl) || undefined}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-[#EBEBEB] text-[#2D2A26] border border-[#D9CEBF] text-xs font-semibold hover:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:text-[#2D3748] hover:border-transparent transition-colors"
@@ -198,7 +218,7 @@ export const EventDetails: React.FC = () => {
                 </a>
 
                 <a
-                  href={settings.receptionVenue.wazeUrl}
+                  href={safeUrl(receptionVenue.wazeUrl) || undefined}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-[#EBEBEB] text-[#2D2A26] border border-[#D9CEBF] text-xs font-semibold hover:bg-[#2C3E50] hover:text-[#2D3748] hover:border-[#2C3E50] transition-colors"
@@ -211,8 +231,8 @@ export const EventDetails: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => copyToClipboard(settings.receptionVenue.address, 'reception')}
-                className="w-full py-2 px-3 rounded-xl text-xs text-[#7A7268] hover:text-[#2D2A26] hover:bg-[#EBEBEB] flex items-center justify-center space-x-1.5 transition-colors"
+                onClick={() => copyToClipboard(receptionVenue.address, 'reception')}
+                className="w-full py-2 px-3 rounded-xl text-xs text-[#7A7268] hover:text-[#2D2A26] hover:bg-[#EBEBEB] flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
               >
                 {copiedAddress === 'reception' ? (
                   <>

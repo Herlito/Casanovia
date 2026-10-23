@@ -7,9 +7,8 @@ import { MobileNavigation } from './MobileNavigation';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { CanvasStage } from './CanvasStage';
 import { useEditorStore } from '../store/useEditorStore';
-import { db } from '../../lib/firebase';
-import { collection, getDocs, onSnapshot } from 'firebase/firestore';
-import { get, set } from 'idb-keyval';
+import { get, set, del } from 'idb-keyval';
+import { fetchTemplatesFromHosting } from '../../services/hostingStorage';
 import { EventDataAdapter } from '../adapter/EventDataAdapter';
 import { WeddingDesignDocument } from '../types';
 import { X } from 'lucide-react';
@@ -18,6 +17,8 @@ import { SaveTemplateModal } from './SaveTemplateModal';
 import { FloatingPropertiesToolbar } from './FloatingPropertiesToolbar';
 import { createDefaultWebInvitationDocument, reflowCanvasElements } from '../lib/defaultWebTemplate';
 import { RESTORED_MASTER_TEMPLATES } from '../data/masterTemplates';
+import { isValidDraftDocument } from '../lib/canvasElementUtils';
+import { WeddingCraftErrorBoundary } from './WeddingCraftErrorBoundary';
 
 interface WeddingCraftEditorProps {
   externalAPI: any;
@@ -28,9 +29,19 @@ interface WeddingCraftEditorProps {
 export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ externalAPI, onClose, initialDocument }) => {
   const { setEventData, initializeDocument } = useEditorStore();
   const isPreviewModalOpen = useEditorStore((state) => state.isPreviewModalOpen);
+  const selectedElementIds = useEditorStore((state) => state.selectedElementIds);
+  const rightSidebarCollapsed = useEditorStore((state) => state.rightSidebarCollapsed);
+  const setRightSidebarCollapsed = useEditorStore((state) => state.setRightSidebarCollapsed);
   useKeyboardShortcuts();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-expand RightSidebar when user selects an element on the canvas
+  useEffect(() => {
+    if (selectedElementIds.length > 0 && rightSidebarCollapsed) {
+      setRightSidebarCollapsed(false);
+    }
+  }, [selectedElementIds, rightSidebarCollapsed, setRightSidebarCollapsed]);
 
   useEffect(() => {
     // Prevent body scroll when editor is open
@@ -41,20 +52,43 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
     };
   }, []);
 
+  const externalAPIRef = React.useRef(externalAPI);
+  externalAPIRef.current = externalAPI;
+  const initialDocumentRef = React.useRef(initialDocument);
+  initialDocumentRef.current = initialDocument;
+
+  // Background update for event data when externalAPI changes without reinitializing the canvas document
   useEffect(() => {
+    if (!isLoading && externalAPI) {
+      const adapter = new EventDataAdapter(externalAPI);
+      adapter.getCurrentEvent().then((eventData) => {
+        if (eventData) {
+          setEventData(eventData);
+        }
+      }).catch(() => {});
+    }
+  }, [externalAPI, isLoading, setEventData]);
+
+  useEffect(() => {
+    let unsubscribeTemplates: (() => void) | null = null;
+    let lastSavedHash = '';
+    let isCancelled = false;
+
     const init = async () => {
       try {
         setIsLoading(true);
         // 1. Adapter initialization
-        const adapter = new EventDataAdapter(externalAPI);
+        const adapter = new EventDataAdapter(externalAPIRef.current);
         const eventData = await adapter.getCurrentEvent();
         
+        if (isCancelled) return;
+
         // 2. Set Read-Only Parent Data
         setEventData(eventData);
 
         // 3. Init local document
-        if (initialDocument) {
-          initializeDocument(initialDocument);
+        if (initialDocumentRef.current) {
+          initializeDocument(initialDocumentRef.current);
         } else {
           // Check IndexedDB for draft and templates
           const savedTemplates = (await get('wedding_craft_templates')) || [];
@@ -66,112 +100,116 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
           const initialTemplates = Array.from(map.values()).sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
           useEditorStore.getState().loadTemplates(initialTemplates);
           
-          const draftKey = `wedding_design_draft_${eventData.eventId}`;
-          let savedDraft = await get(draftKey);
-          if (!savedDraft) {
-            try {
-              const localStr = localStorage.getItem(draftKey);
-              if (localStr) savedDraft = JSON.parse(localStr);
-            } catch (e) {}
-          }
-          if (!savedDraft) {
-            try {
-              const localPub = localStorage.getItem(`weddingcraft_published_${eventData.eventId}`);
-              if (localPub) savedDraft = JSON.parse(localPub);
-            } catch (e) {}
-          }
-          if (savedDraft) {
-            // Support both stringified and plain objects depending on how it was saved
-            try {
-               const parsed = typeof savedDraft === 'string' ? JSON.parse(savedDraft) : savedDraft;
-               if (parsed?.canvas) {
-                 if (parsed.canvas.backgroundColor === '#FAF8F5') {
-                   parsed.canvas.backgroundColor = '#EBEBEB';
-                 }
-                 if (parsed.canvas.width === 375) {
-                   parsed.canvas.width = 720;
-                   if (parsed.pages?.[0]?.elements) {
-                     parsed.pages[0].elements = reflowCanvasElements(parsed.pages[0].elements, 720, 375);
-                   }
-                 }
-               }
-               initializeDocument(parsed);
-            } catch (e) {
-               console.warn("Failed to parse saved draft", e);
-            }
-          } else {
-            // Check if matching master template exists for this event
+          // Helper to load the official wedding template cleanly
+          const loadOfficialWeddingTemplate = () => {
             const matchingMaster = RESTORED_MASTER_TEMPLATES.find(
-              m => m.document.parentEventId === eventData.eventId || (eventData.coupleNames && m.name.toLowerCase().includes(eventData.coupleNames[0]?.toLowerCase() || ''))
+              m => m.document?.parentEventId === eventData.eventId || 
+                   (eventData.coupleNames && m.name.toLowerCase().includes(eventData.coupleNames[0]?.toLowerCase() || ''))
             );
-            if (matchingMaster) {
+            if (matchingMaster?.document && isValidDraftDocument(matchingMaster.document)) {
               initializeDocument(matchingMaster.document);
-            } else {
-              // Default State: If linked and no design exists, load the current "Web Invitados" as the default canvas
-              const isLinked = useEditorStore.getState().isLinkedToWedding;
-              if (isLinked) {
-                const defaultDoc = createDefaultWebInvitationDocument({
-                  eventId: eventData.eventId,
-                  coupleNames: eventData.coupleNames,
-                  eventDate: eventData.eventDate,
-                  venueName: eventData.venueName,
-                  venueAddress: eventData.venueAddress,
-                  romanticQuote: eventData.romanticQuote,
-                });
-                initializeDocument(defaultDoc);
+              return;
+            }
+
+            const defaultDoc = createDefaultWebInvitationDocument({
+              eventId: eventData.eventId,
+              coupleNames: eventData.coupleNames,
+              eventDate: eventData.eventDate,
+              venueName: eventData.venueName,
+              venueAddress: eventData.venueAddress,
+              romanticQuote: eventData.romanticQuote,
+            });
+            initializeDocument(defaultDoc);
+          };
+
+          // Bypass local drafts completely and fetch directly from Hosting Backend
+          let remoteDesign: any = null;
+          try {
+            remoteDesign = await fetchPublishedDesignFromHosting(eventData.eventId);
+          } catch (e) {
+            console.info('[WeddingCraft] No remote design found on hosting, falling back to official template.');
+          }
+
+          if (remoteDesign && isValidDraftDocument(remoteDesign)) {
+            if (remoteDesign.canvas) {
+              if (remoteDesign.canvas.backgroundColor === '#FAF8F5') {
+                remoteDesign.canvas.backgroundColor = '#EBEBEB';
+              }
+              if (remoteDesign.canvas.width === 375) {
+                remoteDesign.canvas.width = 720;
+                if (remoteDesign.pages?.[0]?.elements) {
+                  remoteDesign.pages[0].elements = reflowCanvasElements(remoteDesign.pages[0].elements, 720, 375);
+                }
               }
             }
+            initializeDocument(remoteDesign);
+          } else {
+            loadOfficialWeddingTemplate();
           }
         }
 
+        if (isCancelled) return;
         setIsLoading(false);
-        // Load templates from Firebase (real-time) and merge safely with IndexedDB
+
+        // Load templates from hosting backend and merge safely with IndexedDB
         try {
-            onSnapshot(collection(db, 'weddingcraft_templates'), async (snap) => {
-                const remoteTemplates: any[] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                const localTemplates: any[] = (await get('wedding_craft_templates')) || [];
-                
-                const map = new Map<string, any>();
-                localTemplates.forEach(t => { if (t?.id) map.set(t.id, t); });
-                remoteTemplates.forEach(t => { if (t?.id) map.set(t.id, t); });
-                
-                const merged = Array.from(map.values()).sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
-                useEditorStore.getState().loadTemplates(merged);
-            }, (err) => {
-                console.info('[WeddingCraft] Templates remote listener notice (using local cache):', err);
-            });
+          const remoteTemplates = await fetchTemplatesFromHosting();
+          const localTemplates: any[] = (await get('wedding_craft_templates')) || [];
+          
+          const map = new Map<string, any>();
+          localTemplates.forEach(t => { if (t?.id) map.set(t.id, t); });
+          remoteTemplates.forEach(t => { if (t?.id) map.set(t.id, t); });
+          
+          const merged = Array.from(map.values()).sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+          if (!isCancelled) {
+            useEditorStore.getState().loadTemplates(merged);
+          }
         } catch (e) {
-           console.info("Info loading templates:", e);
+          console.info("Info loading templates from hosting:", e);
         }
       } catch (err: any) {
-        setError(err.message || 'Error inicializando el editor visual.');
-        setIsLoading(false);
+        if (!isCancelled) {
+          setError(err.message || 'Error inicializando el editor visual.');
+          setIsLoading(false);
+        }
       }
     };
 
     init();
 
-    // Auto-save effect logic using IndexedDB & localStorage
+    // Auto-save effect logic using IndexedDB, localStorage, and application-wide sync events
     const saveCurrentDraft = () => {
       const state = useEditorStore.getState();
-      if (state.eventData?.eventId) {
-        const draftKey = `wedding_design_draft_${state.eventData.eventId}`;
-        set(draftKey, state.document).catch(e => {
-            console.warn('Failed to save draft to IndexedDB:', e);
-        });
+      const elements = state.document?.pages?.[0]?.elements;
+      if (state.eventData?.eventId && elements && elements.length > 0 && isValidDraftDocument(state.document)) {
+        const eventId = state.eventData.eventId;
+        const currentHash = JSON.stringify({ canvas: state.document.canvas, elements });
+        if (currentHash === lastSavedHash) return;
+        lastSavedHash = currentHash;
+
+        const draftKey = `wedding_design_draft_${eventId}`;
+        
+        // 1. Persist draft to IndexedDB
+        set(draftKey, state.document).catch(() => {});
+
+        // 2. Persist draft to localStorage
         try {
           localStorage.setItem(draftKey, JSON.stringify(state.document));
         } catch (e) {}
       }
     };
 
-    const saveInterval = setInterval(saveCurrentDraft, 15000);
+    const saveInterval = setInterval(saveCurrentDraft, 10000);
 
     return () => {
+      isCancelled = true;
       clearInterval(saveInterval);
+      if (unsubscribeTemplates) {
+        unsubscribeTemplates();
+      }
       saveCurrentDraft();
     };
-  }, [externalAPI, initialDocument, setEventData, initializeDocument]);
+  }, [setEventData, initializeDocument]);
 
   if (isLoading) {
     return (
@@ -197,12 +235,14 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
   return (
     <div className="fixed inset-0 z-[9999] bg-[#f2f2f7] flex flex-col wc-editor-root font-sans">
       <Toolbar />
-      <div className="flex-1 flex overflow-hidden p-0 md:p-3 md:gap-3">
+      <div className="flex-1 flex overflow-hidden p-0 md:p-2 md:gap-2">
         <LeftSidebar />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          <FloatingPropertiesToolbar />
-          <CanvasStage />
-          <FooterControls />
+          <WeddingCraftErrorBoundary eventId={useEditorStore.getState().eventData?.eventId}>
+            <FloatingPropertiesToolbar />
+            <CanvasStage />
+            <FooterControls />
+          </WeddingCraftErrorBoundary>
         </div>
         <div className="hidden md:flex flex-col h-full"><RightSidebar /></div>
       </div>
@@ -237,8 +277,28 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
       <button 
         onClick={() => {
           const state = useEditorStore.getState();
-          if (state.eventData?.eventId) {
-            const draftKey = `wedding_design_draft_${state.eventData.eventId}`;
+          
+          if (state.hasUnsavedChanges()) {
+            const shouldSave = window.confirm(
+              "Hay cambios sin guardar en tu diseño.\n\n¿Deseas guardarlos antes de salir?\n\n• Aceptar: Guardar y Salir\n• Cancelar: Salir sin guardar"
+            );
+            if (shouldSave) {
+              if (state.currentTemplateId && state.currentTemplateName) {
+                state.directSaveCurrentTemplate().then(() => onClose());
+              } else if (state.eventData?.eventId) {
+                state.publishDesign().then(() => onClose());
+              } else {
+                state.openSaveModal('save_as');
+                return;
+              }
+              return;
+            }
+          }
+
+          const currentElements = state.document?.pages?.[0]?.elements;
+          if (state.eventData?.eventId && currentElements && currentElements.length > 0 && isValidDraftDocument(state.document)) {
+            const eventId = state.eventData.eventId;
+            const draftKey = `wedding_design_draft_${eventId}`;
             set(draftKey, state.document).catch(() => {});
             try {
               localStorage.setItem(draftKey, JSON.stringify(state.document));

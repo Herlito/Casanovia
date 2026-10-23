@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { TimelineMilestone } from '../../types';
 import { MilestoneModal } from './MilestoneModal';
@@ -16,7 +16,9 @@ import {
   Star,
   LayoutList,
   Columns,
-  BookmarkCheck
+  BookmarkCheck,
+  Download,
+  Upload
 } from 'lucide-react';
 
 // Reusable inline text-editable field component
@@ -283,11 +285,15 @@ export const TimelineModule: React.FC = () => {
     appTheme, 
     timeline, 
     settings, 
+    activeWedding,
     addMilestone, 
     updateMilestone, 
     deleteMilestone,
+    setTimeline,
     canEditActiveWedding,
-    canPrint
+    canPrint,
+    isLevel4Free,
+    showUpgradeNotice
   } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic';
 
@@ -297,6 +303,8 @@ export const TimelineModule: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'editorial' | 'cards' | 'protocol'>('editorial');
   const [activeMilestoneId, setActiveMilestoneId] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredTimeline = useMemo(() => {
     let list = timeline;
@@ -309,7 +317,118 @@ export const TimelineModule: React.FC = () => {
     return sortTimelineMilestones(list);
   }, [timeline, categoryFilter, viewMode]);
 
+  // 1.- Guardar JSON completo eliminando a los invitados, proveedores y lugares
+  const handleDownloadCleanJson = () => {
+    if (!timeline || timeline.length === 0) {
+      alert('El cronograma actual no tiene hitos para guardar.');
+      return;
+    }
+
+    const cleanTimeline = timeline.map((m, idx) => ({
+      id: `tm-${idx + 1}`,
+      time: m.time || '12:00',
+      title: m.title || '',
+      category: m.category || 'protocolo',
+      description: m.description || '',
+      location: '', // Eliminando lugares
+      responsiblePerson: '', // Eliminando invitados y proveedores
+      responsibleGuestId: undefined, // Eliminando invitados
+      isProtocolCrucial: m.isProtocolCrucial !== undefined ? Boolean(m.isProtocolCrucial) : true,
+      dressOrItemsRequired: m.dressOrItemsRequired || '',
+    }));
+
+    const jsonString = JSON.stringify(cleanTimeline, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const safeName = (activeWedding?.coupleNames || settings.coupleNames || 'cronograma')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '_');
+    link.href = url;
+    link.download = `cronograma_${safeName}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 2.- Cargar JSON en el evento actual
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target?.result as string;
+        const parsed = JSON.parse(content);
+
+        let list: any[] = [];
+        if (Array.isArray(parsed)) {
+          list = parsed;
+        } else if (parsed && Array.isArray(parsed.timeline)) {
+          list = parsed.timeline;
+        } else if (parsed && Array.isArray(parsed.milestones)) {
+          list = parsed.milestones;
+        } else {
+          alert('El archivo no contiene un formato de cronograma válido.');
+          return;
+        }
+
+        if (list.length === 0) {
+          alert('El archivo JSON no contiene ningún hito.');
+          return;
+        }
+
+        if (isLevel4Free && list.length > 5) {
+          showUpgradeNotice(
+            'Límite de Cronograma',
+            'Plan Novia Free (Nivel 4): El límite máximo es de 5 hitos en el cronograma. Por favor sube de nivel para cargar cronogramas completos.'
+          );
+          return;
+        }
+
+        const confirmed = window.confirm(
+          `¿Deseas cargar este cronograma (${list.length} hitos) en el evento actual? Reemplazará los hitos actuales.`
+        );
+        if (!confirmed) {
+          return;
+        }
+
+        const sanitized: TimelineMilestone[] = list.map((item: any, idx: number) => ({
+          id: item.id ? String(item.id) : `tm-${Date.now()}-${idx}-${Math.floor(100 + Math.random() * 900)}`,
+          time: typeof item.time === 'string' && item.time.trim() ? item.time.trim() : '12:00',
+          title: typeof item.title === 'string' && item.title.trim() ? item.title.trim() : `Hito ${idx + 1}`,
+          category: typeof item.category === 'string' ? item.category : 'protocolo',
+          description: typeof item.description === 'string' ? item.description : '',
+          location: typeof item.location === 'string' ? item.location : '',
+          responsiblePerson: typeof item.responsiblePerson === 'string' ? item.responsiblePerson : '',
+          responsibleGuestId: typeof item.responsibleGuestId === 'string' ? item.responsibleGuestId : undefined,
+          isProtocolCrucial: item.isProtocolCrucial !== undefined ? Boolean(item.isProtocolCrucial) : true,
+          dressOrItemsRequired: typeof item.dressOrItemsRequired === 'string' ? item.dressOrItemsRequired : '',
+        }));
+
+        await setTimeline(sanitized);
+        alert(`¡Cronograma cargado exitosamente! (${sanitized.length} hitos sincronizados)`);
+      } catch (err) {
+        console.error('Error al procesar archivo JSON:', err);
+        alert('Error al leer el archivo JSON. Asegúrate de que sea un archivo JSON válido.');
+      } finally {
+        if (e.target) {
+          e.target.value = '';
+        }
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleOpenAdd = () => {
+    if (isLevel4Free && timeline.length >= 5) {
+      showUpgradeNotice('Límite de Cronograma', 'Plan Novia Free (Nivel 4): Has alcanzado el límite máximo de 5 hitos en el cronograma. Por favor sube de nivel para agregar hitos ilimitados.');
+      return;
+    }
     setEditingMilestone(null);
     setIsModalOpen(true);
   };
@@ -476,7 +595,44 @@ export const TimelineModule: React.FC = () => {
             </button>
           </div>
 
-          {canPrint && (
+          {/* 1.- Botón Guardar JSON (solo ícono sin texto) */}
+          <button
+            type="button"
+            onClick={handleDownloadCleanJson}
+            id="btn-export-timeline-json"
+            title="Guardar JSON (Plantilla limpia sin invitados, proveedores ni lugares)"
+            aria-label="Guardar JSON"
+            className="p-2 sm:px-2.5 sm:py-2.5 rounded-xl bg-[#EBEBEB] text-[#524B42] border border-[#D9CEBF] hover:bg-[#EBEBEB] hover:text-[#2D3748] transition-all shadow-2xs flex items-center justify-center cursor-pointer shrink-0"
+          >
+            <Download className="w-4 h-4 text-[#2D3748]" />
+          </button>
+
+          {/* 2.- Botón Cargar JSON */}
+          {canEditActiveWedding && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              id="btn-import-timeline-json"
+              title="Cargar cronograma desde archivo JSON en el evento actual"
+              aria-label="Cargar JSON"
+              className="px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-[#EBEBEB] text-[#524B42] border border-[#D9CEBF] text-xs font-semibold hover:bg-[#EBEBEB] hover:text-[#2D3748] transition-all shadow-2xs flex items-center space-x-1.5 cursor-pointer shrink-0"
+            >
+              <Upload className="w-4 h-4 text-[#2D3748]" />
+              <span className="hidden sm:inline">Cargar JSON</span>
+              <span className="sm:hidden">Cargar</span>
+            </button>
+          )}
+
+          {/* Input file oculto para cargar JSON */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept=".json,application/json"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          {canPrint ? (
             <button
               type="button"
               onClick={() => setIsPrintModalOpen(true)}
@@ -487,7 +643,19 @@ export const TimelineModule: React.FC = () => {
               <span className="hidden sm:inline">Exportar Cronograma (PDF)</span>
               <span className="sm:hidden">PDF</span>
             </button>
-          )}
+          ) : isLevel4Free ? (
+            <button
+              type="button"
+              onClick={() => showUpgradeNotice('Exportar Cronograma', 'La descarga y exportación de Cronograma (PDF) requiere una cuenta de nivel superior. Sube de nivel para desbloquear las exportaciones PDF.')}
+              id="btn-export-protocol-sheet-locked"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-amber-50/70 text-amber-900 border border-amber-300 text-xs font-semibold hover:bg-amber-100 transition-all shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+              title="Subir de Nivel - Exportar Cronograma PDF"
+            >
+              <Printer className="w-4 h-4 text-amber-600" />
+              <span className="hidden sm:inline">Exportar PDF</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-bold">Subir de Nivel</span>
+            </button>
+          ) : null}
 
           {canEditActiveWedding && (
             <button
@@ -960,7 +1128,31 @@ export const TimelineModule: React.FC = () => {
           <BookmarkCheck className="w-4 h-4" />
         </button>
 
-        {canPrint && (
+        {/* Guardar JSON (solo ícono) */}
+        <button
+          type="button"
+          onClick={handleDownloadCleanJson}
+          className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer flex items-center justify-center"
+          title="Guardar JSON (Plantilla limpia)"
+          aria-label="Guardar JSON"
+        >
+          <Download className="w-4 h-4 text-gray-800" />
+        </button>
+
+        {/* Cargar JSON */}
+        {canEditActiveWedding && (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 text-gray-700 hover:text-gray-900 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border-none cursor-pointer flex items-center justify-center"
+            title="Cargar JSON"
+            aria-label="Cargar JSON"
+          >
+            <Upload className="w-4 h-4 text-gray-800" />
+          </button>
+        )}
+
+        {canPrint ? (
           <button
             type="button"
             onClick={() => setIsPrintModalOpen(true)}
@@ -970,7 +1162,17 @@ export const TimelineModule: React.FC = () => {
           >
             <Printer className="w-4 h-4 text-gray-800" />
           </button>
-        )}
+        ) : isLevel4Free ? (
+          <button
+            type="button"
+            onClick={() => showUpgradeNotice('Exportar Cronograma PDF', 'La exportación de Cronograma a PDF no está disponible para Nivel 4. Sube de nivel para desbloquear esta función.')}
+            className="p-2 text-amber-800 hover:text-amber-900 rounded-full bg-amber-50 shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all border border-amber-300 cursor-pointer flex items-center justify-center"
+            title="Subir de Nivel - Exportar Cronograma PDF"
+            aria-label="Subir de Nivel - Exportar Cronograma PDF"
+          >
+            <Printer className="w-4 h-4 text-amber-600" />
+          </button>
+        ) : null}
 
         {canEditActiveWedding && (
           <button

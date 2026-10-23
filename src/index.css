@@ -333,3 +333,180 @@ body[data-theme="neumorphic"],
 
 /* Force all icons inside buttons to be black as requested */
 [data-theme='neumorphic'] button svg, [data-theme='neumorphic'] .cursor-pointer svg { color: black !important; }
+
+
+/* ==========================================================================
+   THEME: MINIMALIST (MINIMALISMO FUNCIONAL)
+   ========================================================================== */
+:root {
+  --mf-background: #FAF8F5; /* Natural Warm Off-white / Linen */
+  --mf-surface: #FFFFFF; /* Pure white flat cards */
+  --mf-surface-secondary: #F5EFE6; /* Natural secondary container background */
+  --mf-primary: #37A999; /* Sage Green */
+  --mf-primary-hover: #2E8E81;
+  --mf-secondary: #FBD6C8; /* Soft Beige */
+  --mf-accent: #FEBAC7; /* Linen */
+  --mf-dark: #644872; /* Warm Grey / Dark plum */
+  --mf-text: #2D2A26; /* Charcoal */
+  --mf-border: #E5DDD0; /* Soft, delicate neutral border */
+}
+
+html[data-theme="minimalist"],
+body[data-theme="minimalist"],
+[data-theme="minimalist"] {
+  background-color: var(--mf-background) !important;
+  color: var(--mf-text) !important;
+}
+
+/* Background overrides for containers and cards */
+[data-theme="minimalist"] .bg-\[\#EBEBEB\],
+[data-theme="minimalist"] .bg-\[\#FDFBF7\],
+[data-theme="minimalist"] .bg-white,
+[data-theme="minimalist"] .bg-gray-50,
+[data-theme="minimalist"] .bg-gray-100,
+[data-theme="minimalist"] .bg-\[\#F5F5F5\] {
+  background-color: var(--mf-surface) !important;
+}
+
+/* Override all custom neumorphic box-shadows */
+[data-theme="minimalist"] [class*="shadow-["],
+[data-theme="minimalist"] [class*="shadow-[inset_"] {
+  box-shadow: none !important;
+}
+
+/* Elegant, flat borders instead of transparent borders */
+[data-theme="minimalist"] .border,
+[data-theme="minimalist"] .border-\[\#E8DCCF\],
+[data-theme="minimalist"] .border-\[\#D4D4D4\],
+[data-theme="minimalist"] .border-gray-200,
+[data-theme="minimalist"] .border-gray-300,
+[data-theme="minimalist"] .border-\[\#F0EAE1\],
+[data-theme="minimalist"] .border-\[\#D9CEBF\],
+[data-theme="minimalist"] .border-\[\#EBEBEB\],
+[data-theme="minimalist"] .border-rose-200\/50,
+[data-theme="minimalist"] .border-gray-300\/60,
+[data-theme="minimalist"] .border-rose-200\/60 {
+  border-color: var(--mf-border) !important;
+}
+
+/* Flat components cards and container shadows */
+[data-theme="minimalist"] .shadow-2xl,
+[data-theme="minimalist"] .shadow-xl,
+[data-theme="minimalist"] .shadow-lg {
+  box-shadow: 0 8px 24px rgba(100, 72, 114, 0.04), 0 2px 8px rgba(100, 72, 114, 0.02) !important;
+  border: 1px solid var(--mf-border) !important;
+  border-radius: 16px !important;
+}
+
+[data-theme="minimalist"] .shadow-md,
+[data-theme="minimalist"] .shadow {
+  box-shadow: 0 4px 12px rgba(100, 72, 114, 0.03) !important;
+  border: 1px solid var(--mf-border) !important;
+  border-radius: 12px !important;
+}
+
+/* Custom inputs, select fields and textareas */
+[data-theme="minimalist"] input,
+[data-theme="minimalist"] textarea,
+[data-theme="minimalist"] select {
+  background-color: var(--mf-surface) !important;
+  border: 1px solid var(--mf-border) !important;
+  box-shadow: none !important;
+  color: var(--mf-text) !important;
+  border-radius: 10px !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+[data-theme="minimalist"] input:focus,
+[data-theme="minimalist"] textarea:focus,
+[data-theme="minimalist"] select:focus {
+  border-color: var(--mf-primary) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(55, 169, 153, 0.15) !important;
+}
+
+/* Buttons and Links */
+[data-theme="minimalist"] button.bg-\[\#EBEBEB\],
+[data-theme="minimalist"] button.bg-gray-100,
+[data-theme="minimalist"] a.bg-\[\#EBEBEB\] {
+  background-color: var(--mf-surface) !important;
+  color: var(--mf-text) !important;
+  border: 1px solid var(--mf-border) !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+[data-theme="minimalist"] #btn-nav-logo-home,
+[data-theme="minimalist"] header #btn-nav-logo-home,
+[data-theme="minimalist"] #btn-nav-logo-home:hover,
+[data-theme="minimalist"] #btn-nav-logo-home:focus,
+[data-theme="minimalist"] #btn-nav-logo-home:active,
+[data-theme="minimalist"] #btn-nav-logo-home img,
+[data-theme="minimalist"] header img[alt="Casanovia"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-width: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+/* All buttons in the "Resumen General (KPIs)" card have a clear border just like the Invitados button */
+[data-theme="minimalist"] .kpi-card-button,
+[data-theme="minimalist"] button.kpi-card-button,
+[data-theme="minimalist"] [id^="btn-kpi-"] {
+  background-color: var(--mf-surface) !important;
+  color: var(--mf-text) !important;
+  border: 1px solid var(--mf-border) !important;
+  box-shadow: none !important;
+  border-radius: 1rem !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+[data-theme="minimalist"] .kpi-card-button:hover,
+[data-theme="minimalist"] button.kpi-card-button:hover,
+[data-theme="minimalist"] [id^="btn-kpi-"]:hover {
+  background-color: var(--mf-background) !important;
+  border-color: #D9CEBF !important;
+}
+
+[data-theme="minimalist"] button.bg-\[\#EBEBEB\]:hover,
+[data-theme="minimalist"] button.bg-gray-100:hover,
+[data-theme="minimalist"] a.bg-\[\#EBEBEB\]:hover {
+  background-color: var(--mf-background) !important;
+  border-color: #D9CEBF !important;
+}
+
+[data-theme="minimalist"] button.bg-\[\#EBEBEB\]:active,
+[data-theme="minimalist"] button.bg-gray-100:active,
+[data-theme="minimalist"] a.bg-\[\#EBEBEB\]:active {
+  background-color: var(--mf-surface-secondary) !important;
+}
+
+/* Active or toggled element highlights for tabs and nav selectors */
+[data-theme="minimalist"] .bg-[#EBEBEB].shadow-\[inset_3px_3px_6px_\#d1d9e6\,inset_-3px_-3px_6px_\#ffffff\] {
+  background-color: var(--mf-surface-secondary) !important;
+  color: var(--mf-primary) !important;
+  border: 1px solid var(--mf-primary) !important;
+}
+
+/* Checkbox inputs */
+[data-theme="minimalist"] input[type="checkbox"]:checked {
+  accent-color: var(--mf-primary) !important;
+}
+
+/* Elegant Warm Grey headings */
+[data-theme="minimalist"] h1,
+[data-theme="minimalist"] h2,
+[data-theme="minimalist"] h3,
+[data-theme="minimalist"] .font-serif-display {
+  color: var(--mf-dark) !important;
+}
+
+/* Neutral icons for minimalist theme */
+[data-theme="minimalist"] svg {
+  color: inherit;
+}

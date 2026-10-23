@@ -1,7 +1,8 @@
-import { FileText, FolderUp } from 'lucide-react';
+import { FileText, FolderUp, FileJson, HardDrive } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import { useWedding } from '../context/WeddingContext';
 import { SubirWebModal } from './modals/SubirWebModal';
+import { HostingDiskReportModal } from './modals/HostingDiskReportModal';
 import { 
   Heart, 
   Sparkles, 
@@ -52,6 +53,8 @@ export const Navbar: React.FC = () => {
     selectWedding, 
     isLevel1Admin, 
     isLevel3Planner,
+    isLevel4Free,
+    showUpgradeNotice,
     isHostUser, 
     isPlannerOrAdmin, 
     isLevel5Observer,
@@ -78,6 +81,7 @@ export const Navbar: React.FC = () => {
   const sandwichMenuRef = useRef<HTMLDivElement>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showSubirWebModal, setShowSubirWebModal] = useState(false);
+  const [showDiskReportModal, setShowDiskReportModal] = useState(false);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState(false);
@@ -149,6 +153,11 @@ export const Navbar: React.FC = () => {
     .map(n => n.trim()[0])
     .join('&') || 'W';
 
+  // Si está en la home landing o no está autenticado en vista pública, no mostrar el encabezado ni menú sandwich
+  if (isPublicHomeLanding || (!currentUser.isAuthenticated && activeView === 'public')) {
+    return null;
+  }
+
   return (
     <>
       {/* Updated Header Background */}
@@ -163,19 +172,40 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center space-x-2 z-20">
               {currentUser.isAuthenticated && (
                 <div className="bg-[#EFEAE2] p-1 rounded-full flex items-center border border-[#D9CEBF] shadow-inner animate-fadeIn">
-                  <button
-                    type="button"
-                    id="nav-btn-public-view"
-                    onClick={() => setActiveView('public')}
-                    title="Web Invitados"
-                    className={`flex items-center justify-center p-2 rounded-full transition-all duration-200 cursor-pointer ${
-                      activeView === 'public'
-                        ? 'bg-[#EBEBEB] text-[#2D3748] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] ring-1 ring-[#d1d1d1]/20'
-                        : 'text-[#6B6358] hover:text-[#2D2A26] hover:bg-[#EBEBEB]/50'
-                    }`}
-                  >
-                    <Globe className="w-4 h-4 text-[#2D3748]" />
-                  </button>
+                  {!isLevel4Free ? (
+                    <button
+                      type="button"
+                      id="nav-btn-public-view"
+                      onClick={() => {
+                        if (settings?.hasVirtualInvitation !== true) {
+                          showUpgradeNotice(
+                            'Invitación virtual deshabilitada',
+                            'Este evento no tiene habilitada una "Invitación virtual". Para activar el acceso a la Web de Invitados, ve a la pestaña Ajustes del evento y marca la casilla "Invitación virtual".'
+                          );
+                        } else {
+                          setActiveView('public');
+                        }
+                      }}
+                      title="Web Invitados"
+                      className={`flex items-center justify-center p-2 rounded-full transition-all duration-200 cursor-pointer ${
+                        activeView === 'public'
+                          ? 'bg-[#EBEBEB] text-[#2D3748] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] ring-1 ring-[#d1d1d1]/20'
+                          : 'text-[#6B6358] hover:text-[#2D2A26] hover:bg-[#EBEBEB]/50'
+                      }`}
+                    >
+                      <Globe className="w-4 h-4 text-[#2D3748]" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      id="nav-btn-public-view-locked"
+                      onClick={() => showUpgradeNotice('Web Invitados', 'El acceso a la "Web Invitados" no está disponible para cuentas de Nivel 4 (Plan Gratuito). Por favor sube de nivel para habilitar la web interactiva para tus invitados.')}
+                      title="Subir de Nivel - Web Invitados no disponible para Nivel 4"
+                      className="flex items-center justify-center p-2 rounded-full transition-all duration-200 cursor-pointer opacity-40 hover:opacity-90 text-amber-700 hover:text-amber-800"
+                    >
+                      <Globe className="w-4 h-4" />
+                    </button>
+                  )}
 
                   <button
                     type="button"
@@ -226,13 +256,15 @@ export const Navbar: React.FC = () => {
                   onClick={() => {
                     setActiveView('private');
                   }}
-                  className="cursor-pointer bg-transparent border-0 p-0 m-0 flex items-center justify-center hover:opacity-80 active:scale-98 transition-all focus:outline-hidden group"
+                  className="cursor-pointer bg-transparent border-0 border-none p-0 m-0 flex items-center justify-center hover:opacity-80 active:scale-98 transition-all focus:outline-none focus:ring-0 group shadow-none"
+                  style={{ background: 'transparent', border: 'none', boxShadow: 'none', outline: 'none' }}
                   title="Casanovia"
                 >
                   <img 
                     src="/casanovia.svg" 
                     alt="Casanovia" 
-                    className="h-8 sm:h-10 md:h-11 w-auto max-w-[140px] sm:max-w-[180px] md:max-w-[220px] object-contain select-none"
+                    className="h-8 sm:h-10 md:h-11 w-auto max-w-[140px] sm:max-w-[180px] md:max-w-[220px] object-contain select-none border-0 border-none shadow-none"
+                    style={{ background: 'transparent', border: 'none', boxShadow: 'none', outline: 'none' }}
                     referrerPolicy="no-referrer"
                   />
                 </button>
@@ -252,9 +284,9 @@ export const Navbar: React.FC = () => {
               {!isPublicHomeLanding && currentUser.isAuthenticated && (
                 <div className="flex items-center">
                   <div className="hidden sm:flex items-center pl-2 border-l border-[#D9CEBF]">
-                    <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#EBEBEB] border border-transparent text-[#2D2A26] text-xs font-semibold shadow-2xs">
+                    <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#EBEBEB] border border-transparent text-[#2D2A26] text-xs font-semibold shadow-2xs notranslate" translate="no">
                       <User className="w-3.5 h-3.5 text-[#2D3748]" />
-                      <span className="truncate max-w-[120px]">{currentUser.username}</span>
+                      <span className="truncate max-w-[120px] notranslate" translate="no">{currentUser.username}</span>
                     </div>
                   </div>
                 </div>
@@ -363,21 +395,9 @@ export const Navbar: React.FC = () => {
                               </button>
                             )}
 
-{/* Manual de Usuario (Solo Admin Nivel 1) */}
-                            {isLevel1Admin && (<>
-                              {/* Botones rápidos de Admin: Manual, Precios, Imágenes */}
+                            {/* Botones rápidos de Admin: Precios e Imágenes */}
+                            {isLevel1Admin && (
                               <div className="flex gap-2 w-full mt-2 mb-2">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSandwichMenuOpen(false);
-                                    setViewMode('manual');
-                                  }}
-                                  title="Manual de Usuario"
-                                  className="flex-1 flex items-center justify-center p-2 sm:p-2.5 rounded-xl text-[#2D3748] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all cursor-pointer border-none"
-                                >
-                                  <FileText className="w-5 h-5" />
-                                </button>
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -406,20 +426,13 @@ export const Navbar: React.FC = () => {
                                   )}
                                 </button>
                               </div>
+                            )}
 
-                              {/* Theme Selector (Admin Only) */}
+                            {/* Theme Selector (Levels 1, 2, 3) */}
+                            {(isLevel1Admin || isHostUser || isLevel3Planner) && (
                               <div className="pt-2 mt-2 border-t border-[#d1d1d1]">
                                 <div className="text-[10px] font-bold text-gray-500 uppercase px-2.5 mb-2">Tema Visual Global</div>
                                 <div className="flex bg-[#EBEBEB] rounded-xl p-1 gap-1 shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff]">
-                                  <button
-                                    onClick={() => {
-                                      setAppTheme('classic');
-                                      setSandwichMenuOpen(false);
-                                    }}
-                                    className={`flex-1 text-xs font-semibold py-1.5 rounded-lg transition-all border-none ${appTheme === 'classic' ? 'bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-[#2D3748]' : 'text-gray-500 bg-transparent hover:text-gray-700'}`}
-                                  >
-                                    Classic
-                                  </button>
                                   <button
                                     onClick={() => {
                                       setAppTheme('neumorphic');
@@ -427,15 +440,23 @@ export const Navbar: React.FC = () => {
                                     }}
                                     className={`flex-1 text-xs font-semibold py-1.5 rounded-lg transition-all border-none ${appTheme === 'neumorphic' ? 'bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-[#2D3748]' : 'text-gray-500 bg-transparent hover:text-gray-700'}`}
                                   >
-                                    Soft / Precios
+                                    Neumórfico
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setAppTheme('minimalist');
+                                      setSandwichMenuOpen(false);
+                                    }}
+                                    className={`flex-1 text-xs font-semibold py-1.5 rounded-lg transition-all border-none ${appTheme === 'minimalist' ? 'bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-[#2D3748]' : 'text-gray-500 bg-transparent hover:text-gray-700'}`}
+                                  >
+                                    Minimalismo Funcional
                                   </button>
                                 </div>
                               </div>
+                            )}
 
-                            </>)}
-
-                            {/* 2. Nueva Boda (Solo Administrador y Planner) */}
-                            {canCreateWedding && (
+                            {/* 2. Nueva Boda */}
+                            {canCreateWedding ? (
                               <button
                                 type="button"
                                 id="sandwich-btn-new-wedding"
@@ -460,39 +481,38 @@ export const Navbar: React.FC = () => {
                                   </p>
                                 </div>
                               </button>
-                            )}
-
-
-
-
-
-                            {/* 5. Plano de Bodas & Seating Chart (Solo Administrador y Planner) */}
-                            {(isLevel1Admin || isLevel3Planner) && (
+                            ) : isLevel4Free ? (
                               <button
                                 type="button"
-                                id="sandwich-btn-floor-plan"
+                                id="sandwich-btn-new-wedding-locked"
                                 onClick={() => {
                                   setSandwichMenuOpen(false);
-                                  setShowFloorPlanModal(true);
+                                  showUpgradeNotice('Crear Nuevo Evento', 'Las cuentas de Nivel 4 (Plan Gratuito) solo pueden crear 1 nuevo evento. Sube de nivel para crear y gestionar eventos ilimitados.');
                                 }}
-                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-[#2D2A26] bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
+                                className="w-full flex items-center space-x-3 p-1.5 sm:p-2.5 rounded-xl text-left text-xs font-semibold text-gray-500 bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] transition-all group cursor-pointer border-none"
                               >
-                                <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#2D3748] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-rose-200 shadow-2xs">
-                                  <MapIcon className="w-4 h-4" />
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center shrink-0 text-amber-600">
+                                  <PlusCircle className="w-4 h-4" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-bold flex items-center justify-between text-[#2D3748]">
-                                    <span>Planos</span>
-                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-rose-100 text-[#2D3748]">
-                                      PDF & Canvas
+                                  <div className="font-bold flex items-center justify-between">
+                                    <span className="text-gray-600">Crear Evento</span>
+                                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                                      Subir de Nivel
                                     </span>
                                   </div>
-                                  <p className="text-[10px] text-[#8C8276] truncate font-normal">
-                                    Diseñador interactivo, importar PDF y asignar asientos
+                                  <p className="text-[10px] text-amber-700 truncate font-normal">
+                                    Límite de 1 evento alcanzado para Nivel 4
                                   </p>
                                 </div>
                               </button>
-                            )}
+                            ) : null}
+
+
+
+
+
+
                           </div>
 
                                                       {/* 6. WeddingCraft Studio */}
@@ -521,58 +541,37 @@ export const Navbar: React.FC = () => {
                             )}
                           {/* Group 2: Herramientas de Datos */}
                           <div className="space-y-1 pt-1 border-t border-[#F0EAE1]">
-                            {/* Subir a mi Hosting Propio (casanovia.pe) */}
-                            {isPlannerOrAdmin && (
+
+
+                            {/* Reporte Espacio en Hosting - Solo Administrador */}
+                            {isLevel1Admin && (
                               <button
                                 type="button"
-                                id="sandwich-btn-subirweb"
+                                id="sandwich-btn-hosting-disk-report"
                                 onClick={() => {
                                   setSandwichMenuOpen(false);
-                                  setShowSubirWebModal(true);
+                                  setShowDiskReportModal(true);
                                 }}
                                 className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-gray-800 bg-[#EBEBEB] hover:shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all group cursor-pointer border-none"
                               >
-                                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center shrink-0 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]">
-                                  <FolderUp className="w-4 h-4" />
+                                <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-700 flex items-center justify-center shrink-0 shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]">
+                                  <HardDrive className="w-4 h-4" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="font-bold flex items-center justify-between">
-                                    <span>Subir a mi Dominio</span>
-                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800">
-                                      casanovia.pe
+                                    <span>Reporte Espacio Hosting</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-800">
+                                      Auditoría
                                     </span>
                                   </div>
                                   <p className="text-[10px] text-gray-500 truncate font-normal">
-                                    Descargar paquete SubirWeb.zip para cPanel
+                                    Consumo por carpetas, módulos y eventos
                                   </p>
                                 </div>
                               </button>
                             )}
 
-                            {/* 5. Reiniciar (Solo visible para Super Admin Nivel 1 - Oculto para Anfitriones y Wedding Planners) */}
-                            {isLevel1Admin && (
-                              <button
-                                type="button"
-                                id="sandwich-btn-reset"
-                                onClick={() => {
-                                  setSandwichMenuOpen(false);
-                                  if (window.confirm('¿Deseas restablecer esta boda a los datos iniciales de demostración?')) {
-                                    resetToDemoData();
-                                  }
-                                }}
-                                className="w-full flex items-center space-x-3 p-2.5 rounded-2xl text-left text-xs font-semibold text-rose-700 hover:bg-rose-50 transition-colors group cursor-pointer border border-transparent hover:border-rose-200"
-                              >
-                                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-rose-200">
-                                  <RotateCcw className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-bold">Reiniciar Boda (Demo)</div>
-                                  <p className="text-[10px] text-rose-500/80 truncate font-normal">
-                                    Restablecer boda actual a datos de demo (Solo Admin)
-                                  </p>
-                                </div>
-                              </button>
-                            )}
+
                           </div>
 
                           {/* Footer Session Toggle */}
@@ -684,6 +683,12 @@ export const Navbar: React.FC = () => {
       <SubirWebModal 
         isOpen={showSubirWebModal} 
         onClose={() => setShowSubirWebModal(false)} 
+      />
+
+      {/* Modal Reporte de Espacio en Hosting */}
+      <HostingDiskReportModal 
+        isOpen={showDiskReportModal} 
+        onClose={() => setShowDiskReportModal(false)} 
       />
     </>
   );

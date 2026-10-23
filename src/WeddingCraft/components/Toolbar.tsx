@@ -57,7 +57,7 @@ export const Toolbar: React.FC = () => {
     ungroupElements
   } = useEditorStore();
 
-  const elements = document.pages[0]?.elements || [];
+  const elements = document.pages?.[0]?.elements || [];
   const selectedElements = elements.filter(el => selectedElementIds.includes(el.id));
   
   // Determine if all selected elements share the same group
@@ -68,7 +68,7 @@ export const Toolbar: React.FC = () => {
 
   const handleNewTemplate = () => {
     const store = useEditorStore.getState();
-    const currentElements = store.document.pages[0]?.elements || [];
+    const currentElements = store.document?.pages?.[0]?.elements || [];
 
     // If canvas is already empty, reset template state
     if (currentElements.length === 0) {
@@ -224,11 +224,12 @@ export const Toolbar: React.FC = () => {
         <button 
           onClick={async () => {
             setIsLoadingWeb(true);
-            const res = await loadWebInvitados();
-            setIsLoadingWeb(false);
-            if (res.success) {
+            try {
+              await loadWebInvitados();
               setJustLoadedWeb(true);
               setTimeout(() => setJustLoadedWeb(false), 2500);
+            } finally {
+              setIsLoadingWeb(false);
             }
           }}
           disabled={isLoadingWeb}
@@ -269,19 +270,31 @@ export const Toolbar: React.FC = () => {
           <span className="hidden sm:inline">Guardar Como</span>
         </button>
 
-        {/* Guardar Plantilla (Directo si ya tiene nombre, o abre modal si es nueva) */}
+        {/* Guardar (Invitación de Boda o Plantilla) */}
         <button 
           onClick={async () => {
-            if (currentTemplateId && currentTemplateName) {
-              setIsSavingDirect(true);
-              const res = await directSaveCurrentTemplate();
-              setIsSavingDirect(false);
-              if (res.success) {
-                setJustSaved(true);
-                setTimeout(() => setJustSaved(false), 2500);
+            const state = useEditorStore.getState();
+            setIsSavingDirect(true);
+            try {
+              // 1. If editing an active wedding, save directly to the wedding invitation & published design
+              if (state.eventData?.eventId) {
+                await publishDesign();
               }
-            } else {
-              openSaveModal('save_as');
+              // 2. If it's a named template, also save the template document
+              if (currentTemplateId && currentTemplateName) {
+                await directSaveCurrentTemplate();
+              } else if (!state.eventData?.eventId) {
+                // Only prompt for template name if editing an unlinked standalone canvas
+                openSaveModal('save_as');
+                setIsSavingDirect(false);
+                return;
+              }
+              setJustSaved(true);
+              setTimeout(() => setJustSaved(false), 2500);
+            } catch (err) {
+              console.error('Error saving invitation:', err);
+            } finally {
+              setIsSavingDirect(false);
             }
           }}
           disabled={isSavingDirect}
@@ -290,7 +303,7 @@ export const Toolbar: React.FC = () => {
               ? 'bg-emerald-600 text-white shadow-[inset_4px_4px_8px_#047857]' 
               : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-emerald-700'
           }`}
-          title={currentTemplateName ? `Guardar cambios en "${currentTemplateName}"` : 'Guardar plantilla'}
+          title={currentTemplateName ? `Guardar cambios en "${currentTemplateName}"` : 'Guardar invitación de boda'}
         >
           {isSavingDirect ? (
             <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />

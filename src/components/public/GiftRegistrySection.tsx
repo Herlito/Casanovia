@@ -16,6 +16,14 @@ export const GiftRegistrySection: React.FC = () => {
   const { settings } = useWedding();
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
+  const bankDetails = settings?.bankDetails || {
+    bankName: 'Banco Destino',
+    accountHolder: 'Titular de la Cuenta',
+    clabe: '000000000000000000',
+    accountNumber: '00000000000',
+    concept: 'Regalo de Boda',
+  };
+
   if (settings.showGiftRegistry === false) return null;
 
   const copyText = (text: string, fieldName: string) => {
@@ -110,7 +118,7 @@ export const GiftRegistrySection: React.FC = () => {
                       </div>
                     </div>
                     <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#EBEBEB] text-[#8B6B23] border border-[#D4AF37]/30 shadow-2xs">
-                      {settings.bankDetails.bankName}
+                      {bankDetails.bankName}
                     </span>
                   </div>
 
@@ -120,11 +128,11 @@ export const GiftRegistrySection: React.FC = () => {
                     <div className="bg-[#EBEBEB]/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-bold text-[#8C8276] uppercase block">Titulares de la Cuenta</span>
-                        <span className="text-xs font-bold text-[#2D2A26]">{settings.bankDetails.accountHolder}</span>
+                        <span className="text-xs font-bold text-[#2D2A26]">{bankDetails.accountHolder}</span>
                       </div>
                       <button
                         type="button"
-                        onClick={() => copyText(settings.bankDetails.accountHolder, 'holder')}
+                        onClick={() => copyText(bankDetails.accountHolder, 'holder')}
                         className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#2D3748] hover:bg-[#EBEBEB] transition-colors"
                         title="Copiar Titular"
                       >
@@ -136,11 +144,11 @@ export const GiftRegistrySection: React.FC = () => {
                     <div className="bg-[#EBEBEB]/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-bold text-[#8C8276] uppercase block">CLABE Interbancaria</span>
-                        <span className="text-xs font-mono font-bold text-[#2D3748]">{settings.bankDetails.clabe}</span>
+                        <span className="text-xs font-mono font-bold text-[#2D3748]">{bankDetails.clabe}</span>
                       </div>
                       <button
                         type="button"
-                        onClick={() => copyText(settings.bankDetails.clabe.replace(/\s+/g, ''), 'clabe')}
+                        onClick={() => copyText((bankDetails.clabe || '').replace(/\s+/g, ''), 'clabe')}
                         className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#2D3748] hover:bg-[#EBEBEB] transition-colors"
                         title="Copiar CLABE"
                       >
@@ -152,11 +160,11 @@ export const GiftRegistrySection: React.FC = () => {
                     <div className="bg-[#EBEBEB]/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-bold text-[#8C8276] uppercase block">Número de Cuenta</span>
-                        <span className="text-xs font-mono font-bold text-[#2D2A26]">{settings.bankDetails.accountNumber}</span>
+                        <span className="text-xs font-mono font-bold text-[#2D2A26]">{bankDetails.accountNumber}</span>
                       </div>
                       <button
                         type="button"
-                        onClick={() => copyText(settings.bankDetails.accountNumber.replace(/\s+/g, ''), 'account')}
+                        onClick={() => copyText((bankDetails.accountNumber || '').replace(/\s+/g, ''), 'account')}
                         className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#2D3748] hover:bg-[#EBEBEB] transition-colors"
                         title="Copiar Cuenta"
                       >
@@ -168,11 +176,11 @@ export const GiftRegistrySection: React.FC = () => {
                     <div className="bg-[#EBEBEB]/80 p-3 rounded-xl border border-[#EAE0D1] flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-bold text-[#8C8276] uppercase block">Concepto Sugerido</span>
-                        <span className="text-xs font-medium text-[#524B42]">{settings.bankDetails.concept}</span>
+                        <span className="text-xs font-medium text-[#524B42]">{bankDetails.concept}</span>
                       </div>
                       <button
                         type="button"
-                        onClick={() => copyText(settings.bankDetails.concept, 'concept')}
+                        onClick={() => copyText(bankDetails.concept, 'concept')}
                         className="p-1.5 rounded-lg text-[#7A7268] hover:text-[#2D3748] hover:bg-[#EBEBEB] transition-colors"
                         title="Copiar Concepto"
                       >

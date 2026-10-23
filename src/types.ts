@@ -8,11 +8,42 @@ export type ProtocolCategory =
   | 'paje_honor'         // Paje de Honor
   | 'nino_boda'          // Niño/a de Boda
   | 'proveedor'          // Fotógrafo, DJ, Banquete, Floristería, etc.
+  | 'comision_organizadora' // Fiesta de Promoción: Comisión (Comisión Organizadora)
+  | 'padres_familia'        // Fiesta de Promoción: Padres de Familia (Padre de familia)
+  | 'alumnos'               // Fiesta de Promoción: Alumnos
+  | 'parejas'               // Fiesta de Promoción: Parejas
+  | 'familiares'            // Fiesta de Promoción: Familiares
   | 'programa_evento'    // Compatibilidad para hitos
   | 'invitado_general'   // Compatibilidad con versiones previas
   | string;              // Roles personalizados configurables
 
 export type GuestRole = ProtocolCategory;
+
+// Pago parcial registrado para una cuota de Padres de Familia
+export interface PartialPayment {
+  id: string;
+  concept: string;    // Concepto del pago
+  amount: number;     // Monto pagado
+  date: string;       // Fecha del pago (YYYY-MM-DD o ISO)
+  registeredBy?: string; // Nombre o ID del usuario que registró el pago
+  notes?: string;
+  receiptUrl?: string; // Opcional comprobante
+  createdAt?: string;
+}
+
+// Configuración o asignación de cuota por Padre de Familia / Alumno
+export interface PromotionFeeQuota {
+  id: string;
+  parentId?: string;         // ID del invitado con rol 'padres_familia' o nombre
+  parentName: string;        // Nombre del Padre de Familia
+  studentName?: string;      // Nombre del Alumno asociado
+  totalTargetAmount: number; // Monto total esperado de la cuota/aporte
+  partialPayments: PartialPayment[]; // Pagos parciales registrados
+  status: 'pendiente' | 'parcial' | 'completado';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface CustomGuestRole {
   id: string;
@@ -107,6 +138,65 @@ export const GUEST_ROLES_CONFIG: {
   },
 ];
 
+// Roles protocolares exclusivos para eventos de tipo "Fiesta de Promoción"
+export const PROMOTION_GUEST_ROLES_CONFIG: {
+  id: ProtocolCategory;
+  label: string;
+  shortLabel: string;
+  desc?: string;
+  badgeClass: string;
+  iconName: string;
+}[] = [
+  {
+    id: 'comision_organizadora',
+    label: 'Comisión (Comisión Organizadora)',
+    shortLabel: 'Comisión',
+    desc: 'Comisión organizadora de la promoción (crea, edita y administra cuotas y pagos)',
+    badgeClass: 'bg-purple-100 text-purple-800 border-purple-300',
+    iconName: 'Crown',
+  },
+  {
+    id: 'padres_familia',
+    label: 'Padres de Familia (Padre de familia)',
+    shortLabel: 'Padres',
+    desc: 'Padres de familia o apoderados titulares de la promoción',
+    badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
+    iconName: 'Heart',
+  },
+  {
+    id: 'alumnos',
+    label: 'Alumnos',
+    shortLabel: 'Alumnos',
+    desc: 'Alumnos y graduandos de la promoción',
+    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    iconName: 'Sparkles',
+  },
+  {
+    id: 'parejas',
+    label: 'Parejas',
+    shortLabel: 'Parejas',
+    desc: 'Acompañantes y parejas de los graduandos / invitados',
+    badgeClass: 'bg-pink-100 text-pink-800 border-pink-200',
+    iconName: 'Heart',
+  },
+  {
+    id: 'familiares',
+    label: 'Familiares',
+    shortLabel: 'Familiares',
+    desc: 'Familiares e invitados de honor de los alumnos',
+    badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
+    iconName: 'Users',
+  },
+  {
+    id: 'proveedor',
+    label: 'Proveedor',
+    shortLabel: 'Proveedor',
+    desc: 'Fotografía, sonido, banquete, luces, show',
+    badgeClass: 'bg-blue-100 text-blue-800 border-blue-200',
+    iconName: 'Briefcase',
+  },
+];
+
 export type RsvpStatus = 'confirmed' | 'pending' | 'declined';
 
 export interface Guest {
@@ -131,6 +221,10 @@ export interface Guest {
   // Companion association
   mainGuestId?: string; // ID of the principal guest this person accompanies
   
+  // Promotion specific association: Assigned Child / Student (for Padres de Familia)
+  childStudentId?: string; // ID of the student/child assigned to this parent
+  childStudentName?: string; // Name of the student/child assigned to this parent
+  
   // Logistics
   assignedTable?: string; // e.g. "Mesa 1 (Mesa de Honor)", "Mesa 4"
   totalPasses: number;
@@ -139,6 +233,7 @@ export interface Guest {
   // RSVP Form fields
   rsvpStatus: RsvpStatus;
   dietaryRestrictions?: string;
+  notes?: string;
   confirmedRehearsalPhotoAttendance?: boolean;
   congratulationMessage?: string;
   updatedAt?: string;
@@ -281,6 +376,7 @@ export interface WeddingSettings {
   weddingDate: string; // ISO or YYYY-MM-DD
   weddingTime: string; // e.g. "17:00"
   locationSummary: string; // e.g. "San Pedro Garza García & Santiago, N.L."
+  hasVirtualInvitation?: boolean; // Check que indica si el evento tiene o no tarjeta/acceso en Web Invitado
   hasReligiousCeremony?: boolean; // Toggle si la boda cuenta con ceremonia religiosa o no
   ceremonyVenue: {
     name: string;
@@ -327,6 +423,7 @@ export interface WeddingSettings {
   generalContactPhone: string;
   romanticQuote?: string; // e.g. "El amor no se mira con los ojos, sino con el corazón."
   totalRealBudget?: number; // Presupuesto Total Real editable por Anfitrión, Wedding Planner y Administrador
+  countryCurrency?: string; // Código de país para moneda (ej: 'PE', 'MX', 'CO', 'CL', 'AR', 'EC', 'ES', 'US', 'DO', 'PA', 'CR', 'BO', 'PY', 'UY')
   customTheme?: WeddingCustomTheme;
 }
 
@@ -343,6 +440,7 @@ export interface VendorItem {
   notes: string;
   attendingReception?: boolean; // ¿Asistirá a la Recepción? (SI / NO)
   receptionAttendeesCount?: number; // Cantidad de personas que asistirán
+  partialPayments?: PartialPayment[];
 }
 
 export interface WeddingTable {
@@ -356,6 +454,8 @@ export interface WeddingTable {
 
 export interface Wedding {
   id: string;
+  slug?: string;
+  title?: string;
   coupleNames: string;
   weddingDate: string;
   locationSummary: string;
@@ -367,6 +467,8 @@ export interface Wedding {
   tasks: WeddingTask[];
   tables?: WeddingTable[];
   vendors?: VendorItem[];
+  promotionQuotas?: PromotionFeeQuota[]; // Cuotas y aportes configurados para Fiesta de Promoción
+  weddingCraftDesign?: any; // Diseño visual sincronizado de WeddingCraft Studio
   createdByUserId?: string; // ID del usuario que creó la boda
   createdByUserName?: string; // Nombre del usuario que creó la boda
   createdByUserLevel?: number; // Nivel del creador (1 = Super Admin, 3 = Wedding Planner)
@@ -380,10 +482,13 @@ export interface SystemUser {
   id: string;
   username: string; // e.g. "Herly Lizarazo", "Mariana Flores", "Zenaida Anahua"
   clave: string;    // e.g. "00448157", "88442200", "70242438"
-  level: number;    // 1 = Super Admin, 2 = Anfitrión, 3 = Wedding Planner, 5 = Observador (Solo lectura, sin edición ni impresión)
-  roleTitle: string; // e.g. "Director General & Protocolo (Nivel 1)", "Wedding Planner Certificada (Nivel 3)", "Anfitriona de Boda (Nivel 2)", "Observador de Eventos (Nivel 5)"
+  level: number;    // 1 = Super Admin, 2 = Anfitrión, 3 = Wedding Planner, 4 = Novia Free, 5 = Observador (Solo lectura, sin edición ni impresión)
+  roleTitle: string; // e.g. "Director General & Protocolo (Nivel 1)", "Wedding Planner Certificada (Nivel 3)", "Anfitriona de Boda (Nivel 2)", "Novia Free (Nivel 4)", "Observador de Eventos (Nivel 5)"
+  promotionRole?: 'comision' | 'padres_familia' | 'alumnos' | 'parejas' | 'familiares'; // Rol exclusivo de Fiesta de Promoción
   assignedWeddingIds?: string[]; // IDs de bodas donde este usuario tiene rol de Anfitrión o Planner asignado
   createdWeddingIds?: string[];  // IDs de bodas creadas por este usuario mientras ha sido el usuario activo
+  createdByPlannerId?: string;
+  createdByUsername?: string;
   isSystemDefault?: boolean;
   createdAt: string;
   updatedAt?: string;
@@ -392,11 +497,13 @@ export interface SystemUser {
 export interface AuthUser {
   id?: string;
   username: string;
-  level: number; // 1 = Super Admin, 2 = Anfitrión, 3 = Wedding Planner, 5 = Observador (Solo Lectura), 0 = Invitado / Público
+  level: number; // 1 = Super Admin, 2 = Anfitrión, 3 = Wedding Planner, 4 = Novia Free, 5 = Observador (Solo Lectura), 0 = Invitado / Público
   roleTitle: string;
+  promotionRole?: 'comision' | 'padres_familia' | 'alumnos' | 'parejas' | 'familiares'; // Rol exclusivo de Fiesta de Promoción
   isAuthenticated: boolean;
   assignedWeddingIds?: string[];
   createdWeddingIds?: string[];
+  createdAt?: string;
 }
 
 export type AppViewMode = 'public' | 'private' | 'new_wedding_tasks' | 'tokens';

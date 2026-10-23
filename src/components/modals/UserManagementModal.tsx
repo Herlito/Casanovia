@@ -19,7 +19,8 @@ import {
   HeartHandshake, 
   Calendar,
   Briefcase,
-  Layers
+  Layers,
+  Heart
 } from 'lucide-react';
 
 export const UserManagementModal: React.FC = () => {
@@ -35,13 +36,19 @@ export const UserManagementModal: React.FC = () => {
     setShowNewWeddingModal,
     currentUser,
     isLevel1Admin,
-    isLevel3Planner
+    isLevel3Planner,
+    setViewMode
   } = useWedding();
   const { appTheme } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic';
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+
+  const handleClose = () => {
+    setShowUserManagementModal(false);
+    setViewMode('private');
+  };
   
   // Form State
   const [username, setUsername] = useState('');
@@ -53,6 +60,29 @@ export const UserManagementModal: React.FC = () => {
   const [formShowPassword, setFormShowPassword] = useState(false);
   
   const [alertMsg, setAlertMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Filter selectable weddings for Level 3 Planner: only weddings accessible to this planner
+  const availableWeddingsForAssignment = isLevel3Planner ? accessibleWeddings : weddings;
+  const plannerWeddingIds = accessibleWeddings.map(w => w.id);
+
+  // Visible users:
+  // - Level 1 Admin: Sees all system users
+  // - Level 3 Planner: Only sees Level 2 users associated with their weddings or created by them (max 2)
+  const visibleUsers = isLevel1Admin
+    ? systemUsers
+    : isLevel3Planner
+      ? systemUsers.filter(u => {
+          if (u.level !== 2) return false;
+          const matchesWedding = Boolean(u.assignedWeddingIds && u.assignedWeddingIds.some(wId => plannerWeddingIds.includes(wId)));
+          const createdByThisPlanner = Boolean(
+            (u.createdByPlannerId && (u.createdByPlannerId === currentUser.id || u.createdByPlannerId === currentUser.username)) ||
+            (u.createdByUsername && u.createdByUsername.toLowerCase() === currentUser.username.toLowerCase())
+          );
+          return matchesWedding || createdByThisPlanner;
+        })
+      : [];
+
+  const isPlannerAtLimit = isLevel3Planner && visibleUsers.length >= 2;
 
   if (!showUserManagementModal) return null;
 
@@ -68,6 +98,10 @@ export const UserManagementModal: React.FC = () => {
   };
 
   const handleOpenAddForm = () => {
+    if (isPlannerAtLimit) {
+      setAlertMsg({ type: 'error', text: 'Como Wedding Planner (Nivel 3), solo puedes registrar un máximo de 2 anfitriones (Nivel 2).' });
+      return;
+    }
     resetForm();
     setIsEditing(true);
     // Pre-select first wedding or active wedding
@@ -104,15 +138,23 @@ export const UserManagementModal: React.FC = () => {
       return;
     }
 
+    if (isLevel3Planner && !editingUserId && visibleUsers.length >= 2) {
+      setAlertMsg({ type: 'error', text: 'Has alcanzado el límite máximo de 2 usuarios anfitriones (Nivel 2).' });
+      return;
+    }
+
     try {
+      const targetLevel = isLevel3Planner ? 2 : level;
+      const targetRoleTitle = isLevel3Planner ? (roleTitle.trim() || 'Anfitriona de Boda (Nivel 2 - Anfitrión)') : roleTitle.trim();
+
       if (editingUserId) {
         // Update existing user
         await updateSystemUser(editingUserId, {
           username: username.trim(),
           clave: clave.trim(),
-          level,
-          roleTitle: roleTitle.trim(),
-          assignedWeddingIds: level === 1 ? [] : assignedWeddingIds,
+          level: targetLevel,
+          roleTitle: targetRoleTitle,
+          assignedWeddingIds: targetLevel === 1 ? [] : assignedWeddingIds,
           createdWeddingIds: editingUserId ? (systemUsers.find(u => u.id === editingUserId)?.createdWeddingIds || []) : [],
         });
         setAlertMsg({ type: 'success', text: `Usuario "${username}" actualizado exitosamente.` });
@@ -121,17 +163,19 @@ export const UserManagementModal: React.FC = () => {
         await addSystemUser({
           username: username.trim(),
           clave: clave.trim(),
-          level,
-          roleTitle: roleTitle.trim(),
-          assignedWeddingIds: level === 1 ? [] : assignedWeddingIds,
-          createdWeddingIds: editingUserId ? (systemUsers.find(u => u.id === editingUserId)?.createdWeddingIds || []) : [],
+          level: targetLevel,
+          roleTitle: targetRoleTitle,
+          assignedWeddingIds: targetLevel === 1 ? [] : assignedWeddingIds,
+          createdWeddingIds: [],
+          createdByPlannerId: currentUser.id || currentUser.username,
+          createdByUsername: currentUser.username,
         });
-        setAlertMsg({ type: 'success', text: `Usuario "${username}" creado exitosamente con permisos de ${level === 3 ? 'Wedding Planner' : level === 1 ? 'Super Admin' : 'Anfitrión'}.` });
+        setAlertMsg({ type: 'success', text: `Anfitrión "${username}" creado exitosamente (Nivel 2).` });
       }
       resetForm();
       setTimeout(() => setAlertMsg(null), 3000);
     } catch {
-      setAlertMsg({ type: 'error', text: 'Error al guardar el usuario en Firestore.' });
+      setAlertMsg({ type: 'error', text: 'Error al guardar el usuario.' });
     }
   };
 
@@ -140,13 +184,13 @@ export const UserManagementModal: React.FC = () => {
       alert('El Administrador General principal no puede ser eliminado.');
       return;
     }
-    // If current user is Level 3 Planner, forbid deleting admins or other planners
+    // If current user is Level 3 Planner, forbid deleting non-Level 2
     if (isLevel3Planner && targetLevel !== 2) {
-      alert('Como Wedding Planner solo puedes gestionar usuarios con rol de Anfitrión.');
+      alert('Como Wedding Planner solo puedes gestionar usuarios con rol de Anfitrión (Nivel 2).');
       return;
     }
 
-    if (confirm(`¿Estás seguro de eliminar al usuario "${targetUsername}"?`)) {
+    if (confirm(`¿Estás seguro de eliminar al anfitrión "${targetUsername}"?`)) {
       try {
         await deleteSystemUser(userId);
         setAlertMsg({ type: 'success', text: `Usuario "${targetUsername}" eliminado.` });
@@ -164,45 +208,39 @@ export const UserManagementModal: React.FC = () => {
     }));
   };
 
-  // Filter selectable weddings for Level 3 Planner: only weddings created by this planner
-  const availableWeddingsForAssignment = isLevel3Planner ? accessibleWeddings : weddings;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-[#EBEBEB] rounded-[2.5rem] max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] flex flex-col">
+      <div className="bg-[#EBEBEB] rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-hidden shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] flex flex-col">
         
         {/* Header */}
-        <div className="p-6 relative text-gray-800 shrink-0 border-b border-gray-300/60 bg-[#EBEBEB]">
+        <div className="p-4 relative text-gray-800 shrink-0 border-b border-gray-300/60 bg-[#EBEBEB]">
           <button
-            onClick={() => setShowUserManagementModal(false)}
-            className="absolute top-5 right-5 p-2 rounded-full text-gray-600 hover:text-gray-900 bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all cursor-pointer"
+            onClick={handleClose}
+            className="absolute top-4 right-4 p-1.5 rounded-full text-gray-600 hover:text-gray-900 bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all cursor-pointer"
             title="Cerrar modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
           
-          <div className="flex items-center space-x-3 mb-1">
-            <div className="w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center">
-              <Users className="w-5 h-5 text-gray-700" />
+          <div className="flex items-center space-x-2 mb-1">
+            <div className="w-8 h-8 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] flex items-center justify-center">
+              <Users className="w-4 h-4 text-gray-700" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-[11px] font-bold tracking-widest text-gray-600 uppercase block">
-                  Panel de Control de Accesos & Roles
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-800">
-                  {isLevel1Admin ? 'Nivel 1: Super Admin' : 'Nivel 3: Wedding Planner'}
+              <div className="flex items-center space-x-1.5">
+                <span className="text-[10px] font-bold tracking-widest text-gray-600 uppercase block">
+                  {isLevel3Planner ? 'Panel de Control de Anfitriones' : 'Gestión de Usuarios'}
                 </span>
               </div>
-              <h3 className="font-serif-display text-xl font-bold text-gray-900">
-                Gestión de Usuarios
+              <h3 className="font-serif-display text-lg font-bold text-gray-900">
+                {isLevel3Planner ? 'Gestión de Anfitriones' : 'Gestión de Usuarios'}
               </h3>
             </div>
           </div>
         </div>
 
         {/* Body Content */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 bg-[#EBEBEB]">
+        <div className="p-4 overflow-y-auto space-y-4 flex-1 bg-[#EBEBEB]">
           
           {alertMsg && (
             <div className={`p-3.5 rounded-2xl flex items-center space-x-2 text-xs font-semibold ${
@@ -225,7 +263,7 @@ export const UserManagementModal: React.FC = () => {
               <div className="flex items-center justify-between pb-3 border-b border-gray-300/60">
                 <h4 className="font-serif-display font-bold text-sm text-gray-900 flex items-center space-x-2">
                   <UserCheck className="w-4 h-4 text-gray-700" />
-                  <span>{editingUserId ? 'Editar Usuario' : 'Crear Nuevo Usuario / Asignar Anfitrión'}</span>
+                  <span>{editingUserId ? 'Editar Anfitrión' : isLevel3Planner ? 'Registrar Nuevo Anfitrión (Nivel 2)' : 'Crear Nuevo Usuario / Asignar Anfitrión'}</span>
                 </h4>
                 <button
                   type="button"
@@ -247,7 +285,7 @@ export const UserManagementModal: React.FC = () => {
                       required
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Ej. Zenaida Anahua o Guest Planner"
+                      placeholder="Ej. Zenaida Anahua o Grace & Nicolás"
                       className="w-full px-3 py-2 text-xs rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-900 placeholder-gray-500 focus:outline-none"
                     />
                   </div>
@@ -281,32 +319,46 @@ export const UserManagementModal: React.FC = () => {
                     <label className="block text-xs font-bold text-gray-700 mb-1">
                       Nivel de Permisos / Rol *
                     </label>
-                    <select
-                      value={level}
-                      onChange={(e) => {
-                        const newLvl = parseInt(e.target.value, 10);
-                        setLevel(newLvl);
-                        if (newLvl === 1) {
-                          setRoleTitle('Director General & Protocolo (Nivel 1 - Super Admin)');
-                        } else if (newLvl === 3) {
-                          setRoleTitle('Wedding Planner Senior (Nivel 3 - Wedding Planner)');
-                        } else if (newLvl === 5) {
-                          setRoleTitle('Observador de Evento (Nivel 5 - Solo Lectura)');
-                        } else {
-                          setRoleTitle('Anfitriona de Boda (Nivel 2 - Anfitrión)');
-                        }
-                      }}
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-900 focus:outline-none cursor-pointer"
-                    >
-                      {isLevel1Admin && (
-                        <option value={1}>Nivel 1: Super Administrador (Acceso total & Creación de Bodas)</option>
-                      )}
-                      {isLevel1Admin && (
-                        <option value={3}>Nivel 3: Wedding Planner (Gestión de bodas y asignación de Anfitriones)</option>
-                      )}
-                      <option value={2}>Nivel 2: Anfitrión (Permisos de edición exclusivos en bodas asignadas)</option>
-                      <option value={5}>Nivel 5: Observador (Solo Lectura, sin cambios ni impresión)</option>
-                    </select>
+                    {isLevel3Planner ? (
+                      <div className="w-full px-3 py-2 text-xs rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-900 font-bold flex items-center justify-between">
+                        <span>Nivel 2: Anfitrión (Novios / Pareja)</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                          Exclusivo Nivel 2
+                        </span>
+                      </div>
+                    ) : (
+                      <select
+                        value={level}
+                        onChange={(e) => {
+                          const newLvl = parseInt(e.target.value, 10);
+                          setLevel(newLvl);
+                          if (newLvl === 1) {
+                            setRoleTitle('Director General & Protocolo (Nivel 1 - Super Admin)');
+                          } else if (newLvl === 3) {
+                            setRoleTitle('Wedding Planner Senior (Nivel 3 - Wedding Planner)');
+                          } else if (newLvl === 4) {
+                            setRoleTitle('Novia Free (Nivel 4 - Plan Gratuito)');
+                          } else if (newLvl === 5) {
+                            setRoleTitle('Observador de Evento (Nivel 5 - Solo Lectura)');
+                          } else {
+                            setRoleTitle('Anfitriona de Boda (Nivel 2 - Anfitrión)');
+                          }
+                        }}
+                        className="w-full px-3 py-2 text-xs rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-900 focus:outline-none cursor-pointer"
+                      >
+                        {isLevel1Admin && (
+                          <option value={1}>Nivel 1: Super Administrador (Acceso total & Creación de Bodas)</option>
+                        )}
+                        {isLevel1Admin && (
+                          <option value={3}>Nivel 3: Wedding Planner (Gestión de bodas y asignación de Anfitriones)</option>
+                        )}
+                        {isLevel1Admin && (
+                          <option value={4}>Nivel 4: Novia Free (Plan gratuito, hasta 20 invitados y 5 hitos)</option>
+                        )}
+                        <option value={2}>Nivel 2: Anfitrión (Permisos de edición exclusivos en bodas asignadas)</option>
+                        <option value={5}>Nivel 5: Observador (Solo Lectura, sin cambios ni impresión)</option>
+                      </select>
+                    )}
                   </div>
 
                   <div>
@@ -324,14 +376,14 @@ export const UserManagementModal: React.FC = () => {
                 </div>
 
                 {/* Assigned Weddings Selector for Level 2 Anfitrion, Level 3 Planner, or Level 5 Observador */}
-                {(level === 2 || level === 3 || level === 5) && (
+                {(level === 2 || level === 3 || level === 5 || isLevel3Planner) && (
                   <div className="pt-2 border-t border-gray-300/60">
                     <label className="block text-xs font-bold text-gray-800 mb-2 flex items-center space-x-1.5">
                       <HeartHandshake className="w-3.5 h-3.5 text-gray-700" />
                       <span>
                         {level === 5
                           ? 'Asignar Bodas con Permiso de Observación (Solo Lectura):'
-                          : level === 2 
+                          : (level === 2 || isLevel3Planner)
                           ? 'Asignar Permisos como "Anfitrión" a las siguientes Bodas:' 
                           : 'Asignar Bodas Gestionadas para este Wedding Planner:'}
                       </span>
@@ -402,37 +454,84 @@ export const UserManagementModal: React.FC = () => {
                     type="submit"
                     className="px-5 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-900 rounded-xl text-xs font-bold hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] transition-all cursor-pointer"
                   >
-                    {editingUserId ? 'Guardar Cambios' : (level === 2 ? 'Asignar Permisos de Anfitrión' : 'Crear Usuario')}
+                    {editingUserId ? 'Guardar Cambios' : (level === 2 || isLevel3Planner ? 'Asignar Permisos de Anfitrión' : 'Crear Usuario')}
                   </button>
                 </div>
               </form>
             </div>
           ) : (
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center flex-wrap gap-2">
               <div>
                 <h4 className="font-serif-display font-bold text-base text-gray-900">
-                  Usuarios Registrados ({systemUsers.length})
+                  {isLevel3Planner 
+                    ? `Anfitriones Registrados (${visibleUsers.length}/2)` 
+                    : `Usuarios Registrados (${visibleUsers.length})`}
                 </h4>
                 <p className="text-xs text-gray-600 font-medium">
                   {isLevel1Admin 
                     ? 'Lista de administradores, wedding planners y anfitriones con acceso.' 
-                    : 'Lista de anfitriones y accesos configurados.'}
+                    : 'Lista de anfitriones (Nivel 2) asignados a tus bodas. Máximo 2 anfitriones permitidos.'}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={handleOpenAddForm}
-                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-900 text-xs font-bold hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] transition-all cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{isLevel3Planner ? '+ Asignar Nuevo Anfitrión' : '+ Nuevo Usuario'}</span>
-              </button>
+
+              {isLevel3Planner ? (
+                isPlannerAtLimit ? (
+                  <div className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-600 text-xs font-bold">
+                    <Lock className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Límite Alcanzado (2/2 Anfitriones)</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleOpenAddForm}
+                    className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-900 text-xs font-bold hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>+ Asignar Nuevo Anfitrión ({visibleUsers.length}/2)</span>
+                  </button>
+                )
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleOpenAddForm}
+                  className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-900 text-xs font-bold hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Nuevo Usuario</span>
+                </button>
+              )}
             </div>
           )}
 
           {/* User Cards List */}
           <div className="space-y-3">
-            {systemUsers.map((user) => {
+            {visibleUsers.length === 0 && !isEditing && (
+              <div className="bg-[#EBEBEB] rounded-3xl p-8 text-center shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-3">
+                <div className="w-12 h-12 mx-auto rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff]">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <h5 className="font-serif-display font-bold text-gray-800 text-sm">
+                  {isLevel3Planner ? 'No hay anfitriones registrados' : 'No hay usuarios registrados'}
+                </h5>
+                <p className="text-xs text-gray-600 max-w-sm mx-auto">
+                  {isLevel3Planner 
+                    ? 'Aún no has registrado anfitriones (Nivel 2) para tus bodas. Puedes registrar hasta 2 anfitriones con sus claves de acceso.'
+                    : 'No hay usuarios configurados en el sistema.'}
+                </p>
+                {isLevel3Planner && (
+                  <button
+                    type="button"
+                    onClick={handleOpenAddForm}
+                    className="mt-2 inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-900 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>+ Registrar Primer Anfitrión</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {visibleUsers.map((user) => {
               const isHerlyAdmin = user.username.toLowerCase() === 'herly lizarazo';
               const isCurrentLoggedIn = currentUser.username.toLowerCase() === user.username.toLowerCase();
               const isPasswordVisible = showPasswordMap[user.id] || false;
@@ -450,6 +549,10 @@ export const UserManagementModal: React.FC = () => {
                 badgeStyle = 'bg-teal-100 text-teal-900 border border-teal-300';
                 badgeText = 'Nivel 3: Wedding Planner';
                 iconBoxStyle = 'bg-teal-100 text-teal-800';
+              } else if (user.level === 4) {
+                badgeStyle = 'bg-rose-100 text-rose-900 border border-rose-300';
+                badgeText = 'Nivel 4: Novia Free';
+                iconBoxStyle = 'bg-rose-100 text-rose-800';
               } else if (user.level === 5) {
                 badgeStyle = 'bg-blue-100 text-blue-900 border border-blue-300';
                 badgeText = 'Nivel 5: Observador';
@@ -470,6 +573,8 @@ export const UserManagementModal: React.FC = () => {
                           <ShieldCheck className="w-5 h-5 text-emerald-700" />
                         ) : user.level === 3 ? (
                           <Briefcase className="w-5 h-5 text-teal-700" />
+                        ) : user.level === 4 ? (
+                          <Heart className="w-5 h-5 text-rose-700" />
                         ) : user.level === 5 ? (
                           <Eye className="w-5 h-5 text-blue-700" />
                         ) : (
@@ -608,7 +713,7 @@ export const UserManagementModal: React.FC = () => {
         <div className="p-4 bg-[#EBEBEB] border-t border-gray-300/60 flex items-center justify-end text-xs shrink-0">
           <button
             type="button"
-            onClick={() => setShowUserManagementModal(false)}
+            onClick={handleClose}
             className="px-5 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] text-gray-900 rounded-xl font-bold transition-all cursor-pointer"
           >
             Cerrar

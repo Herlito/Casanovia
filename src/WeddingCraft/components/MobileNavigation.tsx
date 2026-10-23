@@ -3,6 +3,7 @@ import { useEditorStore } from '../store/useEditorStore';
 import { Layers, Settings2, Plus, Type, Square, Clock, Link2, Image as ImageIcon, Shapes, X } from 'lucide-react';
 import { LayersPanel } from './LayersPanel';
 import { RightSidebar } from './RightSidebar';
+import { prepareSvgElementContent } from '../lib/svgUtils';
 
 export const MobileNavigation: React.FC = () => {
   const [activePanel, setActivePanel] = useState<'none' | 'layers' | 'properties' | 'add'>('none');
@@ -109,39 +110,60 @@ export const MobileNavigation: React.FC = () => {
       const reader = new FileReader();
       
       reader.onload = (ev) => {
-        let result = ev.target?.result as string;
-        let src = result;
-        let svgText = '';
+        const result = ev.target?.result as string;
         
         if (isSvg) {
-          svgText = result;
-          if (isSvgIcon) {
-             const color = '#2D3748';
-             const styleTag = `<style>* { fill: ${color} !important; stroke: ${color} !important; }</style>`;
-             if (svgText.includes('<svg')) {
-               svgText = svgText.replace(/(<svg[^>]*>)/i, `$1${styleTag}`);
-             }
-          }
-          src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgText)));
+          const initialColor = '#2D3748';
+          const prepared = prepareSvgElementContent(result, initialColor);
+          const img = new Image();
+          img.onload = () => {
+            addElement({
+              type: 'image',
+              content: {
+                src: prepared.src,
+                originalSrc: prepared.originalSrc,
+                isSvg: true,
+                rawSvgText: prepared.rawSvgText,
+                svgText: prepared.svgText,
+                naturalWidth: img.width || 200,
+                naturalHeight: img.height || 200,
+                isTransparent: true
+              },
+              style: { 
+                maskId: null, 
+                frameId: null, 
+                objectFit: 'cover', 
+                cropX: 0, 
+                cropY: 0, 
+                cropScale: 1, 
+                fill: initialColor, 
+                filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } 
+              },
+              transform: { x: 50, y: 50, width: Math.min(img.width || 180, 200), height: Math.min(img.height || 180, 200 * ((img.height || 180) / (img.width || 180))), rotation: 0, scaleX: 1, scaleY: 1 },
+              zIndex: 15,
+              locked: false,
+              visible: true
+            });
+          };
+          img.src = prepared.src;
+        } else {
+          const img = new Image();
+          img.onload = () => {
+            addElement({
+              type: 'image',
+              content: { src: result, originalSrc: result, isSvg: false, naturalWidth: img.width, naturalHeight: img.height },
+              style: { 
+                maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, 
+                filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } 
+              },
+              transform: { x: 50, y: 50, width: Math.min(img.width, 200), height: Math.min(img.height, 200 * (img.height / img.width)), rotation: 0, scaleX: 1, scaleY: 1 },
+              zIndex: 15,
+              locked: false,
+              visible: true
+            });
+          };
+          img.src = result;
         }
-        
-        const img = new Image();
-        img.onload = () => {
-          addElement({
-            type: 'image',
-            content: { src, originalSrc: src, isSvg, svgText, naturalWidth: img.width, naturalHeight: img.height },
-            style: { 
-              maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, 
-              fill: isSvgIcon ? '#2D3748' : (isSvg ? '#000000' : undefined), 
-              filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } 
-            },
-            transform: { x: 50, y: 50, width: Math.min(img.width, 200), height: Math.min(img.height, 200 * (img.height / img.width)), rotation: 0, scaleX: 1, scaleY: 1 },
-            zIndex: 15,
-            locked: false,
-            visible: true
-          });
-        };
-        img.src = src;
       };
       
       if (isSvg) {
@@ -168,7 +190,7 @@ export const MobileNavigation: React.FC = () => {
         
         <button 
           onClick={() => setActivePanel('add')} 
-          className="bg-gray-800 text-[#2D3748] p-3.5 rounded-full shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] -translate-y-4 hover:scale-105 transition-transform"
+          className="bg-gray-800 text-white p-3.5 rounded-full shadow-[12px_12px_24px_#d1d1d1,-12px_-12px_24px_#ffffff] -translate-y-4 hover:scale-105 transition-transform"
         >
           <Plus className={`w-6 h-6 transition-transform ${activePanel === 'add' ? 'rotate-45' : ''}`} />
         </button>

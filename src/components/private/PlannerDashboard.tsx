@@ -4,6 +4,7 @@ import { NoviosOverviewPanel } from './NoviosOverviewPanel';
 import { GuestManagement } from './GuestManagement';
 import { TimelineModule } from './TimelineModule';
 import { BudgetModule } from './BudgetModule';
+import { FinanzasModule } from './FinanzasModule';
 import { ChecklistModule } from './ChecklistModule';
 import { SettingsModule } from './SettingsModule';
 import { VendorsModule } from './VendorsModule';
@@ -54,6 +55,7 @@ export const PlannerDashboard: React.FC = () => {
     isLevel1Admin,
     isLevel3Planner,
     isLevel5Observer,
+    isLevel4Free,
     canPrint,
     isPlannerOrAdmin,
     canCreateWedding,
@@ -114,8 +116,8 @@ export const PlannerDashboard: React.FC = () => {
     return null;
   }
 
-  // If Level 3 Wedding Planner has NO weddings created yet, show dedicated welcoming onboarding with "Crear Boda" button
-  if (isLevel3Planner && accessibleWeddings.length === 0) {
+  // If Level 3 Wedding Planner OR Level 4 Novia Free has NO weddings created yet, show dedicated welcoming onboarding with "Crear Boda" button
+  if ((isLevel3Planner || isLevel4Free) && accessibleWeddings.length === 0) {
     return (
       <div className={isNeumorphic ? "min-h-[85vh] bg-[#EBEBEB] text-gray-800 flex flex-col" : "min-h-[85vh] bg-[#EBEBEB] flex flex-col selection:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/20 selection:text-[#2D3748]"}>
         {/* Top Status Ribbon */}
@@ -123,7 +125,9 @@ export const PlannerDashboard: React.FC = () => {
           <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse shrink-0" />
-              <span className="font-semibold text-teal-300">Wedding Planner (Nivel 3):</span>
+              <span className="font-semibold text-teal-300">
+                {isLevel4Free ? 'Novia Free (Nivel 4):' : 'Wedding Planner (Nivel 3):'}
+              </span>
               <span className="text-stone-300">{currentUser.username}</span>
             </div>
             <div className="flex items-center space-x-3 text-stone-400">
@@ -144,14 +148,14 @@ export const PlannerDashboard: React.FC = () => {
           <div className="max-w-5xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className={isNeumorphic ? "w-10 h-10 rounded-xl bg-[#EBEBEB] shadow-[inset_4px_4px_8px_rgba(163,177,198,0.4),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] flex items-center justify-center font-serif-display font-bold text-lg text-gray-800" : "w-10 h-10 rounded-xl bg-[#EBEBEB] border border-transparent flex items-center justify-center font-serif-display font-bold text-lg text-[#4A5568]"}>
-                WP
+                {isLevel4Free ? 'NF' : 'WP'}
               </div>
               <div>
                 <h1 className={`font-serif-display font-bold text-base sm:text-lg ${isNeumorphic ? "text-gray-900" : "text-[#2D3748]"}`}>
-                  Panel de Wedding Planner
+                  {isLevel4Free ? 'Panel de Novia Free' : 'Panel de Wedding Planner'}
                 </h1>
                 <p className={`text-xs ${isNeumorphic ? "text-gray-500 font-medium" : "text-[#E8DCCF]"}`}>
-                  Gestión y organización exclusiva de tus bodas
+                  {isLevel4Free ? 'Planificación y organización de tu boda' : 'Gestión y organización exclusiva de tus bodas'}
                 </p>
               </div>
             </div>
@@ -172,20 +176,23 @@ export const PlannerDashboard: React.FC = () => {
         <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-12 flex flex-col items-center justify-center">
           <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2.5rem] shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-8 sm:p-12 border border-transparent shadow-xl text-center max-w-2xl w-full space-y-6" : "bg-[#EBEBEB] rounded-3xl p-8 sm:p-12 border border-transparent shadow-xl text-center max-w-2xl w-full space-y-6"}>
             
-            <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-teal-50 to-teal-100 border border-teal-200 text-teal-800 mx-auto flex items-center justify-center shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]">
-              <Briefcase className="w-10 h-10 text-teal-700" />
+            <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-rose-50 to-rose-100 border border-rose-200 text-rose-800 mx-auto flex items-center justify-center shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]">
+              {isLevel4Free ? <Heart className="w-10 h-10 text-rose-600" /> : <Briefcase className="w-10 h-10 text-teal-700" />}
             </div>
 
             <div className="space-y-2">
-              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-900">
-                <ShieldCheck className="w-3.5 h-3.5 text-teal-700" />
-                <span>Acceso Nivel 3 • Wedding Planner</span>
+              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-900">
+                <ShieldCheck className="w-3.5 h-3.5 text-rose-700" />
+                <span>{isLevel4Free ? 'Acceso Nivel 4 • Novia Free (Plan Gratuito)' : 'Acceso Nivel 3 • Wedding Planner'}</span>
               </span>
               <h2 className="font-serif-display text-2xl sm:text-3xl font-bold text-[#2D2A26]">
                 ¡Bienvenida(o), {currentUser.username}!
               </h2>
               <p className="text-sm text-[#7A7268] max-w-md mx-auto leading-relaxed">
-                Como Wedding Planner (Nivel 3), solo tienes acceso a las bodas creadas por ti mismo. Actualmente no tienes ninguna boda registrada en tu cuenta.
+                {isLevel4Free 
+                  ? 'Actualmente no tienes ningún evento registrado. Crea tu evento nupcial para habilitar todos tus paneles de planificación (lista de invitados, distribución de mesas, presupuesto, tareas y más).'
+                  : 'Como Wedding Planner (Nivel 3), solo tienes acceso a las bodas creadas por ti mismo. Actualmente no tienes ninguna boda registrada en tu cuenta.'
+                }
               </p>
             </div>
 
@@ -243,15 +250,20 @@ export const PlannerDashboard: React.FC = () => {
 
   const coupleInitials = getInitials(settings.coupleNames || 'Sofia & Alejandro');
 
+  const isPromotionEvent = 
+    (settings.eventType && settings.eventType.toLowerCase().includes('promoc')) ||
+    (activeWedding?.coupleNames && activeWedding.coupleNames.toLowerCase().includes('promoc')) ||
+    (settings.coupleNames && settings.coupleNames.toLowerCase().includes('promoc'));
+
   const navTabs: { id: PlannerDashboardTab | 'floorplan' | 'public'; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'panel', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'settings', label: isPlannerOrAdmin ? 'Ajustes' : 'Ajustes Boda', icon: Settings },
+    { id: 'settings', label: 'Ajustes', icon: Settings },
     { id: 'checklist', label: 'Tareas', icon: CheckSquare },
     { id: 'guests', label: 'Invitados', icon: Users },
     { id: 'seating', label: 'Mesas', icon: UtensilsCrossed },
-        { id: 'timeline', label: 'Cronograma', icon: Clock },
+    { id: 'timeline', label: 'Cronograma', icon: Clock },
     { id: 'vendors', label: 'Proveedores', icon: Building2 },
-    { id: 'budget', label: 'Presupuesto', icon: DollarSign },
+    { id: 'budget', label: isPromotionEvent ? 'Finanzas' : 'Presupuesto', icon: DollarSign },
   ];
 
   return (
@@ -277,7 +289,7 @@ export const PlannerDashboard: React.FC = () => {
           - Right / Rows: Navigation Tabs [Panel, Invitados, Mesas, Proveedores, Presupuesto, Cronograma, Tareas, Ajustes]
           - Auto-wrapping for mobile view
          ======================================================== */}
-      <header className="bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] sticky top-14 sm:top-16 z-30">
+      <header className={`bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] sticky top-14 sm:top-16 z-30 ${activeTab === 'panel' ? 'hidden sm:block' : ''}`}>
         <div className="w-full max-w-7xl mx-auto px-1 sm:px-6 lg:px-8 py-1.5 sm:py-2">
           <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-start gap-1 sm:gap-2 w-full">
             
@@ -301,11 +313,11 @@ export const PlannerDashboard: React.FC = () => {
                       onClick={() => accessibleWeddings.length > 1 && setWeddingDropdownOpen(!weddingDropdownOpen)}
                       className={isNeumorphic ? "flex items-center space-x-2.5 text-left bg-[#EBEBEB] rounded-2xl px-3.5 py-1.5 shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] cursor-pointer" : "flex items-center space-x-2.5 text-left bg-[#EBEBEB]/90 border border-transparent rounded-2xl px-3.5 py-1.5 shadow-xs cursor-pointer"}
                     >
-                      <div className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] text-gray-800 flex items-center justify-center font-serif-display font-bold text-xs shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] text-gray-800 flex items-center justify-center font-serif-display font-bold text-xs shrink-0 notranslate" translate="no">
                         {coupleInitials}
                       </div>
                       <div className="min-w-0 flex items-center space-x-1.5">
-                        <span className={`font-serif-display font-bold text-sm sm:text-base tracking-wide truncate max-w-[160px] sm:max-w-[220px] ${isNeumorphic ? "text-gray-900" : "text-[#2D3748]"}`}>
+                        <span translate="no" className={`notranslate font-serif-display font-bold text-sm sm:text-base tracking-wide truncate max-w-[160px] sm:max-w-[220px] whitespace-nowrap ${isNeumorphic ? "text-gray-900" : "text-[#2D3748]"}`}>
                           {activeWedding?.coupleNames || settings.coupleNames}
                         </span>
                         {accessibleWeddings.length > 1 && (
@@ -343,11 +355,11 @@ export const PlannerDashboard: React.FC = () => {
                 )
               ) : (
                 <div className="flex items-center space-x-2.5 bg-[#EBEBEB] shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] rounded-2xl px-3.5 py-1.5 shrink-0 border-none">
-                  <div className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] text-gray-800 flex items-center justify-center font-serif-display font-bold text-xs shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] text-gray-800 flex items-center justify-center font-serif-display font-bold text-xs shrink-0 notranslate" translate="no">
                     {coupleInitials}
                   </div>
                   <div className="min-w-0">
-                    <span className="font-serif-display font-bold text-sm sm:text-base tracking-wide truncate block max-w-[160px] sm:max-w-[220px] text-gray-700">
+                    <span translate="no" className="notranslate font-serif-display font-bold text-sm sm:text-base tracking-wide truncate block max-w-[160px] sm:max-w-[220px] text-gray-700 whitespace-nowrap">
                       {settings.coupleNames}
                     </span>
                   </div>
@@ -369,9 +381,6 @@ export const PlannerDashboard: React.FC = () => {
                       if (tab.id === 'floorplan') {
                         setShowFloorPlanModal(true);
                       } else if (tab.id === 'public') {
-                        if (activeWeddingId) {
-                          window.history.pushState({}, '', `/?w=${activeWeddingId}`);
-                        }
                         setViewMode('public');
                       } else {
                         setActiveTab(tab.id as PlannerDashboardTab);
@@ -379,14 +388,15 @@ export const PlannerDashboard: React.FC = () => {
                     }}
                     title={tab.label}
                     aria-label={tab.label}
-                    className={`flex-1 sm:flex-initial min-w-0 h-9 sm:h-auto px-1 sm:px-3.5 py-1.5 sm:py-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-medium transition-all flex items-center justify-center space-x-0 sm:space-x-1.5 cursor-pointer ${
+                    className={`flex-1 sm:flex-initial min-w-0 h-9 sm:h-auto px-1 sm:px-3.5 py-1.5 sm:py-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-medium transition-all flex items-center justify-center space-x-0 sm:space-x-1.5 cursor-pointer whitespace-nowrap notranslate ${
                       isActive
                         ? (isNeumorphic ? 'bg-[#EBEBEB] text-[#2D3748] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]' : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs font-semibold ring-1 ring-white/30')
                         : (isNeumorphic ? 'text-[#6D7587] bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff]' : 'text-[#4A5568] hover:text-[#2D3748] hover:bg-[#EBEBEB]/10')
                     }`}
+                    translate="no"
                   >
                     <Icon className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
-                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="hidden sm:inline whitespace-nowrap">{tab.label}</span>
                   </button>
                 );
               })}
@@ -400,50 +410,52 @@ export const PlannerDashboard: React.FC = () => {
          ======================================================== */}
       <div className="flex-1 flex max-w-7xl w-full mx-auto px-0 sm:px-6 lg:px-8 py-1 sm:py-4 gap-0 sm:gap-6">
         
-        {/* Left Vertical Icon Navigation Rail (Desktop) */}
-        <aside className="hidden md:flex flex-col items-center justify-between w-16 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-2.5 shrink-0 self-start sticky top-24 border-none">
-          <div className="space-y-2.5 w-full flex flex-col items-center">
-            {navTabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              const Icon = tab.icon;
+        {/* Left Vertical Icon Navigation Rail (Desktop - Exclusivo para Administrador) */}
+        {isLevel1Admin && (
+          <aside className="hidden md:flex flex-col items-center justify-between w-16 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] p-2.5 shrink-0 self-start sticky top-24 border-none">
+            <div className="space-y-2.5 w-full flex flex-col items-center">
+              {navTabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const Icon = tab.icon;
 
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => {
-                    if (tab.id === 'floorplan') {
-                      setShowFloorPlanModal(true);
-                    } else if (tab.id === 'public') {
-                      setViewMode('public');
-                    } else {
-                      setActiveTab(tab.id as PlannerDashboardTab);
-                    }
-                  }}
-                  title={tab.label}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                    isActive
-                      ? (isNeumorphic ? 'bg-[#EBEBEB] text-[#6D7587] shadow-[inset_3px_3px_6px_#d1d9e6,inset_-3px_-3px_6px_#ffffff]' : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs')
-                      : (isNeumorphic ? 'text-[#6D7587] bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d9e6,-3px_-3px_6px_#ffffff]' : 'text-[#7A7268] hover:text-[#2D2A26] hover:bg-[#FAF8F5]')
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                </button>
-              );
-            })}
-          </div>
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      if (tab.id === 'floorplan') {
+                        setShowFloorPlanModal(true);
+                      } else if (tab.id === 'public') {
+                        setViewMode('public');
+                      } else {
+                        setActiveTab(tab.id as PlannerDashboardTab);
+                      }
+                    }}
+                    title={tab.label}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                      isActive
+                        ? (isNeumorphic ? 'bg-[#EBEBEB] text-[#6D7587] shadow-[inset_3px_3px_6px_#d1d9e6,inset_-3px_-3px_6px_#ffffff]' : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] shadow-xs')
+                        : (isNeumorphic ? 'text-[#6D7587] bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d9e6,-3px_-3px_6px_#ffffff]' : 'text-[#7A7268] hover:text-[#2D2A26] hover:bg-[#FAF8F5]')
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </button>
+                );
+              })}
+            </div>
 
-          <div className="pt-4 border-t border-[#F0EAE1] w-full flex flex-col items-center space-y-2">
-            <button
-              type="button"
-              onClick={() => setViewMode('public')}
-              title="Ir a Web de Invitados"
-              className="w-10 h-10 rounded-2xl text-[#7A7268] hover:text-[#2D3748] hover:bg-[#FAF8F5] flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </button>
-          </div>
-        </aside>
+            <div className="pt-4 border-t border-[#F0EAE1] w-full flex flex-col items-center space-y-2">
+              <button
+                type="button"
+                onClick={() => setViewMode('public')}
+                title="Ir a Web de Invitados"
+                className="w-10 h-10 rounded-2xl text-[#7A7268] hover:text-[#2D3748] hover:bg-[#FAF8F5] flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </button>
+            </div>
+          </aside>
+        )}
 
         {/* Main Content Area */}
         <main className="flex-1 min-w-0">
@@ -467,7 +479,7 @@ export const PlannerDashboard: React.FC = () => {
           )}
           {activeTab === 'budget' && (
             <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[6px_6px_12px_rgba(163,177,198,0.6),-6px_-6px_12px_rgba(255,255,255,0.5)] p-0 sm:p-5 border-none sm:border border-transparent w-full" : "bg-[#EBEBEB] rounded-none sm:rounded-3xl p-0 sm:p-5 border-none sm:border border-transparent w-full"}>
-              <BudgetModule />
+              {isPromotionEvent ? <FinanzasModule /> : <BudgetModule />}
             </div>
           )}
           {activeTab === 'timeline' && (
@@ -490,7 +502,7 @@ export const PlannerDashboard: React.FC = () => {
       </div>
 
       {/* Protocol Print Sheet Modal */}
-      {!isLevel5Observer && (
+      {canPrint && (
         <ProtocolPrintModal
           isOpen={isPrintModalOpen}
           onClose={() => setIsPrintModalOpen(false)}

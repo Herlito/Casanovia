@@ -78,21 +78,21 @@ export const AuthModal: React.FC = () => {
         {isNeumorphic && (
           <button
             onClick={handleClose}
-            className="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer bg-[#EBEBEB] shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-gray-500 hover:text-gray-800"
+            className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-gray-500 hover:text-gray-800"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         )}
 
         {/* Content */}
-        <div className={isNeumorphic ? 'space-y-6 pt-2' : 'p-8 space-y-6'}>
+        <div className={isNeumorphic ? 'space-y-4 pt-2' : 'p-4 space-y-4'}>
           {/* Neumorphic Header */}
           {isNeumorphic && (
-            <div className="flex flex-col items-center mb-8">
-              <div className="w-16 h-16 rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center justify-center mb-4 text-gray-700">
-                <User className="w-6 h-6" />
+            <div className="flex flex-col items-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] flex items-center justify-center mb-2 text-gray-700">
+                <User className="w-5 h-5" />
               </div>
-              <h3 className="font-serif-display text-2xl font-bold text-gray-900">
+              <h3 className="font-serif-display text-xl font-bold text-gray-900">
                 Acceso
               </h3>
             </div>

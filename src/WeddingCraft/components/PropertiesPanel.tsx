@@ -4,6 +4,8 @@ import { Settings2, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJ
 import { FontPicker } from './FontPicker';
 import { processImageTransparency } from '../lib/imageTransparency';
 import { CANVAS_SHADOW_PRESETS } from '../lib/canvasShadowUtils';
+import { formatSpanishDateLong } from '../../lib/dateUtils';
+import { recolorSvg, extractSvgTextFromSrc } from '../lib/svgUtils';
 
 
 
@@ -67,7 +69,8 @@ export const PropertiesPanel: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   if (selectedElementIds.length > 1) {
-    const selectedList = document.pages[0].elements.filter(e => selectedElementIds.includes(e.id));
+    const currentElements = document?.pages?.[0]?.elements || [];
+    const selectedList = currentElements.filter(e => selectedElementIds.includes(e.id));
     const hasAnyGrouped = selectedList.some(e => e.parentGroup);
 
     return (
@@ -128,13 +131,21 @@ export const PropertiesPanel: React.FC = () => {
     );
   }
 
+  const currentElements = document?.pages?.[0]?.elements || [];
   const selectedElement = selectedElementIds.length === 1 
-    ? document.pages[0].elements.find(e => e.id === selectedElementIds[0])
+    ? currentElements.find(e => e.id === selectedElementIds[0])
     : null;
 
-
   if (!selectedElement) {
-    const canvasConfig = document.canvas;
+    const canvasConfig = document?.canvas || {
+      width: 720,
+      height: 980,
+      backgroundColor: '#EBEBEB',
+      borderColor: 'rgba(0, 0, 0, 0.08)',
+      borderWidth: 1,
+      borderRadius: 0,
+      shadowPreset: 'soft'
+    };
     return (
       <div className="flex flex-col h-full wc-properties overflow-y-auto">
         <div className="p-3 border-b border-gray-200/50 bg-[#EBEBEB]/50 backdrop-blur-md sticky top-0 z-10">
@@ -688,7 +699,7 @@ export const PropertiesPanel: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-gray-700 uppercase">Redondeo de Esquinas:</span>
                 <span className="text-[10px] font-mono font-bold text-gray-700">
-                  {canvasConfig.borderRadius ?? 24}px
+                  {canvasConfig.borderRadius ?? 0}px
                 </span>
               </div>
               <input
@@ -696,7 +707,7 @@ export const PropertiesPanel: React.FC = () => {
                 min="0"
                 max="48"
                 step="2"
-                value={canvasConfig.borderRadius ?? 24}
+                value={canvasConfig.borderRadius ?? 0}
                 onChange={(e) => updateCanvas({ borderRadius: Number(e.target.value) })}
                 className="w-full accent-gray-700 cursor-pointer"
               />
@@ -733,7 +744,7 @@ export const PropertiesPanel: React.FC = () => {
   const handleUpdateStyle = (key: string, value: any) => {
     // Get latest state to avoid closure staleness on multiple sync calls
     const state = useEditorStore.getState();
-    const el = state.document.pages[0].elements.find(e => e.id === selectedElement.id);
+    const el = state.document?.pages?.[0]?.elements?.find(e => e.id === selectedElement.id);
     if (!el) return;
     updateElement(selectedElement.id, { 
       style: { ...el.style, [key]: value } 
@@ -754,10 +765,45 @@ export const PropertiesPanel: React.FC = () => {
 
   const handleUpdateContentKey = (key: string, value: any) => {
     const state = useEditorStore.getState();
-    const el = state.document.pages[0].elements.find(e => e.id === selectedElement.id);
+    const el = state.document?.pages?.[0]?.elements?.find(e => e.id === selectedElement.id);
     if (!el) return;
     updateElement(selectedElement.id, { 
       content: { ...(el.content || {}), [key]: value } 
+    });
+  };
+
+  const handleSvgColorChange = (color: string) => {
+    const state = useEditorStore.getState();
+    const el = state.document?.pages?.[0]?.elements?.find(e => e.id === selectedElement.id);
+    if (!el) return;
+    const currentContent = el.content || {};
+    const rawSvg = currentContent.rawSvgText || currentContent.svgText || extractSvgTextFromSrc(currentContent.src) || '';
+    if (!rawSvg) {
+      handleUpdateStyle('fill', color);
+      return;
+    }
+
+    const { svgText: newSvg, dataUrl: newSrc } = recolorSvg(rawSvg, color);
+
+    updateElement(selectedElement.id, {
+      style: { ...el.style, fill: color },
+      content: {
+        ...currentContent,
+        isSvg: true,
+        rawSvgText: currentContent.rawSvgText || rawSvg,
+        svgText: newSvg,
+        src: newSrc,
+        originalSrc: currentContent.originalSrc || newSrc
+      }
+    });
+  };
+
+  const handleUpdateTransform = (key: keyof import('../types').CanvasElement['transform'], value: number) => {
+    const state = useEditorStore.getState();
+    const el = state.document?.pages?.[0]?.elements?.find(e => e.id === selectedElement.id);
+    if (!el) return;
+    updateElement(selectedElement.id, { 
+      transform: { ...el.transform, [key]: value } 
     });
   };
 
@@ -771,6 +817,104 @@ export const PropertiesPanel: React.FC = () => {
       </div>
 
       <div className="p-3 space-y-4">
+        {/* Universal Transform & Posición */}
+        <div className="p-2.5 bg-white/70 rounded-2xl border border-gray-200/80 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center space-x-1">
+              <Box className="w-3 h-3 text-gray-600" />
+              <span>Posición & Tamaño</span>
+            </span>
+            <span className="text-[9px] text-gray-400 font-mono">
+              X:{Math.round(selectedElement.transform.x)} Y:{Math.round(selectedElement.transform.y)}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Posición X</label>
+              <input
+                type="number"
+                value={Math.round(selectedElement.transform.x)}
+                onChange={(e) => handleUpdateTransform('x', parseFloat(e.target.value) || 0)}
+                className="w-full text-xs p-1.5 text-gray-800 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-lg outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Posición Y</label>
+              <input
+                type="number"
+                value={Math.round(selectedElement.transform.y)}
+                onChange={(e) => handleUpdateTransform('y', parseFloat(e.target.value) || 0)}
+                className="w-full text-xs p-1.5 text-gray-800 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-lg outline-none font-mono"
+              />
+            </div>
+          </div>
+
+          {selectedElement.type === 'svg-shape' && selectedElement.style?.variant === 'line' ? (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Longitud (px)</label>
+                <input
+                  type="number"
+                  min="10"
+                  max="3000"
+                  value={Math.round(selectedElement.style?.orientation === 'vertical' ? selectedElement.transform.height : selectedElement.transform.width)}
+                  onChange={(e) => {
+                    const newLen = Math.max(10, parseFloat(e.target.value) || 10);
+                    if (selectedElement.style?.orientation === 'vertical') {
+                      handleUpdateTransform('height', newLen);
+                    } else {
+                      handleUpdateTransform('width', newLen);
+                    }
+                  }}
+                  className="w-full text-xs p-1.5 text-gray-800 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-lg outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Giro (º)</label>
+                <input
+                  type="number"
+                  value={Math.round(selectedElement.transform.rotation || 0)}
+                  onChange={(e) => handleUpdateTransform('rotation', parseFloat(e.target.value) || 0)}
+                  className="w-full text-xs p-1.5 text-gray-800 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-lg outline-none font-mono"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-1.5">
+              <div>
+                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Ancho (W)</label>
+                <input
+                  type="number"
+                  min="10"
+                  value={Math.round(selectedElement.transform.width)}
+                  onChange={(e) => handleUpdateTransform('width', Math.max(10, parseFloat(e.target.value) || 10))}
+                  className="w-full text-xs p-1.5 text-gray-800 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-lg outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Alto (H)</label>
+                <input
+                  type="number"
+                  min="10"
+                  value={Math.round(selectedElement.transform.height)}
+                  onChange={(e) => handleUpdateTransform('height', Math.max(10, parseFloat(e.target.value) || 10))}
+                  className="w-full text-xs p-1.5 text-gray-800 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-lg outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Giro (º)</label>
+                <input
+                  type="number"
+                  value={Math.round(selectedElement.transform.rotation || 0)}
+                  onChange={(e) => handleUpdateTransform('rotation', parseFloat(e.target.value) || 0)}
+                  className="w-full text-xs p-1.5 text-gray-800 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-lg outline-none font-mono"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         {selectedElement.dataBinding && (
           <div className="p-3 rounded-xl bg-blue-50 border border-blue-200/60 shadow-sm space-y-2">
             <div className="flex items-start justify-between space-x-2">
@@ -782,7 +926,7 @@ export const PropertiesPanel: React.FC = () => {
                     Campo: <span className="font-semibold">
                       {selectedElement.dataBinding.field === 'coupleNames' ? 'Nombres de los Novios' :
                        selectedElement.dataBinding.field === 'eventDate' ? 'Fecha de la Boda' :
-                       selectedElement.dataBinding.field === 'venueName' ? 'Lugar de Ceremonia' :
+                       selectedElement.dataBinding.field === 'venueName' ? 'Lugar (Salón / Hacienda - Recepción)' :
                        selectedElement.dataBinding.field === 'romanticQuote' ? 'Frase Romántica' :
                        selectedElement.dataBinding.field === 'headerTag' ? 'Etiqueta de Encabezado' :
                        selectedElement.dataBinding.field === 'footerGreeting' ? 'Despedida / Saludo' :
@@ -815,6 +959,35 @@ export const PropertiesPanel: React.FC = () => {
               value={selectedElement.content.text || ''}
               onChange={(e) => handleUpdateContent(e.target.value)}
             />
+            <div className="mt-1.5 flex items-center justify-between bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+              <span className="text-[10px] text-gray-500 font-medium">Vincular a dato:</span>
+              <select
+                className="text-[10px] py-0.5 px-1.5 border border-gray-300 rounded bg-white text-gray-800 outline-none"
+                value=""
+                onChange={(e) => {
+                  const field = e.target.value;
+                  if (!field) return;
+                  const liveVenue = (eventData?.venueName && eventData.venueName.trim().toLowerCase() !== 'lugar')
+                    ? eventData.venueName.trim()
+                    : (eventData?.receptionVenue?.name?.trim() || 'Lugar');
+                  let newText = selectedElement.content.text;
+                  if (field === 'venueName') newText = liveVenue;
+                  else if (field === 'coupleNames' && eventData?.coupleNames) newText = `${eventData.coupleNames[0]} & ${eventData.coupleNames[1]}`;
+                  else if (field === 'eventDate' && eventData?.eventDate) newText = formatSpanishDateLong(eventData.eventDate);
+                  else if (field === 'romanticQuote' && eventData?.romanticQuote) newText = `"${eventData.romanticQuote}"`;
+                  updateElement(selectedElement.id, {
+                    dataBinding: { field: field as any },
+                    content: { ...selectedElement.content, text: newText }
+                  });
+                }}
+              >
+                <option value="">Seleccionar campo...</option>
+                <option value="venueName">Nombre Salón / Hacienda (Recepción)</option>
+                <option value="coupleNames">Nombres de Novios</option>
+                <option value="eventDate">Fecha de la Boda</option>
+                <option value="romanticQuote">Frase Romántica</option>
+              </select>
+            </div>
           </div>
         )}
 
@@ -1618,29 +1791,84 @@ export const PropertiesPanel: React.FC = () => {
         {selectedElement.type === 'image' && (
           <div className="space-y-4">
             {selectedElement.content.isSvg && (
-              <div>
-                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color del Ícono / SVG</label>
-                <input 
-                  type="color" 
-                  className="w-full h-7 p-0.5 border border-gray-200 rounded bg-gray-50/50 cursor-pointer"
-                  value={selectedElement.style.fill || '#000000'}
-                  onChange={(e) => {
-                    const color = e.target.value;
-                    handleUpdateStyle('fill', color);
-                    
-                    // Modify the SVG source
-                    if (selectedElement.content.svgText) {
-                      let newSvg = selectedElement.content.svgText;
-                      // Inject a style to force fill color
-                      const styleTag = `<style>* { fill: ${color} !important; stroke: ${color} !important; }</style>`;
-                      if (newSvg.includes('<svg')) {
-                        newSvg = newSvg.replace(/(<svg[^>]*>)/i, `$1${styleTag}`);
-                      }
-                      const newSrc = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(newSvg)));
-                      handleUpdateContent({ ...selectedElement.content, src: newSrc });
-                    }
-                  }}
-                />
+              <div className="p-3 bg-[#EBEBEB] rounded-2xl shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] border border-white/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Color de Relleno (SVG)</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-gray-600 uppercase font-bold">
+                    {selectedElement.style.fill || '#2D3748'}
+                  </span>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <div className="relative w-9 h-9 rounded-xl bg-[#EBEBEB] shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] p-1 flex items-center justify-center shrink-0">
+                    <input 
+                      type="color" 
+                      className="w-full h-full rounded-lg cursor-pointer border-0 bg-transparent p-0"
+                      value={selectedElement.style.fill || '#2D3748'}
+                      onChange={(e) => handleSvgColorChange(e.target.value)}
+                      title="Seleccionar color de relleno"
+                    />
+                  </div>
+                  <input 
+                    type="text" 
+                    className="flex-1 text-xs py-2 px-2.5 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-xl uppercase font-mono font-bold text-gray-800 outline-none"
+                    value={selectedElement.style.fill || '#2D3748'}
+                    onChange={(e) => handleSvgColorChange(e.target.value)}
+                    placeholder="#2D3748"
+                  />
+                </div>
+
+                {/* Theme Palette Swatches */}
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Paleta del Evento</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[
+                      { id: 'primary', color: document.theme.palette.primary, label: 'Principal' },
+                      { id: 'secondary', color: document.theme.palette.secondary, label: 'Secundario' },
+                      { id: 'text', color: document.theme.palette.text, label: 'Texto' },
+                      { id: 'muted', color: document.theme.palette.muted, label: 'Neutro' },
+                      { id: 'accent', color: document.theme.palette.accent, label: 'Acento' },
+                    ].filter(s => !!s.color).map(swatch => (
+                      <button 
+                        key={swatch.id}
+                        type="button"
+                        className={`w-6 h-6 rounded-lg transition-transform hover:scale-110 active:scale-95 shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] border ${selectedElement.style.fill?.toLowerCase() === swatch.color?.toLowerCase() ? 'ring-2 ring-blue-500 border-white' : 'border-white/50'}`}
+                        style={{ backgroundColor: swatch.color }}
+                        title={`${swatch.label}: ${swatch.color}`}
+                        onClick={() => handleSvgColorChange(swatch.color)}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Preset Classic Wedding Colors */}
+                <div className="space-y-1 pt-1 border-t border-gray-300/40">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Colores Populares</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[
+                      { color: '#2D3748', label: 'Grafito' },
+                      { color: '#000000', label: 'Negro' },
+                      { color: '#B08D57', label: 'Dorado' },
+                      { color: '#C5A880', label: 'Oro Rosa' },
+                      { color: '#8A9A86', label: 'Olivo' },
+                      { color: '#7E6B8F', label: 'Lavanda' },
+                      { color: '#A36868', label: 'Vino' },
+                      { color: '#FFFFFF', label: 'Blanco' },
+                    ].map(preset => (
+                      <button 
+                        key={preset.color}
+                        type="button"
+                        className={`w-6 h-6 rounded-lg transition-transform hover:scale-110 active:scale-95 shadow-[2px_2px_4px_#d1d1d1,-2px_-2px_4px_#ffffff] border ${selectedElement.style.fill?.toLowerCase() === preset.color.toLowerCase() ? 'ring-2 ring-blue-500 border-white' : 'border-gray-200'}`}
+                        style={{ backgroundColor: preset.color }}
+                        title={`${preset.label}: ${preset.color}`}
+                        onClick={() => handleSvgColorChange(preset.color)}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -2034,6 +2262,9 @@ export const PropertiesPanel: React.FC = () => {
                   const newVariant = e.target.value;
                   if (newVariant === 'line') {
                     handleUpdateStyle('variant', 'line');
+                    handleUpdateStyle('orientation', selectedElement.style.orientation || 'horizontal');
+                    handleUpdateStyle('lineStyle', selectedElement.style.lineStyle || 'solid');
+                    handleUpdateStyle('lineCap', selectedElement.style.lineCap || 'round');
                     handleUpdateStyle('fill', 'transparent');
                     const curWidth = selectedElement.style.strokeWidth || 0;
                     if (curWidth <= 0) handleUpdateStyle('strokeWidth', 2);
@@ -2065,21 +2296,228 @@ export const PropertiesPanel: React.FC = () => {
               </select>
             </div>
             
-            <div className="grid grid-cols-2 gap-1.5">
-              {selectedElement.style.variant === 'line' ? (
-                <div className="col-span-2">
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color de Línea</label>
-                  <div className="flex items-center space-x-1">
-                    <input 
-                      type="color" 
-                      className="w-full h-7 p-0.5 border border-gray-200 rounded bg-gray-50/50 cursor-pointer"
+            {selectedElement.style.variant === 'line' ? (
+              <div className="space-y-3 p-3 bg-white/70 rounded-2xl border border-gray-200/80 shadow-2xs">
+                {/* Orientación */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Orientación de Línea
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const curH = selectedElement.transform.height;
+                        const curW = selectedElement.transform.width;
+                        handleUpdateStyle('orientation', 'horizontal');
+                        updateElement(selectedElement.id, {
+                          transform: {
+                            ...selectedElement.transform,
+                            width: Math.max(curH, curW, 120),
+                            height: 24
+                          }
+                        });
+                      }}
+                      className={`flex items-center justify-center space-x-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all ${
+                        (selectedElement.style.orientation || 'horizontal') === 'horizontal'
+                          ? 'bg-[#2D3748] text-white shadow-xs'
+                          : 'bg-[#EBEBEB] text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <span>Horizontal (↔)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const curH = selectedElement.transform.height;
+                        const curW = selectedElement.transform.width;
+                        handleUpdateStyle('orientation', 'vertical');
+                        updateElement(selectedElement.id, {
+                          transform: {
+                            ...selectedElement.transform,
+                            height: Math.max(curH, curW, 120),
+                            width: 24
+                          }
+                        });
+                      }}
+                      className={`flex items-center justify-center space-x-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all ${
+                        selectedElement.style.orientation === 'vertical'
+                          ? 'bg-[#2D3748] text-white shadow-xs'
+                          : 'bg-[#EBEBEB] text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <span>Vertical (↕)</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Longitud Slider & Input */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      Longitud ({selectedElement.style.orientation === 'vertical' ? 'Alto' : 'Ancho'})
+                    </label>
+                    <span className="text-xs font-mono font-bold text-gray-700">
+                      {Math.round(selectedElement.style.orientation === 'vertical' ? selectedElement.transform.height : selectedElement.transform.width)} px
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="10"
+                    max="1000"
+                    step="5"
+                    className="w-full accent-[#2D3748] cursor-pointer"
+                    value={Math.round(selectedElement.style.orientation === 'vertical' ? selectedElement.transform.height : selectedElement.transform.width)}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 10;
+                      if (selectedElement.style.orientation === 'vertical') {
+                        handleUpdateTransform('height', val);
+                      } else {
+                        handleUpdateTransform('width', val);
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Grosor de Línea Slider & Input */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      Grosor de Línea
+                    </label>
+                    <span className="text-xs font-mono font-bold text-gray-700">
+                      {selectedElement.style.strokeWidth ?? 2} px
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="range"
+                      min="1"
+                      max="40"
+                      step="1"
+                      className="flex-1 accent-[#2D3748] cursor-pointer"
+                      value={selectedElement.style.strokeWidth ?? 2}
+                      onChange={(e) => handleUpdateStyle('strokeWidth', parseInt(e.target.value) || 1)}
+                    />
+                    <input
+                      type="number"
+                      min="1"
+                      max="50"
+                      className="w-14 text-xs p-1 text-center font-mono text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
+                      value={selectedElement.style.strokeWidth ?? 2}
+                      onChange={(e) => handleUpdateStyle('strokeWidth', parseInt(e.target.value) || 1)}
+                    />
+                  </div>
+                </div>
+
+                {/* Color de Línea */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                    Color de Línea
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="color"
+                      className="w-9 h-8 p-0.5 border border-gray-200 rounded-lg bg-gray-50/50 cursor-pointer"
                       value={selectedElement.style.stroke && selectedElement.style.stroke !== 'transparent' ? selectedElement.style.stroke : '#2D3748'}
+                      onChange={(e) => handleUpdateStyle('stroke', e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      className="flex-1 text-xs p-1.5 font-mono text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50 uppercase"
+                      value={selectedElement.style.stroke || '#2D3748'}
                       onChange={(e) => handleUpdateStyle('stroke', e.target.value)}
                     />
                   </div>
                 </div>
-              ) : (
-                <>
+
+                {/* Estilo de Línea (Solid, Dashed, Dotted) */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Estilo de Trazo
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateStyle('lineStyle', 'solid')}
+                      className={`py-1.5 px-1 rounded-xl text-[11px] font-semibold transition-all ${
+                        (selectedElement.style.lineStyle || 'solid') === 'solid'
+                          ? 'bg-[#2D3748] text-white shadow-xs'
+                          : 'bg-[#EBEBEB] text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Sólida
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateStyle('lineStyle', 'dashed')}
+                      className={`py-1.5 px-1 rounded-xl text-[11px] font-semibold transition-all ${
+                        selectedElement.style.lineStyle === 'dashed'
+                          ? 'bg-[#2D3748] text-white shadow-xs'
+                          : 'bg-[#EBEBEB] text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Guiones
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateStyle('lineStyle', 'dotted')}
+                      className={`py-1.5 px-1 rounded-xl text-[11px] font-semibold transition-all ${
+                        selectedElement.style.lineStyle === 'dotted'
+                          ? 'bg-[#2D3748] text-white shadow-xs'
+                          : 'bg-[#EBEBEB] text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Puntos
+                    </button>
+                  </div>
+                </div>
+
+                {/* Terminación de Línea (lineCap) */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                    Terminación (Extremos)
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateStyle('lineCap', 'round')}
+                      className={`py-1.5 px-1 rounded-xl text-[11px] font-semibold transition-all ${
+                        (selectedElement.style.lineCap || 'round') === 'round'
+                          ? 'bg-[#2D3748] text-white shadow-xs'
+                          : 'bg-[#EBEBEB] text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Redonda
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateStyle('lineCap', 'butt')}
+                      className={`py-1.5 px-1 rounded-xl text-[11px] font-semibold transition-all ${
+                        selectedElement.style.lineCap === 'butt'
+                          ? 'bg-[#2D3748] text-white shadow-xs'
+                          : 'bg-[#EBEBEB] text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Recta
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateStyle('lineCap', 'square')}
+                      className={`py-1.5 px-1 rounded-xl text-[11px] font-semibold transition-all ${
+                        selectedElement.style.lineCap === 'square'
+                          ? 'bg-[#2D3748] text-white shadow-xs'
+                          : 'bg-[#EBEBEB] text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Cuadrada
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-1.5">
                   <div>
                     <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Color Relleno</label>
                     <div className="flex items-center space-x-1">
@@ -2114,37 +2552,37 @@ export const PropertiesPanel: React.FC = () => {
                         >T</button>
                     </div>
                   </div>
-                </>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-2 gap-1.5">
-                <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                    {selectedElement.style.variant === 'line' ? 'Grosor de Línea' : 'Grosor Borde'}
-                  </label>
-                  <input 
-                    type="number" 
-                    min={selectedElement.style.variant === 'line' ? "1" : "0"}
-                    max="50"
-                    className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
-                    value={selectedElement.style.strokeWidth ?? (selectedElement.style.variant === 'line' || selectedElement.style.variant === 'circle' || selectedElement.style.variant === 'oval' ? 2 : 0)}
-                    onChange={(e) => handleUpdateStyle('strokeWidth', parseInt(e.target.value) || 0)}
-                  />
                 </div>
-                {['rectangle', 'square'].includes(selectedElement.style.variant || 'rectangle') && (
-                <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Redondeo Esquinas</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
-                    value={selectedElement.style.borderRadius || 0}
-                    onChange={(e) => handleUpdateStyle('borderRadius', parseInt(e.target.value) || 0)}
-                  />
+                
+                <div className="grid grid-cols-2 gap-1.5">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Grosor Borde
+                      </label>
+                      <input 
+                        type="number" 
+                        min="0"
+                        max="50"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
+                        value={selectedElement.style.strokeWidth ?? (selectedElement.style.variant === 'circle' || selectedElement.style.variant === 'oval' ? 2 : 0)}
+                        onChange={(e) => handleUpdateStyle('strokeWidth', parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    {['rectangle', 'square'].includes(selectedElement.style.variant || 'rectangle') && (
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Redondeo Esquinas</label>
+                      <input 
+                        type="number" 
+                        min="0"
+                        className="w-full text-xs p-1.5 text-gray-900 border border-gray-200 rounded-lg bg-gray-50/50"
+                        value={selectedElement.style.borderRadius || 0}
+                        onChange={(e) => handleUpdateStyle('borderRadius', parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    )}
                 </div>
-                )}
-            </div>
+              </>
+            )}
             
           </div>
         )}
@@ -2567,7 +3005,7 @@ export const PropertiesPanel: React.FC = () => {
           <div>
             <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 flex justify-between">
               <span>Opacidad Global</span>
-              <span>{Math.round((selectedElement.style.opacity ?? 1) * 100)}%</span>
+              <span>{Math.round(((selectedElement.style?.opacity) ?? 1) * 100)}%</span>
             </label>
             <input 
               type="range"
@@ -2575,7 +3013,7 @@ export const PropertiesPanel: React.FC = () => {
               max="1"
               step="0.05"
               className="w-full accent-[#2D3748]"
-              value={selectedElement.style.opacity ?? 1}
+              value={selectedElement.style?.opacity ?? 1}
               onChange={(e) => handleUpdateStyle('opacity', parseFloat(e.target.value))}
             />
           </div>
@@ -2585,7 +3023,7 @@ export const PropertiesPanel: React.FC = () => {
               <input
                 type="checkbox"
                 id="useCurrentThemeColors"
-                checked={selectedElement.style.isDefaultStyle || false}
+                checked={selectedElement.style?.isDefaultStyle || false}
                 onChange={(e) => handleUpdateStyle('isDefaultStyle', e.target.checked)}
                 className="rounded border-gray-300 text-[#2D3748] focus:ring-[#2D3748]"
               />

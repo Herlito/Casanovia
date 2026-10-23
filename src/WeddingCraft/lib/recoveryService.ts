@@ -1,9 +1,10 @@
 import { get as idbGet, set as idbSet } from 'idb-keyval';
-import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
-import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import { TemplateItem, useEditorStore } from '../store/useEditorStore';
 import { RESTORED_MASTER_TEMPLATES } from '../data/masterTemplates';
 import { WeddingDesignDocument } from '../types';
+import { fetchTemplatesFromHosting, saveTemplateToHosting } from '../../services/hostingStorage';
+import { normalizeCanvasDocument } from './canvasElementUtils';
+import { generateDocumentSquareThumbnail } from './templateThumbnail';
 
 export interface RecoveryResult {
   totalRestored: number;
@@ -116,48 +117,21 @@ export async function recoverAllWeddingCraftDesigns(): Promise<RecoveryResult> {
     console.warn('[WeddingCraft Recovery] Error scanning localStorage keys:', err);
   }
 
-  // 5. Try to fetch remote templates from Firestore (passive/resilient)
+  // 5. Fetch remote templates from Hosting Backend (api/data/weddingcraft/templates/)
   try {
-    const snap = await getDocs(collection(db, 'weddingcraft_templates'));
-    snap.forEach(docSnap => {
-      const data = docSnap.data() as TemplateItem;
-      if (data && data.document) {
-        recoveredMap.set(docSnap.id, {
-          ...data,
-          id: docSnap.id
-        });
-        if (!items.some(i => i.id === docSnap.id)) {
-          items.push({ name: data.name || docSnap.id, type: 'template', id: docSnap.id });
+    const remoteTemplates = await fetchTemplatesFromHosting();
+    if (remoteTemplates && Array.isArray(remoteTemplates)) {
+      remoteTemplates.forEach(t => {
+        if (t && t.id && t.document) {
+          recoveredMap.set(t.id, t);
+          if (!items.some(i => i.id === t.id)) {
+            items.push({ name: t.name || t.id, type: 'template', id: t.id });
+          }
         }
-      }
-    });
-  } catch (cloudErr) {
-    handleFirestoreError(cloudErr, OperationType.LIST, 'weddingcraft_templates');
-  }
-
-  // 6. Try to fetch remote published documents from Firestore
-  try {
-    const pubSnap = await getDocs(collection(db, 'weddingcraft_published'));
-    pubSnap.forEach(docSnap => {
-      const data = docSnap.data();
-      if (data && data.document) {
-        const templateId = `cloud-pub-${docSnap.id}`;
-        const coupleNames = data.document.pages?.[0]?.elements?.find((e: any) => e.dataBinding?.field === 'coupleNames')?.content?.text || docSnap.id;
-        const t: TemplateItem = {
-          id: templateId,
-          name: `Nube Publicada: ${coupleNames}`,
-          author: data.author || 'WeddingCraft Cloud',
-          document: data.document,
-          updatedAt: data.publishedAt || Date.now()
-        };
-        recoveredMap.set(templateId, t);
-        if (!items.some(i => i.id === templateId)) {
-          items.push({ name: t.name, type: 'published', id: templateId });
-        }
-      }
-    });
-  } catch (cloudErr) {
-    handleFirestoreError(cloudErr, OperationType.LIST, 'weddingcraft_published');
+      });
+    }
+  } catch (hostErr) {
+    console.info('[WeddingCraft Recovery] Hosting backend scan info:', hostErr);
   }
 
   const mergedList = Array.from(recoveredMap.values()).sort(
@@ -209,26 +183,58 @@ export function exportWeddingCraftDesignsJson(): void {
 }
 
 /**
- * Imports WeddingCraft designs from a JSON file.
+ * Imports WeddingCraft designs from a JSON file and persists them to the casanovia.pe hosting.
  */
 export async function importWeddingCraftDesignsJson(file: File): Promise<{ success: boolean; count: number; error?: string }> {
   try {
     const text = await file.text();
     const data = JSON.parse(text);
-    const importedTemplates: TemplateItem[] = Array.isArray(data) ? data : data.templates || [];
+    const rawImported: any[] = Array.isArray(data) ? data : data.templates || [];
 
-    if (!Array.isArray(importedTemplates) || importedTemplates.length === 0) {
+    if (!Array.isArray(rawImported) || rawImported.length === 0) {
       return { success: false, count: 0, error: 'El archivo JSON no contiene plantillas válidas de WeddingCraft.' };
     }
 
     const current = useEditorStore.getState().templates;
     const map = new Map<string, TemplateItem>();
     current.forEach(t => map.set(t.id, t));
-    importedTemplates.forEach(t => {
-      if (t && t.id && t.document) {
-        map.set(t.id, t);
+
+    const validImported: TemplateItem[] = [];
+
+    for (const item of rawImported) {
+      if (!item || !item.id || !item.document) continue;
+      const normalizedDoc = normalizeCanvasDocument(item.document);
+      let thumb = item.thumbnail || '';
+      if (!thumb) {
+        try {
+          thumb = generateDocumentSquareThumbnail(normalizedDoc, 320);
+        } catch (e) {}
       }
-    });
+
+      const cleanItem: TemplateItem = {
+        id: String(item.id),
+        name: item.name || 'Plantilla Importada',
+        document: normalizedDoc,
+        author: item.author || 'Importado',
+        thumbnail: thumb,
+        createdAt: item.createdAt || Date.now(),
+        updatedAt: item.updatedAt || Date.now()
+      };
+
+      map.set(cleanItem.id, cleanItem);
+      validImported.push(cleanItem);
+
+      // Persist to hosting backend of casanovia.pe (SQLite + /api/data/weddingcraft/templates/)
+      try {
+        await saveTemplateToHosting(cleanItem);
+      } catch (hostErr) {
+        console.warn(`[RecoveryService] Error al guardar plantilla ${cleanItem.id} en hosting:`, hostErr);
+      }
+    }
+
+    if (validImported.length === 0) {
+      return { success: false, count: 0, error: 'No se encontraron plantillas con estructura válida en el archivo JSON.' };
+    }
 
     const merged = Array.from(map.values()).sort(
       (a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0)
@@ -238,7 +244,7 @@ export async function importWeddingCraftDesignsJson(file: File): Promise<{ succe
     await idbSet('wedding_craft_templates', merged);
     localStorage.setItem('weddingcraft_templates_backup', JSON.stringify(merged));
 
-    return { success: true, count: importedTemplates.length };
+    return { success: true, count: validImported.length };
   } catch (err: any) {
     return { success: false, count: 0, error: err.message || 'Error importando archivo JSON.' };
   }

@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
-  ChevronDown
+  ChevronDown,
+  GraduationCap
 } from 'lucide-react';
 
 // ==========================================
@@ -175,6 +176,7 @@ interface GuestCompanionCellProps {
   isCompanionOfSomeone: boolean;
   mainGuest: Guest | null;
   onOpenAssignCompanion: () => void;
+  onOpenAssignChild?: () => void;
   onUnlinkCompanion: (companionGuest: Guest) => void;
 }
 
@@ -184,6 +186,7 @@ export const GuestCompanionCell: React.FC<GuestCompanionCellProps> = ({
   isCompanionOfSomeone,
   mainGuest,
   onOpenAssignCompanion,
+  onOpenAssignChild,
   onUnlinkCompanion
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -274,6 +277,12 @@ export const GuestCompanionCell: React.FC<GuestCompanionCellProps> = ({
     onOpenAssignCompanion();
   };
 
+  const handleOpenChildModal = () => {
+    setIsOpen(false);
+    setIsPinned(false);
+    if (onOpenAssignChild) onOpenAssignChild();
+  };
+
   const handleUnlink = () => {
     setIsOpen(false);
     setIsPinned(false);
@@ -324,6 +333,19 @@ export const GuestCompanionCell: React.FC<GuestCompanionCellProps> = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
+          {/* Linked Child info if present */}
+          {guest.childStudentName && (
+            <div className="mb-2 p-1.5 rounded-xl bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] border border-teal-200/60">
+              <div className="text-[9px] font-bold text-teal-800 uppercase tracking-wider flex items-center space-x-1">
+                <GraduationCap className="w-3 h-3 text-teal-700" />
+                <span>Hijo/a asignado:</span>
+              </div>
+              <div className="text-[11px] font-bold text-gray-900 truncate mt-0.5">
+                {guest.childStudentName}
+              </div>
+            </div>
+          )}
+
           {isCompanionOfSomeone ? (
             // State C: Sigue a alguien
             <div>
@@ -340,12 +362,24 @@ export const GuestCompanionCell: React.FC<GuestCompanionCellProps> = ({
               <button
                 type="button"
                 onClick={handleUnlink}
-                className="w-full inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-bold text-rose-600 hover:text-rose-700 transition-all cursor-pointer"
+                className="w-full inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-bold text-rose-600 hover:text-rose-700 transition-all cursor-pointer mb-1.5"
                 title={`Quitar como acompañante de ${mainGuest?.fullName || 'su titular'}`}
               >
                 <Minus className="w-3.5 h-3.5 shrink-0" />
                 <span>Quitar acompañante</span>
               </button>
+
+              {onOpenAssignChild && (
+                <button
+                  type="button"
+                  onClick={handleOpenChildModal}
+                  className="w-full inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-bold text-teal-800 transition-all cursor-pointer border border-teal-200/60"
+                  title="Asignar hijo/a para control en Finanzas"
+                >
+                  <GraduationCap className="w-3.5 h-3.5 shrink-0 text-teal-700" />
+                  <span>+ Asignar Hijo/a</span>
+                </button>
+              )}
             </div>
           ) : linkedCompanions.length > 0 ? (
             // State A: Tiene acompañante(s) asignado(s)
@@ -365,15 +399,29 @@ export const GuestCompanionCell: React.FC<GuestCompanionCellProps> = ({
                   </div>
                 ))}
               </div>
-              <button
-                type="button"
-                onClick={handleOpenAssign}
-                className="w-full inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-bold text-emerald-800 transition-all cursor-pointer"
-                title="Asignar o registrar acompañante"
-              >
-                <Plus className="w-3.5 h-3.5 shrink-0" />
-                <span>Asignar Acompañante</span>
-              </button>
+              <div className="space-y-1.5">
+                <button
+                  type="button"
+                  onClick={handleOpenAssign}
+                  className="w-full inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-bold text-emerald-800 transition-all cursor-pointer"
+                  title="Asignar o registrar acompañante"
+                >
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
+                  <span>Asignar Acompañante</span>
+                </button>
+
+                {onOpenAssignChild && (
+                  <button
+                    type="button"
+                    onClick={handleOpenChildModal}
+                    className="w-full inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-bold text-teal-800 transition-all cursor-pointer border border-teal-200/60"
+                    title="Asignar hijo/a para control en Finanzas"
+                  >
+                    <GraduationCap className="w-3.5 h-3.5 shrink-0 text-teal-700" />
+                    <span>+ Asignar Hijo/a</span>
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             // State B: No tiene acompañante
@@ -381,15 +429,29 @@ export const GuestCompanionCell: React.FC<GuestCompanionCellProps> = ({
               <div className="text-xs text-stone-600 font-medium text-center mb-2">
                 Sin acompañante
               </div>
-              <button
-                type="button"
-                onClick={handleOpenAssign}
-                className="w-full inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-bold text-emerald-800 transition-all cursor-pointer"
-                title="Asignar acompañante"
-              >
-                <Plus className="w-3.5 h-3.5 shrink-0" />
-                <span>Asignar Acompañante</span>
-              </button>
+              <div className="space-y-1.5">
+                <button
+                  type="button"
+                  onClick={handleOpenAssign}
+                  className="w-full inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-bold text-emerald-800 transition-all cursor-pointer"
+                  title="Asignar acompañante"
+                >
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
+                  <span>Asignar Acompañante</span>
+                </button>
+
+                {onOpenAssignChild && (
+                  <button
+                    type="button"
+                    onClick={handleOpenChildModal}
+                    className="w-full inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] text-xs font-bold text-teal-800 transition-all cursor-pointer border border-teal-200/60"
+                    title="Asignar hijo/a para control en Finanzas"
+                  >
+                    <GraduationCap className="w-3.5 h-3.5 shrink-0 text-teal-700" />
+                    <span>+ Asignar Hijo/a</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>

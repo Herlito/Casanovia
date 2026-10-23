@@ -3,6 +3,7 @@ import { TemplateItem } from '../store/useEditorStore';
 import { createDefaultWebInvitationDocument } from '../lib/defaultWebTemplate';
 import { predefinedThemes } from '../themes';
 import { v4 as uuidv4 } from 'uuid';
+import publishedDesignsData from '../../data/publishedDesignsData.json';
 
 /**
  * Curated list of restored master templates for WeddingCraft
@@ -55,6 +56,40 @@ export const RESTORED_MASTER_TEMPLATES: TemplateItem[] = [
       venueName: 'Casona Queirolo & Viñedos',
       venueAddress: 'Valle de Pachacámac, Lima',
       romanticQuote: 'Tú eres mi hoy y todos mis mañanas.',
+      canvasWidth: 720,
+      canvasHeight: 980
+    })
+  },
+  {
+    id: 'template-erika-yemar',
+    name: 'Boda Erika & Yemar (Elegancia & Jardines)',
+    author: 'Erika, Yemar & Herly Lizarazo',
+    createdAt: new Date('2026-09-01T00:00:00Z').getTime(),
+    updatedAt: new Date('2026-09-15T00:00:00Z').getTime(),
+    document: ((publishedDesignsData as Record<string, any>)['boda-erika-yemar-6398'] as WeddingDesignDocument) || createDefaultWebInvitationDocument({
+      eventId: 'boda-erika-yemar-6398',
+      coupleNames: ['Erika', 'Yemar'],
+      eventDate: '2026-11-28T18:00:00',
+      venueName: 'Parroquia de la Asunción & Fundo Paraíso',
+      venueAddress: 'Yanahuara & Arequipa',
+      romanticQuote: 'Dos vidas, un amor, un mismo camino juntos por siempre.',
+      canvasWidth: 720,
+      canvasHeight: 980
+    })
+  },
+  {
+    id: 'template-luciana-mateo',
+    name: 'Boda Luciana & Mateo (Trujillo)',
+    author: 'Luciana, Mateo & Herly Lizarazo',
+    createdAt: new Date('2026-09-05T00:00:00Z').getTime(),
+    updatedAt: new Date('2026-09-15T00:00:00Z').getTime(),
+    document: ((publishedDesignsData as Record<string, any>)['boda-luciana-mateo-3303'] as WeddingDesignDocument) || createDefaultWebInvitationDocument({
+      eventId: 'boda-luciana-mateo-3303',
+      coupleNames: ['Luciana', 'Mateo'],
+      eventDate: '2027-07-10T13:00:00',
+      venueName: 'Iglesia San Francisco & Sol del Cortijo',
+      venueAddress: 'Trujillo',
+      romanticQuote: 'Y recuerda, tal y como estaba escrito, que querer a otra persona es ver la cara de Dios.',
       canvasWidth: 720,
       canvasHeight: 980
     })

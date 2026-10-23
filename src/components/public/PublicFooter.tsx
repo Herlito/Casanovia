@@ -9,7 +9,10 @@ import {
   Sparkles, 
   ShieldCheck, 
   Quote,
-  Lock
+  Lock,
+  Share2,
+  Copy,
+  Check
 } from 'lucide-react';
 
 export const PublicFooter: React.FC = () => {
@@ -18,11 +21,16 @@ export const PublicFooter: React.FC = () => {
     canEditActiveWedding, 
     isLevel1Admin, 
     isHostUser, 
+    isLevel3Planner,
     currentUser, 
+    activeWeddingId,
+    activeWedding,
+    getShareableWeddingUrl,
     setShowAuthModal 
   } = useWedding();
 
   const [isFooterEditOpen, setIsFooterEditOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -34,6 +42,32 @@ export const PublicFooter: React.FC = () => {
   const email = settings.generalContactEmail || 'boda@contacto.com';
 
   const canEdit = currentUser.isAuthenticated && (isLevel1Admin || isHostUser || canEditActiveWedding);
+  const isPrivilegedUser = currentUser.isAuthenticated && (isLevel1Admin || isLevel3Planner || isHostUser || canEditActiveWedding);
+
+  const targetWeddingId = activeWedding?.id || activeWeddingId || (settings as any)?.id || '';
+  const shareableGuestWebUrl = getShareableWeddingUrl(targetWeddingId);
+
+  const handleCopyGuestLink = async () => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareableGuestWebUrl);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareableGuestWebUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 3000);
+    } catch (err) {
+      console.error('Error copying guest web link:', err);
+    }
+  };
 
   return (
     <>
@@ -41,6 +75,45 @@ export const PublicFooter: React.FC = () => {
         
         <div className="w-full mx-auto px-4 sm:px-6 text-center space-y-6 relative z-10">
           
+          {/* Privileged Share Banner for Admin, Wedding Planner and Hosts */}
+          {isPrivilegedUser && (
+            <div className="w-full mx-auto max-w-lg mb-2 p-3 sm:p-4 rounded-3xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+              <div className="flex items-center space-x-3 w-full sm:w-auto">
+                <div className="p-2.5 rounded-2xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-[#D4AF37] shrink-0">
+                  <Share2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-gray-800">
+                    Enlace de "Web Invitados"
+                  </h4>
+                  <p className="text-[11px] text-gray-500 font-medium">
+                    Comparte este link para que los invitados vean el diseño personalizado
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                id="btn-copy-public-guest-link"
+                onClick={handleCopyGuestLink}
+                className="w-full sm:w-auto px-4 py-2 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-xs font-bold text-gray-800 transition-all flex items-center justify-center space-x-2 shrink-0 cursor-pointer"
+                title="Copiar el enlace directo de esta Web Invitados"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-emerald-700">¡Enlace Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Copiar Enlace</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
           {/* Main Footer Container (Neumorphic Card) */}
           <div className="relative group w-full mx-auto p-6 sm:p-8 rounded-[2.5rem] transition-all duration-300 bg-[#EBEBEB] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff]">
             
@@ -57,7 +130,7 @@ export const PublicFooter: React.FC = () => {
                   <Edit3 className="w-3.5 h-3.5 text-gray-700" />
                   <span>Modificar Frase, Nombres & Contacto</span>
                   <span className="text-[10px] px-2 py-0.5 bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-full text-gray-600 font-bold">
-                    {isLevel1Admin ? 'Admin' : 'Anfitrión'}
+                    {isLevel1Admin ? 'Admin' : isLevel3Planner ? 'Planner' : 'Anfitrión'}
                   </span>
                 </button>
               </div>

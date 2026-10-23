@@ -30,7 +30,7 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
   tables,
   guests,
 }) => {
-  const { settings, activeWedding, isLevel5Observer } = useWedding();
+  const { settings, activeWedding, isLevel5Observer, isLevel4Free, showUpgradeNotice } = useWedding();
   const printRef = useRef<HTMLDivElement>(null);
 
   if (!isOpen || isLevel5Observer) return null;
@@ -38,6 +38,10 @@ export const TableSeatingPrintModal: React.FC<TableSeatingPrintModalProps> = ({
   const coupleNamesDisplay = activeWedding?.coupleNames || settings.coupleNames || 'Nuestra Boda';
 
   const handlePrint = () => {
+    if (isLevel4Free) {
+      showUpgradeNotice('Imprimir Mesas', 'La exportación e impresión de la distribución de mesas no está disponible para cuentas Nivel 4 (Novia Free). Sube a un plan de pago para imprimir y exportar reportes.');
+      return;
+    }
     printElementById('print-area', `Distribucion_Mesas_${coupleNamesDisplay.replace(/\s+/g, '_')}`);
   };
 

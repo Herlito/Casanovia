@@ -30,7 +30,7 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
     position: relative;
     overflow: hidden;
     box-shadow: ${getCanvasBoxShadow(doc.canvas)};
-    border-radius: ${doc.canvas.borderRadius !== undefined ? `${doc.canvas.borderRadius}px` : '24px'};
+    border-radius: ${doc.canvas.borderRadius !== undefined ? `${doc.canvas.borderRadius}px` : '0px'};
   }
   .el {
     position: absolute;
@@ -94,7 +94,7 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
     
     // Process Animations
     let animStyles = [];
-    let initialOpacity = el.style.opacity ?? 1;
+    let initialOpacity = (el.style && typeof el.style.opacity === 'number') ? el.style.opacity : 1;
 
     if (el.animation) {
       const anims = [];
@@ -298,7 +298,14 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
       
       let shapeHtml = '';
       if (isLine) {
-        shapeHtml = `<svg width="100%" height="100%" preserveAspectRatio="none"><line x1="0" y1="${h/2}" x2="${w}" y2="${h/2}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" /></svg>`;
+        const isVertical = el.style.orientation === 'vertical';
+        const dashAttr = el.style.lineStyle === 'dashed' ? ' stroke-dasharray="8,6"' : el.style.lineStyle === 'dotted' ? ' stroke-dasharray="3,4"' : '';
+        const lineCap = el.style.lineCap || 'round';
+        const x1 = isVertical ? w / 2 : 0;
+        const y1 = isVertical ? 0 : h / 2;
+        const x2 = isVertical ? w / 2 : w;
+        const y2 = isVertical ? h : h / 2;
+        shapeHtml = `<svg width="100%" height="100%" preserveAspectRatio="none"><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="${lineCap}"${dashAttr} /></svg>`;
       } else if (isCircle || isOval) {
         shapeHtml = `<div style="width: 100%; height: 100%; border-radius: 50%; background-color: ${fill}; border: ${strokeWidth}px solid ${stroke}; box-sizing: border-box;"></div>`;
       } else if (variant === 'triangle') {
@@ -319,9 +326,9 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
                       isCircles ? `background-color: ${el.style.backgroundColor || '#fff'}; border: 1px solid ${el.style.borderColor || '#ccc'}; border-radius: 50%;` : '';
       
       let containerBgStr = 'transparent';
-      const opacity = el.style.containerOpacity ?? 0;
+      const opacity = el.style?.containerOpacity ?? 0;
       if (opacity > 0) {
-        let hex = el.style.containerBackgroundColor || '#ffffff';
+        let hex = el.style?.containerBackgroundColor || '#ffffff';
         hex = hex.replace('#', '');
         const r = parseInt(hex.substring(0,2), 16) || 255;
         const g = parseInt(hex.substring(2,4), 16) || 255;
@@ -329,13 +336,17 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
         containerBgStr = `rgba(${r}, ${g}, ${b}, ${opacity})`;
       }
       
+      const titleColor = el.style?.isDefaultStyle && doc.theme ? doc.theme.palette.primary : (el.style?.titleColor || '#000');
+      const numberColor = el.style?.isDefaultStyle && doc.theme ? doc.theme.palette.primary : (el.style?.numberColor || '#000');
+      const labelColor = el.style?.isDefaultStyle && doc.theme ? doc.theme.palette.text : (el.style?.labelColor || '#666');
+
       innerHtml = `
       <div id="${cdId}" class="el" style="${baseStyle} background-color: ${containerBgStr}; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
-        <div style="font-family: '${el.style.labelFont || 'Arial'}', sans-serif; font-size: 14px; color: ${el.style.titleColor || '#000'}; margin-bottom: 10px;">${el.content.title}</div>
+        <div style="font-family: '${el.style.labelFont || 'Arial'}', sans-serif; font-size: 14px; color: ${titleColor}; margin-bottom: 10px;">${el.content.title}</div>
         <div class="cd-timer" style="display: flex; gap: ${el.style.gap || 10}px; width: 100%; justify-content: center;">
           <!-- JS will inject here -->
         </div>
-        <div class="cd-expired" style="display: none; font-family: '${el.style.numberFont || 'Arial'}', sans-serif; font-size: ${el.style.numberSize || 24}px; color: ${el.style.numberColor || '#000'}; margin-top: 10px;">
+        <div class="cd-expired" style="display: none; font-family: '${el.style.numberFont || 'Arial'}', sans-serif; font-size: ${el.style.numberSize || 24}px; color: ${numberColor}; margin-top: 10px;">
           ${el.content.expiredMessage}
         </div>
       </div>\n`;
@@ -373,8 +384,8 @@ export const exportToHTML = (doc: WeddingDesignDocument) => {
           timerEl.innerHTML = parts.map(p => { 
              const val = String(p.v).padStart(2, '0'); 
              return '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; ${bgStyle} aspect-ratio: 1; min-height: 40px;">' +
-                    '<span style="font-family: \\\'${el.style.numberFont || 'Arial'}\\\', sans-serif; font-size: ${el.style.numberSize || 24}px; color: ${el.style.numberColor || '#000'}; line-height: 1;">' + val + '</span>' +
-                    '<span style="font-family: \\\'${el.style.labelFont || 'Arial'}\\\', sans-serif; font-size: ${el.style.labelSize || 10}px; color: ${el.style.labelColor || '#666'}; margin-top: 4px;">' + p.l + '</span>' +
+                    '<span style="font-family: \\\'${el.style.numberFont || 'Arial'}\\\', sans-serif; font-size: ${el.style.numberSize || 24}px; color: ${numberColor}; line-height: 1;">' + val + '</span>' +
+                    '<span style="font-family: \\\'${el.style.labelFont || 'Arial'}\\\', sans-serif; font-size: ${el.style.labelSize || 10}px; color: ${labelColor}; margin-top: 4px;">' + p.l + '</span>' +
                     '</div>';
           }).join('');
         }

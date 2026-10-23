@@ -1,7 +1,10 @@
-import { db } from '../../lib/firebase';
-import { collection, doc, setDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  saveLibraryItemToHosting,
+  fetchLibraryItemsFromHosting,
+  deleteLibraryItemFromHosting
+} from '../../services/hostingStorage';
 
 export interface LibraryItem {
   id: string;
@@ -11,7 +14,7 @@ export interface LibraryItem {
   savedBy?: string;
 }
 
-// Recursively sanitize objects so Firestore never rejects undefined values
+// Recursively sanitize objects so JSON & DB never have undefined or non-serializable fields
 export function sanitizeForFirestore(obj: any): any {
   if (obj === undefined) return null;
   if (obj === null) return null;
@@ -38,10 +41,10 @@ export async function saveElementToLibrary(element: any, folderName = 'Objetos P
       element: cleanElement,
       templateName: folderName,
       createdAt: Date.now(),
-      savedBy: 'Romina / Herly Lizarazo'
+      savedBy: 'WeddingCraft Studio'
     };
 
-    // Save in IndexedDB immediately for instant local availability
+    // Save in IndexedDB immediately for instant local UI responsiveness
     try {
       const existing = (await idbGet<LibraryItem[]>('weddingcraft_library_cache')) || [];
       const updated = [item, ...existing.filter(i => i.id !== libraryId)];
@@ -50,11 +53,11 @@ export async function saveElementToLibrary(element: any, folderName = 'Objetos P
       console.warn('Could not save to IndexedDB cache:', idbErr);
     }
 
-    // Save to Firestore
+    // Persist to Hosting Backend (api/data/weddingcraft/library/)
     try {
-      await setDoc(doc(db, 'weddingcraft_library', libraryId), item);
-    } catch (fireErr) {
-      console.warn('Could not save to Firestore weddingcraft_library:', fireErr);
+      await saveLibraryItemToHosting(item);
+    } catch (err) {
+      console.warn('Could not save to hosting storage:', err);
     }
 
     return item;
@@ -77,15 +80,14 @@ export async function fetchAllLibraryItems(): Promise<LibraryItem[]> {
     console.warn('Error reading idb library cache', e);
   }
 
-  // 2. From Firestore
+  // 2. From Hosting Backend API (api/data/weddingcraft/library/)
   try {
-    const snap = await getDocs(collection(db, 'weddingcraft_library'));
-    snap.docs.forEach(d => {
-      const data = d.data() as LibraryItem;
-      itemsMap.set(d.id, { ...data, id: d.id });
-    });
+    const remoteItems = await fetchLibraryItemsFromHosting();
+    if (remoteItems && Array.isArray(remoteItems)) {
+      remoteItems.forEach(item => itemsMap.set(item.id, item));
+    }
   } catch (e) {
-    console.warn('Error reading Firestore weddingcraft_library', e);
+    console.warn('Error reading from hosting storage', e);
   }
 
   const result = Array.from(itemsMap.values());
@@ -100,11 +102,11 @@ export async function fetchAllLibraryItems(): Promise<LibraryItem[]> {
 }
 
 export async function deleteLibraryItem(id: string): Promise<void> {
-  // Delete from Firestore
+  // Delete from Hosting Backend
   try {
-    await deleteDoc(doc(db, 'weddingcraft_library', id));
+    await deleteLibraryItemFromHosting(id);
   } catch (e) {
-    console.warn('Error deleting from Firestore', e);
+    console.warn('Error deleting from hosting storage', e);
   }
 
   // Delete from IndexedDB cache

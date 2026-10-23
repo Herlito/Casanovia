@@ -9,23 +9,26 @@ export const CanvasCoupleContacts: React.FC<{
 }> = ({ el, commonProps, theme }) => {
   const groupRef = useRef<any>(null);
 
-  const w = Math.max(200, el.transform.width);
-  const h = Math.max(160, el.transform.height);
+  const style = el?.style || {};
+  const transform = el?.transform || { width: 300, height: 200 };
 
-  const bgColor = el.style.backgroundColor || '#FAF8F5';
-  const borderColor = el.style.borderColor || '#EADDCE';
-  const strokeWidth = el.style.strokeWidth ?? 1;
-  const titleColor = el.style.titleColor || '#2D2A26';
-  const textColor = el.style.color || '#524B42';
-  const accentColor = el.style.accentColor || '#C5A880';
-  const cornerRadius = Math.max(0, Math.min(el.style.borderRadius ?? 20, w / 2, h / 2));
+  const w = Math.max(200, typeof transform.width === 'number' && !isNaN(transform.width) ? transform.width : 300);
+  const h = Math.max(160, typeof transform.height === 'number' && !isNaN(transform.height) ? transform.height : 200);
 
-  const titleFontFamily = el.style.titleFontFamily || el.style.fontFamily || 'Playfair Display, serif';
-  const bodyFontFamily = el.style.fontFamily || 'sans-serif';
-  const titleFontSize = el.style.titleFontSize || Math.min(22, Math.max(16, w * 0.06));
-  const bodyFontSize = el.style.bodyFontSize || 12;
-  const badgeFontSize = el.style.badgeFontSize || 10;
-  const align = (el.style.align || el.style.textAlign || 'center') as 'left' | 'center' | 'right';
+  const bgColor = style.backgroundColor === '#FAF8F5' ? '#EBEBEB' : (style.backgroundColor || '#FAF8F5');
+  const borderColor = style.borderColor || '#EADDCE';
+  const strokeWidth = style.strokeWidth ?? 1;
+  const titleColor = style.titleColor || '#2D2A26';
+  const textColor = style.color || '#524B42';
+  const accentColor = style.accentColor || '#C5A880';
+  const cornerRadius = Math.max(0, Math.min(style.borderRadius ?? 20, w / 2, h / 2));
+
+  const titleFontFamily = style.titleFontFamily || style.fontFamily || 'Playfair Display, serif';
+  const bodyFontFamily = style.fontFamily || 'sans-serif';
+  const titleFontSize = style.titleFontSize || Math.min(22, Math.max(16, w * 0.06));
+  const bodyFontSize = style.bodyFontSize || 12;
+  const badgeFontSize = style.badgeFontSize || 10;
+  const align = (style.align || style.textAlign || 'center') as 'left' | 'center' | 'right';
 
   const content = el.content || {};
   const badgeText = content.badge || '💍 Frase, Nombres & Contactos';

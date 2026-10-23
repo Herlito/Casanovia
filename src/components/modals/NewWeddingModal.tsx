@@ -6,11 +6,8 @@ import {
   Calendar, 
   MapPin, 
   Church, 
-  Sparkles, 
   X, 
-  Check, 
   Loader2,
-  FileText,
   RotateCcw
 } from 'lucide-react';
 
@@ -19,8 +16,10 @@ export const NewWeddingModal: React.FC = () => {
     showNewWeddingModal, 
     setShowNewWeddingModal, 
     createNewWedding, 
+    setViewMode,
     isLevel1Admin,
     isLevel3Planner,
+    isLevel4Free,
     currentUser
   } = useWedding();
   const { appTheme } = useWedding();
@@ -44,28 +43,6 @@ export const NewWeddingModal: React.FC = () => {
     setReceptionVenueName('');
   };
 
-  const handleCreateEmpty = async () => {
-    setIsSubmitting(true);
-    try {
-      await createNewWedding({
-        eventType: eventType || 'Boda',
-        coupleNames: coupleNames.trim() || 'Nuevo Evento',
-        brideName: '',
-        groomName: '',
-        weddingDate: weddingDate.trim() || '',
-        locationSummary: locationSummary.trim() || '',
-        ceremonyVenueName: ceremonyVenueName.trim() || '',
-        receptionVenueName: receptionVenueName.trim() || '',
-        emptyFields: true,
-      });
-      setIsSubmitting(false);
-      handleClearForm();
-    } catch (err) {
-      console.error('Error al crear evento vacío:', err);
-      setIsSubmitting(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!coupleNames.trim() || !locationSummary.trim()) return;
@@ -73,18 +50,22 @@ export const NewWeddingModal: React.FC = () => {
     setIsSubmitting(true);
     try {
       await createNewWedding({
+        eventType: eventType || 'Boda',
         coupleNames: coupleNames.trim(),
         brideName: '',
         groomName: '',
-        weddingDate: weddingDate || new Date().toISOString(),
+        weddingDate: weddingDate.trim() || '',
         locationSummary: locationSummary.trim(),
-        ceremonyVenueName: ceremonyVenueName.trim() || 'Capilla / Parroquia Principal',
-        receptionVenueName: receptionVenueName.trim() || 'Salón / Jardín de Eventos',
+        ceremonyVenueName: ceremonyVenueName.trim() || '',
+        receptionVenueName: receptionVenueName.trim() || '',
+        emptyFields: true,
       });
       setIsSubmitting(false);
       handleClearForm();
+      setShowNewWeddingModal(false);
+      setViewMode('new_wedding_tasks');
     } catch (err) {
-      console.error('Error al crear nueva boda:', err);
+      console.error('Error al crear nuevo evento:', err);
       setIsSubmitting(false);
     }
   };
@@ -117,7 +98,7 @@ export const NewWeddingModal: React.FC = () => {
             </div>
           </div>
           <p className="text-xs text-gray-600 font-medium">
-            Puedes crear un evento con plantilla y datos demo preconfigurados, o crear con todos los campos vacíos sin datos ficticios.
+            Se creará un evento con todos los registros vacios para que puedas personalizar totalmente
           </p>
         </div>
 
@@ -143,19 +124,29 @@ export const NewWeddingModal: React.FC = () => {
               Tipo de Evento <span className="text-rose-600">*</span>
             </label>
             <select
-              value={eventType}
+              value={isLevel4Free ? 'Boda' : eventType}
               onChange={(e) => setEventType(e.target.value)}
-              className="w-full px-4 py-2.5 text-xs text-gray-900 font-medium rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-none cursor-pointer"
+              disabled={isLevel4Free}
+              className={`w-full px-4 py-2.5 text-xs text-gray-900 font-medium rounded-xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] focus:outline-none ${isLevel4Free ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <option value="Boda">Boda</option>
-              <option value="Quinceañero">Quinceañero</option>
-              <option value="Fiesta de Promoción">Fiesta de Promoción</option>
-              <option value="Aniversario">Aniversario</option>
-              <option value="Corporativo">Corporativo</option>
-              <option value="Baby Shower">Baby Shower</option>
-              <option value="Graduación">Graduación</option>
-              <option value="Otro">Otro</option>
+              {!isLevel4Free && (
+                <>
+                  <option value="Quinceañero">Quinceañero</option>
+                  <option value="Fiesta de Promoción">Fiesta de Promoción</option>
+                  <option value="Aniversario">Aniversario</option>
+                  <option value="Corporativo">Corporativo</option>
+                  <option value="Baby Shower">Baby Shower</option>
+                  <option value="Graduación">Graduación</option>
+                  <option value="Otro">Otro</option>
+                </>
+              )}
             </select>
+            {isLevel4Free && (
+              <p className="text-[11px] text-amber-700 mt-1 font-semibold">
+                Plan Novia Free: Exclusivo para bodas (otros tipos de evento bloqueados).
+              </p>
+            )}
           </div>
 
           <div>
@@ -241,21 +232,6 @@ export const NewWeddingModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-[#EBEBEB] shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] rounded-2xl p-4 space-y-2 text-xs text-gray-700">
-            <div className="flex items-center space-x-1.5 text-gray-900 font-bold text-xs">
-              <Sparkles className="w-4 h-4 text-amber-600" />
-              <span>Plantilla Demo Incluida (Opcional):</span>
-            </div>
-            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600 font-medium">
-              <li>Checklist de 6 Fases Cronológicas completas (12 meses hasta Post-Boda).</li>
-              <li>Cronograma minuto a minuto personalizable y presupuesto inicial.</li>
-              <li>Generador de códigos de pase y guía protocolar para cortejo y padrinos.</li>
-            </ul>
-            <p className="text-[11px] text-gray-600 font-medium italic pt-1">
-              Si prefieres comenzar desde cero, usa el botón <strong>&quot;Crear con campos vacíos (Sin datos ficticios)&quot;</strong>.
-            </p>
-          </div>
-
           <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-300/60">
             <button
               id="btn-cancel-wedding-modal"
@@ -266,43 +242,25 @@ export const NewWeddingModal: React.FC = () => {
               Cancelar
             </button>
 
-            <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
-              <button
-                id="btn-create-empty-wedding"
-                type="button"
-                onClick={handleCreateEmpty}
-                disabled={isSubmitting}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-900 text-xs font-bold shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transition-all duration-300 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
-                title="Crear evento completamente en blanco, sin datos ni tareas ficticias"
-              >
-                {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <FileText className="w-4 h-4 text-gray-700" />
-                )}
-                <span>Crear con campos vacíos (Sin datos ficticios)</span>
-              </button>
-
-              <button
-                id="btn-create-template-wedding"
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-gray-900 text-xs font-bold hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transition-all duration-300 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
-                title="Crear evento utilizando la plantilla demo con tareas y registros de ejemplo"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-gray-800" />
-                    <span>Creando Evento...</span>
-                  </>
-                ) : (
-                  <>
-                    <PlusCircle className="w-4 h-4 text-gray-800" />
-                    <span>Crear con Plantilla Demo</span>
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              id="btn-submit-new-wedding"
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto px-6 py-2.5 rounded-2xl bg-[#EBEBEB] text-gray-900 text-xs font-bold shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transition-all duration-300 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+              title="Crear Evento"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-gray-800" />
+                  <span>Creando Evento...</span>
+                </>
+              ) : (
+                <>
+                  <PlusCircle className="w-4 h-4 text-gray-800" />
+                  <span>Crear Evento</span>
+                </>
+              )}
+            </button>
           </div>
 
         </form>

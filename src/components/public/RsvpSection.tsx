@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { RsvpStatus } from '../../types';
-import { isRsvpDeadlinePassed, formatRsvpCutoffDate } from '../../lib/dateUtils';
+import { isRsvpDeadlinePassed, formatRsvpCutoffDate, formatRsvpDeadline } from '../../lib/dateUtils';
 import { 
   Heart, 
   Send, 
@@ -148,7 +148,7 @@ export const RsvpSection: React.FC = () => {
             Confirmar Asistencia (RSVP)
           </h2>
           <p className="text-xs sm:text-sm text-[#7A7268] max-w-md mx-auto mt-2">
-            Por favor confirma tu presencia antes del <span className="font-semibold text-[#2D3748]">{formatRsvpCutoffDate(settings.weddingDate, 7)}</span> para coordinar banquetes y logística protocolar.
+            Por favor confirma tu presencia antes del <span className="font-semibold text-[#2D3748]">{formatRsvpDeadline(settings.rsvpDeadline, settings.weddingDate)}</span> para coordinar banquetes y logística protocolar.
           </p>
         </div>
 

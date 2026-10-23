@@ -7,11 +7,12 @@ export type PdfExportMode = 'all' | 'plan_only' | 'list_only';
 interface ExportPdfOptions {
   plan: WeddingFloorPlan;
   settings: WeddingSettings;
-  canvasElement: HTMLCanvasElement | null;
+  canvasElement?: HTMLCanvasElement | null;
   weddingTitle: string;
   exportMode?: PdfExportMode;
   registeredTables?: WeddingTable[];
   guests?: Guest[];
+  shouldPrint?: boolean;
 }
 
 // Load Montserrat font into jsPDF instance
@@ -155,7 +156,7 @@ function drawSafeRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, 
 }
 
 // Render clean, professional black & white line-art canvas adjusted 100% to A4 horizontal ratio
-function renderCleanFloorPlanCanvas(
+export function renderCleanFloorPlanCanvas(
   plan: WeddingFloorPlan,
   weddingTitle: string,
   registeredTables?: WeddingTable[],
@@ -491,6 +492,7 @@ export async function exportFloorPlanToPdf({
   exportMode = 'all',
   registeredTables,
   guests,
+  shouldPrint = false,
 }: ExportPdfOptions): Promise<void> {
   // If we ONLY want the guest list, start directly in portrait
   const doc = new jsPDF({
@@ -659,7 +661,47 @@ export async function exportFloorPlanToPdf({
     }
   }
 
-  // Save the generated PDF
+  // Save or Print the generated PDF
   const safeFilename = `Plano_Distribucion_${weddingTitle.replace(/[^a-zA-Z0-9]/g, '_') || 'Casanovia'}.pdf`;
-  doc.save(safeFilename);
+  
+  if (shouldPrint) {
+    try {
+      doc.autoPrint();
+      const blobUrl = doc.output('bloburl');
+      const iframe = document.createElement('iframe');
+      iframe.id = 'isolated-pdf-print-iframe';
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      iframe.style.visibility = 'hidden';
+      iframe.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(iframe);
+      
+      iframe.src = typeof blobUrl === 'string' ? blobUrl : (blobUrl as any).toString();
+      iframe.onload = () => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch (e) {
+          console.error('Error printing PDF in iframe, falling back to window.open:', e);
+          const dataUri = doc.output('datauristring');
+          const printWindow = window.open(dataUri, '_blank');
+          printWindow?.print();
+        }
+        setTimeout(() => {
+          if (iframe.parentNode) {
+            iframe.parentNode.removeChild(iframe);
+          }
+        }, 5000);
+      };
+    } catch (e) {
+      console.error('Failed direct PDF print, falling back to download:', e);
+      doc.save(safeFilename);
+    }
+  } else {
+    doc.save(safeFilename);
+  }
 }

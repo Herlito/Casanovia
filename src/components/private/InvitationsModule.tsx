@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useWedding } from '../../context/WeddingContext';
-import { db } from '../../lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { 
   Palette, Save, Download, Type, Image as ImageIcon, 
   Layers, LayoutTemplate, Undo, Redo, ZoomIn, ZoomOut, 
@@ -59,18 +57,20 @@ export const InvitationsModule: React.FC = () => {
     };
   }, []);
 
-  // Load from Firebase
+  // Load design
   useEffect(() => {
     if (!canvas || !activeWeddingId) return;
 
     const loadDesign = async () => {
       try {
-        const docRef = doc(db, 'weddings', activeWeddingId, 'invitations', 'main');
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists() && docSnap.data().designJson) {
-          canvas.loadFromJSON(docSnap.data().designJson, () => {
-            canvas.renderAll();
-          });
+        const localData = localStorage.getItem(`casanovia_fabric_invitation_${activeWeddingId}`);
+        if (localData) {
+          const parsed = JSON.parse(localData);
+          if (parsed) {
+            canvas.loadFromJSON(parsed, () => {
+              canvas.renderAll();
+            });
+          }
         }
       } catch (error) {
         console.error('Error loading design:', error);
@@ -86,13 +86,7 @@ export const InvitationsModule: React.FC = () => {
     setIsSaving(true);
     try {
       const json = canvas.toJSON();
-      const docRef = doc(db, 'weddings', activeWeddingId, 'invitations', 'main');
-      await setDoc(docRef, {
-        designJson: json,
-        updatedAt: new Date().toISOString(),
-        updatedBy: currentUser.username
-      }, { merge: true });
-      
+      localStorage.setItem(`casanovia_fabric_invitation_${activeWeddingId}`, JSON.stringify(json));
     } catch (error) {
       console.error('Error saving design:', error);
     } finally {

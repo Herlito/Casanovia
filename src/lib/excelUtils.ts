@@ -11,6 +11,12 @@ export const ROLE_LABEL_MAP: Record<string, string> = {
   paje_honor: 'Paje de Honor',
   nino_boda: 'Niño/a de Boda',
   proveedor: 'Proveedor',
+  // Fiesta de Promoción
+  comision_organizadora: 'Comisión Organizadora',
+  padres_familia: 'Padres de Familia',
+  alumnos: 'Alumnos',
+  parejas: 'Parejas',
+  familiares: 'Familiares',
   programa_evento: 'Programa / Hito',
   invitado_general: 'Invitado',
 };
@@ -19,6 +25,23 @@ export const normalizeRoleString = (rawRole: string | undefined | null): Protoco
   if (!rawRole) return 'invitado';
   const clean = rawRole.toString().toLowerCase().trim();
   
+  // Fiesta de Promoción specific matching
+  if (clean.includes('comision') || clean.includes('comisión') || clean.includes('organizadora')) {
+    return 'comision_organizadora';
+  }
+  if (clean.includes('padres') || clean.includes('padre de familia') || clean.includes('padre') || clean.includes('madre') || clean.includes('apoderad')) {
+    return 'padres_familia';
+  }
+  if (clean.includes('alumno') || clean.includes('alumna') || clean.includes('estudiante') || clean.includes('graduando')) {
+    return 'alumnos';
+  }
+  if (clean.includes('pareja') || clean.includes('acompañante') || clean.includes('novio de alumna') || clean.includes('novia de alumno')) {
+    return 'parejas';
+  }
+  if (clean.includes('familiar') || clean.includes('tío') || clean.includes('tía') || clean.includes('primo') || clean.includes('abuel')) {
+    return 'familiares';
+  }
+
   if (clean.includes('damita') || clean.includes('damita de honor')) {
     return 'damita_honor';
   }

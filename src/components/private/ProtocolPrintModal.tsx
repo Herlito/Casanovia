@@ -12,7 +12,7 @@ interface ProtocolPrintModalProps {
 }
 
 export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, onClose }) => {
-  const { settings, timeline, guests, activeWedding, isLevel5Observer } = useWedding();
+  const { settings, timeline, guests, activeWedding, isLevel5Observer, isLevel4Free, showUpgradeNotice } = useWedding();
 
   if (!isOpen || isLevel5Observer) return null;
 
@@ -21,10 +21,18 @@ export const ProtocolPrintModal: React.FC<ProtocolPrintModalProps> = ({ isOpen, 
   const locationDisplay = activeWedding?.locationSummary || settings.locationSummary || settings.receptionVenue?.name || settings.ceremonyVenue?.name || 'Ubicación Oficial';
 
   const handlePrint = () => {
+    if (isLevel4Free) {
+      showUpgradeNotice('Imprimir Protocolo', 'La impresión de reportes y documentos no está disponible para cuentas Nivel 4 (Novia Free). Sube a un plan de pago para imprimir sin restricciones.');
+      return;
+    }
     printElementById('print-area', `Escaleta_Oficial_${coupleNamesDisplay.replace(/\s+/g, '_')}`);
   };
 
   const handleDownloadPdf = () => {
+    if (isLevel4Free) {
+      showUpgradeNotice('Descargar Protocolo PDF', 'La descarga de archivos PDF no está disponible para cuentas Nivel 4 (Novia Free). Sube a un plan de pago para descargar tus reportes en PDF.');
+      return;
+    }
     printElementById('print-area', `Escaleta_Oficial_${coupleNamesDisplay.replace(/\s+/g, '_')}`);
   };
 

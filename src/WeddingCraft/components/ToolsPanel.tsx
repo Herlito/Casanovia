@@ -21,20 +21,111 @@ import {
   Shirt,
   MessageSquareHeart,
   CalendarDays,
-  Quote
+  Quote,
+  Building2,
+  MapPinned,
+  Plus
 } from 'lucide-react';
 import { LayersPanel } from './LayersPanel';
+import { processAndOptimizeImage, uploadImageToCloudStorage } from '../../lib/storageUtils';
+import { prepareSvgElementContent } from '../lib/svgUtils';
+import { useWedding } from '../../context/WeddingContext';
 
 export const ToolsPanel: React.FC = () => {
   const { addElement, document, eventData } = useEditorStore();
+  const { settings, activeWedding } = useWedding();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [shapesExpanded, setShapesExpanded] = useState(false);
   const [containerShapesExpanded, setContainerShapesExpanded] = useState(false);
-  const [eventDetailsExpanded, setEventDetailsExpanded] = useState(true);
-  const [layersExpanded, setLayersExpanded] = useState(true);
+  const [eventDetailsExpanded, setEventDetailsExpanded] = useState(false);
+  const [layersExpanded, setLayersExpanded] = useState(false);
+
+  const coupleNamesStr = 
+    settings?.coupleNames?.trim() ||
+    (settings?.groomName && settings?.brideName ? `${settings.groomName} & ${settings.brideName}` : '') ||
+    (activeWedding?.coupleNames ? activeWedding.coupleNames : '') ||
+    eventData?.coupleNamesText ||
+    (eventData?.coupleNames ? `${eventData.coupleNames[0]} & ${eventData.coupleNames[1]}` : 'Romina & Herly');
+
+  const ceremonyVenue = settings?.ceremonyVenue || eventData?.ceremonyVenue;
+  const receptionVenue = settings?.receptionVenue || eventData?.receptionVenue;
+  const allAdditionalVenues = settings?.additionalVenues || eventData?.additionalVenues || [];
+
+  const handleAddCoupleNames = () => {
+    const canvasW = document.canvas.width || 375;
+    const targetW = Math.min(360, Math.round(canvasW * 0.9));
+    const targetX = Math.max(10, Math.round((canvasW - targetW) / 2));
+
+    addElement({
+      type: 'text',
+      content: { text: coupleNamesStr },
+      dataBinding: {
+        field: 'coupleNames',
+        format: '{{0}} & {{1}}'
+      },
+      style: {
+        fontFamily: document.theme?.fonts?.title || 'Playfair Display',
+        fontSize: 34,
+        fontWeight: 'bold',
+        color: '#2D2A26',
+        align: 'center',
+        opacity: 1,
+        letterSpacing: 1
+      },
+      transform: { x: targetX, y: 120, width: targetW, height: 60, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: document.pages[0].elements.length,
+      locked: false,
+      visible: true
+    });
+  };
+
+  const handleAddVenueCard = (venue: {
+    name: string;
+    type?: string;
+    address?: string;
+    time?: string;
+    googleMapsUrl?: string;
+    wazeUrl?: string;
+    notes?: string;
+  }) => {
+    const vName = venue.name || 'Sede Adicional';
+    const vAddress = venue.address || 'Dirección de la sede';
+    const vTime = venue.time || '15:00 hrs';
+    const gMaps = venue.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(vName + ' ' + vAddress)}`;
+    const waze = venue.wazeUrl || `https://waze.com/ul?q=${encodeURIComponent(vName + ' ' + vAddress)}`;
+    const badge = venue.type || 'Sede Adicional';
+
+    const canvasW = document.canvas.width || 375;
+    const targetW = Math.min(340, Math.round(canvasW * 0.9));
+    const targetX = Math.max(15, Math.round((canvasW - targetW) / 2));
+
+    addElement({
+      type: 'event-ceremony-card',
+      content: {
+        badge: `📍 ${badge}`,
+        venueName: vName,
+        time: vTime,
+        address: vAddress,
+        googleMapsUrl: gMaps,
+        wazeUrl: waze
+      },
+      style: {
+        backgroundColor: '#FAF8F5',
+        borderColor: '#EADDCE',
+        titleColor: '#2D2A26',
+        color: '#524B42',
+        accentColor: '#B08D57',
+        borderRadius: 20
+      },
+      transform: { x: targetX, y: 240, width: targetW, height: 180, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: document.pages[0].elements.length,
+      locked: false,
+      visible: true
+    });
+  };
 
   const handleAddCeremonyCard = () => {
-    const venue = eventData?.ceremonyVenue;
+    const venue = ceremonyVenue;
     const vName = venue?.name || eventData?.venueName || 'Parroquia Nuestra Señora';
     const vAddress = venue?.address || eventData?.venueAddress || 'Av. Principal #123, Zona Colonial';
     const vTime = venue?.time || '17:00 hrs (Puntual)';
@@ -67,7 +158,7 @@ export const ToolsPanel: React.FC = () => {
   };
 
   const handleAddReceptionCard = () => {
-    const venue = eventData?.receptionVenue;
+    const venue = receptionVenue || eventData?.receptionVenue;
     const vName = venue?.name || 'Hacienda Villa del Sol';
     const vAddress = venue?.address || 'Carretera Los Olivos Km 4.5';
     const vTime = venue?.time || '19:30 hrs';
@@ -217,8 +308,11 @@ export const ToolsPanel: React.FC = () => {
       content: { svgPath: '' },
       style: {
         variant: variant,
+        orientation: isLine ? 'horizontal' : undefined,
+        lineStyle: isLine ? 'solid' : undefined,
+        lineCap: isLine ? 'round' : undefined,
         fill: isLine ? 'transparent' : '#CBD5E1',
-        stroke: '#4A5568',
+        stroke: '#2D3748',
         strokeWidth: isLine ? 2 : 1,
         borderRadius: isCircle ? 999 : 8,
         opacity: 1
@@ -226,8 +320,8 @@ export const ToolsPanel: React.FC = () => {
       transform: {
         x: 60,
         y: 120,
-        width: isLine ? 220 : isOval ? 200 : isCircle ? 140 : 160,
-        height: isLine ? 30 : isOval ? 130 : isCircle ? 140 : 120,
+        width: isLine ? 240 : isOval ? 200 : isCircle ? 140 : 160,
+        height: isLine ? 24 : isOval ? 130 : isCircle ? 140 : 120,
         rotation: 0,
         scaleX: 1,
         scaleY: 1
@@ -450,24 +544,86 @@ export const ToolsPanel: React.FC = () => {
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) {
-              const reader = new FileReader();
-              reader.onload = (ev) => {
-                const src = ev.target?.result as string;
-                const img = new Image();
-                img.onload = () => {
-                  addElement({
-                    type: 'image',
-                    content: { src, originalSrc: src, naturalWidth: img.width, naturalHeight: img.height },
-                    style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
-                    transform: { x: 50, y: 50, width: img.width / 2, height: img.height / 2, rotation: 0, scaleX: 1, scaleY: 1 },
-                    zIndex: document.pages[0].elements.length,
-                    locked: false,
-                    visible: true
-                  });
+              const elId = Date.now().toString();
+              const currentEvtId = eventData?.eventId || 'default';
+              const isSvg = file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg');
+
+              if (isSvg) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  const svgText = ev.target?.result as string;
+                  const initialColor = '#2D3748';
+                  const prepared = prepareSvgElementContent(svgText, initialColor);
+
+                  const img = new Image();
+                  img.onload = () => {
+                    const w = Math.min(img.width || 180, 260);
+                    const h = Math.min(img.height || 180, 260 * ((img.height || 180) / (img.width || 180)));
+                    addElement({
+                      id: elId,
+                      type: 'image',
+                      content: {
+                        src: prepared.src,
+                        originalSrc: prepared.originalSrc,
+                        isSvg: true,
+                        rawSvgText: prepared.rawSvgText,
+                        svgText: prepared.svgText,
+                        naturalWidth: img.width || 200,
+                        naturalHeight: img.height || 200,
+                        isTransparent: true
+                      },
+                      style: {
+                        maskId: null,
+                        frameId: null,
+                        objectFit: 'cover',
+                        cropX: 0,
+                        cropY: 0,
+                        cropScale: 1,
+                        fill: initialColor,
+                        filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 }
+                      },
+                      transform: { x: 50, y: 50, width: w, height: h, rotation: 0, scaleX: 1, scaleY: 1 },
+                      zIndex: (document.pages[0]?.elements?.length || 0) + 1,
+                      locked: false,
+                      visible: true
+                    });
+                  };
+                  img.src = prepared.src;
                 };
-                img.src = src;
-              };
-              reader.readAsDataURL(file);
+                reader.readAsText(file);
+              } else {
+                processAndOptimizeImage(file, 1200, 0.85).then(({ dataUrl }) => {
+                  const img = new Image();
+                  img.onload = () => {
+                    addElement({
+                      id: elId,
+                      type: 'image',
+                      content: { src: dataUrl, originalSrc: dataUrl, naturalWidth: img.width, naturalHeight: img.height },
+                      style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
+                      transform: { x: 50, y: 50, width: Math.min(img.width / 2, 350), height: Math.min(img.height / 2, 350 * (img.height / img.width)), rotation: 0, scaleX: 1, scaleY: 1 },
+                      zIndex: (document.pages[0]?.elements?.length || 0) + 1,
+                      locked: false,
+                      visible: true
+                    });
+
+                    // Upload to Firebase Cloud Storage in the background for cross-device loading
+                    uploadImageToCloudStorage(file, `weddingcraft_images/${currentEvtId}`).then(({ url, isCloudStorage }) => {
+                      if (isCloudStorage && url) {
+                        useEditorStore.getState().updateElement(elId, {
+                          content: {
+                            ...useEditorStore.getState().document.pages[0].elements.find(el => el.id === elId)?.content,
+                            src: url,
+                            originalSrc: url
+                          }
+                        });
+                      }
+                    }).catch(err => console.warn('Background storage upload error:', err));
+                  };
+                  img.src = dataUrl;
+                }).catch(err => {
+                  console.error('Error optimizing image:', err);
+                });
+              }
             }
             e.target.value = '';
           }}
@@ -478,7 +634,7 @@ export const ToolsPanel: React.FC = () => {
         </button>
       </div>
 
-      {/* 5. Objeto (SVG / Gráficos) */}
+      {/* 5. Objeto (SVG / Gráficos Vectoriales) */}
       <div className="relative">
         <input
           type="file"
@@ -488,32 +644,56 @@ export const ToolsPanel: React.FC = () => {
             const file = e.target.files?.[0];
             if (file) {
               if (file.size > 2 * 1024 * 1024) {
-                alert("El SVG excede los 2MB");
+                alert("El archivo SVG excede los 2MB");
                 return;
               }
               const reader = new FileReader();
               reader.onload = (ev) => {
-                let svgText = ev.target?.result as string;
-                const color = '#2D3748';
-                const styleTag = `<style>* { fill: ${color} !important; stroke: ${color} !important; }</style>`;
-                if (svgText.includes('<svg')) {
-                  svgText = svgText.replace(/(<svg[^>]*>)/i, `$1${styleTag}`);
-                }
-                const src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgText)));
-                
+                const svgText = ev.target?.result as string;
+                const initialColor = '#2D3748';
+                const prepared = prepareSvgElementContent(svgText, initialColor);
+
                 const img = new Image();
                 img.onload = () => {
+                  const w = Math.min(img.width || 150, 180);
+                  const h = Math.min(img.height || 150, 180 * ((img.height || 150) / (img.width || 150)));
                   addElement({
                     type: 'image',
-                    content: { src, originalSrc: src, isSvg: true, svgText, naturalWidth: img.width, naturalHeight: img.height },
-                    style: { maskId: null, frameId: null, objectFit: 'cover', cropX: 0, cropY: 0, cropScale: 1, fill: '#2D3748', filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 } },
-                    transform: { x: 50, y: 50, width: Math.min(img.width, 150), height: Math.min(img.height, 150 * (img.height / img.width)), rotation: 0, scaleX: 1, scaleY: 1 },
+                    content: {
+                      src: prepared.src,
+                      originalSrc: prepared.originalSrc,
+                      isSvg: true,
+                      rawSvgText: prepared.rawSvgText,
+                      svgText: prepared.svgText,
+                      naturalWidth: img.width || 150,
+                      naturalHeight: img.height || 150,
+                      isTransparent: true
+                    },
+                    style: {
+                      maskId: null,
+                      frameId: null,
+                      objectFit: 'cover',
+                      cropX: 0,
+                      cropY: 0,
+                      cropScale: 1,
+                      fill: initialColor,
+                      filters: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, blur: 0, sepia: 0 }
+                    },
+                    transform: {
+                      x: 50,
+                      y: 50,
+                      width: w,
+                      height: h,
+                      rotation: 0,
+                      scaleX: 1,
+                      scaleY: 1
+                    },
                     zIndex: document.pages[0].elements.length,
                     locked: false,
                     visible: true
                   });
                 };
-                img.src = src;
+                img.src = prepared.src;
               };
               reader.readAsText(file);
             }
@@ -563,7 +743,7 @@ export const ToolsPanel: React.FC = () => {
         <span>Ubicación</span>
       </button>
 
-      {/* 9. Detalles del Evento (Ceremonia Religiosa & Recepción) */}
+      {/* 9. Detalles del Evento (Novios, Ceremonia, Recepción & Sedes Creadas en Ajustes) */}
       <div className="rounded-2xl p-2.5 bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2 border border-slate-200/50">
         <div 
           onClick={() => setEventDetailsExpanded(!eventDetailsExpanded)}
@@ -578,53 +758,147 @@ export const ToolsPanel: React.FC = () => {
         
         {eventDetailsExpanded && (
           <div className="space-y-1.5 pt-1">
+            {/* 1. Nombre de los Novios (Objeto de Boda con datos de Ajustes) */}
+            <button
+              onClick={handleAddCoupleNames}
+              className="w-full flex items-center justify-between px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer group"
+              title={`Insertar Nombre de los Novios: ${coupleNamesStr}`}
+            >
+              <div className="flex items-center space-x-2.5 truncate">
+                <Heart className="w-4 h-4 text-rose-500 fill-rose-100 shrink-0 group-hover:scale-110 transition-transform" />
+                <div className="text-left truncate">
+                  <span className="block font-bold text-gray-800">Nombre de los Novios</span>
+                  <span className="block text-[10px] text-gray-500 truncate max-w-[170px]">{coupleNamesStr}</span>
+                </div>
+              </div>
+              <Plus className="w-3.5 h-3.5 text-gray-400 group-hover:text-rose-600 shrink-0 ml-1" />
+            </button>
+
+            {/* Separador de Ubicaciones creadas en el Menú de Ajustes */}
+            <div className="pt-2 pb-0.5 px-1 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center space-x-1">
+                <MapPin className="w-3 h-3 text-rose-500" />
+                <span>Ubicaciones (Ajustes)</span>
+              </span>
+            </div>
+
+            {/* Ceremonia Religiosa */}
             <button
               onClick={handleAddCeremonyCard}
-              className="w-full flex items-center space-x-2.5 px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              className="w-full flex items-center justify-between px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer group"
               title="Insertar tarjeta de Ceremonia Religiosa con mapa y ubicación"
             >
-              <Church className="w-4 h-4 text-[#8A9A86] shrink-0" />
-              <span>Ceremonia Religiosa</span>
+              <div className="flex items-center space-x-2.5 truncate">
+                <Church className="w-4 h-4 text-[#8A9A86] shrink-0 group-hover:scale-110 transition-transform" />
+                <div className="text-left truncate">
+                  <span className="block font-bold text-gray-800">Ceremonia Religiosa</span>
+                  <span className="block text-[10px] text-gray-500 truncate max-w-[170px]">
+                    {ceremonyVenue?.name || 'Parroquia Nuestra Señora'}
+                  </span>
+                </div>
+              </div>
+              <Plus className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#8A9A86] shrink-0 ml-1" />
             </button>
+
+            {/* Recepción & Fiesta */}
             <button
               onClick={handleAddReceptionCard}
-              className="w-full flex items-center space-x-2.5 px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              className="w-full flex items-center justify-between px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer group"
               title="Insertar tarjeta de Recepción & Fiesta con mapa y ubicación"
             >
-              <PartyPopper className="w-4 h-4 text-[#C5A880] shrink-0" />
-              <span>Recepción & Fiesta</span>
+              <div className="flex items-center space-x-2.5 truncate">
+                <PartyPopper className="w-4 h-4 text-[#C5A880] shrink-0 group-hover:scale-110 transition-transform" />
+                <div className="text-left truncate">
+                  <span className="block font-bold text-gray-800">Recepción & Fiesta</span>
+                  <span className="block text-[10px] text-gray-500 truncate max-w-[170px]">
+                    {receptionVenue?.name || 'Hacienda Villa del Sol'}
+                  </span>
+                </div>
+              </div>
+              <Plus className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#C5A880] shrink-0 ml-1" />
+            </button>
+
+            {/* Sedes Adicionales Creadas en el Menú de Ajustes */}
+            {allAdditionalVenues.map((venue: any, idx: number) => (
+              <button
+                key={venue.id || idx}
+                onClick={() => handleAddVenueCard(venue)}
+                className="w-full flex items-center justify-between px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer group"
+                title={`Insertar ubicación creada en Ajustes: ${venue.name}`}
+              >
+                <div className="flex items-center space-x-2.5 truncate">
+                  <Building2 className="w-4 h-4 text-[#B08D57] shrink-0 group-hover:scale-110 transition-transform" />
+                  <div className="text-left truncate">
+                    <span className="block font-bold text-gray-800 truncate">{venue.name || 'Sede Adicional'}</span>
+                    <span className="block text-[10px] text-[#B08D57] truncate max-w-[170px]">
+                      {venue.type || 'Sede Adicional'} {venue.time ? `• ${venue.time}` : ''}
+                    </span>
+                  </div>
+                </div>
+                <Plus className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#B08D57] shrink-0 ml-1" />
+              </button>
+            ))}
+
+            {allAdditionalVenues.length === 0 && (
+              <button
+                onClick={() => handleAddVenueCard({
+                  name: 'Hotel & Hospedaje',
+                  type: 'Hospedaje / Preparación',
+                  address: 'Av. Principal #450',
+                  time: '14:00 hrs',
+                  googleMapsUrl: '',
+                  wazeUrl: ''
+                })}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-medium bg-[#EBEBEB] hover:bg-white/80 rounded-xl border border-dashed border-gray-300 text-gray-600 transition-all cursor-pointer group"
+                title="Insertar tarjeta de Sede Adicional (puedes registrar más sedes en el menú de Ajustes)"
+              >
+                <div className="flex items-center space-x-2 truncate">
+                  <Building2 className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                  <span className="truncate text-[11px]">+ Sede Adicional / Hotel</span>
+                </div>
+                <span className="text-[9px] text-gray-400 font-mono">(Ajustes)</span>
+              </button>
+            )}
+
+            {/* Separador de Protocolo & Otros Bloques */}
+            <div className="pt-2 pb-0.5 px-1">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                Protocolo & Widgets
+              </span>
+            </div>
+
+            {/* Código de Vestimenta */}
+            <button
+              onClick={handleAddDressCode}
+              className="w-full flex items-center space-x-2.5 px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Insertar Código de Vestimenta"
+            >
+              <Shirt className="w-4 h-4 text-[#C5A880] shrink-0" />
+              <span>Código de Vestimenta</span>
+            </button>
+
+            {/* Muro de los Deseos */}
+            <button
+              onClick={handleAddWishesWall}
+              className="w-full flex items-center space-x-2.5 px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Insertar Muro de los Deseos"
+            >
+              <MessageSquareHeart className="w-4 h-4 text-rose-500 shrink-0" />
+              <span>Muro de los Deseos</span>
+            </button>
+
+            {/* Frase, Nombres & Contactos */}
+            <button
+              onClick={handleAddCoupleQuoteContacts}
+              className="w-full flex items-center space-x-2.5 px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer"
+              title="Modificar o agregar Frase, Nombres & Contactos"
+            >
+              <Quote className="w-4 h-4 text-[#D4AF37] shrink-0" />
+              <span>Frase, Nombres & Contactos</span>
             </button>
           </div>
         )}
       </div>
-
-      {/* 10. Código de Vestimenta (Dress Code) */}
-      <button 
-        onClick={handleAddDressCode} 
-        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer"
-      >
-        <Shirt className="w-4 h-4 text-[#C5A880]" />
-        <span>Código de Vestimenta</span>
-      </button>
-
-      {/* 11. Muro de los Deseos */}
-      <button 
-        onClick={handleAddWishesWall} 
-        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer"
-      >
-        <MessageSquareHeart className="w-4 h-4 text-rose-500" />
-        <span>Muro de los Deseos</span>
-      </button>
-
-      {/* 12. Frase, Nombres & Contactos */}
-      <button 
-        onClick={handleAddCoupleQuoteContacts} 
-        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm font-semibold rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-[#2D3748] transition-all cursor-pointer"
-        title="Modificar o agregar Frase, Nombres & Contactos"
-      >
-        <Quote className="w-4 h-4 text-[#D4AF37]" />
-        <span>Frase, Nombres & Contactos</span>
-      </button>
 
       {/* 12. Capas */}
       <div className="rounded-2xl p-2.5 bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] space-y-2 border border-slate-200/50">

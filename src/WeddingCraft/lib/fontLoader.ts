@@ -1,27 +1,70 @@
 const loadedFonts = new Set<string>();
 
-export const loadGoogleFont = async (fontFamily: string, weights: number[] = [400, 700]): Promise<void> => {
-  if (loadedFonts.has(fontFamily)) {
-    return Promise.resolve();
+const SYSTEM_FONTS = new Set([
+  'Arial',
+  'Helvetica',
+  'Times New Roman',
+  'Georgia',
+  'sans-serif',
+  'serif',
+  'monospace',
+  'cursive',
+  'fantasy',
+  'system-ui'
+]);
+
+export const loadGoogleFont = async (fontFamily: string, weights?: number[]): Promise<void> => {
+  if (!fontFamily || typeof fontFamily !== 'string') return;
+  const cleanFamily = fontFamily.trim().replace(/^['"]|['"]$/g, '');
+  if (!cleanFamily || SYSTEM_FONTS.has(cleanFamily) || loadedFonts.has(cleanFamily)) {
+    return;
   }
 
-  const familyParam = fontFamily.replace(/ /g, '+');
-  const weightsParam = weights.length > 0 ? `:wght@${weights.join(';')}` : '';
+  const familyParam = cleanFamily.replace(/ /g, '+');
+  const weightsParam = weights && weights.length > 0 ? `:wght@${weights.join(';')}` : '';
   const url = `https://fonts.googleapis.com/css2?family=${familyParam}${weightsParam}&display=swap`;
 
-  const link = document.createElement('link');
-  link.href = url;
-  link.rel = 'stylesheet';
-  document.head.appendChild(link);
+  const linkId = `google-font-${familyParam.toLowerCase()}`;
+  if (!document.getElementById(linkId)) {
+    const link = document.createElement('link');
+    link.id = linkId;
+    link.href = url;
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }
   
-  loadedFonts.add(fontFamily);
+  loadedFonts.add(cleanFamily);
 
   try {
-    // Wait for the font to be actually loaded by the browser
-    await document.fonts.load(`16px "${fontFamily}"`);
+    if (document.fonts && document.fonts.load) {
+      await document.fonts.load(`16px "${cleanFamily}"`);
+    }
   } catch (err) {
-    console.warn('Error loading font:', fontFamily, err);
+    console.warn('Error loading font:', cleanFamily, err);
   }
+};
+
+export const loadDocumentFonts = (doc: any): void => {
+  if (!doc || typeof window === 'undefined') return;
+  const fontFamilies = new Set<string>();
+
+  if (doc.canvas?.fontFamily) fontFamilies.add(doc.canvas.fontFamily);
+
+  const pages = doc.pages || (doc.elements ? [{ elements: doc.elements }] : []);
+  for (const page of pages) {
+    for (const el of page.elements || []) {
+      if (el.style?.fontFamily) fontFamilies.add(el.style.fontFamily);
+      if (el.style?.titleFontFamily) fontFamilies.add(el.style.titleFontFamily);
+      if (el.style?.numberFont) fontFamilies.add(el.style.numberFont);
+      if (el.style?.labelFont) fontFamilies.add(el.style.labelFont);
+      if (el.content?.fontFamily) fontFamilies.add(el.content.fontFamily);
+      if (el.content?.titleFontFamily) fontFamilies.add(el.content.titleFontFamily);
+    }
+  }
+
+  fontFamilies.forEach(family => {
+    loadGoogleFont(family);
+  });
 };
 
 export const preloadFontList = (fonts: string[]): void => {
@@ -32,6 +75,7 @@ export const preloadFontList = (fonts: string[]): void => {
   } else {
     setTimeout(() => {
       fonts.forEach(font => loadGoogleFont(font));
-    }, 1000);
+    }, 100);
   }
 };
+
