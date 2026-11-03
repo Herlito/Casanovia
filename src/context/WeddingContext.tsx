@@ -1030,11 +1030,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (local) {
         const parsed = JSON.parse(local);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const combined = deduplicateAndFilterWeddingsList([...parsed, ...initialWeddingsList]);
-          try {
-            localStorage.setItem('casanovia_all_weddings', JSON.stringify(combined));
-          } catch {}
-          return combined;
+          return deduplicateAndFilterWeddingsList(parsed);
         }
       }
     } catch {
@@ -1085,6 +1081,17 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   React.useEffect(() => {
     const checkSelfHostedSeed = async () => {
       try {
+        // If localStorage already has custom user/restored weddings, do not overwrite with static seed
+        const existingLocal = localStorage.getItem('casanovia_all_weddings');
+        if (existingLocal) {
+          try {
+            const parsed = JSON.parse(existingLocal);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              return;
+            }
+          } catch {}
+        }
+
         let seed: any = null;
         try {
           const sRes = await fetch('/api/seed.php');
