@@ -74,22 +74,28 @@ export const PassValidationModal: React.FC<PassValidationModalProps> = ({
 
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: facingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
+        });
+      } catch (e1) {
+        // Fallback to basic video constraint if ideal facingMode fails
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
 
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.setAttribute('playsinline', 'true');
-        await videoRef.current.play();
-      }
       setIsCameraActive(true);
     } catch (err: any) {
       console.error('Error al inicializar la cámara:', err);
@@ -104,18 +110,34 @@ export const PassValidationModal: React.FC<PassValidationModalProps> = ({
     }
   }, [facingMode]);
 
+  // Bind video element to media stream as soon as isCameraActive is true and element is mounted
+  useEffect(() => {
+    if (isCameraActive && streamRef.current && videoRef.current) {
+      const video = videoRef.current;
+      video.srcObject = streamRef.current;
+      video.muted = true;
+      video.playsInline = true;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('Playback error on video element:', err);
+        });
+      }
+    }
+  }, [isCameraActive]);
+
   const toggleCameraFacing = () => {
     setFacingMode((prev) => (prev === 'environment' ? 'user' : 'environment'));
   };
 
   // QR Scanning continuous loop
   const scanFrame = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current || !isCameraActive) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    if (video.readyState >= video.HAVE_CURRENT_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
       if (ctx) {
         canvas.width = video.videoWidth;
@@ -130,7 +152,7 @@ export const PassValidationModal: React.FC<PassValidationModalProps> = ({
         if (code && code.data && code.data.trim().length > 0 && wedding) {
           const scannedCode = code.data.trim();
           setTokenInput(scannedCode);
-          setScannedSuccessMsg(`QR detectado: ${scannedCode}`);
+          setScannedSuccessMsg(`¡QR detectado: ${scannedCode}!`);
 
           // Validate pass automatically
           setIsValidating(true);
@@ -156,7 +178,7 @@ export const PassValidationModal: React.FC<PassValidationModalProps> = ({
     }
 
     animFrameRef.current = requestAnimationFrame(scanFrame);
-  }, [wedding, passesToAdmit, stopCamera]);
+  }, [wedding, passesToAdmit, isCameraActive, stopCamera]);
 
   useEffect(() => {
     if (isCameraActive) {
@@ -231,11 +253,11 @@ export const PassValidationModal: React.FC<PassValidationModalProps> = ({
   return (
     <div
       id="pass-validation-modal"
-      className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-xs flex items-center justify-center p-0 sm:p-4 font-sans animate-fadeIn overflow-y-auto"
+      className="fixed inset-0 z-[1000] bg-[#EBEBEB] sm:bg-black/60 sm:backdrop-blur-xs flex flex-col justify-start sm:justify-center items-stretch sm:items-center p-0 sm:p-4 font-sans animate-fadeIn overflow-y-auto"
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full h-full sm:h-auto sm:max-w-lg bg-[#EBEBEB] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-none sm:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] border-0 sm:border sm:border-white/80 relative my-0 sm:my-6 flex flex-col justify-between overflow-y-auto">
+      <div className="w-full min-h-screen sm:min-h-0 sm:h-auto sm:max-w-lg bg-[#EBEBEB] rounded-none sm:rounded-[2.5rem] p-4 sm:p-8 shadow-none sm:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] border-0 sm:border sm:border-white/80 relative my-0 sm:my-6 flex flex-col justify-between overflow-y-auto pb-10 sm:pb-8">
         
         {/* Close Button */}
         <button
@@ -247,10 +269,10 @@ export const PassValidationModal: React.FC<PassValidationModalProps> = ({
           <X className="w-5 h-5 text-gray-700" />
         </button>
 
-        <div>
+        <div className="w-full">
           {/* Header */}
-          <div className="text-center mb-5 pt-2 sm:pt-0">
-            <div className="w-14 h-14 mx-auto rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center justify-center text-emerald-700 mb-3">
+          <div className="text-center mb-5 pt-3 sm:pt-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center justify-center text-emerald-700 mb-2.5">
               <ScanLine className="w-6 h-6" />
             </div>
             <h3 className="font-serif-display text-xl sm:text-2xl font-bold text-gray-900">
@@ -263,19 +285,24 @@ export const PassValidationModal: React.FC<PassValidationModalProps> = ({
 
           {/* Camera Scanner Container */}
           {isCameraActive ? (
-            <div className="relative w-full rounded-2xl overflow-hidden bg-black shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5)] border border-gray-700 mb-5">
+            <div className="relative w-full rounded-2xl overflow-hidden bg-black shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5)] border border-gray-700 mb-4">
               <video
                 ref={videoRef}
                 playsInline
                 muted
                 autoPlay
-                className="w-full h-56 sm:h-64 object-cover"
+                onLoadedMetadata={() => {
+                  if (videoRef.current) {
+                    videoRef.current.play().catch(console.warn);
+                  }
+                }}
+                className="w-full h-52 sm:h-64 object-cover"
               />
               <canvas ref={canvasRef} className="hidden" />
 
-              {/* Viewfinder frame */}
+              {/* Viewfinder frame overlay */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div className="w-48 h-48 sm:w-52 sm:h-52 border-2 border-emerald-400/80 rounded-2xl relative shadow-[0_0_20px_rgba(52,211,153,0.4)]">
+                <div className="w-44 h-44 sm:w-52 sm:h-52 border-2 border-emerald-400/80 rounded-2xl relative shadow-[0_0_20px_rgba(52,211,153,0.4)]">
                   <div className="absolute -top-1 -left-1 w-5 h-5 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg" />
                   <div className="absolute -top-1 -right-1 w-5 h-5 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg" />
                   <div className="absolute -bottom-1 -left-1 w-5 h-5 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg" />
@@ -288,7 +315,7 @@ export const PassValidationModal: React.FC<PassValidationModalProps> = ({
               <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-auto">
                 <span className="inline-flex items-center space-x-1.5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-emerald-300 border border-emerald-500/30">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>Escaneando Cámara</span>
+                  <span>Cámara En Vivo</span>
                 </span>
 
                 <div className="flex items-center space-x-2">
@@ -342,7 +369,7 @@ export const PassValidationModal: React.FC<PassValidationModalProps> = ({
 
           {/* Validation Result Box */}
           {result && (
-            <div className={`p-5 rounded-2xl mb-5 animate-fadeIn border ${
+            <div className={`p-4 sm:p-5 rounded-2xl mb-5 animate-fadeIn border ${
               result.valid 
                 ? 'bg-emerald-50/90 border-emerald-200 text-emerald-950' 
                 : 'bg-rose-50/90 border-rose-200 text-rose-950'
