@@ -127,7 +127,7 @@ const MainLayout: React.FC = () => {
   ]);
 
   return (
-        <div data-theme={appTheme} className={`min-h-screen flex flex-col ${isPublicHomeLanding || isNoviasLanding ? "bg-[#EBEBEB] flex-1" : "bg-[#EBEBEB]"} text-[#2D2A26] font-sans antialiased selection:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/20 selection:text-[#2D3748]`}>
+        <div data-theme={appTheme} className={`min-h-screen flex flex-col ${isPublicHomeLanding || isNoviasLanding ? "bg-[#EBEBEB] flex-1" : "bg-[#EBEBEB]"} text-[#2D2A26] font-sans antialiased selection:bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748]/20 selection:text-[#2D3748] max-w-full overflow-x-hidden`}>
       
       {/* Top Fixed Navigation & View Toggle - Omitido en home landing y en la landing /novias */}
       {!isPublicHomeLanding && !isNoviasLanding && <Navbar />}

@@ -47,7 +47,9 @@ import {
   X,
   AlertTriangle,
   Heart,
-  Loader2
+  Loader2,
+  FolderUp,
+  HardDrive
 } from 'lucide-react';
 import { downloadPackage } from '../../utils/downloadPackage';
 import { Guest, WeddingTask, BudgetItem } from '../../types';
@@ -229,13 +231,24 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
     setShowFloorPlanModal,
     getShareableWeddingUrl,
     importGuests,
-    addGuest
+    addGuest,
+    exportDataJson,
+    exportAllDatabaseJson,
+    importDataJson,
+    importAllDatabaseJson
   } = useWedding();
   const isNeumorphic = appTheme === 'neumorphic' || true;
 
   // Guest Import / Manual Add Modals State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
+
+  // JSON Backup / Restore State
+  const [showJsonBackupModal, setShowJsonBackupModal] = useState(false);
+  const [importJsonText, setImportJsonText] = useState('');
+  const [importJsonMode, setImportJsonMode] = useState<'single' | 'global'>('single');
+  const [isImportingJson, setIsImportingJson] = useState(false);
+  const [importJsonStatus, setImportJsonStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const userLevel = currentUser?.level ?? (isLevel1Admin ? 1 : isLevel3Planner ? 3 : 2);
   const isLevel123 = userLevel === 1 || userLevel === 2 || userLevel === 3 || isLevel1Admin || isLevel3Planner;
@@ -560,6 +573,89 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
                 <span>Limpiar Boda Activa</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          RESPALDOS & COPIA DE SEGURIDAD JSON (Solo Administrador)
+         ======================================================== */}
+      {isLevel1Admin && (
+        <div className="bg-[#EBEBEB] rounded-[2.5rem] p-5 sm:p-6 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-gray-300/60 relative overflow-hidden transition-all">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-300/50">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] flex items-center justify-center text-rose-700 shrink-0">
+                <FileJson className="w-5 h-5 text-rose-700" />
+              </div>
+              <div>
+                <h3 className="font-serif-display text-lg sm:text-xl font-bold text-gray-900">
+                  Respaldos & Copia de Seguridad JSON
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Descarga o carga copias de seguridad en formato JSON por evento o de la base de datos global.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+            {/* 1. Copia Individual por Evento */}
+            <button
+              type="button"
+              id="btn-dash-export-single-json"
+              onClick={() => exportDataJson()}
+              className="p-4 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all flex flex-col justify-between text-left cursor-pointer border border-white/60 group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-gray-800 group-hover:text-rose-700 transition-colors">
+                  Descargar Copia Individual (.json)
+                </span>
+                <Download className="w-4 h-4 text-rose-600 shrink-0" />
+              </div>
+              <p className="text-[11px] text-gray-500 leading-snug">
+                Respaldo exclusivo del evento <strong className="text-gray-700">{settings.coupleNames}</strong>.
+              </p>
+            </button>
+
+            {/* 2. Copia Global de Todos los Eventos */}
+            <button
+              type="button"
+              id="btn-dash-export-global-json"
+              onClick={() => exportAllDatabaseJson()}
+              className="p-4 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all flex flex-col justify-between text-left cursor-pointer border border-white/60 group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-gray-800 group-hover:text-indigo-700 transition-colors">
+                  Descargar Copia Global (.json)
+                </span>
+                <HardDrive className="w-4 h-4 text-indigo-600 shrink-0" />
+              </div>
+              <p className="text-[11px] text-gray-500 leading-snug">
+                Respaldo de todas las bodas, usuarios y configuraciones completas.
+              </p>
+            </button>
+
+            {/* 3. Cargar / Restaurar Datos JSON */}
+            <button
+              type="button"
+              id="btn-dash-import-json-modal"
+              onClick={() => {
+                setImportJsonStatus(null);
+                setImportJsonText('');
+                setShowJsonBackupModal(true);
+              }}
+              className="p-4 rounded-2xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all flex flex-col justify-between text-left cursor-pointer border border-emerald-300/60 group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-gray-800 group-hover:text-emerald-700 transition-colors">
+                  Cargar / Restaurar JSON
+                </span>
+                <FolderUp className="w-4 h-4 text-emerald-600 shrink-0" />
+              </div>
+              <p className="text-[11px] text-gray-500 leading-snug">
+                Carga o importa una copia individual o la base de datos global.
+              </p>
+            </button>
           </div>
         </div>
       )}
@@ -1378,6 +1474,175 @@ export const NoviosOverviewPanel: React.FC<NoviosOverviewPanelProps> = ({ onNavi
           setIsAddGuestModalOpen(false);
         }}
       />
+
+      {/* Modal Cargar / Restaurar Datos JSON */}
+      {showJsonBackupModal && (
+        <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-sans animate-fadeIn overflow-y-auto">
+          <div className="w-full max-w-lg bg-[#EBEBEB] rounded-[2.5rem] p-6 sm:p-8 shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] border border-white/80 relative my-6 text-gray-900">
+            <button
+              type="button"
+              onClick={() => setShowJsonBackupModal(false)}
+              className="absolute right-5 top-5 p-2.5 rounded-2xl bg-[#EBEBEB] text-gray-500 shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all cursor-pointer"
+              title="Cerrar"
+            >
+              <X className="w-4 h-4 text-gray-600" />
+            </button>
+
+            <div className="flex items-center space-x-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] flex items-center justify-center text-emerald-700 shrink-0">
+                <FolderUp className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-serif-display text-xl font-bold text-gray-900">
+                  Cargar Datos JSON
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Carga un archivo de respaldo .json o pega su contenido.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Selector de modo de importación */}
+              <div className="flex items-center space-x-2 p-1.5 rounded-2xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]">
+                <button
+                  type="button"
+                  onClick={() => setImportJsonMode('single')}
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    importJsonMode === 'single'
+                      ? 'bg-[#EBEBEB] text-gray-900 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff]'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  Evento Activo ({settings.coupleNames})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImportJsonMode('global')}
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    importJsonMode === 'global'
+                      ? 'bg-[#EBEBEB] text-gray-900 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff]'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  Base de Datos Global
+                </button>
+              </div>
+
+              {/* Input file picker */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                  Seleccionar archivo .json
+                </label>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                      const content = evt.target?.result as string;
+                      if (content) {
+                        setImportJsonText(content);
+                      }
+                    };
+                    reader.readAsText(file);
+                  }}
+                  className="w-full text-xs text-gray-700 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#EBEBEB] file:text-gray-800 file:shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] cursor-pointer p-2 rounded-2xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]"
+                />
+              </div>
+
+              {/* Textarea para pegar JSON */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                  O pegar texto JSON
+                </label>
+                <textarea
+                  rows={5}
+                  value={importJsonText}
+                  onChange={(e) => setImportJsonText(e.target.value)}
+                  placeholder='Pega aquí el código JSON (ej: {"settings": {...}, "guests": [...]})'
+                  className="w-full p-4 font-mono text-xs rounded-2xl bg-[#EBEBEB] text-gray-900 shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] focus:outline-hidden transition-all"
+                />
+              </div>
+
+              {/* Mensaje de resultado */}
+              {importJsonStatus && (
+                <div className={`p-3.5 rounded-2xl text-xs font-semibold flex items-center space-x-2 animate-fadeIn border ${
+                  importJsonStatus.type === 'success'
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                    : 'bg-rose-50 border-rose-200 text-rose-900'
+                }`}>
+                  {importJsonStatus.type === 'success' ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                  )}
+                  <span>{importJsonStatus.message}</span>
+                </div>
+              )}
+
+              {/* Botón de acción */}
+              <button
+                type="button"
+                disabled={!importJsonText.trim() || isImportingJson}
+                onClick={async () => {
+                  if (!importJsonText.trim()) return;
+                  setIsImportingJson(true);
+                  setImportJsonStatus(null);
+                  try {
+                    if (importJsonMode === 'global') {
+                      const res = await importAllDatabaseJson(importJsonText.trim());
+                      if (res.success) {
+                        setImportJsonStatus({
+                          type: 'success',
+                          message: `¡Base de datos global restaurada con éxito! (${res.weddingsCount} bodas, ${res.usersCount} usuarios)`,
+                        });
+                        setTimeout(() => {
+                          setShowJsonBackupModal(false);
+                        }, 2000);
+                      } else {
+                        setImportJsonStatus({
+                          type: 'error',
+                          message: res.message || 'Error al procesar el archivo JSON global.',
+                        });
+                      }
+                    } else {
+                      const ok = await importDataJson(importJsonText.trim());
+                      if (ok) {
+                        setImportJsonStatus({
+                          type: 'success',
+                          message: `¡Datos de ${settings.coupleNames} cargados y actualizados con éxito!`,
+                        });
+                        setTimeout(() => {
+                          setShowJsonBackupModal(false);
+                        }, 2000);
+                      } else {
+                        setImportJsonStatus({
+                          type: 'error',
+                          message: 'Formato JSON no válido o no corresponde al esquema de evento.',
+                        });
+                      }
+                    }
+                  } catch (err) {
+                    setImportJsonStatus({
+                      type: 'error',
+                      message: 'Error al interpretar los datos JSON. Revisa la sintaxis.',
+                    });
+                  } finally {
+                    setIsImportingJson(false);
+                  }
+                }}
+                className="w-full py-4 rounded-2xl bg-[#EBEBEB] text-gray-900 font-bold text-sm shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+              >
+                <FolderUp className="w-4 h-4 text-emerald-600" />
+                <span>{isImportingJson ? 'Cargando Datos...' : 'Restaurar / Cargar Datos'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

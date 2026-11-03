@@ -267,7 +267,7 @@ export const PlannerDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#EBEBEB] text-gray-800 flex flex-col">
+    <div className="min-h-screen bg-[#EBEBEB] text-gray-800 flex flex-col max-w-full overflow-x-hidden">
 
       {/* Observer Mode Banner */}
       {isLevel5Observer && (
@@ -368,7 +368,7 @@ export const PlannerDashboard: React.FC = () => {
             </div>
 
             {/* Nav Tabs - 100% width of mobile screen, all buttons in a single row */}
-            <nav className="w-full sm:w-auto flex items-center justify-between gap-1 sm:gap-2 mt-0">
+            <nav className="w-full sm:w-auto flex items-center justify-between gap-1 sm:gap-2 mt-0 max-w-full overflow-x-auto no-scrollbar">
               {navTabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 const Icon = tab.icon;

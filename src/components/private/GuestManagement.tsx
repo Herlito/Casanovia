@@ -374,7 +374,7 @@ export const GuestManagement: React.FC = () => {
     <div className="space-y-2 sm:space-y-3">
       
       {/* Top Header & Actions */}
-      <div className="flex items-center justify-between gap-2 px-1 sm:px-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-1 sm:px-0 w-full max-w-full">
         <div>
           <h1 className="font-serif-display text-xl sm:text-2xl font-bold text-[#2D2A26]">
             Lista de Invitados
@@ -382,16 +382,16 @@ export const GuestManagement: React.FC = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 max-w-full overflow-x-auto pb-0.5 sm:pb-0">
           <button
             type="button"
             id="btn-open-pass-validation"
             onClick={() => setShowValidationModal(true)}
-            className="inline-flex items-center space-x-1.5 px-3 sm:px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-emerald-800 hover:text-emerald-900 text-xs font-bold transition-all cursor-pointer shrink-0"
+            className="inline-flex items-center space-x-1 px-2.5 sm:px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-emerald-800 hover:text-emerald-900 text-[11px] sm:text-xs font-bold transition-all cursor-pointer shrink-0"
             title="Escanear y Validar Pases Digitales / Control de Ingreso"
           >
-            <ScanLine className="w-4 h-4 text-emerald-700" />
-            <span>Validar QR / Acceso</span>
+            <ScanLine className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+            <span className="whitespace-nowrap">Validar QR / Acceso</span>
           </button>
 
           {canEditActiveWedding && (
@@ -399,10 +399,10 @@ export const GuestManagement: React.FC = () => {
               type="button"
               id="btn-add-guest"
               onClick={handleOpenAddModal}
-              className="inline-flex items-center space-x-1.5 px-3 sm:px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-xs font-bold transition-all cursor-pointer shrink-0"
+              className="inline-flex items-center space-x-1 px-2.5 sm:px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[11px] sm:text-xs font-bold transition-all cursor-pointer shrink-0"
             >
-              <UserPlus className="w-4 h-4" />
-              <span>Nuevo Invitado</span>
+              <UserPlus className="w-3.5 h-3.5 shrink-0" />
+              <span className="whitespace-nowrap">Nuevo Invitado</span>
             </button>
           )}
         </div>
