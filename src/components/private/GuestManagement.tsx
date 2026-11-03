@@ -371,7 +371,7 @@ export const GuestManagement: React.FC = () => {
   const confirmedPasses = primaryGuests.filter(g => g.rsvpStatus === 'confirmed').reduce((acc, g) => acc + (g.confirmedPasses || g.totalPasses || 1), 0);
 
   return (
-    <div className="space-y-2 sm:space-y-3">
+    <div className="space-y-2 sm:space-y-3 pt-2 sm:pt-0 px-2 sm:px-0">
       
       {/* Top Header & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-1 sm:px-0 w-full max-w-full">

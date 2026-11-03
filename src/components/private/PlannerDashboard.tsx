@@ -267,7 +267,7 @@ export const PlannerDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#EBEBEB] text-gray-800 flex flex-col max-w-full overflow-x-hidden">
+    <div className="min-h-screen bg-[#EBEBEB] text-gray-800 flex flex-col">
 
       {/* Observer Mode Banner */}
       {isLevel5Observer && (
@@ -289,7 +289,7 @@ export const PlannerDashboard: React.FC = () => {
           - Right / Rows: Navigation Tabs [Panel, Invitados, Mesas, Proveedores, Presupuesto, Cronograma, Tareas, Ajustes]
           - Auto-wrapping for mobile view
          ======================================================== */}
-      <header className={`bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] sticky top-14 sm:top-16 z-30 ${activeTab === 'panel' ? 'hidden sm:block' : ''}`}>
+      <header className="bg-[#EBEBEB] border-b border-stone-300/60 shadow-xs sticky top-14 sm:top-16 z-30">
         <div className="w-full max-w-7xl mx-auto px-1 sm:px-6 lg:px-8 py-1.5 sm:py-2">
           <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-start gap-1 sm:gap-2 w-full">
             

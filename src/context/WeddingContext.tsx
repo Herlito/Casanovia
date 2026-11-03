@@ -3590,15 +3590,15 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateTable = async (id: string, updates: Partial<WeddingTable>) => {
-    const currentTables = activeWedding?.tables && activeWedding.tables.length > 0 
-      ? activeWedding.tables 
+    const currentTables = (activeWedding as Wedding)?.tables && (activeWedding as Wedding).tables.length > 0 
+      ? (activeWedding as Wedding).tables 
       : initialTables;
     const oldTable = currentTables.find(t => t.id === id);
     const updated = currentTables.map((t) => (t.id === id ? { ...t, ...updates } : t));
 
     // If table name changed, update all guests assigned to this table name
     if (updates.name && oldTable && updates.name !== oldTable.name) {
-      const currentGuests = activeWedding?.guests || guests || [];
+      const currentGuests = (activeWedding as Wedding)?.guests || guests || [];
       const updatedGuests = currentGuests.map(g => {
         if (g.assignedTable === oldTable.name) {
           return { ...g, assignedTable: updates.name! };
@@ -3609,55 +3609,16 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } else {
       await updateActiveWeddingDoc({ tables: updated });
     }
-
-    // Synchronize changes to Plano Local (Floor Plan) elements
-    try {
-      if (activeWeddingId && typeof window !== 'undefined') {
-        const storageKey = `casanovia_floor_plan_${activeWeddingId}`;
-        const localPlanRaw = localStorage.getItem(storageKey);
-        if (localPlanRaw) {
-          const localPlan = JSON.parse(localPlanRaw);
-          if (Array.isArray(localPlan.elements)) {
-            let hasPlanChanges = false;
-            const updatedPlanElements = localPlan.elements.map((el: any) => {
-              const isMatch =
-                el.id === id ||
-                el.id === `elem_table_${id}` ||
-                el.tableId === id ||
-                (oldTable && el.name?.trim().toLowerCase() === oldTable.name.trim().toLowerCase());
-              if (isMatch) {
-                hasPlanChanges = true;
-                return {
-                  ...el,
-                  name: updates.name !== undefined ? updates.name : el.name,
-                  seatCount: updates.capacity !== undefined ? updates.capacity : el.seatCount,
-                };
-              }
-              return el;
-            });
-            if (hasPlanChanges) {
-              localPlan.elements = updatedPlanElements;
-              localStorage.setItem(storageKey, JSON.stringify(localPlan));
-              saveFloorPlanToHosting(activeWeddingId, localPlan).catch((err) => {
-                console.warn('[WeddingContext] Error updating floor_plans hosting doc:', err);
-              });
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('[WeddingContext] Error syncing table to floor plan:', e);
-    }
   };
 
   const deleteTable = async (id: string) => {
-    const currentTables = activeWedding?.tables && activeWedding.tables.length > 0 
-      ? activeWedding.tables 
+    const currentTables = (activeWedding as Wedding)?.tables && (activeWedding as Wedding).tables.length > 0 
+      ? (activeWedding as Wedding).tables 
       : initialTables;
     const targetTable = currentTables.find(t => t.id === id);
     const updated = currentTables.filter((t) => t.id !== id);
 
-    const currentGuests = activeWedding?.guests || guests || [];
+    const currentGuests = (activeWedding as Wedding)?.guests || guests || [];
     if (targetTable) {
       const updatedGuests = currentGuests.map(g => {
         if (g.assignedTable === targetTable.name) {
@@ -3672,7 +3633,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const batchAssignGuestsToTable = async (guestIds: string[], tableName: string) => {
-    const currentGuests = activeWedding?.guests || guests || [];
+    const currentGuests = (activeWedding as Wedding)?.guests || guests || [];
     const updatedGuests = currentGuests.map((g) => {
       if (guestIds.includes(g.id)) {
         return {
@@ -3921,10 +3882,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const targetId = targetWeddingId || activeWeddingId;
     if (!targetId) return;
 
-    const currentWedding = weddings.find((w) => w.id === targetId) || activeWedding;
+    const currentWedding = (weddings.find((w) => w.id === targetId) || activeWedding) as Wedding;
     if (!currentWedding) return;
 
-    const currentSettings = currentWedding.settings || settings;
+    const currentSettings = (currentWedding.settings || settings) as WeddingSettings;
 
     // Solo conservar el nombre del evento, la fecha, ciudad y Fecha Límite para confirmar Asistencia.
     const preservedCoupleNames = currentSettings?.coupleNames || currentWedding.coupleNames || 'Boda';
