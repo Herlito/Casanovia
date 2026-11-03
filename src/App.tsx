@@ -143,7 +143,7 @@ const MainLayout: React.FC = () => {
           {isPublicHomeLanding ? (
             /* Home Landing: Solo el logo de Casanovia centrado en la pantalla */
             <CasanoviaHomeLanding />
-          ) : settings?.hasVirtualInvitation !== true ? (
+          ) : settings?.hasVirtualInvitation === false ? (
             /* Cuando la casilla "Invitación virtual" NO está marcada */
             <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 sm:p-10 text-center max-w-lg mx-auto my-12 bg-[#EBEBEB] rounded-[2.5rem] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] border border-white/50 animate-fadeIn">
               <div className="w-20 h-20 mb-6 rounded-full bg-[#EBEBEB] shadow-[inset_5px_5px_10px_#d1d1d1,inset_-5px_-5px_10px_#ffffff] flex items-center justify-center text-amber-700/80">

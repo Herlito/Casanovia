@@ -165,27 +165,7 @@ export function createDefaultWebInvitationDocument(options: {
   const footerWidth = Math.min(canvasWidth - 40, 480);
 
   const elements: CanvasElement[] = [
-    // 1. Header Tag ("NUESTRA BODA")
-    {
-      id: uuidv4(),
-      type: 'text',
-      content: { text: 'NUESTRA BODA' },
-      style: {
-        fontFamily: 'Montserrat',
-        fontSize: 12,
-        color: '#8C8276',
-        align: 'center',
-        letterSpacing: 4,
-        textTransform: 'uppercase',
-        opacity: 1
-      },
-      transform: { x: centerX(tagWidth), y: 44, width: tagWidth, height: 22, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 1,
-      locked: false,
-      visible: true,
-      dataBinding: { field: 'headerTag' }
-    },
-    // 2. Nombre del Evento (Hero)
+    // 1. Nombre del Evento (Hero)
     {
       id: uuidv4(),
       type: 'text',
@@ -198,139 +178,48 @@ export function createDefaultWebInvitationDocument(options: {
         lineHeight: 1.15,
         opacity: 1
       },
-      transform: { x: centerX(heroWidth), y: 72, width: heroWidth, height: 64, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 2,
+      transform: { x: centerX(heroWidth), y: 100, width: heroWidth, height: 64, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: 1,
       locked: false,
       visible: true,
       dataBinding: { field: 'coupleNames', format: '{{0}} & {{1}}' }
     },
-    // 3. Frase Romántica
-    {
-      id: uuidv4(),
-      type: 'text',
-      content: { text: `"${quote}"` },
-      style: {
-        fontFamily: 'Cormorant Garamond',
-        fontSize: 16,
-        color: '#6B6358',
-        align: 'center',
-        fontStyle: 'italic',
-        lineHeight: 1.45,
-        opacity: 1
-      },
-      transform: { x: centerX(quoteWidth), y: 152, width: quoteWidth, height: 72, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 3,
-      locked: false,
-      visible: true,
-      dataBinding: { field: 'romanticQuote' }
-    },
-    // 4. Fecha
+    // 2. Fecha
     {
       id: uuidv4(),
       type: 'text',
       content: { text: dateFormatted },
       style: {
         fontFamily: 'Montserrat',
-        fontSize: 13,
+        fontSize: 16,
         color: '#2D3748',
         align: 'center',
         letterSpacing: 2,
         opacity: 1
       },
-      transform: { x: centerX(detailsWidth), y: 252, width: detailsWidth, height: 24, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 4,
+      transform: { x: centerX(detailsWidth), y: 180, width: detailsWidth, height: 28, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: 2,
       locked: false,
       visible: true,
       dataBinding: { field: 'eventDate' }
     },
-    // 5. Lugar
+    // 3. Lugar
     {
       id: uuidv4(),
       type: 'text',
       content: { text: venue },
       style: {
         fontFamily: 'Playfair Display',
-        fontSize: 20,
+        fontSize: 22,
         color: '#2D2A26',
         align: 'center',
         opacity: 1
       },
-      transform: { x: centerX(detailsWidth), y: 282, width: detailsWidth, height: 32, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 5,
+      transform: { x: centerX(detailsWidth), y: 220, width: detailsWidth, height: 36, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: 3,
       locked: false,
       visible: true,
       dataBinding: { field: 'venueName' }
-    },
-    // 6. Cuenta Regresiva
-    {
-      id: uuidv4(),
-      type: 'countdown-widget',
-      content: {
-        targetDate: targetIsoDate,
-        title: 'CUENTA REGRESIVA',
-        expiredMessage: '¡Llegó el gran día!',
-        labels: { days: 'días', hours: 'hrs', minutes: 'min' }
-      },
-      style: {
-        backgroundColor: '#EBEBEB',
-        borderColor: '#CBD5E1',
-        titleColor: '#8C8276',
-        numberColor: '#2D3748',
-        labelColor: '#718096',
-        numberFont: 'Montserrat',
-        numberSize: 24,
-        labelSize: 10,
-        variant: 'cards',
-        borderRadius: 14,
-        gap: 12,
-        opacity: 1
-      },
-      transform: { x: centerX(countdownWidth), y: 352, width: countdownWidth, height: 90, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 6,
-      locked: false,
-      visible: true
-    },
-    // 7. Confirmar Asistencia
-    {
-      id: uuidv4(),
-      type: 'interactive-button',
-      content: {
-        text: '✉️ Confirmar Asistencia',
-        actionType: 'scroll-to-section',
-        linkUrl: '#rsvp-section'
-      },
-      style: {
-        backgroundColor: '#2D3748',
-        color: '#FFFFFF',
-        variant: 'solid',
-        borderRadius: 16,
-        fontSize: 14,
-        fontFamily: 'Montserrat',
-        opacity: 1
-      },
-      transform: { x: centerX(btnWidth), y: 474, width: btnWidth, height: 46, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 7,
-      locked: false,
-      visible: true
-    },
-    // 8. Mensaje de despedida / Footer
-    {
-      id: uuidv4(),
-      type: 'text',
-      content: { text: '¡Esperamos celebrar este gran día contigo!' },
-      style: {
-        fontFamily: 'Playfair Display',
-        fontSize: 15,
-        color: '#718096',
-        align: 'center',
-        fontStyle: 'italic',
-        opacity: 1
-      },
-      transform: { x: centerX(footerWidth), y: 846, width: footerWidth, height: 36, rotation: 0, scaleX: 1, scaleY: 1 },
-      zIndex: 8,
-      locked: false,
-      visible: true,
-      dataBinding: { field: 'footerGreeting' }
     }
   ];
 

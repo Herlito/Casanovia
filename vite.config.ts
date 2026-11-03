@@ -58,7 +58,23 @@ export default defineConfig(() => {
                       fs.writeFileSync(path.join(cpanelDir, `${cleanEvt}.json`), JSON.stringify(document, null, 2), 'utf8');
                     }
 
-                    // 4. Update SubirWeb files if present
+                    // 4. Update wedding record in public/cpanel-backend/api/data/weddings
+                    const weddingsDir = path.join(process.cwd(), 'public', 'cpanel-backend', 'api', 'data', 'weddings');
+                    if (fs.existsSync(weddingsDir)) {
+                      for (const targetName of [`${eventId}.json`, `${cleanEvt}.json`, `${cleanEvtNoSuffix}.json`]) {
+                        const wedPath = path.join(weddingsDir, targetName);
+                        if (fs.existsSync(wedPath)) {
+                          try {
+                            const wedData = JSON.parse(fs.readFileSync(wedPath, 'utf8'));
+                            wedData.weddingCraftDesign = document;
+                            wedData.updatedAt = new Date().toISOString();
+                            fs.writeFileSync(wedPath, JSON.stringify(wedData, null, 2), 'utf8');
+                          } catch (e) {}
+                        }
+                      }
+                    }
+
+                    // 5. Update SubirWeb files if present
                     const subirDir = path.join(process.cwd(), 'SubirWeb', 'api', 'data', 'weddingcraft', 'published');
                     if (fs.existsSync(subirDir)) {
                       fs.writeFileSync(path.join(subirDir, `${eventId}.json`), JSON.stringify(document, null, 2), 'utf8');
@@ -76,6 +92,116 @@ export default defineConfig(() => {
                 res.end(JSON.stringify({ error: 'Invalid payload' }));
               });
               return;
+            }
+
+            if (req.url && (req.url.includes('/api/digital_passes.php') || req.url.includes('/api/digital_passes'))) {
+              const urlObj = new URL(req.url, 'http://localhost');
+              const dataDir = path.join(process.cwd(), 'public', 'cpanel-backend', 'api', 'data', 'digital_passes');
+              if (!fs.existsSync(dataDir)) {
+                fs.mkdirSync(dataDir, { recursive: true });
+              }
+
+              if (req.method === 'GET') {
+                const weddingId = urlObj.searchParams.get('wedding_id');
+                const guestId = urlObj.searchParams.get('guest_id');
+                const code = urlObj.searchParams.get('code');
+                const marker = urlObj.searchParams.get('device_marker');
+                const token = urlObj.searchParams.get('token');
+
+                const files = fs.readdirSync(dataDir).filter(f => f.endsWith('.json'));
+                const allPasses = files.map(f => {
+                  try { return JSON.parse(fs.readFileSync(path.join(dataDir, f), 'utf8')); } catch { return null; }
+                }).filter(Boolean);
+
+                if (token) {
+                  const pass = allPasses.find(p => p.qrToken === token);
+                  res.setHeader('Content-Type', 'application/json');
+                  if (pass) {
+                    res.end(JSON.stringify({ success: true, pass }));
+                  } else {
+                    res.statusCode = 404;
+                    res.end(JSON.stringify({ success: false, error: 'Pase no encontrado' }));
+                  }
+                  return;
+                }
+
+                if (code) {
+                  const pass = allPasses.find(p => p.guestCode && p.guestCode.toUpperCase() === code.toUpperCase());
+                  res.setHeader('Content-Type', 'application/json');
+                  if (pass) {
+                    res.end(JSON.stringify({ success: true, pass }));
+                  } else {
+                    res.statusCode = 404;
+                    res.end(JSON.stringify({ success: false, error: 'Código no encontrado' }));
+                  }
+                  return;
+                }
+
+                if (guestId) {
+                  const pass = allPasses.find(p => p.guestId === guestId);
+                  res.setHeader('Content-Type', 'application/json');
+                  if (pass) {
+                    res.end(JSON.stringify({ success: true, pass }));
+                  } else {
+                    res.statusCode = 404;
+                    res.end(JSON.stringify({ success: false, error: 'Pase no encontrado' }));
+                  }
+                  return;
+                }
+
+                if (marker) {
+                  const pass = allPasses.find(p => p.deviceMarker === marker && (!weddingId || p.weddingId === weddingId));
+                  res.setHeader('Content-Type', 'application/json');
+                  if (pass) {
+                    res.end(JSON.stringify({ success: true, pass }));
+                  } else {
+                    res.statusCode = 404;
+                    res.end(JSON.stringify({ success: false, error: 'Dispositivo no encontrado' }));
+                  }
+                  return;
+                }
+
+                const filtered = weddingId ? allPasses.filter(p => p.weddingId === weddingId) : allPasses;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ success: true, passes: filtered }));
+                return;
+              }
+
+              if (req.method === 'POST') {
+                let body = '';
+                req.on('data', chunk => { body += chunk; });
+                req.on('end', () => {
+                  try {
+                    const passData = JSON.parse(body);
+                    const wid = passData.weddingId || 'evento';
+                    const gid = passData.guestId || `g_${Date.now()}`;
+                    const fileName = `${wid.replace(/[^a-zA-Z0-9_-]/g, '')}_${gid.replace(/[^a-zA-Z0-9_-]/g, '')}.json`;
+                    const filePath = path.join(dataDir, fileName);
+
+                    let existing = null;
+                    if (fs.existsSync(filePath)) {
+                      try { existing = JSON.parse(fs.readFileSync(filePath, 'utf8')); } catch {}
+                    }
+
+                    const finalPass = {
+                      ...(existing || {}),
+                      ...passData,
+                      // Preserve existing immutable qrToken if already generated
+                      qrToken: existing?.qrToken || passData.qrToken,
+                      updatedAt: new Date().toISOString()
+                    };
+
+                    fs.writeFileSync(filePath, JSON.stringify(finalPass, null, 2), 'utf8');
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({ success: true, pass: finalPass }));
+                    return;
+                  } catch (e) {
+                    res.statusCode = 400;
+                    res.end(JSON.stringify({ success: false, error: 'Error procesando datos' }));
+                  }
+                });
+                return;
+              }
             }
 
             if (req.url && (req.url.includes('/api/clean_residuals') || req.url.includes('/api/clean-residuals'))) {

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useWedding } from '../../context/WeddingContext';
-import { RsvpStatus } from '../../types';
+import { RsvpStatus, DigitalGuestPass as DigitalGuestPassType } from '../../types';
 import { isRsvpDeadlinePassed, formatRsvpCutoffDate, formatRsvpDeadline } from '../../lib/dateUtils';
+import { getOrCreateDigitalGuestPass } from '../../services/digitalPassService';
+import { DigitalGuestPass } from './DigitalGuestPass';
 import { 
   Heart, 
   Send, 
@@ -22,8 +24,13 @@ export const RsvpSection: React.FC = () => {
     settings,
     submitGuestRsvp, 
     selectedGuestForGuide, 
-    setSelectedGuestForGuide 
+    setSelectedGuestForGuide,
+    activeWedding,
+    weddings,
+    activeWeddingId
   } = useWedding();
+
+  const currentWedding = activeWedding || weddings.find(w => w.id === activeWeddingId);
 
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
@@ -37,6 +44,7 @@ export const RsvpSection: React.FC = () => {
   const [message, setMessage] = useState('');
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [generatedPass, setGeneratedPass] = useState<DigitalGuestPassType | null>(null);
   const [submissionFeedback, setSubmissionFeedback] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -105,6 +113,15 @@ export const RsvpSection: React.FC = () => {
       });
 
       if (result.success) {
+        if (rsvpStatus === 'confirmed' && result.guest && currentWedding) {
+          try {
+            const pass = await getOrCreateDigitalGuestPass(currentWedding, result.guest, []);
+            setGeneratedPass(pass);
+          } catch (pErr) {
+            console.warn('Pass generation warning:', pErr);
+          }
+        }
+
         setSubmissionFeedback({
           type: 'success',
           text: result.message,
@@ -349,6 +366,21 @@ export const RsvpSection: React.FC = () => {
               <span>{isSubmitting ? 'Enviando Confirmación...' : 'Enviar Mi Confirmación'}</span>
             </button>
           </form>
+
+          {/* Virtual Guest Pass Display when confirmed */}
+          {generatedPass && currentWedding && (
+            <div className="mt-8 pt-8 border-t border-gray-200/60 animate-fadeIn">
+              <div className="text-center mb-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 shadow-2xs">
+                  Tu Tarjeta Virtual de Acceso
+                </span>
+              </div>
+              <DigitalGuestPass
+                pass={generatedPass}
+                wedding={currentWedding}
+              />
+            </div>
+          )}
         </div>
 
       </div>

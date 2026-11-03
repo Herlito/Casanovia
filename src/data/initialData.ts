@@ -6,7 +6,7 @@ export const initialWeddingSettings = {
   weddingDate: '2026-11-28',
   location: 'Lima, Perú',
   rsvpDeadline: '2026-11-01',
-  hasVirtualInvitation: false,
+  hasVirtualInvitation: true,
 };
 export const initialDefaultWedding = {
   id: 'boda-erikayemar',

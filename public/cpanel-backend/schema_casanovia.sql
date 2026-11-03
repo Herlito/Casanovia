@@ -178,4 +178,35 @@ CREATE TABLE IF NOT EXISTS `uploaded_files` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 12. Tabla de Tarjetas Virtuales y Pases Digitales (QR Inmutable)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `digital_passes` (
+  `id` varchar(64) NOT NULL,
+  `wedding_id` varchar(64) NOT NULL,
+  `guest_id` varchar(64) NOT NULL UNIQUE,
+  `guest_code` varchar(64) NOT NULL,
+  `qr_token` varchar(64) NOT NULL UNIQUE,
+  `guest_full_name` varchar(255) NOT NULL,
+  `total_passes` int(11) NOT NULL DEFAULT 1,
+  `confirmed_passes` int(11) NOT NULL DEFAULT 1,
+  `companion_names_json` text DEFAULT NULL,
+  `assigned_table` varchar(100) DEFAULT NULL,
+  `assigned_seat` varchar(100) DEFAULT NULL,
+  `device_marker` varchar(64) DEFAULT NULL,
+  `used_passes` int(11) NOT NULL DEFAULT 0,
+  `access_status` enum('active','used','revoked') NOT NULL DEFAULT 'active',
+  `valid_from` datetime DEFAULT NULL,
+  `valid_until` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_dp_wedding` (`wedding_id`),
+  KEY `idx_dp_guest` (`guest_id`),
+  KEY `idx_dp_token` (`qr_token`),
+  KEY `idx_dp_marker` (`device_marker`),
+  KEY `idx_dp_code` (`guest_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 COMMIT;
+

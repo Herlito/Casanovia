@@ -40,12 +40,10 @@ export const ToolsPanel: React.FC = () => {
   const [eventDetailsExpanded, setEventDetailsExpanded] = useState(false);
   const [layersExpanded, setLayersExpanded] = useState(false);
 
-  const coupleNamesStr = 
+  const eventNameStr =
     settings?.coupleNames?.trim() ||
-    (settings?.groomName && settings?.brideName ? `${settings.groomName} & ${settings.brideName}` : '') ||
-    (activeWedding?.coupleNames ? activeWedding.coupleNames : '') ||
-    eventData?.coupleNamesText ||
-    (eventData?.coupleNames ? `${eventData.coupleNames[0]} & ${eventData.coupleNames[1]}` : 'Romina & Herly');
+    activeWedding?.coupleNames?.trim() ||
+    '';
 
   const ceremonyVenue = settings?.ceremonyVenue || eventData?.ceremonyVenue;
   const receptionVenue = settings?.receptionVenue || eventData?.receptionVenue;
@@ -58,11 +56,7 @@ export const ToolsPanel: React.FC = () => {
 
     addElement({
       type: 'text',
-      content: { text: coupleNamesStr },
-      dataBinding: {
-        field: 'coupleNames',
-        format: '{{0}} & {{1}}'
-      },
+      content: { text: eventNameStr },
       style: {
         fontFamily: document.theme?.fonts?.title || 'Playfair Display',
         fontSize: 34,
@@ -73,6 +67,39 @@ export const ToolsPanel: React.FC = () => {
         letterSpacing: 1
       },
       transform: { x: targetX, y: 120, width: targetW, height: 60, rotation: 0, scaleX: 1, scaleY: 1 },
+      zIndex: document.pages[0].elements.length,
+      locked: false,
+      visible: true
+    });
+  };
+
+  const handleAddEventFieldText = (fieldType: string, defaultText: string, dataBinding?: any) => {
+    let tText = defaultText;
+    if (fieldType === 'coupleNames') {
+      tText = eventNameStr || 'Nombre del Evento';
+    } else if (fieldType === 'ceremonyVenue') {
+      tText = ceremonyVenue?.name || 'Sede de la Ceremonia Religiosa';
+    } else if (fieldType === 'receptionVenue') {
+      tText = receptionVenue?.name || 'Sede de la Recepción & Fiesta';
+    }
+
+    const canvasW = document.canvas.width || 720;
+    const targetW = Math.min(340, Math.round(canvasW * 0.9));
+    const targetX = Math.max(20, Math.round((canvasW - targetW) / 2));
+
+    addElement({
+      type: 'text',
+      content: { text: tText },
+      style: {
+        fontFamily: document.theme?.fonts?.title || 'Playfair Display',
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#2D2A26',
+        align: 'center',
+        opacity: 1
+      },
+      transform: { x: targetX, y: 150, width: targetW, height: 50, rotation: 0, scaleX: 1, scaleY: 1 },
+      dataBinding: dataBinding,
       zIndex: document.pages[0].elements.length,
       locked: false,
       visible: true
@@ -758,20 +785,73 @@ export const ToolsPanel: React.FC = () => {
         
         {eventDetailsExpanded && (
           <div className="space-y-1.5 pt-1">
-            {/* 1. Nombre de los Novios (Objeto de Boda con datos de Ajustes) */}
+            {/* 1. Nombre del Evento (Objeto de Boda con datos de Ajustes) */}
             <button
               onClick={handleAddCoupleNames}
               className="w-full flex items-center justify-between px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer group"
-              title={`Insertar Nombre de los Novios: ${coupleNamesStr}`}
+              title={`Insertar Nombre del Evento: ${eventNameStr}`}
             >
               <div className="flex items-center space-x-2.5 truncate">
                 <Heart className="w-4 h-4 text-rose-500 fill-rose-100 shrink-0 group-hover:scale-110 transition-transform" />
                 <div className="text-left truncate">
-                  <span className="block font-bold text-gray-800">Nombre de los Novios</span>
-                  <span className="block text-[10px] text-gray-500 truncate max-w-[170px]">{coupleNamesStr}</span>
+                  <span className="block font-bold text-gray-800">Nombre del Evento</span>
+                  <span className="block text-[10px] text-gray-500 truncate max-w-[170px]">{eventNameStr}</span>
                 </div>
               </div>
               <Plus className="w-3.5 h-3.5 text-gray-400 group-hover:text-rose-600 shrink-0 ml-1" />
+            </button>
+
+            {/* Elementos de Texto Asociados a Campos del Evento */}
+            <div className="pt-2 pb-0.5 px-1 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center space-x-1">
+                <Type className="w-3 h-3 text-emerald-600" />
+                <span>Textos del Evento</span>
+              </span>
+            </div>
+
+            <button
+              onClick={() => handleAddEventFieldText('coupleNames', eventNameStr || 'Nombre del Evento', { field: 'coupleNames', format: '{{0}} & {{1}}' })}
+              className="w-full flex items-center justify-between px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer group"
+              title="Insertar elemento de texto: Nombre del Evento"
+            >
+              <div className="flex items-center space-x-2.5 truncate">
+                <Type className="w-3.5 h-3.5 text-emerald-600 shrink-0 group-hover:scale-110 transition-transform" />
+                <div className="text-left truncate">
+                  <span className="block font-bold text-gray-800">Texto: Nombre del Evento</span>
+                  <span className="block text-[10px] text-gray-500 truncate max-w-[170px]">{eventNameStr || 'Nombres'}</span>
+                </div>
+              </div>
+              <Plus className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 shrink-0 ml-1" />
+            </button>
+
+            <button
+              onClick={() => handleAddEventFieldText('ceremonyVenue', ceremonyVenue?.name || 'Sede de la Ceremonia Religiosa', { field: 'venueName' })}
+              className="w-full flex items-center justify-between px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer group"
+              title="Insertar elemento de texto: Sede de la Ceremonia Religiosa"
+            >
+              <div className="flex items-center space-x-2.5 truncate">
+                <Type className="w-3.5 h-3.5 text-emerald-600 shrink-0 group-hover:scale-110 transition-transform" />
+                <div className="text-left truncate">
+                  <span className="block font-bold text-gray-800">Texto: Ceremonia Religiosa</span>
+                  <span className="block text-[10px] text-gray-500 truncate max-w-[170px]">{ceremonyVenue?.name || 'Sede Ceremonia'}</span>
+                </div>
+              </div>
+              <Plus className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 shrink-0 ml-1" />
+            </button>
+
+            <button
+              onClick={() => handleAddEventFieldText('receptionVenue', receptionVenue?.name || 'Sede de la Recepción & Fiesta', { field: 'venueName' })}
+              className="w-full flex items-center justify-between px-2.5 py-2 text-xs font-semibold bg-[#EBEBEB] hover:bg-white rounded-xl shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] text-gray-700 transition-all cursor-pointer group"
+              title="Insertar elemento de texto: Sede de la Recepción & Fiesta"
+            >
+              <div className="flex items-center space-x-2.5 truncate">
+                <Type className="w-3.5 h-3.5 text-emerald-600 shrink-0 group-hover:scale-110 transition-transform" />
+                <div className="text-left truncate">
+                  <span className="block font-bold text-gray-800">Texto: Recepción & Fiesta</span>
+                  <span className="block text-[10px] text-gray-500 truncate max-w-[170px]">{receptionVenue?.name || 'Sede Recepción'}</span>
+                </div>
+              </div>
+              <Plus className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 shrink-0 ml-1" />
             </button>
 
             {/* Separador de Ubicaciones creadas en el Menú de Ajustes */}

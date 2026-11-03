@@ -15,6 +15,7 @@ import { useWedding } from '../../context/WeddingContext';
 import { parseDateSafe, formatSpanishDateLong, isRsvpDeadlinePassed, formatRsvpDeadline } from '../../lib/dateUtils';
 import { normalizeImageUrl } from '../../lib/imageUtils';
 import { generateEventSlug } from '../../lib/slugUtils';
+import { normalizeToCanonicalSlug } from '../../hooks/useSyncedInvitationDesign';
 import { loadDocumentFonts } from '../../WeddingCraft/lib/fontLoader';
 
 interface SyncedInvitationHeroProps {
@@ -71,9 +72,14 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
   const page = doc.pages?.[0];
   const elements = page ? [...page.elements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0)) : [];
 
+  // CRITICAL: Check if document was already published (has publishedAt timestamp)
+  // This ensures DOMElementRenderer doesn't apply dynamic data bindings to baked values
+  const isPublishedDocument = Boolean(doc.metadata?.publishedAt);
+
   console.log('[SyncedInvitationHero] Rendering design:', {
     eventId: doc.parentEventId,
     elementsCount: elements.length,
+    isPublishedDocument,
     elements: elements.map(el => ({ id: el.id, type: el.type, visible: el.visible }))
   });
 
@@ -91,7 +97,7 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
   const ceremonyVenue = settings?.ceremonyVenue || curWed?.settings?.ceremonyVenue || (activeWedding as any)?.ceremonyVenue;
   const receptionVenueName = receptionVenue?.name?.trim() || '';
   const ceremonyVenueName = ceremonyVenue?.name?.trim() || '';
-  const resolvedVenueName = receptionVenueName || ceremonyVenueName || 'Fundo Paraíso';
+  const resolvedVenueName = receptionVenueName || ceremonyVenueName || (settings as any)?.venueName || '';
 
   const eventData = {
     coupleNames: coupleNamesArr,
@@ -111,17 +117,9 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
     e.stopPropagation();
     const curWed = activeWedding || weddings.find(w => w.id === activeWeddingId);
     
-    // Determine accurate canonical slug
-    let targetSlug = '0919-juanyjuana';
-    if (doc?.parentEventId && !doc.parentEventId.startsWith('boda-')) {
-      targetSlug = doc.parentEventId;
-    } else if (curWed?.id && !curWed.id.startsWith('boda-')) {
-      targetSlug = curWed.id;
-    } else if (activeWeddingId && !activeWeddingId.startsWith('boda-')) {
-      targetSlug = activeWeddingId;
-    } else if (curWed?.coupleNames) {
-      targetSlug = generateEventSlug(curWed.coupleNames, curWed.weddingDate || curWed.settings?.weddingDate, weddings, curWed.id);
-    }
+    // Determine accurate canonical slug - normalize everything to match publish/read logic
+    const rawSlug = curWed?.id || activeWeddingId || doc?.parentEventId || '';
+    const targetSlug = normalizeToCanonicalSlug(rawSlug, curWed);
 
     const linkToCopy = `https://www.casanovia.pe/?boda=${encodeURIComponent(targetSlug)}`;
     
@@ -222,12 +220,13 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
             backgroundPosition: 'center',
             boxShadow: getCanvasBoxShadow(doc.canvas),
             borderRadius: doc.canvas?.borderRadius !== undefined ? `${doc.canvas.borderRadius}px` : '0px',
-            border: doc.canvas?.borderWidth ? `${doc.canvas.borderWidth}px solid ${doc.canvas.borderColor || 'rgba(0,0,0,0.08)'}` : undefined
+            border: doc.canvas?.borderWidth ? `${doc.canvas.borderWidth}px solid ${doc.canvas.borderColor || 'rgba(0,0,0,0.08)'}` : undefined,
+            overflow: 'hidden'
           }}
         >
           {/* Scaled Canvas Layer */}
           <div
-            className="absolute top-0 left-0"
+            className="absolute top-0 left-0 overflow-hidden"
             style={{
               width: `${canvasWidth}px`,
               height: `${canvasHeight}px`,
@@ -237,6 +236,7 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
               backgroundImage: doc.canvas?.backgroundImage ? `url(${normalizeImageUrl(doc.canvas.backgroundImage)})` : undefined,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
+              overflow: 'hidden'
             }}
           >
             {elements.map((el) => {
@@ -248,6 +248,7 @@ export const SyncedInvitationHero: React.FC<SyncedInvitationHeroProps> = ({
                   eventData={eventData}
                   onButtonClick={handleButtonClick}
                   isCopied={copiedButtonId === el.id}
+                  isPublishedDocument={isPublishedDocument}
                 />
               );
             })}

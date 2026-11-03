@@ -51,7 +51,8 @@ function ensureSubfolders() {
         'weddingcraft/library',
         'users',
         'floor_plans',
-        'system_configs'
+        'system_configs',
+        'digital_passes'
     ];
     foreach ($subdirs as $sub) {
         $target = $base . '/' . $sub;
@@ -208,6 +209,27 @@ function initTables(PDO $pdo) {
             mime_type TEXT,
             size_bytes INTEGER,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS digital_passes (
+            id TEXT PRIMARY KEY,
+            wedding_id TEXT,
+            guest_id TEXT UNIQUE,
+            guest_code TEXT,
+            qr_token TEXT UNIQUE,
+            guest_full_name TEXT,
+            total_passes INTEGER DEFAULT 1,
+            confirmed_passes INTEGER DEFAULT 1,
+            companion_names_json TEXT,
+            assigned_table TEXT,
+            assigned_seat TEXT,
+            device_marker TEXT,
+            used_passes INTEGER DEFAULT 0,
+            access_status TEXT DEFAULT 'active',
+            valid_from TEXT,
+            valid_until TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     ");
 

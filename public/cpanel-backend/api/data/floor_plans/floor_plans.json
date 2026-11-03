@@ -1,0 +1,632 @@
+{
+  "boda-ana-edu-0314": {
+    "weddingId": "boda-ana-edu-0314",
+    "tables": [
+      {
+        "shape": "round",
+        "id": "tbl-01",
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "notes": "Novios, Padres y Padrinos de Honor",
+        "name": "Mesa 1"
+      },
+      {
+        "capacity": 10,
+        "id": "tbl-02",
+        "name": "Mesa 3",
+        "notes": "Familia directa y tíos de Alejandro",
+        "zone": "Zona Central",
+        "shape": "round"
+      },
+      {
+        "shape": "round",
+        "zone": "Zona Central",
+        "capacity": 10,
+        "notes": "Familia directa y primos de Sofía",
+        "name": "Mesa 2",
+        "id": "tbl-03"
+      },
+      {
+        "notes": "Compañeros de facultad y maestría",
+        "name": "Mesa 4",
+        "capacity": 10,
+        "id": "tbl-04",
+        "shape": "round",
+        "zone": "Terraza / Jardín"
+      },
+      {
+        "name": "Mesa 5",
+        "capacity": 8,
+        "notes": "Colegas de trabajo y amigos cercanos",
+        "id": "tbl-05",
+        "shape": "round",
+        "zone": "Terraza / Jardín"
+      },
+      {
+        "capacity": 2,
+        "name": "Mesa de Novios",
+        "notes": "",
+        "id": "tbl-1787616923394-727",
+        "shape": "rectangular",
+        "zone": "Mesa Presidencial / Honor"
+      }
+    ],
+    "layout": {
+      "width": 1200,
+      "height": 800,
+      "backgroundImage": null
+    },
+    "updatedAt": "2026-09-16T20:59:24.261Z"
+  },
+  "boda-auna-clinica-7021": {
+    "weddingId": "boda-auna-clinica-7021",
+    "tables": [
+      {
+        "zone": "Pista Central / Escenario",
+        "shape": "imperial",
+        "capacity": 10,
+        "notes": "Novios, Padres y Padrinos de Honor",
+        "id": "tbl-01",
+        "name": "Mesa 1 (Mesa de Honor)"
+      }
+    ],
+    "layout": {
+      "width": 1200,
+      "height": 800,
+      "backgroundImage": null
+    },
+    "updatedAt": "2026-09-16T20:59:24.261Z"
+  },
+  "boda-ella-el-8992": {
+    "weddingId": "boda-ella-el-8992",
+    "tables": [
+      {
+        "name": "Mesa 1 (Mesa de Honor)",
+        "notes": "Novios, Padres y Padrinos de Honor",
+        "id": "tbl-01",
+        "zone": "Salón Principal",
+        "capacity": 2,
+        "shape": "imperial"
+      },
+      {
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "id": "tbl-1788761430675-1-557",
+        "shape": "round",
+        "name": "Mesa 4",
+        "notes": "Mesa estándar para 10 personas"
+      },
+      {
+        "capacity": 10,
+        "shape": "round",
+        "notes": "Mesa estándar para 10 personas",
+        "zone": "Salón Principal",
+        "id": "tbl-1788761430675-2-621",
+        "name": "Mesa 5"
+      },
+      {
+        "notes": "Mesa estándar para 10 personas",
+        "id": "tbl-1788761430675-3-920",
+        "name": "Mesa 6",
+        "shape": "round",
+        "zone": "Salón Principal",
+        "capacity": 10
+      },
+      {
+        "capacity": 10,
+        "name": "Mesa 7",
+        "notes": "Mesa estándar para 10 personas",
+        "id": "tbl-1788761430675-4-461",
+        "zone": "Salón Principal",
+        "shape": "round"
+      },
+      {
+        "zone": "Salón Principal",
+        "id": "tbl-1788761430675-5-539",
+        "shape": "round",
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 8",
+        "capacity": 10
+      },
+      {
+        "capacity": 10,
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 9",
+        "shape": "round",
+        "id": "tbl-1788761619139-1-533",
+        "zone": "Salón Principal"
+      },
+      {
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 10",
+        "shape": "round",
+        "id": "tbl-1788761619139-2-107",
+        "capacity": 10,
+        "zone": "Salón Principal"
+      },
+      {
+        "shape": "round",
+        "zone": "Salón Principal",
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 11",
+        "id": "tbl-1788761619139-3-266",
+        "capacity": 10
+      },
+      {
+        "notes": "Mesa estándar para 10 personas",
+        "capacity": 10,
+        "name": "Mesa 12",
+        "shape": "round",
+        "zone": "Salón Principal",
+        "id": "tbl-1788761619139-4-224"
+      },
+      {
+        "capacity": 10,
+        "zone": "Salón Principal",
+        "shape": "round",
+        "id": "tbl-1788761619139-5-702",
+        "name": "Mesa 13",
+        "notes": "Mesa estándar para 10 personas"
+      },
+      {
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 14",
+        "shape": "round",
+        "capacity": 10,
+        "zone": "Salón Principal",
+        "id": "tbl-1788761619139-6-559"
+      },
+      {
+        "name": "Mesa 15",
+        "id": "tbl-1788761619139-7-999",
+        "notes": "Mesa estándar para 10 personas",
+        "shape": "round",
+        "capacity": 10,
+        "zone": "Salón Principal"
+      },
+      {
+        "capacity": 10,
+        "name": "Mesa 16",
+        "notes": "Mesa estándar para 10 personas",
+        "id": "tbl-1788761619139-8-649",
+        "zone": "Salón Principal",
+        "shape": "round"
+      },
+      {
+        "zone": "Salón Principal",
+        "shape": "round",
+        "id": "tbl-1788761619139-9-195",
+        "notes": "Mesa estándar para 10 personas",
+        "capacity": 10,
+        "name": "Mesa 17"
+      },
+      {
+        "id": "tbl-1788762767692-473",
+        "name": "Mesa 2",
+        "notes": "",
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "shape": "round"
+      },
+      {
+        "name": "Mesa 18",
+        "id": "tbl-1788762922452-347",
+        "notes": "",
+        "capacity": 10,
+        "zone": "Salón Principal",
+        "shape": "round"
+      },
+      {
+        "name": "Mesa 3",
+        "capacity": 10,
+        "id": "tbl-1788798736572-143",
+        "notes": "",
+        "zone": "Salón Principal",
+        "shape": "round"
+      }
+    ],
+    "layout": {
+      "width": 1200,
+      "height": 800,
+      "backgroundImage": null
+    },
+    "updatedAt": "2026-09-16T20:59:24.261Z"
+  },
+  "boda-erika-yemar-6398": {
+    "weddingId": "boda-erika-yemar-6398",
+    "tables": [],
+    "layout": {
+      "width": 1200,
+      "height": 800,
+      "backgroundImage": null
+    },
+    "updatedAt": "2026-09-16T20:59:24.261Z"
+  },
+  "boda-luciana-mateo-3303": {
+    "weddingId": "boda-luciana-mateo-3303",
+    "tables": [
+      {
+        "capacity": 10,
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 1",
+        "id": "tbl-1788972820776-1-140",
+        "shape": "round",
+        "zone": "Salón Principal"
+      },
+      {
+        "name": "Mesa 2",
+        "notes": "Mesa estándar para 10 personas",
+        "id": "tbl-1788972820776-2-803",
+        "shape": "round",
+        "zone": "Salón Principal",
+        "capacity": 10
+      },
+      {
+        "zone": "Salón Principal",
+        "id": "tbl-1788972820776-3-295",
+        "capacity": 10,
+        "shape": "round",
+        "name": "Mesa 3",
+        "notes": "Mesa estándar para 10 personas"
+      },
+      {
+        "name": "Mesa 4",
+        "notes": "Mesa estándar para 10 personas",
+        "zone": "Salón Principal",
+        "shape": "round",
+        "id": "tbl-1788972820776-4-407",
+        "capacity": 10
+      },
+      {
+        "shape": "round",
+        "zone": "Salón Principal",
+        "id": "tbl-1788972820776-5-267",
+        "notes": "Mesa estándar para 10 personas",
+        "capacity": 10,
+        "name": "Mesa 5"
+      },
+      {
+        "capacity": 10,
+        "name": "Mesa 6",
+        "notes": "Mesa estándar para 10 personas",
+        "zone": "Salón Principal",
+        "id": "tbl-1788972820776-6-588",
+        "shape": "round"
+      },
+      {
+        "id": "tbl-1788972820776-7-560",
+        "capacity": 10,
+        "zone": "Salón Principal",
+        "shape": "round",
+        "name": "Mesa 7",
+        "notes": "Mesa estándar para 10 personas"
+      },
+      {
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 8",
+        "shape": "round",
+        "capacity": 10,
+        "id": "tbl-1788972820776-8-518",
+        "zone": "Salón Principal"
+      },
+      {
+        "name": "Mesa 9",
+        "id": "tbl-1788972820776-9-323",
+        "capacity": 10,
+        "zone": "Salón Principal",
+        "notes": "Mesa estándar para 10 personas",
+        "shape": "round"
+      },
+      {
+        "id": "tbl-1788972820776-10-910",
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "name": "Mesa 10",
+        "shape": "round",
+        "notes": "Mesa estándar para 10 personas"
+      }
+    ],
+    "layout": {
+      "width": 1200,
+      "height": 800,
+      "backgroundImage": null
+    },
+    "updatedAt": "2026-09-16T20:59:24.261Z"
+  },
+  "boda-sofia-t-3433": {
+    "weddingId": "boda-sofia-t-3433",
+    "tables": [],
+    "layout": {
+      "width": 1200,
+      "height": 800,
+      "backgroundImage": null
+    },
+    "updatedAt": "2026-09-16T20:59:24.261Z"
+  },
+  "boda-valeria-santiago-8710": {
+    "weddingId": "boda-valeria-santiago-8710",
+    "tables": [
+      {
+        "capacity": 10,
+        "notes": "Novios, Padres y Padrinos de Honor",
+        "name": "Mesa 1 (Mesa de Honor)",
+        "shape": "imperial",
+        "id": "tbl-01",
+        "zone": "Salón Principal"
+      },
+      {
+        "name": "Mesa 2 (Familia Novio)",
+        "id": "tbl-02",
+        "capacity": 10,
+        "zone": "Salón Principal",
+        "notes": "Familia directa y tíos de Alejandro",
+        "shape": "round"
+      },
+      {
+        "zone": "Salón Principal",
+        "id": "tbl-03",
+        "shape": "round",
+        "name": "Mesa 3 (Familia Novia)",
+        "capacity": 10,
+        "notes": "Familia directa y primos de Sofía"
+      },
+      {
+        "id": "tbl-04",
+        "shape": "round",
+        "zone": "Salón Principal",
+        "notes": "Compañeros de facultad y maestría",
+        "name": "Mesa 4 (Amigos Universidad)",
+        "capacity": 10
+      },
+      {
+        "id": "tbl-05",
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "shape": "round",
+        "name": "Mesa 5 (Amigos & Colegas)",
+        "notes": "Colegas de trabajo y amigos cercanos"
+      },
+      {
+        "id": "tbl-1788803971265-1-796",
+        "zone": "Salón Principal",
+        "shape": "round",
+        "name": "Mesa 7",
+        "capacity": 10,
+        "notes": "Mesa estándar para 10 personas"
+      },
+      {
+        "capacity": 10,
+        "name": "Mesa 8",
+        "notes": "Mesa estándar para 10 personas",
+        "id": "tbl-1788803971265-2-908",
+        "shape": "round",
+        "zone": "Salón Principal"
+      },
+      {
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "id": "tbl-1788803971265-3-811",
+        "shape": "round",
+        "name": "Mesa 9",
+        "notes": "Mesa estándar para 10 personas"
+      },
+      {
+        "shape": "round",
+        "zone": "Salón Principal",
+        "notes": "Mesa estándar para 10 personas",
+        "id": "tbl-1788803971265-4-955",
+        "name": "Mesa 10",
+        "capacity": 10
+      },
+      {
+        "name": "Mesa 11",
+        "notes": "Mesa estándar para 10 personas",
+        "capacity": 10,
+        "id": "tbl-1788803971265-5-642",
+        "shape": "round",
+        "zone": "Salón Principal"
+      },
+      {
+        "name": "Mesa 12",
+        "notes": "Mesa estándar para 10 personas",
+        "id": "tbl-1788803971265-6-585",
+        "zone": "Salón Principal",
+        "shape": "round",
+        "capacity": 10
+      },
+      {
+        "capacity": 10,
+        "zone": "Salón Principal",
+        "id": "tbl-1788803971265-7-696",
+        "shape": "round",
+        "name": "Mesa 13",
+        "notes": "Mesa estándar para 10 personas"
+      },
+      {
+        "zone": "Salón Principal",
+        "id": "tbl-1788803971265-8-106",
+        "shape": "round",
+        "name": "Mesa 14",
+        "notes": "Mesa estándar para 10 personas",
+        "capacity": 10
+      },
+      {
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "shape": "round",
+        "name": "Mesa 15",
+        "notes": "Mesa estándar para 10 personas",
+        "id": "tbl-1788803971265-9-965"
+      },
+      {
+        "shape": "round",
+        "zone": "Salón Principal",
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 16",
+        "id": "tbl-1788803971265-10-516",
+        "capacity": 10
+      }
+    ],
+    "layout": {
+      "width": 1200,
+      "height": 800,
+      "backgroundImage": null
+    },
+    "updatedAt": "2026-09-16T20:59:24.261Z"
+  },
+  "boda-zenaida-ronny-1399": {
+    "weddingId": "boda-zenaida-ronny-1399",
+    "tables": [
+      {
+        "zone": "Pista Central / Escenario",
+        "capacity": 2,
+        "shape": "imperial",
+        "name": "Mesa de Honor",
+        "notes": "Novios, Padres y Padrinos de Honor",
+        "id": "tbl-01"
+      },
+      {
+        "id": "tbl-02",
+        "name": "Mesa 2",
+        "capacity": 10,
+        "notes": "Familia directa y tíos de Alejandro",
+        "zone": "Zona Central",
+        "shape": "round"
+      },
+      {
+        "zone": "Zona Central",
+        "capacity": 10,
+        "shape": "round",
+        "id": "tbl-03",
+        "name": "Mesa 3",
+        "notes": "Familia directa y primos de Sofía"
+      },
+      {
+        "shape": "round",
+        "zone": "Terraza / Jardín",
+        "id": "tbl-04",
+        "notes": "Compañeros de facultad y maestría",
+        "capacity": 10,
+        "name": "Mesa 4"
+      },
+      {
+        "zone": "Terraza / Jardín",
+        "capacity": 10,
+        "shape": "round",
+        "name": "Mesa 5",
+        "notes": "Colegas de trabajo y amigos cercanos",
+        "id": "tbl-05"
+      },
+      {
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "shape": "round",
+        "id": "tbl-06",
+        "name": "Mesa 6",
+        "notes": "Invitados foráneos e internacionales"
+      },
+      {
+        "id": "tbl-1788193509362-471",
+        "shape": "round",
+        "zone": "Salón Principal",
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 7",
+        "capacity": 10
+      },
+      {
+        "capacity": 10,
+        "shape": "round",
+        "zone": "Salón Principal",
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 8",
+        "id": "tbl-1788193563926-553"
+      },
+      {
+        "shape": "round",
+        "zone": "Salón Principal",
+        "notes": "Mesa estándar para 10 personas",
+        "id": "tbl-1788196575688-1-781",
+        "name": "Mesa 9",
+        "capacity": 10
+      },
+      {
+        "shape": "round",
+        "id": "tbl-1788196575688-2-952",
+        "zone": "Salón Principal",
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 10",
+        "capacity": 10
+      },
+      {
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 11",
+        "shape": "round",
+        "id": "tbl-1788196575688-3-433",
+        "capacity": 10,
+        "zone": "Salón Principal"
+      },
+      {
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "shape": "round",
+        "id": "tbl-1788196575688-4-410",
+        "name": "Mesa 12",
+        "notes": "Mesa estándar para 10 personas"
+      },
+      {
+        "shape": "round",
+        "zone": "Salón Principal",
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 13",
+        "capacity": 10,
+        "id": "tbl-1788196575688-5-719"
+      },
+      {
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "id": "tbl-1788196575688-6-617",
+        "shape": "round",
+        "name": "Mesa 14",
+        "notes": "Mesa estándar para 10 personas"
+      },
+      {
+        "id": "tbl-1788196575688-7-473",
+        "zone": "Salón Principal",
+        "name": "Mesa 15",
+        "shape": "round",
+        "notes": "Mesa estándar para 10 personas",
+        "capacity": 10
+      },
+      {
+        "notes": "Mesa estándar para 10 personas",
+        "name": "Mesa 16",
+        "shape": "round",
+        "zone": "Salón Principal",
+        "id": "tbl-1788196575688-8-125",
+        "capacity": 10
+      },
+      {
+        "zone": "Salón Principal",
+        "capacity": 10,
+        "shape": "round",
+        "id": "tbl-1788196575688-9-116",
+        "name": "Mesa 17",
+        "notes": "Mesa estándar para 10 personas"
+      },
+      {
+        "zone": "Zona Central",
+        "shape": "round",
+        "notes": "",
+        "capacity": 10,
+        "id": "tbl-1788238678867-178",
+        "name": "Mesa 1"
+      }
+    ],
+    "layout": {
+      "width": 1200,
+      "height": 800,
+      "backgroundImage": null
+    },
+    "updatedAt": "2026-09-16T20:59:24.261Z"
+  }
+}

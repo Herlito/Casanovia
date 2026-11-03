@@ -1,6 +1,6 @@
 {
-  "summary": "Plan de auditoría y corrección para el error 'TypeError: Cannot read properties of undefined (reading 'canvas')' al hacer clic en la pestaña Plantillas o cargar plantillas guardadas/externas. Normaliza todos los documentos de plantilla asegurando un objeto canvas y estructura segura por defecto.",
-  "updatedAt": "2026-10-15T18:03:10.524842598Z",
+  "summary": "Plan e informe de implementación de Tarjeta Virtual de Invitados, QR Dinámico Inmutable, Recuperación Multi-dispositivo y Sincronización en Tiempo Real para Casanovia.",
+  "updatedAt": "2026-11-03T02:14:27.472285487Z",
   "requestFeedback": true,
   "userFacing": true
 }

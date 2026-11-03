@@ -1,0 +1,63 @@
+{
+  "id": "0919-juanjuana",
+  "coupleNames": "Juan & Juana",
+  "weddingDate": "2026-09-19T12:00:00",
+  "locationSummary": "Arequipa, Fundo Paraíso, Alto Selva Alegre",
+  "status": "planning",
+  "settings": {
+    "coupleNames": "Juan & Juana",
+    "brideName": "Juana",
+    "groomName": "Juan",
+    "weddingDate": "2026-09-19T12:00:00",
+    "weddingTime": "12:00",
+    "locationSummary": "Arequipa, Fundo Paraíso, Alto Selva Alegre",
+    "hasReligiousCeremony": false,
+    "ceremonyVenue": {
+      "name": "Jardines de Sabandía",
+      "address": "Sabandía, Arequipa",
+      "time": "12:00 pm (Puntual)",
+      "googleMapsUrl": "https://maps.google.com/?q=Sabandia+Arequipa",
+      "wazeUrl": "https://waze.com/ul?q=Sabandia+Arequipa",
+      "notes": "Llegada de invitados con antelación."
+    },
+    "receptionVenue": {
+      "name": "Fundo Paraíso",
+      "address": "Alto Selva Alegre",
+      "time": "12:00",
+      "googleMapsUrl": "https://maps.google.com/?q=Alto+Selva+Alegre+Arequipa",
+      "wazeUrl": "https://waze.com/ul?q=Alto+Selva+Alegre+Arequipa",
+      "notes": "Recepción y fiesta."
+    },
+    "romanticQuote": "\"Y recuerda, tal y como estaba escrito, que querer a otra persona es ver la cara de Dios. Querer a alguien y que nos quieran es la sensación más gratificante que podemos sentir los seres humanos\"",
+    "dressCodeStyle": "Rigurosa Etiqueta / Formal Gala",
+    "dressCodeDescription": "Agradecemos vestir atuendo formal para acompañarnos en esta celebración tan especial. Damas: Vestido largo de gala. Caballeros: Traje oscuro o smoking formal.",
+    "suggestedColors": [
+      {
+        "name": "Azul Serenidad",
+        "hex": "#AAC3E3"
+      },
+      {
+        "name": "Azul Medianoche",
+        "hex": "#2C4460"
+      },
+      {
+        "name": "Champagne",
+        "hex": "#D4AF37"
+      },
+      {
+        "name": "Gris Plata",
+        "hex": "#CBD5E1"
+      }
+    ],
+    "rsvpDeadline": "2026-09-10"
+  },
+  "guests": [],
+  "timeline": [],
+  "budget": [],
+  "tasks": [],
+  "tables": [],
+  "vendors": [],
+  "createdAt": "2026-04-01T10:00:00Z",
+  "updatedAt": "2026-09-19T12:00:00Z",
+  "slug": "0919-juanjuana"
+}

@@ -1,0 +1,11 @@
+{
+  "tokens_payment": {
+    "pricePerToken": 1.5,
+    "currency": "USD",
+    "yapeNumber": "+51 952 341 165",
+    "plinNumber": "+51 952 341 165",
+    "bankDetails": "BCP: 215-98765432-0-89 (Soles) | CCI: 002-215-0098765432089-14",
+    "yapeQrUrl": "/qr-yape.png",
+    "plinQrUrl": "/qr-plin.png"
+  }
+}

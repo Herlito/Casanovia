@@ -1,6 +1,7 @@
 import React from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { useSyncedInvitationDesign } from '../../hooks/useSyncedInvitationDesign';
+import { normalizeToCanonicalSlug } from '../../hooks/useSyncedInvitationDesign';
 
 interface WeddingThemeWrapperProps {
   children: React.ReactNode;
@@ -8,8 +9,25 @@ interface WeddingThemeWrapperProps {
 
 export const WeddingThemeWrapper: React.FC<WeddingThemeWrapperProps> = ({ children }) => {
   const { currentWeddingTheme, settings, activeWedding, activeWeddingId } = useWedding();
-  const targetEventId = activeWedding?.id || activeWeddingId || (settings as any)?.id || 'demo_event';
-  const { document: syncedDesign } = useSyncedInvitationDesign(targetEventId);
+  const rawEventId = activeWedding?.id || activeWeddingId || (settings as any)?.id || 'demo_event';
+  const targetEventId = normalizeToCanonicalSlug(rawEventId);
+
+  // Prepare fallbackData with publishedDesign from active wedding object
+  const fallbackData = {
+    eventId: targetEventId,
+    coupleNames: settings?.coupleNames?.includes(' & ')
+      ? (settings.coupleNames.split(' & ') as [string, string])
+      : [settings?.groomName || 'Novio', settings?.brideName || 'Novia'],
+    eventDate: settings?.weddingDate,
+    venueName: settings?.receptionVenue?.name || settings?.ceremonyVenue?.name || 'Salón de Recepciones',
+    venueAddress: settings?.receptionVenue?.address || settings?.ceremonyVenue?.address || '',
+    romanticQuote: settings?.romanticQuote,
+    receptionVenue: settings?.receptionVenue,
+    ceremonyVenue: settings?.ceremonyVenue,
+    publishedDesign: activeWedding?.weddingCraftDesign || (settings as any)?.weddingCraftDesign,
+  };
+
+  const { document: syncedDesign } = useSyncedInvitationDesign(targetEventId, fallbackData);
 
   // Exact canvas width designed in WeddingCraft Design (defaults to 720)
   const canvasWidth = syncedDesign?.canvas?.width || 720;

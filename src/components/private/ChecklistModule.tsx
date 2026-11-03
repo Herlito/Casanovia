@@ -181,36 +181,7 @@ export const ChecklistModule: React.FC = () => {
                 <span className="hidden sm:inline">Desmarcar</span>
               </button>
 
-              {/* Borrar todas */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm('¿Estás seguro de que deseas borrar TODAS las tareas de esta boda?')) {
-                    deleteAllTasks();
-                  }
-                }}
-                title="Borrar todas las tareas de la boda"
-                className="px-3.5 py-2 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-xs font-semibold text-rose-600 hover:text-rose-700 transition-all flex items-center space-x-1.5 cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4 text-rose-600" />
-                <span className="hidden sm:inline">Borrar todas</span>
-              </button>
 
-              {/* Restaurar Lista Maestra */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm('¿Deseas restaurar la lista maestra completa de 6 fases predeterminada para esta boda?')) {
-                    resetTasksToMaster();
-                  }
-                }}
-                title="Restablecer a la lista maestra oficial"
-                className="px-3.5 py-2 rounded-2xl bg-[#EBEBEB] shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] text-xs font-semibold text-gray-700 hover:text-gray-900 transition-all flex items-center space-x-1.5 cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-gray-500" />
-                <span className="hidden sm:inline">Restablecer Maestra</span>
-                <span className="sm:hidden">Reset</span>
-              </button>
 
               {/* Exportar / Importar Excel */}
               <button

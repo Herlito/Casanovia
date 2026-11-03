@@ -177,7 +177,7 @@ export const Navbar: React.FC = () => {
                       type="button"
                       id="nav-btn-public-view"
                       onClick={() => {
-                        if (settings?.hasVirtualInvitation !== true) {
+                        if (settings?.hasVirtualInvitation === false) {
                           showUpgradeNotice(
                             'Invitación virtual deshabilitada',
                             'Este evento no tiene habilitada una "Invitación virtual". Para activar el acceso a la Web de Invitados, ve a la pestaña Ajustes del evento y marca la casilla "Invitación virtual".'

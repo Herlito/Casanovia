@@ -1,0 +1,297 @@
+{
+  "id": "template-luciana-mateo",
+  "name": "Boda Luciana & Mateo (Trujillo)",
+  "author": "Luciana, Mateo & Herly Lizarazo",
+  "createdAt": 1788566400000,
+  "updatedAt": 1789430400000,
+  "document": {
+    "id": "1789482177629",
+    "theme": {
+      "palette": {
+        "accent": "#D4AF37",
+        "text": "#2C241B",
+        "muted": "#8B7355",
+        "background": "#FFFCF5",
+        "secondary": "#F5F5DC",
+        "primary": "#D4AF37"
+      },
+      "name": "Elegancia Clásica",
+      "decorations": {
+        "defaultBorderRadius": "2px"
+      },
+      "typography": {
+        "bodyFont": "Cormorant Garamond",
+        "displayFont": "Playfair Display",
+        "scriptFont": "Great Vibes"
+      },
+      "description": "Dorado y marfil con serif elegantes",
+      "id": "elegancia-clasica"
+    },
+    "pages": [
+      {
+        "id": "cover",
+        "name": "Invitación Digital",
+        "elements": [
+          {
+            "style": {
+              "opacity": 1,
+              "align": "center",
+              "textTransform": "uppercase",
+              "letterSpacing": 4,
+              "color": "#8C8276",
+              "fontSize": 30,
+              "fontFamily": "Montserrat"
+            },
+            "dataBinding": {
+              "field": "headerTag"
+            },
+            "zIndex": 1,
+            "transform": {
+              "width": 335,
+              "x": 192.4999999999999,
+              "y": 84.31130876747142,
+              "rotation": 0,
+              "scaleY": 1,
+              "scaleX": 1,
+              "height": 24
+            },
+            "id": "e0ed991d-f149-4020-ac44-bc7f7db994f3",
+            "visible": true,
+            "locked": false,
+            "content": {
+              "text": "NUESTRA BODA"
+            },
+            "type": "text"
+          },
+          {
+            "style": {
+              "color": "#2D2A26",
+              "fontSize": 65,
+              "fontFamily": "Playfair Display",
+              "align": "center",
+              "lineHeight": 1.15,
+              "opacity": 1
+            },
+            "transform": {
+              "width": 534.0266836086422,
+              "y": 136.22744599745778,
+              "x": 92.98665819567898,
+              "scaleY": 1,
+              "rotation": 0,
+              "height": 74.75,
+              "scaleX": 1
+            },
+            "visible": true,
+            "zIndex": 2,
+            "content": {
+              "text": "Luciana & Mateo"
+            },
+            "dataBinding": {
+              "format": "{{0}} & {{1}}",
+              "field": "coupleNames"
+            },
+            "id": "bc61aa59-7617-4a79-aa57-908e6bf6593e",
+            "type": "text",
+            "locked": false
+          },
+          {
+            "dataBinding": {
+              "field": "romanticQuote"
+            },
+            "transform": {
+              "rotation": 0,
+              "x": 108.46569250317572,
+              "y": 338.5476493011441,
+              "width": 503.06861499364857,
+              "scaleY": 1,
+              "height": 168.75,
+              "scaleX": 1
+            },
+            "style": {
+              "isDefaultStyle": false,
+              "fontStyle": "italic",
+              "fill": "#2e3747",
+              "color": "#6B6358",
+              "align": "center",
+              "lineHeight": 1.35,
+              "opacity": 1,
+              "fontSize": 25,
+              "fontFamily": "Cinzel"
+            },
+            "zIndex": 3,
+            "id": "9b68059a-7258-4f0d-82dc-de1cbd883ed1",
+            "visible": true,
+            "locked": false,
+            "type": "text",
+            "content": {
+              "text": "\"Y recuerda, tal y como estaba escrito, que querer a otra persona es ver la cara de Dios.\nQuerer a alguien y que nos quieran es la sensación más gratificante que podemos sentir los seres humanos\""
+            }
+          },
+          {
+            "dataBinding": {
+              "field": "eventDate"
+            },
+            "style": {
+              "letterSpacing": 2,
+              "align": "center",
+              "fontFamily": "Montserrat",
+              "opacity": 1,
+              "color": "#2D3748",
+              "fontSize": 24
+            },
+            "zIndex": 4,
+            "id": "2057e089-4e68-44d4-9066-8cebadf018f7",
+            "visible": true,
+            "transform": {
+              "scaleY": 1,
+              "width": 471.97585768742437,
+              "rotation": 0,
+              "height": 36,
+              "scaleX": 1,
+              "x": 124.01207115628779,
+              "y": 218.15120711562906
+            },
+            "locked": false,
+            "content": {
+              "text": "SÁBADO, 10 DE JULIO DE 2027"
+            },
+            "type": "text"
+          },
+          {
+            "dataBinding": {
+              "field": "venueName"
+            },
+            "locked": false,
+            "type": "text",
+            "id": "83e0df46-7b40-4688-ba97-7fd8dd6c19f1",
+            "style": {
+              "align": "center",
+              "opacity": 1,
+              "fontSize": 30,
+              "fill": "#2e3747",
+              "fontFamily": "Playfair Display",
+              "isDefaultStyle": false,
+              "color": "#2D2A26"
+            },
+            "visible": true,
+            "content": {
+              "text": "Iglesia San Francisco"
+            },
+            "transform": {
+              "rotation": 0,
+              "width": 335,
+              "scaleY": 1,
+              "y": 275.5463786531131,
+              "x": 192.5,
+              "height": 30,
+              "scaleX": 1
+            },
+            "zIndex": 5
+          },
+          {
+            "type": "countdown-widget",
+            "style": {
+              "titleColor": "#8C8276",
+              "variant": "cards",
+              "opacity": 1,
+              "numberColor": "#2D3748",
+              "backgroundColor": "#FFFFFF",
+              "borderRadius": 16,
+              "labelColor": "#718096"
+            },
+            "transform": {
+              "width": 398.29501134524014,
+              "x": 160.85249432737976,
+              "y": 582.3452939580923,
+              "scaleY": 1,
+              "rotation": 0,
+              "scaleX": 1,
+              "height": 104.16946450567812
+            },
+            "locked": false,
+            "id": "71d4a499-0101-4025-a3fa-4a63e4c44465",
+            "visible": true,
+            "content": {
+              "targetDate": "2027-07-10T18:00:00.000Z",
+              "title": "CUENTA REGRESIVA",
+              "expiredMessage": "¡Llegó el gran día!"
+            },
+            "zIndex": 6
+          },
+          {
+            "type": "interactive-button",
+            "transform": {
+              "scaleY": 1,
+              "y": 747.851334180432,
+              "x": 207.5,
+              "width": 305,
+              "height": 48,
+              "scaleX": 1,
+              "rotation": 0
+            },
+            "locked": false,
+            "visible": true,
+            "style": {
+              "fontSize": 15,
+              "opacity": 1,
+              "borderRadius": 18,
+              "variant": "solid",
+              "backgroundColor": "#2D3748",
+              "fontFamily": "Montserrat",
+              "color": "#FFFFFF"
+            },
+            "content": {
+              "text": "✉️ Confirmar Asistencia",
+              "linkUrl": "#rsvp-section",
+              "actionType": "scroll-to-section"
+            },
+            "id": "fc3081e6-990a-48a6-9b9f-97b2b3414025",
+            "zIndex": 7
+          },
+          {
+            "visible": true,
+            "style": {
+              "fontSize": 14,
+              "color": "#718096",
+              "fontFamily": "Playfair Display",
+              "fontStyle": "italic",
+              "align": "center",
+              "opacity": 1
+            },
+            "id": "dda3b120-9fa6-48be-aa90-4c875ad14714",
+            "content": {
+              "text": "¡Esperamos celebrar este gran día contigo!"
+            },
+            "locked": false,
+            "transform": {
+              "y": 810.081952986023,
+              "scaleY": 1,
+              "x": 192.4999999999999,
+              "width": 335,
+              "height": 35,
+              "scaleX": 1,
+              "rotation": 0
+            },
+            "type": "text",
+            "dataBinding": {
+              "field": "footerGreeting"
+            },
+            "zIndex": 13
+          }
+        ]
+      }
+    ],
+    "parentEventId": "",
+    "metadata": {
+      "lastModified": 1789496166564,
+      "version": "1.0.0",
+      "createdAt": 1789065093854
+    },
+    "canvas": {
+      "width": 720,
+      "height": 1200,
+      "backgroundColor": "#EBEBEB"
+    },
+    "assetReferences": []
+  }
+}

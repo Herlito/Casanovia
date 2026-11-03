@@ -1,0 +1,54 @@
+[
+  {
+    "id": "user-herly",
+    "username": "Herly Lizarazo",
+    "clave": "",
+    "level": 1,
+    "roleTitle": "Director General & Protocolo (Nivel 1 - Super Admin)",
+    "isSystemDefault": true,
+    "createdAt": "2026-01-01T00:00:00Z"
+  },
+  {
+    "id": "user-planner-guest",
+    "username": "Guest Planner",
+    "clave": "",
+    "level": 3,
+    "roleTitle": "Wedding Planner (Nivel 3 - Wedding Planner)",
+    "assignedWeddingIds": [
+      "boda-erika-yemar-6398",
+      "boda-ana-edu-0314"
+    ],
+    "createdWeddingIds": [
+      "boda-erika-yemar-6398",
+      "boda-ana-edu-0314"
+    ],
+    "isSystemDefault": true,
+    "createdAt": "2026-04-01T00:00:00Z"
+  },
+  {
+    "id": "user-zenaida",
+    "username": "Zenaida Anahua",
+    "clave": "",
+    "level": 2,
+    "roleTitle": "Anfitriona de Boda (Nivel 2 - Anfitrión)",
+    "assignedWeddingIds": [
+      "boda-zenaida-ronny-1399"
+    ],
+    "isSystemDefault": true,
+    "createdAt": "2026-08-17T00:00:00Z"
+  },
+  {
+    "id": "user-observador",
+    "username": "Observador Invitado",
+    "clave": "",
+    "level": 5,
+    "roleTitle": "Observador Protocolar (Nivel 5 - Solo Lectura)",
+    "assignedWeddingIds": [
+      "boda-erika-yemar-6398",
+      "boda-ana-edu-0314",
+      "boda-zenaida-ronny-1399"
+    ],
+    "isSystemDefault": true,
+    "createdAt": "2026-09-01T00:00:00Z"
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "id": "template-sofia-alejandro",
+  "name": "Boda Sofía & Alejandro (Editorial Clásico)",
+  "author": "Romina & Herly Lizarazo",
+  "createdAt": 1785542400000,
+  "updatedAt": 1788998400000,
+  "eventId": "boda-sofia-alejandro",
+  "coupleNames": [
+    "Sofía",
+    "Alejandro"
+  ],
+  "venueName": "Parroquia Nuestra Señora del Pilar & Club Campestre",
+  "venueAddress": "San Isidro, Lima"
+}

@@ -1,0 +1,1013 @@
+{
+  "id": "template-erika-yemar",
+  "name": "Erika & Yemar (Jardín Botánico Olive)",
+  "author": "Erika, Yemar & WeddingCraft",
+  "createdAt": 1789915598186,
+  "updatedAt": 1789915598186,
+  "document": {
+    "id": "1128-erikayemar",
+    "parentEventId": "",
+    "metadata": {
+      "createdAt": 1789519772265,
+      "lastModified": 1789913652214,
+      "version": "1.0.0",
+      "title": "Invitación Oficial Ana & Edu"
+    },
+    "canvas": {
+      "width": 720,
+      "height": 2400,
+      "backgroundColor": "#f5f2eb",
+      "webBackgroundColor": "#4e5340",
+      "borderRadius": 0
+    },
+    "theme": {
+      "id": "botanical-olive",
+      "name": "Jardín Botánico Olive",
+      "description": "Verde oliva y marfil con caligrafía elegante",
+      "palette": {
+        "primary": "#4e5340",
+        "secondary": "#7D6F53",
+        "background": "#4e5340",
+        "text": "#2D2A26",
+        "muted": "#7A756C",
+        "accent": "#D4AF37"
+      },
+      "typography": {
+        "displayFont": "Alex Brush",
+        "bodyFont": "Montserrat",
+        "scriptFont": "Alex Brush"
+      },
+      "decorations": {
+        "defaultBorderRadius": "4px"
+      }
+    },
+    "pages": [
+      {
+        "id": "cover",
+        "name": "Invitación Digital",
+        "elements": [
+          {
+            "type": "dress-code-card",
+            "content": {
+              "styleName": "Rigurosa Etiqueta / Formal Gala",
+              "description": "Damas: Vestido largo elegante en tonos de la paleta sugerida. Caballeros: Traje oscuro o smoking formal con corbata o pajarita.",
+              "suggestedColors": [
+                {
+                  "name": "Terracota Cálido",
+                  "hex": "#A65B32",
+                  "description": "Tonos cálidos y elegantes"
+                },
+                {
+                  "name": "Verde Salvia",
+                  "hex": "#6B8065",
+                  "description": "Frescura botánica y sofisticación"
+                },
+                {
+                  "name": "Champagne Dorado",
+                  "hex": "#D4AF37",
+                  "description": "Acentos luminosos y refinados"
+                },
+                {
+                  "name": "Palo de Rosa",
+                  "hex": "#C49A8E",
+                  "description": "Romance y suavidad clásica"
+                },
+                {
+                  "name": "Verde Oliva Profundo",
+                  "hex": "#4E5340",
+                  "description": "Profundidad y máxima elegancia"
+                }
+              ],
+              "badge": "Código de Vestimenta"
+            },
+            "style": {
+              "backgroundColor": "#f5f2eb",
+              "borderColor": "#EADDCE",
+              "titleColor": "#4e5340",
+              "color": "#524B42",
+              "accentColor": "#295b92",
+              "borderRadius": 20,
+              "opacity": 1,
+              "align": "center",
+              "textAlign": "center",
+              "titleFontFamily": "Dancing Script",
+              "fontFamily": "Playfair Display"
+            },
+            "transform": {
+              "x": 138.83303917465204,
+              "y": 1985.2594343271892,
+              "width": 440.19622061192496,
+              "height": 233.59794108231492,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 1,
+            "locked": false,
+            "visible": true,
+            "id": "61a16adf-5fa0-4bcd-9e8c-12d3be824aaa"
+          },
+          {
+            "type": "svg-shape",
+            "content": {
+              "svgPath": ""
+            },
+            "style": {
+              "variant": "rectangle",
+              "fill": "#4e5340",
+              "stroke": "transparent",
+              "strokeWidth": 0,
+              "borderRadius": 0,
+              "opacity": 1
+            },
+            "transform": {
+              "x": 0.48072013430840554,
+              "y": 1129.8438468081524,
+              "width": 719.6125936651579,
+              "height": 225.85233179665525,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 2,
+            "locked": false,
+            "visible": true,
+            "id": "81fb34b2-c863-454e-b0d2-324924bec7c8"
+          },
+          {
+            "type": "svg-shape",
+            "content": {
+              "svgPath": ""
+            },
+            "style": {
+              "variant": "rectangle",
+              "fill": "transparent",
+              "stroke": "#4e5340",
+              "strokeWidth": 3,
+              "borderRadius": 15,
+              "opacity": 1
+            },
+            "transform": {
+              "x": 137.4376219642902,
+              "y": 1699.2902992238871,
+              "width": 445.12475607141886,
+              "height": 208.84682194761248,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 3,
+            "locked": false,
+            "visible": true,
+            "id": "b75383b2-a9e7-42ef-8f62-dee183715564"
+          },
+          {
+            "id": "1789763398744",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_3.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_3_originalSrc.png",
+              "naturalWidth": 270,
+              "naturalHeight": 323,
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_3_unprocessedSrc.png",
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_3.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 100.0997738746052,
+              "y": -26.23888182973146,
+              "width": 497.80045225078936,
+              "height": 595.5168373222417,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 4,
+            "locked": false,
+            "visible": true
+          },
+          {
+            "id": "9fe1b79f-a92e-4041-b45e-d85a3a694632",
+            "type": "text",
+            "content": {
+              "text": "NUESTRA BODA"
+            },
+            "style": {
+              "fontFamily": "Montserrat",
+              "fontSize": 25,
+              "color": "#7A756C",
+              "align": "center",
+              "letterSpacing": 4,
+              "textTransform": "uppercase",
+              "opacity": 1,
+              "fill": "#4178b6",
+              "isDefaultStyle": false
+            },
+            "transform": {
+              "x": 180,
+              "y": 232.2587062620072,
+              "width": 360,
+              "height": 22,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 5,
+            "locked": false,
+            "visible": true,
+            "dataBinding": {
+              "field": "headerTag"
+            }
+          },
+          {
+            "id": "3bd6d5fc-5eaf-4422-a53e-d1a81f5d3f25",
+            "type": "text",
+            "content": {
+              "text": "Erika & Yemar"
+            },
+            "style": {
+              "fontFamily": "Alex Brush",
+              "fontSize": 81,
+              "color": "#2D2A26",
+              "align": "center",
+              "lineHeight": 1.15,
+              "opacity": 1,
+              "fill": "#0c4595",
+              "isDefaultStyle": false
+            },
+            "transform": {
+              "x": 70.00000000000011,
+              "y": 287.65361095458195,
+              "width": 580,
+              "height": 64,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 6,
+            "locked": false,
+            "visible": true,
+            "dataBinding": {
+              "field": "coupleNames"
+            }
+          },
+          {
+            "id": "5dcb6a4a-d7fd-4c02-a743-c35b7d8e2106",
+            "type": "text",
+            "content": {
+              "text": "\"\"DOS VIDAS, UN AMOR, UN MISMO CAMINO JUNTOS POR SIEMPRE.\"\""
+            },
+            "style": {
+              "fontFamily": "Cinzel",
+              "fontStyle": "italic",
+              "fontSize": 18,
+              "color": "#6B6358",
+              "align": "center",
+              "lineHeight": 1.45,
+              "opacity": 1,
+              "isDefaultStyle": false,
+              "fill": "#4479b6"
+            },
+            "transform": {
+              "x": 112.15202845662782,
+              "y": 567.1999492508982,
+              "width": 495.6959430867445,
+              "height": 130.5,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 7,
+            "locked": false,
+            "visible": true,
+            "dataBinding": {
+              "field": "romanticQuote"
+            }
+          },
+          {
+            "id": "c3a8900b-63dd-42c0-8600-ae72180bf950",
+            "type": "text",
+            "content": {
+              "text": "sábado, 28 de noviembre de 2026"
+            },
+            "style": {
+              "fontFamily": "Montserrat",
+              "fontSize": 14,
+              "color": "#2D3748",
+              "align": "center",
+              "letterSpacing": 2,
+              "opacity": 1
+            },
+            "transform": {
+              "x": 198.89724562378063,
+              "y": 383.3694186056666,
+              "width": 322.20550875243873,
+              "height": 21.599999999999998,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 8,
+            "locked": false,
+            "visible": true,
+            "dataBinding": {
+              "field": "eventDate"
+            }
+          },
+          {
+            "id": "b4165186-1733-4358-930e-80f128cff016",
+            "type": "text",
+            "content": {
+              "text": "Fundo Paraíso"
+            },
+            "style": {
+              "fontFamily": "Alex Brush",
+              "fontSize": 38,
+              "color": "#7D6F53",
+              "align": "center",
+              "opacity": 1,
+              "isDefaultStyle": false,
+              "fill": "#5e8bc0"
+            },
+            "transform": {
+              "x": 197.33234157835008,
+              "y": 426.10770075252196,
+              "width": 325.3353168432998,
+              "height": 40.8,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 9,
+            "locked": false,
+            "visible": true,
+            "dataBinding": {
+              "field": "venueName"
+            }
+          },
+          {
+            "id": "ee4f01bb-c371-4328-bf5f-c0b25339fa89",
+            "type": "interactive-button",
+            "content": {
+              "text": "✉️ Confirmar Asistencia",
+              "actionType": "scroll-to-section",
+              "linkUrl": "#rsvp-section"
+            },
+            "style": {
+              "backgroundColor": "#4e5340",
+              "color": "#FFFFFF",
+              "variant": "solid",
+              "borderRadius": 16,
+              "fontSize": 14,
+              "fontFamily": "Montserrat",
+              "opacity": 1
+            },
+            "transform": {
+              "x": 186.39242545437492,
+              "y": 1822.3870223363265,
+              "width": 347.2151490912496,
+              "height": 67.01204744907142,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 10,
+            "locked": false,
+            "visible": true
+          },
+          {
+            "id": "91324006-1b4f-459c-941f-30695b2baad5",
+            "type": "text",
+            "content": {
+              "text": "¡Esperamos celebrar este gran día contigo!"
+            },
+            "style": {
+              "fontFamily": "Cinzel",
+              "fontStyle": "italic",
+              "fontSize": 20,
+              "color": "#f5f2eb",
+              "align": "center",
+              "opacity": 1,
+              "isDefaultStyle": false,
+              "fill": "#295a93"
+            },
+            "transform": {
+              "x": 225.6453076783436,
+              "y": 1279.031849025457,
+              "width": 268.7093846433126,
+              "height": 48,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 11,
+            "locked": false,
+            "visible": true,
+            "dataBinding": {
+              "field": "footerGreeting"
+            }
+          },
+          {
+            "type": "event-reception-card",
+            "content": {
+              "badge": "Recepción & Fiesta",
+              "venueName": "Fundo Paraíso",
+              "time": "12:00",
+              "address": "Alto Selva Alegre",
+              "googleMapsUrl": "https://maps.app.goo.gl/SQJk2WVnQzs1RybA6",
+              "wazeUrl": "https://waze.com/ul?q=Fundo%20Para%C3%ADso%20Alto%20Selva%20Alegre"
+            },
+            "style": {
+              "backgroundColor": "#f5f2eb",
+              "borderColor": "#EADDCE",
+              "titleColor": "#4e5340",
+              "color": "#7D6F53",
+              "accentColor": "#5f8cc0",
+              "borderRadius": 5,
+              "align": "center",
+              "textAlign": "center",
+              "titleFontSize": 28,
+              "titleFontFamily": "Cinzel",
+              "fontFamily": "Montserrat",
+              "bodyFontSize": 20,
+              "opacity": 1
+            },
+            "transform": {
+              "x": 139.15097323359277,
+              "y": 1390.671533535685,
+              "width": 441.6980535328136,
+              "height": 222.1105567318255,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 12,
+            "locked": false,
+            "visible": true,
+            "id": "ae61b063-b075-4445-93b6-8307b88b4ec5"
+          },
+          {
+            "id": "06534b62-5614-4eb2-9d54-82771521b9e8",
+            "type": "countdown-widget",
+            "content": {
+              "targetDate": "2026-11-28T18:00:00.000Z",
+              "title": "CUENTA REGRESIVA",
+              "expiredMessage": "¡Llegó el gran día!",
+              "labels": {
+                "days": "días",
+                "hours": "hrs",
+                "minutes": "min"
+              },
+              "showSeconds": true
+            },
+            "style": {
+              "backgroundColor": "#EBEBEB",
+              "borderColor": "#CBD5E1",
+              "titleColor": "#f5f2eb",
+              "numberColor": "#4e5340",
+              "labelColor": "#6B6358",
+              "numberFont": "Montserrat",
+              "numberSize": 24,
+              "labelSize": 10,
+              "variant": "circles",
+              "borderRadius": 14,
+              "gap": 12,
+              "opacity": 1,
+              "containerOpacity": 0,
+              "containerBackgroundColor": "#565648",
+              "labelFont": "Cinzel"
+            },
+            "transform": {
+              "x": 204.442950520165,
+              "y": 1157.1022501154719,
+              "width": 311.11409895967,
+              "height": 96.90590465731609,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 13,
+            "locked": false,
+            "visible": true
+          },
+          {
+            "id": "1789763626186",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_13.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_13_originalSrc.png",
+              "naturalWidth": 282,
+              "naturalHeight": 342,
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_13_unprocessedSrc.png",
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_13.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 194.65066966701409,
+              "y": 696.4503987153558,
+              "width": 330.6986606659718,
+              "height": 401.0600778289444,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 14,
+            "locked": false,
+            "visible": true
+          },
+          {
+            "id": "1789764022639",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_14.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_14_originalSrc.png",
+              "naturalWidth": 352,
+              "naturalHeight": 116,
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_14_unprocessedSrc.png",
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_14.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 173.64267395229098,
+              "y": 1041.3295976812506,
+              "width": 372.714652095418,
+              "height": 122.82641944053549,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 15,
+            "locked": false,
+            "visible": true
+          },
+          {
+            "id": "1789764113000",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_15.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_15_originalSrc.png",
+              "naturalWidth": 207,
+              "naturalHeight": 395,
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_15_unprocessedSrc.png",
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_15.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 147.55974843428385,
+              "y": 2075.165782670288,
+              "width": 87.12373900603522,
+              "height": 142.73981802980495,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 16,
+            "locked": false,
+            "visible": true
+          },
+          {
+            "id": "1789764318520",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_16.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_16_originalSrc.png",
+              "naturalWidth": 219,
+              "naturalHeight": 199,
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_16_unprocessedSrc.png",
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_16.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 444.09988762144854,
+              "y": 2086.7143702720955,
+              "width": 138.14420517907706,
+              "height": 125.52829603030285,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 17,
+            "locked": false,
+            "visible": true
+          },
+          {
+            "id": "1789764356434",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_17.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_17_originalSrc.png",
+              "naturalWidth": 222,
+              "naturalHeight": 94,
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_17_unprocessedSrc.png",
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_17.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 229.48677701704867,
+              "y": 2262.9353323225664,
+              "width": 261.02644596590284,
+              "height": 110.52471135493214,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 18,
+            "locked": false,
+            "visible": true
+          },
+          {
+            "id": "4aa543d4-8678-483f-8ff9-8beeb2ba5587",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_18.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_18_originalSrc.png",
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_18_unprocessedSrc.png",
+              "naturalWidth": 244,
+              "naturalHeight": 111,
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_18.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 237.99999999999966,
+              "y": 1701.3428973140644,
+              "width": 244,
+              "height": 111,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 19,
+            "visible": true,
+            "locked": false
+          },
+          {
+            "id": "92034094-1c1e-4ab2-a038-a5ba77a50927",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_19.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_19_originalSrc.png",
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_19_unprocessedSrc.png",
+              "naturalWidth": 137,
+              "naturalHeight": 155,
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_19.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": -0.752006694145507,
+              "y": 2244.343446865218,
+              "width": 137,
+              "height": 155,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 20,
+            "visible": true,
+            "locked": false
+          },
+          {
+            "id": "f5861f74-116f-4282-888f-199bdf07b5c7",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_20.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_20_originalSrc.png",
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_20_unprocessedSrc.png",
+              "naturalWidth": 137,
+              "naturalHeight": 155,
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_20.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 582.8672017851057,
+              "y": 2246.3436018222947,
+              "width": 137,
+              "height": 155,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 21,
+            "visible": true,
+            "locked": false
+          },
+          {
+            "id": "1789765333639",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_21.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_21_originalSrc.png",
+              "naturalWidth": 201,
+              "naturalHeight": 359,
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_21_unprocessedSrc.png",
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_21.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 541.8742355985928,
+              "y": 863.782339467714,
+              "width": 177.48286098973222,
+              "height": 316.9967517179791,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 22,
+            "locked": false,
+            "visible": true
+          },
+          {
+            "id": "1789765344662",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_22.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_22_originalSrc.png",
+              "naturalWidth": 201,
+              "naturalHeight": 359,
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_22_unprocessedSrc.png",
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_22.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 0.5540025412954392,
+              "y": 863.722549614025,
+              "width": 177.48286098973222,
+              "height": 316.9967517179791,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 23,
+            "locked": false,
+            "visible": true
+          },
+          {
+            "id": "777215f9-3876-4a9a-9421-15bfa9bbd03b",
+            "type": "image",
+            "content": {
+              "src": "/assets/weddingcraft/0919-anaedu/element_23.png",
+              "originalSrc": "/assets/weddingcraft/0919-anaedu/element_23_originalSrc.png",
+              "unprocessedSrc": "/assets/weddingcraft/0919-anaedu/element_23_unprocessedSrc.png",
+              "naturalWidth": 137,
+              "naturalHeight": 155,
+              "isTransparent": true,
+              "bgRemovalTolerance": 10,
+              "bgRemovalHalo": 0,
+              "bgRemovalSmooth": true,
+              "url": "/assets/weddingcraft/0919-anaedu/element_23.png"
+            },
+            "style": {
+              "maskId": null,
+              "frameId": null,
+              "objectFit": "cover",
+              "cropX": 0,
+              "cropY": 0,
+              "cropScale": 1,
+              "filters": {
+                "brightness": 100,
+                "contrast": 100,
+                "saturate": 100,
+                "grayscale": 0,
+                "blur": 0,
+                "sepia": 0
+              },
+              "opacity": 1
+            },
+            "transform": {
+              "x": 313.0475156215023,
+              "y": 1599.5162477123831,
+              "width": 93.90496875699507,
+              "height": 106.24284786375362,
+              "rotation": 0,
+              "scaleX": 1,
+              "scaleY": 1
+            },
+            "zIndex": 24,
+            "visible": true,
+            "locked": false
+          }
+        ]
+      }
+    ],
+    "assetReferences": []
+  }
+}

@@ -22,6 +22,9 @@ const KNOWN_DATES: Record<string, string> = {
   sofiat: '0918',
   valeriasantiago: '0213',
   delecapy: '0110',
+  jhonanabell: '1212',
+  sofiaalejandro: '0919',
+  valentinamateo: '0710',
 };
 
 export function sanitizeEventNameForSlug(name: string): string {
@@ -143,5 +146,80 @@ export function getCanonicalEventKey(w: any): string {
   const cleanName = sanitizeEventNameForSlug(couple);
   if (!cleanName) return (w.id || '').toLowerCase();
   return generateEventSlug(couple, date).toLowerCase();
+}
+
+/**
+ * Normaliza cualquier formato de eventId al slug canónico único: MMDD-nombreevento
+ * Regla: Mismo formato unificado para WeddingCraft, Web Invitados y Copiar Link.
+ * Ejemplos:
+ * - "1128-erikayemar" -> "1128-erikayemar"
+ * - "boda-1128-erikayemar" -> "1128-erikayemar"
+ * - "7boda-1128-erikayemar" -> "1128-erikayemar"
+ * - "erikayemar" -> "1128-erikayemar"
+ * - "1212-jhonanabell" -> "1212-jhonanabell"
+ * - "boda-jhonanabell" -> "1212-jhonanabell"
+ */
+export function normalizeToCanonicalSlug(
+  eventId?: string | null,
+  wedding?: { id?: string; coupleNames?: string; weddingDate?: string; settings?: { weddingDate?: string; coupleNames?: string } } | null
+): string {
+  if (!eventId) {
+    if (wedding?.id && !wedding.id.startsWith('boda-')) {
+      return normalizeToCanonicalSlug(wedding.id, wedding);
+    }
+    if (wedding?.coupleNames) {
+      return generateEventSlug(wedding.coupleNames, wedding.weddingDate || wedding.settings?.weddingDate);
+    }
+    return '0919-juanjuana';
+  }
+
+  let clean = eventId
+    .toLowerCase()
+    .trim()
+    .replace(/^(\d+)boda-/i, '')
+    .replace(/^boda-/i, '')
+    .replace(/^wedding-/i, '')
+    .trim();
+
+  // 1. If already in canonical MMDD-name format (4 digits, dash, lowercase letters): e.g. "1128-erikayemar"
+  const mmddMatch = clean.match(/^(\d{4})-([a-z0-9]+)$/);
+  if (mmddMatch) {
+    return clean;
+  }
+
+  // 2. If it has year or counter suffix after canonical format: e.g. "1128-erikayemar-2026"
+  const mmddSuffixMatch = clean.match(/^(\d{4})-([a-z0-9]+)(-\d+)+$/);
+  if (mmddSuffixMatch) {
+    return `${mmddSuffixMatch[1]}-${mmddSuffixMatch[2]}`;
+  }
+
+  // 3. If it has underscore: "1128_erikayemar"
+  const mmddUnderscore = clean.match(/^(\d{4})_([a-z0-9]+)$/);
+  if (mmddUnderscore) {
+    return `${mmddUnderscore[1]}-${mmddUnderscore[2]}`;
+  }
+
+  // 4. Clean name without prefixes or random trailing numbers
+  const cleanName = sanitizeEventNameForSlug(clean);
+
+  // Check known wedding date dictionary
+  if (KNOWN_DATES[cleanName]) {
+    return `${KNOWN_DATES[cleanName]}-${cleanName}`;
+  }
+
+  // Check wedding date if passed or available
+  const dateStr = wedding?.weddingDate || wedding?.settings?.weddingDate;
+  if (dateStr) {
+    const { mm, dd } = extractEventDateParts(dateStr);
+    return `${mm}${dd}-${cleanName}`;
+  }
+
+  // Fallback from coupleNames
+  if (wedding?.coupleNames || wedding?.settings?.coupleNames) {
+    const names = wedding.coupleNames || wedding.settings?.coupleNames || '';
+    return generateEventSlug(names, dateStr);
+  }
+
+  return cleanName;
 }
 

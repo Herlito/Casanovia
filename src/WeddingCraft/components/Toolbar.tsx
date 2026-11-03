@@ -2,18 +2,19 @@ import React, { useState } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
 import { useWedding } from '../../context/WeddingContext';
 import { downloadHTML } from '../lib/exportHTML';
-import { 
-  Save, 
-  FilePlus, 
-  Download, 
-  Undo2, 
-  Redo2, 
-  ArrowUpToLine, 
-  ArrowUp, 
-  ArrowDown, 
-  ArrowDownToLine, 
-  Copy, 
-  Boxes, 
+import { clearPublishedDesignsCache } from '../store/useEditorStore';
+import {
+  Save,
+  FilePlus,
+  Download,
+  Undo2,
+  Redo2,
+  ArrowUpToLine,
+  ArrowUp,
+  ArrowDown,
+  ArrowDownToLine,
+  Copy,
+  Boxes,
   Ungroup,
   BookmarkPlus,
   Check,
@@ -21,7 +22,8 @@ import {
   Globe,
   Heart,
   ChevronDown,
-  RefreshCw
+  RefreshCw,
+  Trash2
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -32,6 +34,7 @@ export const Toolbar: React.FC = () => {
   const [justPublished, setJustPublished] = useState(false);
   const [isLoadingWeb, setIsLoadingWeb] = useState(false);
   const [justLoadedWeb, setJustLoadedWeb] = useState(false);
+  const [isClearingCache, setIsClearingCache] = useState(false);
 
   const { activeWedding, accessibleWeddings, selectWedding } = useWedding();
 
@@ -221,7 +224,7 @@ export const Toolbar: React.FC = () => {
 
       <div className="flex items-center space-x-2.5">
         {/* Cargar Web Invitados */}
-        <button 
+        <button
           onClick={async () => {
             setIsLoadingWeb(true);
             try {
@@ -234,9 +237,9 @@ export const Toolbar: React.FC = () => {
           }}
           disabled={isLoadingWeb}
           className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-2xl transition-all text-xs font-bold ${
-            justLoadedWeb 
-              ? 'bg-amber-600 text-white shadow-[inset_4px_4px_8px_#b45309]' 
-              : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-amber-800 hover:text-amber-900'
+            justLoadedWeb
+              ? 'bg-amber-600 text-white shadow-[inset_4px_4px_8px_#b45309]'
+              : 'bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_-12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-amber-800 hover:text-amber-900'
           }`}
           title="Cargar la Web de Invitados actual en el lienzo para editarla"
         >
@@ -248,6 +251,40 @@ export const Toolbar: React.FC = () => {
             <RefreshCw className="w-4 h-4 text-amber-700" />
           )}
           <span>{isLoadingWeb ? 'Cargando...' : justLoadedWeb ? '¡Cargada!' : 'Cargar Web Invitados'}</span>
+        </button>
+
+        {/* Limpiar Caché */}
+        <button
+          onClick={async () => {
+            const confirmed = window.confirm(
+              '¿Limpiar TODA la caché de diseños publicados?\n\nEsto borrará:\n- Todos los diseños en localStorage\n- Todos los diseños en IndexedDB\n\nPodrás volver a publicar los diseños desde WeddingCraft.\n\n¿Continuar?'
+            );
+            if (confirmed) {
+              setIsClearingCache(true);
+              try {
+                const result = await clearPublishedDesignsCache();
+                if (result.success) {
+                  alert(`Caché limpiado:\n- ${result.clearedLocalStorage} entradas de localStorage\n- IndexedDB completamente limpiado`);
+                } else {
+                  alert('Error al limpiar caché. Verifica la consola.');
+                }
+              } finally {
+                setIsClearingCache(false);
+              }
+            }
+          }}
+          disabled={isClearingCache}
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[12px_12px_24px_#c8c8c8,-12px_-12px_24px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] rounded-2xl transition-all text-xs font-bold ${
+            isClearingCache ? 'text-gray-400' : 'text-rose-700 hover:text-rose-900'
+          }`}
+          title="Limpiar TODA la caché de diseños (localStorage + IndexedDB)"
+        >
+          {isClearingCache ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Trash2 className="w-4 h-4 text-rose-600" />
+          )}
+          <span className="hidden sm:inline">Limpiar Caché</span>
         </button>
 
         {/* Nueva Plantilla */}

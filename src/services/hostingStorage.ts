@@ -9,6 +9,7 @@ import { Wedding, SystemUser } from '../types';
 import { WeddingDesignDocument } from '../WeddingCraft/types';
 import { TemplateItem } from '../WeddingCraft/store/useEditorStore';
 import { LibraryItem } from '../WeddingCraft/lib/libraryService';
+import { normalizeToCanonicalSlug } from '../hooks/useSyncedInvitationDesign';
 
 const API_BASE = '/api';
 
@@ -123,25 +124,57 @@ export async function savePublishedDesignToHosting(
   weddingId: string,
   document: WeddingDesignDocument
 ): Promise<boolean> {
+  // CRITICAL: Normalize weddingId to canonicalSlug for consistent storage
+  const canonicalSlug = normalizeToCanonicalSlug(weddingId);
+  console.log('[HostingStorage] savePublishedDesignToHosting - Original:', weddingId, 'Canonical:', canonicalSlug);
+
   const cleanDoc = sanitizeData(document);
 
-  // 1. Local Cache in IndexedDB and LocalStorage (with redundant aliases)
+  // 1. AGGRESSIVE CACHE CLEANUP - Remove ALL old published designs
   try {
-    await idbSet(`weddingcraft_design_${weddingId}`, cleanDoc);
-    await idbSet(`weddingcraft_published_${weddingId}`, cleanDoc);
-    await idbSet(`casanovia_published_design_${weddingId}`, cleanDoc);
-    localStorage.setItem(`weddingcraft_published_${weddingId}`, JSON.stringify(cleanDoc));
-    localStorage.setItem(`casanovia_published_design_${weddingId}`, JSON.stringify(cleanDoc));
+    const allKeys = Object.keys(localStorage);
+    const keysToRemove = allKeys.filter(k =>
+      k.startsWith('weddingcraft_published_') ||
+      k.startsWith('casanovia_published_design_') ||
+      k.startsWith('wedding_design_draft_')
+    );
+    keysToRemove.forEach(key => {
+      try {
+        localStorage.removeItem(key);
+      } catch {}
+    });
+    console.log('[HostingStorage] Cleaned', keysToRemove.length, 'old cache entries');
+  } catch {}
+
+  // 2. Save to IndexedDB FIRST (primary storage - much larger limit) using canonicalSlug
+  try {
+    await idbSet(`weddingcraft_design_${canonicalSlug}`, cleanDoc);
+    await idbSet(`weddingcraft_published_${canonicalSlug}`, cleanDoc);
+    await idbSet(`casanovia_published_design_${canonicalSlug}`, cleanDoc);
+    console.log('[HostingStorage] Saved to IndexedDB with canonical slug:', canonicalSlug);
   } catch (e) {
-    console.warn('[HostingStorage] Local design cache error:', e);
+    console.error('[HostingStorage] Error saving to IndexedDB:', e);
   }
 
-  // 2. Persist to Hosting Backend (Primary & Full Domain Fallback)
+  // 3. Try to save minimal metadata to localStorage (not full document)
+  try {
+    const minimalMetadata = {
+      parentEventId: cleanDoc.parentEventId,
+      lastModified: cleanDoc.metadata?.lastModified,
+      version: cleanDoc.metadata?.version,
+      hasElements: Boolean(cleanDoc.pages?.[0]?.elements?.length)
+    };
+    localStorage.setItem(`weddingcraft_published_${canonicalSlug}_meta`, JSON.stringify(minimalMetadata));
+  } catch (e) {
+    console.warn('[HostingStorage] Cannot save metadata to localStorage:', e);
+  }
+
+  // 4. Persist to Hosting Backend (Primary & Full Domain Fallback) using canonicalSlug
   const payload = {
     action: 'publish',
-    id: `wc_${weddingId}`,
-    weddingId,
-    wedding_id: weddingId,
+    id: `wc_${canonicalSlug}`,
+    weddingId: canonicalSlug,
+    wedding_id: canonicalSlug,
     isPublished: true,
     is_published: 1,
     document: cleanDoc
@@ -176,12 +209,76 @@ export async function savePublishedDesignToHosting(
 export async function fetchPublishedDesignFromHosting(
   weddingId: string
 ): Promise<WeddingDesignDocument | null> {
+  // CRITICAL: Normalize weddingId to canonicalSlug for consistent storage
+  const canonicalSlug = normalizeToCanonicalSlug(weddingId);
+  console.log('[HostingStorage] fetchPublishedDesignFromHosting - Original:', weddingId, 'Canonical:', canonicalSlug);
+
+  // 1. Check IndexedDB FIRST (primary storage) - Try canonicalSlug first, then original for compatibility
+  try {
+    const cached = (await idbGet<WeddingDesignDocument>(`weddingcraft_published_${canonicalSlug}`)) ||
+                   (await idbGet<WeddingDesignDocument>(`weddingcraft_design_${canonicalSlug}`)) ||
+                   (await idbGet<WeddingDesignDocument>(`casanovia_published_design_${canonicalSlug}`));
+    if (cached?.pages?.[0]?.elements?.length) {
+      console.log('[HostingStorage] Found in IndexedDB with canonical slug:', canonicalSlug);
+      return cached;
+    }
+
+    // Fallback: Try with original weddingId for backward compatibility with old documents
+    if (weddingId !== canonicalSlug) {
+      const oldCached = (await idbGet<WeddingDesignDocument>(`weddingcraft_published_${weddingId}`)) ||
+                        (await idbGet<WeddingDesignDocument>(`weddingcraft_design_${weddingId}`)) ||
+                        (await idbGet<WeddingDesignDocument>(`casanovia_published_design_${weddingId}`));
+      if (oldCached?.pages?.[0]?.elements?.length) {
+        console.log('[HostingStorage] Found in IndexedDB with old key:', weddingId, '- migrating to canonical:', canonicalSlug);
+        // Migrate to canonical key for future consistency
+        try {
+          await idbSet(`weddingcraft_published_${canonicalSlug}`, oldCached);
+          await idbSet(`weddingcraft_design_${canonicalSlug}`, oldCached);
+          await idbSet(`casanovia_published_design_${canonicalSlug}`, oldCached);
+        } catch (e) {
+          console.warn('[HostingStorage] Migration to canonical key failed:', e);
+        }
+        return oldCached;
+      }
+    }
+  } catch (e) {
+    console.error('[HostingStorage] IndexedDB error:', e);
+  }
+
+  // 2. Fallback to LocalStorage (may have old full documents) - Try canonicalSlug first
+  try {
+    const raw = localStorage.getItem(`weddingcraft_published_${canonicalSlug}`) ||
+                localStorage.getItem(`casanovia_published_design_${canonicalSlug}`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.pages?.[0]?.elements?.length) {
+        console.log('[HostingStorage] Found in localStorage with canonical slug:', canonicalSlug);
+        return parsed;
+      }
+    }
+
+    // Fallback: Try with original weddingId for backward compatibility
+    if (weddingId !== canonicalSlug) {
+      const oldRaw = localStorage.getItem(`weddingcraft_published_${weddingId}`) ||
+                    localStorage.getItem(`casanovia_published_design_${weddingId}`);
+      if (oldRaw) {
+        const parsed = JSON.parse(oldRaw);
+        if (parsed?.pages?.[0]?.elements?.length) {
+          console.log('[HostingStorage] Found in localStorage with old key:', weddingId);
+          return parsed;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[HostingStorage] localStorage error:', e);
+  }
+
+  // 3. Try Hosting Backend API (production only) - Use canonicalSlug
   const endpoints = Array.from(new Set([
-    `${getApiEndpoint('/weddingcraft.php')}?wedding_id=${encodeURIComponent(weddingId)}&published=1`,
-    `https://www.casanovia.pe/api/weddingcraft.php?wedding_id=${encodeURIComponent(weddingId)}&published=1`
+    `${getApiEndpoint('/weddingcraft.php')}?wedding_id=${encodeURIComponent(canonicalSlug)}&published=1`,
+    `https://www.casanovia.pe/api/weddingcraft.php?wedding_id=${encodeURIComponent(canonicalSlug)}&published=1`
   ]));
 
-  // 1. Try Hosting Backend API
   for (const ep of endpoints) {
     try {
       const res = await fetch(ep);
@@ -190,38 +287,20 @@ export async function fetchPublishedDesignFromHosting(
         if (data && data.success && data.design) {
           const doc = data.design.document || data.design.document_json || data.design;
           if (doc && (doc.pages?.[0]?.elements?.length || doc.elements?.length)) {
-            // Refresh local cache
+            console.log('[HostingStorage] Found in hosting backend with canonical slug:', canonicalSlug);
+            // Refresh local cache in IndexedDB with canonical key
             try {
-              await idbSet(`weddingcraft_design_${weddingId}`, doc);
-              await idbSet(`weddingcraft_published_${weddingId}`, doc);
-              localStorage.setItem(`weddingcraft_published_${weddingId}`, JSON.stringify(doc));
+              await idbSet(`weddingcraft_design_${canonicalSlug}`, doc);
+              await idbSet(`weddingcraft_published_${canonicalSlug}`, doc);
             } catch {}
             return doc as WeddingDesignDocument;
           }
         }
       }
     } catch (err) {
-      console.info('[HostingStorage] Fetching published design fallback attempt:', err);
+      console.info('[HostingStorage] Backend fetch error (expected in development):', err);
     }
   }
-
-  // 2. Fallback to Local IndexedDB
-  try {
-    const cached = (await idbGet<WeddingDesignDocument>(`weddingcraft_published_${weddingId}`)) || 
-                   (await idbGet<WeddingDesignDocument>(`weddingcraft_design_${weddingId}`)) || 
-                   (await idbGet<WeddingDesignDocument>(`casanovia_published_design_${weddingId}`));
-    if (cached?.pages?.[0]?.elements?.length) return cached;
-  } catch {}
-
-  // 3. Fallback to LocalStorage
-  try {
-    const raw = localStorage.getItem(`weddingcraft_published_${weddingId}`) || 
-                localStorage.getItem(`casanovia_published_design_${weddingId}`);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed?.pages?.[0]?.elements?.length) return parsed;
-    }
-  } catch {}
 
   return null;
 }
@@ -493,8 +572,16 @@ export async function saveUsersBulkToHosting(users: any[]): Promise<boolean> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'save_users_bulk', users: sanitizeData(users) })
     });
+    // Silently ignore 404 in development (localhost)
+    if (res.status === 404 && typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      return false;
+    }
     return res.ok;
-  } catch {
+  } catch (err) {
+    // Silently ignore network errors in development
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      return false;
+    }
     return false;
   }
 }

@@ -623,3 +623,41 @@ export interface WeddingFloorPlan {
   updatedBy?: string;
 }
 
+// -------------------------------------------------------------
+// Digital Guest Pass & Dynamic QR Types
+// -------------------------------------------------------------
+export type DigitalPassAccessStatus = 'active' | 'used' | 'revoked';
+
+export type QrDisplayWindowStatus = 'upcoming' | 'active' | 'expired';
+
+export interface DigitalGuestPass {
+  id: string;                      // Identificador único del pase digital
+  weddingId: string;               // ID o slug de la boda asociada
+  guestId: string;                 // ID del invitado en la lista de la boda
+  guestCode: string;               // Código del invitado (e.g. "BODA-CARL-01")
+  qrToken: string;                 // Token criptográfico inmutable, único y opaco
+  guestFullName: string;           // Nombre del invitado principal
+  totalPasses: number;             // Pases totales asignados
+  confirmedPasses: number;         // Pases confirmados en el RSVP
+  companionNames: string[];        // Lista de acompañantes registrados
+  assignedTable?: string;          // Mesa asignada (ej: "Mesa 4", solo si existe)
+  assignedSeat?: string;           // Asiento asignado (ej: "Silla 2", solo si existe)
+  deviceMarker?: string;           // Marcador seguro del dispositivo autorizado
+  usedPasses: number;              // Número de pases ya validados en puerta
+  accessStatus: DigitalPassAccessStatus; // Estado de control de acceso
+  validFrom?: string;              // Fecha/hora ISO inicio de activación del QR
+  validUntil?: string;             // Fecha/hora ISO fin de activación del QR
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DigitalPassValidationResult {
+  valid: boolean;
+  message: string;
+  code: 'OK' | 'EXPIRED' | 'UPCOMING' | 'QUOTA_EXCEEDED' | 'REVOKED' | 'NOT_FOUND' | 'INVALID_WEDDING';
+  pass?: DigitalGuestPass;
+  weddingTitle?: string;
+  availablePasses?: number;
+}
+

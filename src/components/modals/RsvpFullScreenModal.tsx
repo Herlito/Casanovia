@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useWedding } from '../../context/WeddingContext';
-import { RsvpStatus } from '../../types';
+import { RsvpStatus, DigitalGuestPass as DigitalGuestPassType } from '../../types';
+import { getOrCreateDigitalGuestPass, recoverPassByDeviceMarker } from '../../services/digitalPassService';
+import { DigitalGuestPass } from '../public/DigitalGuestPass';
+import { GuestPassRecoveryModal } from '../public/GuestPassRecoveryModal';
 import { isRsvpDeadlinePassed, formatRsvpCutoffDate, formatRsvpDeadline } from '../../lib/dateUtils';
 import { 
   Heart, 
@@ -15,7 +18,9 @@ import {
   X,
   CalendarCheck,
   Check,
-  Music
+  Music,
+  QrCode,
+  KeyRound
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -33,8 +38,13 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
     setSelectedGuestForGuide,
     addGuest,
     updateGuest,
-    deleteGuest
+    deleteGuest,
+    activeWedding,
+    weddings,
+    activeWeddingId
   } = useWedding();
+
+  const currentWedding = activeWedding || weddings.find(w => w.id === activeWeddingId);
 
   const [fullName, setFullName] = useState('');
   const [invitationCode, setInvitationCode] = useState('');
@@ -50,6 +60,9 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [generatedPass, setGeneratedPass] = useState<DigitalGuestPassType | null>(null);
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+  const [deviceExistingPass, setDeviceExistingPass] = useState<DigitalGuestPassType | null>(null);
   const [submissionFeedback, setSubmissionFeedback] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -72,11 +85,21 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
     document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleKeyDown);
 
+    // Automatic check for existing pass on this device for the current wedding
+    const wid = currentWedding?.id || activeWeddingId || '';
+    if (wid) {
+      recoverPassByDeviceMarker(wid).then((recovered) => {
+        if (recovered) {
+          setDeviceExistingPass(recovered);
+        }
+      }).catch(() => {});
+    }
+
     return () => {
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, currentWedding?.id, activeWeddingId]);
 
   // Sync with selectedGuestForGuide when set elsewhere in the app
   useEffect(() => {
@@ -282,6 +305,21 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
           }
         }
 
+        // Generate or retrieve digital guest pass idempotently
+        if (rsvpStatus === 'confirmed' && result.guest && currentWedding) {
+          try {
+            const pass = await getOrCreateDigitalGuestPass(
+              currentWedding,
+              result.guest,
+              companionNames.filter(Boolean)
+            );
+            setGeneratedPass(pass);
+            setDeviceExistingPass(pass);
+          } catch (passErr) {
+            console.warn('Error generating digital pass:', passErr);
+          }
+        }
+
         setIsSuccess(true);
         setSubmissionFeedback({
           type: 'success',
@@ -373,51 +411,124 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
 
           {/* Success State View */}
           {isSuccess ? (
-            <div className="bg-[#EBEBEB] rounded-[2.5rem] p-8 sm:p-12 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] text-center space-y-6 animate-fadeIn">
-              <div className="w-20 h-20 mx-auto rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center justify-center text-emerald-600">
-                <CheckCircle2 className="w-10 h-10" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  {rsvpStatus === 'confirmed' ? '¡Asistencia Confirmada!' : 'Respuesta Registrada'}
-                </h3>
-                <p className="text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
-                  {rsvpStatus === 'confirmed'
-                    ? `Muchas gracias, ${fullName}. Tu asistencia (${confirmedPasses} ${confirmedPasses === 1 ? 'pase' : 'pases'}) ha sido confirmada en tiempo real.`
-                    : `Gracias por notificarnos, ${fullName}. Lamentamos que no puedas asistir, pero llevaremos tu cariño en nuestros corazones.`}
-                </p>
-              </div>
+            <div className="animate-fadeIn">
+              {rsvpStatus === 'confirmed' && generatedPass && currentWedding ? (
+                <div className="space-y-4">
+                  <div className="text-center mb-2">
+                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 font-serif">
+                      ¡Tu Asistencia está Confirmada!
+                    </h3>
+                    <p className="text-xs text-gray-500 max-w-md mx-auto mt-1">
+                      Aquí tienes tu tarjeta virtual de acceso individual. Se mantendrá vinculada a tu dispositivo.
+                    </p>
+                  </div>
 
-              {message && (
-                <div className="p-4 rounded-2xl bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-xs text-gray-700 italic max-w-md mx-auto">
-                  "{message}"
+                  <DigitalGuestPass
+                    pass={generatedPass}
+                    wedding={currentWedding}
+                    onClose={onClose}
+                    showCloseButton={true}
+                  />
+
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSuccess(false);
+                        setSubmissionFeedback(null);
+                      }}
+                      className="text-xs font-semibold text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+                    >
+                      ← Modificar o registrar otra respuesta
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-[#EBEBEB] rounded-[2.5rem] p-8 sm:p-12 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] text-center space-y-6">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] flex items-center justify-center text-gray-600">
+                    <CheckCircle2 className="w-10 h-10" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                      Respuesta Registrada
+                    </h3>
+                    <p className="text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
+                      Gracias por notificarnos, {fullName}. Lamentamos que no puedas asistir, pero llevaremos tu cariño en nuestros corazones.
+                    </p>
+                  </div>
+
+                  {message && (
+                    <div className="p-4 rounded-2xl bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-xs text-gray-700 italic max-w-md mx-auto">
+                      "{message}"
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-6 py-3.5 rounded-2xl bg-[#EBEBEB] text-gray-900 font-bold text-xs uppercase tracking-wider shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all cursor-pointer"
+                    >
+                      Volver a la Invitación
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSuccess(false);
+                        setSubmissionFeedback(null);
+                      }}
+                      className="px-6 py-3.5 rounded-2xl bg-[#EBEBEB] text-gray-600 font-semibold text-xs transition-all hover:text-gray-900 cursor-pointer"
+                    >
+                      Modificar otra respuesta
+                    </button>
+                  </div>
                 </div>
               )}
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-6 py-3.5 rounded-2xl bg-[#EBEBEB] text-gray-900 font-bold text-xs uppercase tracking-wider shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all cursor-pointer"
-                >
-                  Volver a la Invitación
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSuccess(false);
-                    setSubmissionFeedback(null);
-                  }}
-                  className="px-6 py-3.5 rounded-2xl bg-[#EBEBEB] text-gray-600 font-semibold text-xs transition-all hover:text-gray-900 cursor-pointer"
-                >
-                  Modificar otra respuesta
-                </button>
-              </div>
             </div>
           ) : (
             /* Neumorphic Form Container */
             <div className="bg-[#EBEBEB] rounded-[2.5rem] p-6 sm:p-10 shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] relative">
               
+              {/* Already Confirmed Banner on this Device */}
+              {deviceExistingPass && (
+                <div className="mb-6 p-4 rounded-2xl bg-amber-50/90 border border-amber-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn text-xs">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-800 shrink-0">
+                      <QrCode className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">¡Hola, {deviceExistingPass.guestFullName}!</p>
+                      <p className="text-gray-600 text-[11px]">Ya tienes una asistencia confirmada en este dispositivo ({deviceExistingPass.confirmedPasses} {deviceExistingPass.confirmedPasses === 1 ? 'pase' : 'pases'}).</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGeneratedPass(deviceExistingPass);
+                      setIsSuccess(true);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-amber-800 text-white font-bold text-xs shadow-xs hover:bg-amber-900 transition-colors cursor-pointer shrink-0"
+                  >
+                    Ver Mi Pase Virtual
+                  </button>
+                </div>
+              )}
+
+              {/* Cross-device recovery access button */}
+              <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-2.5 p-3.5 rounded-2xl bg-[#EBEBEB] shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff]">
+                <div className="flex items-center space-x-2 text-xs text-gray-600">
+                  <KeyRound className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span className="font-medium">¿Ya confirmaste? Ingresa tu código de invitado</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRecoveryModal(true)}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#EBEBEB] text-gray-800 text-xs font-bold shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] transition-all cursor-pointer whitespace-nowrap"
+                >
+                  Recuperar Mi Tarjeta
+                </button>
+              </div>
+
               {/* Active Protocol Participant Notice */}
               {selectedGuestForGuide?.isProtocolParticipant && (
                 <div className="mb-6 p-4 rounded-2xl bg-[#EBEBEB] shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] flex items-center justify-between text-xs">
@@ -694,6 +805,18 @@ export const RsvpFullScreenModal: React.FC<RsvpFullScreenModalProps> = ({ isOpen
 
         </div>
       </div>
+
+      {/* Guest Pass Cross-Device Recovery Modal */}
+      <GuestPassRecoveryModal
+        isOpen={showRecoveryModal}
+        onClose={() => setShowRecoveryModal(false)}
+        onPassRecovered={(recovered) => {
+          setGeneratedPass(recovered);
+          setDeviceExistingPass(recovered);
+          setIsSuccess(true);
+        }}
+      />
     </div>
   );
 };
+

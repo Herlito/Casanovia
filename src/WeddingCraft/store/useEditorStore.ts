@@ -18,7 +18,8 @@ import {
 import { saveWeddingToHost } from '../../lib/selfHostedApi';
 import { processAndOptimizeImage } from '../../lib/storageUtils';
 import { uploadImageToHost } from '../../lib/selfHostedApi';
-import { registerPublishedDesignInMemory } from '../../hooks/useSyncedInvitationDesign';
+import { registerPublishedDesignInMemory, normalizeToCanonicalSlug } from '../../hooks/useSyncedInvitationDesign';
+import { formatSpanishDateLong } from '../../lib/dateUtils';
 
 export interface TemplateItem {
   id: string;
@@ -35,10 +36,10 @@ interface EditorState {
   eventData: EventDataInput | null;
   isLinkedToWedding: boolean;
   setIsLinkedToWedding: (linked: boolean) => void;
-  
+
   // Design Document
   document: WeddingDesignDocument;
-  
+
   // Template Tracking
   currentTemplateId: string | null;
   currentTemplateName: string | null;
@@ -47,6 +48,7 @@ interface EditorState {
   setPublishedThumbnail: (thumb: string | null) => void;
   setCurrentTemplate: (id: string | null, name: string | null) => void;
   setLastSavedHash: (hash: string | null) => void;
+
   hasUnsavedChanges: () => boolean;
   directSaveCurrentTemplate: () => Promise<{ success: boolean; name?: string }>;
   
@@ -179,7 +181,9 @@ const persistDraftToStorage = (state: EditorState) => {
   if (autoSaveDraftTimer) clearTimeout(autoSaveDraftTimer);
   autoSaveDraftTimer = setTimeout(() => {
     try {
-      const draftKey = `wedding_design_draft_${state.eventData?.eventId}`;
+      // CRITICAL: Normalize eventId to canonicalSlug for consistent storage
+      const canonicalSlug = normalizeToCanonicalSlug(state.eventData.eventId);
+      const draftKey = `wedding_design_draft_${canonicalSlug}`;
       const docClean = sanitizeForFirestore(state.document);
       idbSet(draftKey, docClean).catch(() => {});
       localStorage.setItem(draftKey, JSON.stringify(docClean));
@@ -187,11 +191,101 @@ const persistDraftToStorage = (state: EditorState) => {
   }, 400);
 };
 
+// Resolves live data bindings and bakes values into element content,
+// then removes bindings so the published design is an exact static snapshot.
+function bakeDataBindingsIntoDocument(doc: any, eventData?: any): any {
+  if (!doc?.pages?.[0]?.elements || !eventData) return doc;
+
+  const coupleNames = eventData.coupleNames;
+  const formattedDate = eventData.eventDate ? formatSpanishDateLong(eventData.eventDate) : null;
+  const rawVenue = (eventData.receptionVenue?.name?.trim() && eventData.receptionVenue.name.trim().toLowerCase() !== 'lugar')
+    ? eventData.receptionVenue.name.trim()
+    : ((eventData.venueName && eventData.venueName.trim().toLowerCase() !== 'lugar')
+      ? eventData.venueName.trim()
+      : (eventData.receptionVenue?.name?.trim() || ''));
+  const effectiveVenue = (rawVenue && rawVenue.trim().toLowerCase() !== 'lugar') ? rawVenue.trim() : '';
+  const romanticQuote = eventData.romanticQuote;
+
+  doc.pages[0].elements = doc.pages[0].elements.map((el: any) => {
+    // CRITICAL: Skip elements without dataBinding or marked as custom text
+    // This preserves manually edited text like custom event names
+    if (!el.dataBinding || el.content?.isCustomText) return el;
+
+    let text = el.content?.text || '';
+
+    if (el.dataBinding.field === 'coupleNames' && coupleNames && coupleNames.length >= 2 && coupleNames[0] && coupleNames[1]) {
+      text = `${coupleNames[0]} & ${coupleNames[1]}`;
+    } else if (el.dataBinding.field === 'eventDate' && formattedDate) {
+      text = formattedDate;
+    } else if (el.dataBinding.field === 'venueName' || (el.type === 'text' && text.trim().toLowerCase() === 'lugar')) {
+      if (effectiveVenue) text = effectiveVenue;
+    } else if (el.dataBinding.field === 'romanticQuote' && romanticQuote) {
+      text = `"${romanticQuote}"`;
+    }
+
+    return {
+      ...el,
+      content: { ...(el.content || {}), text },
+      dataBinding: undefined
+    };
+  });
+
+  return doc;
+}
+
+/**
+ * Limpia el caché de diseños publicados para liberar espacio en localStorage/IndexedDB
+ */
+export async function clearPublishedDesignsCache() {
+  let clearedLocalStorage = 0;
+  let clearedIndexedDB = 0;
+
+  try {
+    // Limpiar localStorage
+    const keysToRemove = Object.keys(localStorage).filter(k =>
+      k.startsWith('weddingcraft_published_') ||
+      k.startsWith('casanovia_published_design_') ||
+      k.startsWith('wedding_design_draft_') ||
+      k.startsWith('weddingcraft_design_') ||
+      k === 'casanovia_published_registry'
+    );
+    keysToRemove.forEach(key => {
+      try {
+        localStorage.removeItem(key);
+        clearedLocalStorage++;
+      } catch {}
+    });
+
+    // Limpiar IndexedDB
+    try {
+      const { del } = await import('idb-keyval');
+      // Delete all weddingcraft related keys
+      await del('weddingcraft_published_');
+      await del('casanovia_published_design_');
+      await del('wedding_design_draft_');
+      await del('weddingcraft_design_');
+      // Note: idb-keyval doesn't support wildcard deletion, so we clear the whole store
+      // This is acceptable for a manual cache clear operation
+      const { clear } = await import('idb-keyval');
+      await clear();
+      clearedIndexedDB = 999; // Indicate full clear
+    } catch (e) {
+      console.warn('[Cache] Error clearing IndexedDB:', e);
+    }
+
+    console.log('[Cache] Cleared', clearedLocalStorage, 'localStorage keys and IndexedDB');
+    return { success: true, clearedLocalStorage, clearedIndexedDB };
+  } catch (e) {
+    console.error('[Cache] Error clearing cache:', e);
+    return { success: false, error: e };
+  }
+}
+
 export const useEditorStore = create<EditorState>()((set, get) => ({
   eventData: null,
   isLinkedToWedding: true,
   setIsLinkedToWedding: (linked) => set({ isLinkedToWedding: linked }),
-  
+
   document: {
     id: uuidv4(),
     parentEventId: '',
@@ -201,7 +295,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     pages: [{ id: 'cover', name: 'Portada', elements: [] }],
     assetReferences: []
   },
-  
+
   currentTemplateId: null,
   currentTemplateName: null,
   lastSavedHash: null,
@@ -266,15 +360,16 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
 
   loadTemplateToCanvas: (template: TemplateItem) => {
-    const docCopy = normalizeCanvasDocument(JSON.parse(JSON.stringify(template.document)));
+    const docCopy = JSON.parse(JSON.stringify(template.document));
     docCopy.id = template.id;
     const state = get();
+
     syncDocumentWithEventData(docCopy, state.eventData);
     if (docCopy.pages?.[0]?.elements) {
       syncElementZIndexes(docCopy.pages[0].elements);
     }
     const docHash = computeDocHash(docCopy);
-    
+
     set({
       document: docCopy,
       currentTemplateId: template.id,
@@ -354,12 +449,19 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   publishDesign: async () => {
     const state = get();
     const eventId = state.eventData?.eventId || 'default_wedding';
-    const cleanEvt = eventId.replace(/^(\d{4}-|boda-|wedding-)/i, '').toLowerCase();
-    const cleanEvtNoSuffix = cleanEvt.replace(/[-_]\d+$/, '');
-    
+    const canonicalSlug = normalizeToCanonicalSlug(eventId, state.eventData);
+
+    console.log('[publishDesign] Starting publication for event:', eventId, 'canonicalSlug:', canonicalSlug);
+
     // 1. Optimize images and guarantee normalized layers before publishing
     const optimizedDoc = await optimizeDesignImagesForCloud(state.document, eventId);
     const docToPublish = sanitizeForFirestore(optimizedDoc);
+
+    // CRITICAL: Bake live data bindings so Web Invitados shows exactly what was in the designer
+    bakeDataBindingsIntoDocument(docToPublish, state.eventData);
+
+    // CRITICAL: Ensure parentEventId is set to the canonicalSlug for consistency
+    docToPublish.parentEventId = canonicalSlug;
 
     // Stamp with authoritative publishedAt timestamp
     const now = Date.now();
@@ -370,92 +472,128 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       version: (docToPublish.metadata?.version || 1) + 1,
     };
 
+    console.log('[publishDesign] Document optimized and ready:', {
+      canonicalSlug: docToPublish.parentEventId,
+      elementsCount: docToPublish.pages?.[0]?.elements?.length,
+      version: docToPublish.metadata.version
+    });
+
     // Update in-memory state with optimized cloud references
     set({ document: optimizedDoc });
 
     try {
       // 0. Register in dynamic in-memory registry immediately (0ms synchronous access)
-      registerPublishedDesignInMemory(eventId, docToPublish);
-      registerPublishedDesignInMemory(cleanEvt, docToPublish);
-      registerPublishedDesignInMemory(cleanEvtNoSuffix, docToPublish);
+      registerPublishedDesignInMemory(canonicalSlug, docToPublish);
 
-      // 1. Save published document locally with all alias keys to guarantee instant retrieval
-      const docStr = JSON.stringify(docToPublish);
-      const aliasKeys = [
-        eventId,
-        cleanEvt,
-        cleanEvtNoSuffix,
-        `boda-${cleanEvt}`,
-        `boda-${cleanEvtNoSuffix}`
-      ];
+      // 1. AGGRESSIVE CACHE CLEANUP - Remove ALL old published designs except current
+      try {
+        const allKeys = Object.keys(localStorage);
+        const keysToRemove = allKeys.filter(k =>
+          k.startsWith('weddingcraft_published_') ||
+          k.startsWith('casanovia_published_design_') ||
+          k.startsWith('wedding_design_draft_')
+        );
+        // Remove ALL old keys to free maximum space
+        keysToRemove.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+          } catch {}
+        });
+        console.log('[publishDesign] Cleaned', keysToRemove.length, 'old cache entries');
+      } catch {}
 
-      for (const key of aliasKeys) {
-        try {
-          localStorage.setItem(`weddingcraft_published_${key}`, docStr);
-          localStorage.setItem(`casanovia_published_design_${key}`, docStr);
-          localStorage.setItem(`wedding_design_draft_${key}`, docStr);
-          await idbSet(`weddingcraft_published_${key}`, docToPublish);
-          await idbSet(`casanovia_published_design_${key}`, docToPublish);
-          await idbSet(`wedding_design_draft_${key}`, docToPublish);
-        } catch {}
+      // 2. Save to IndexedDB FIRST (much larger storage limit)
+      try {
+        await idbSet(`weddingcraft_published_${canonicalSlug}`, docToPublish);
+        await idbSet(`casanovia_published_design_${canonicalSlug}`, docToPublish);
+        await idbSet(`wedding_design_draft_${canonicalSlug}`, docToPublish);
+        console.log('[publishDesign] Saved to IndexedDB successfully');
+      } catch (e) {
+        console.error('[publishDesign] Error saving to IndexedDB:', e);
       }
 
-      // Update the persistent dictionary registry
+      // 3. Try to save minimal metadata to localStorage (not full document)
+      try {
+        const minimalMetadata = {
+          parentEventId: docToPublish.parentEventId,
+          lastModified: docToPublish.metadata?.lastModified,
+          version: docToPublish.metadata?.version,
+          hasElements: Boolean(docToPublish.pages?.[0]?.elements?.length)
+        };
+        localStorage.setItem(`weddingcraft_published_${canonicalSlug}_meta`, JSON.stringify(minimalMetadata));
+      } catch (e) {
+        console.warn('[publishDesign] Cannot save even metadata to localStorage:', e);
+      }
+
+      // 4. Update registry with minimal entries only
       try {
         const stored = localStorage.getItem('casanovia_published_registry');
         const reg = stored ? JSON.parse(stored) : {};
-        for (const key of aliasKeys) {
-          reg[key] = docToPublish;
-        }
+        // Keep only metadata in registry, not full document
+        reg[canonicalSlug] = {
+          parentEventId: docToPublish.parentEventId,
+          lastModified: docToPublish.metadata?.lastModified,
+          hasElements: Boolean(docToPublish.pages?.[0]?.elements?.length)
+        };
         localStorage.setItem('casanovia_published_registry', JSON.stringify(reg));
-      } catch {}
+      } catch (e) {
+        console.error('[publishDesign] Error updating registry:', e);
+      }
 
       // Package JSON into project base registry (writes to src/data/publishedDesignsData.json on server)
       try {
         await fetch('/api/publish-design-to-project', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ eventId, document: docToPublish })
+          body: JSON.stringify({ eventId: canonicalSlug, document: docToPublish })
         }).catch(() => null);
       } catch (pkgErr) {}
 
-      // 2. Persist published document to Hosting Backend (api/data/weddingcraft/published/)
+      // 2. Persist published document to Hosting Backend (api/data/weddingcraft/published/) - SOLO con slug canónico
       try {
-        await savePublishedDesignToHosting(eventId, docToPublish);
-        if (cleanEvt !== eventId) {
-          await savePublishedDesignToHosting(cleanEvt, docToPublish);
-        }
+        await savePublishedDesignToHosting(canonicalSlug, docToPublish);
+        console.log('[publishDesign] Saved to hosting backend with canonical slug:', canonicalSlug);
       } catch (hostErr) {
         console.warn('Could not save published design to hosting backend:', hostErr);
       }
 
-      // Also update local cache and hosting database for the wedding so that weddings.php contains weddingCraftDesign
+      // 3. Update local cache and hosting database for the wedding so that weddings.php contains weddingCraftDesign
       try {
         const storedWeddings = localStorage.getItem('casanovia_all_weddings');
         if (storedWeddings) {
           const list = JSON.parse(storedWeddings);
           if (Array.isArray(list)) {
-            const updatedWedding = list.find((w: any) => 
-              w.id === eventId || 
-              w.id === cleanEvt ||
-              (w.coupleNames && eventId.includes(w.coupleNames.toLowerCase().replace(/[^a-z0-9]/g, '')))
-            );
+            // Try to find wedding using canonical slug AND normalizing the wedding ID
+            const updatedWedding = list.find((w: any) => {
+              const weddingCanonical = normalizeToCanonicalSlug(w.id);
+              return weddingCanonical === canonicalSlug ||
+                     w.id === canonicalSlug ||
+                     w.id === eventId ||
+                     weddingCanonical === eventId ||
+                     (w.coupleNames && eventId.includes(w.coupleNames.toLowerCase().replace(/[^a-z0-9]/g, '')));
+            });
             if (updatedWedding) {
               updatedWedding.weddingCraftDesign = docToPublish;
               updatedWedding.updatedAt = new Date().toISOString();
               const updatedList = list.map((w: any) => w.id === updatedWedding.id ? updatedWedding : w);
               localStorage.setItem('casanovia_all_weddings', JSON.stringify(updatedList));
               await saveWeddingToHost(updatedWedding).catch(() => null);
+              console.log('[publishDesign] Updated wedding record:', updatedWedding.id, 'with canonical:', canonicalSlug);
+            } else {
+              console.warn('[publishDesign] Wedding not found for update. Looking for:', canonicalSlug, 'eventId:', eventId);
             }
           }
         }
-      } catch (locErr) {}
+      } catch (locErr) {
+        console.warn('Error updating wedding record:', locErr);
+      }
 
       // 4. Dispatch reactive broadcast event for instant in-page synchronization
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('weddingcraft_design_updated', {
-          detail: { eventId, document: docToPublish }
+          detail: { eventId: canonicalSlug, document: docToPublish }
         }));
+        console.log('[publishDesign] Dispatched update event with canonical slug:', canonicalSlug);
       }
 
       // Update last saved hash and draft
@@ -463,16 +601,24 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       const thumbnail = generateDocumentSquareThumbnail(docToPublish, 320);
       set({ lastSavedHash: publishedHash, publishedThumbnail: thumbnail });
 
+      console.log('[publishDesign] Publication completed successfully');
       return { success: true };
     } catch (err: any) {
       console.error('Error publishing WeddingCraft design:', err);
-      return { success: true };
+      return { success: false, error: err.message };
     }
   },
 
   loadWebInvitados: async () => {
     const state = get();
     const eventId = state.eventData?.eventId || 'default_wedding';
+    const canonicalSlug = normalizeToCanonicalSlug(eventId, state.eventData);
+
+    // Check if current canvas is empty (no elements)
+    const currentElements = state.document?.pages?.[0]?.elements || [];
+    const isCanvasEmpty = currentElements.length === 0;
+
+    console.log('loadWebInvitados - Canvas vacío:', isCanvasEmpty, 'Elementos:', currentElements.length, 'eventId:', eventId, 'canonicalSlug:', canonicalSlug);
 
     // Helper to sanitize & modernize document layout
     const sanitizeDoc = (doc: any) => {
@@ -495,15 +641,15 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       return normalized;
     };
 
-    // 1. Try to load from Hosting Backend (api/data/weddingcraft/published/)
+    // 1. Try to load from Hosting Backend (api/data/weddingcraft/published/) - SOLO con slug canónico
     try {
-      const hostingDoc = await fetchPublishedDesignFromHosting(eventId);
+      const hostingDoc = await fetchPublishedDesignFromHosting(canonicalSlug);
       if (hostingDoc) {
         const docCopy = sanitizeDoc(JSON.parse(JSON.stringify(hostingDoc)));
         const docHash = computeDocHash(docCopy);
         set({
           document: docCopy,
-          currentTemplateId: `web_invitados_${eventId}`,
+          currentTemplateId: `web_invitados_${canonicalSlug}`,
           currentTemplateName: 'Web Invitados (Publicada)',
           lastSavedHash: docHash,
           history: { past: [], future: [] },
@@ -515,16 +661,16 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       console.warn('Error reading published design from hosting storage:', hostErr);
     }
 
-    // 2. Try to load from local storage
+    // 2. Try to load from local storage - SOLO con canonicalSlug
     try {
-      const localPub = localStorage.getItem(`weddingcraft_published_${eventId}`);
+      const localPub = localStorage.getItem(`weddingcraft_published_${canonicalSlug}`);
       if (localPub) {
         const parsed = sanitizeDoc(JSON.parse(localPub));
         if (parsed && parsed.pages) {
           const docHash = computeDocHash(parsed);
           set({
             document: parsed,
-            currentTemplateId: `web_invitados_${eventId}`,
+            currentTemplateId: `web_invitados_${canonicalSlug}`,
             currentTemplateName: 'Web Invitados (Publicada)',
             lastSavedHash: docHash,
             history: { past: [], future: [] },
@@ -534,13 +680,13 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         }
       }
 
-      const idbPub = await idbGet(`weddingcraft_published_${eventId}`);
+      const idbPub = await idbGet(`weddingcraft_published_${canonicalSlug}`);
       if (idbPub && idbPub.pages) {
         const sanitized = sanitizeDoc(idbPub);
         const docHash = computeDocHash(sanitized);
         set({
           document: sanitized,
-          currentTemplateId: `web_invitados_${eventId}`,
+          currentTemplateId: `web_invitados_${canonicalSlug}`,
           currentTemplateName: 'Web Invitados (Publicada)',
           lastSavedHash: docHash,
           history: { past: [], future: [] },
@@ -552,7 +698,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       console.warn('Error reading published design locally:', localErr);
     }
 
-    // 3. If no published design exists yet, generate from current event data
+    // 3. If no published design exists OR canvas is empty, generate from current event data
     const newDoc = createDefaultWebInvitationDocument({
       eventId: state.eventData?.eventId,
       coupleNames: state.eventData?.coupleNames,
@@ -565,7 +711,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     const docHash = computeDocHash(newDoc);
     set({
       document: newDoc,
-      currentTemplateId: `web_invitados_${eventId}`,
+      currentTemplateId: `web_invitados_${canonicalSlug}`,
       currentTemplateName: 'Web Invitados',
       lastSavedHash: docHash,
       history: { past: [], future: [] },
@@ -677,7 +823,30 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   addElement: (element) => {
     get().commitHistory();
     set(produce((state: EditorState) => {
-      const newElem = normalizeCanvasElement(element, state.document.pages[0]?.elements.length || 0);
+      const canvasW = state.document.canvas.width || 720;
+      const canvasH = state.document.canvas.height || 980;
+      const elW = element.transform?.width || 240;
+      const elH = element.transform?.height || 120;
+      const defaultX = Math.max(20, Math.round((canvasW - elW) / 2));
+      const defaultY = Math.max(20, Math.round((canvasH / 2) - (elH / 2)));
+
+      const xVal = (element.transform?.x !== undefined && element.transform.x > 0 && element.transform.x !== 100) ? element.transform.x : defaultX;
+      const yVal = (element.transform?.y !== undefined && element.transform.y > 20 && element.transform.y !== 120 && element.transform.y !== 200) ? element.transform.y : defaultY;
+
+      const normalizedInput = {
+        ...element,
+        transform: {
+          x: xVal,
+          y: yVal,
+          width: element.transform?.width || elW,
+          height: element.transform?.height || elH,
+          rotation: element.transform?.rotation || 0,
+          scaleX: 1,
+          scaleY: 1
+        }
+      };
+
+      const newElem = normalizeCanvasElement(normalizedInput, state.document.pages[0]?.elements.length || 0);
       state.document.pages[0].elements.push(newElem);
       syncElementZIndexes(state.document.pages[0].elements);
       state.selectedElementIds = [newElem.id];

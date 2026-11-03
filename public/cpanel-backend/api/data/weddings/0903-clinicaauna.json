@@ -1,0 +1,235 @@
+{
+  "createdByUserName": "M21",
+  "createdByUserId": "user-1787935045057",
+  "timeline": [
+    {
+      "category": "recepcion",
+      "time": "17:00",
+      "isProtocolCrucial": false,
+      "id": "tm-boda-auna-clinica-7021-tm-01",
+      "location": "Auditorio Instituto del Sur",
+      "responsiblePerson": "",
+      "dressOrItemsRequired": "",
+      "description": "",
+      "title": "Ingreso de los asistentes"
+    }
+  ],
+  "weddingDate": "2026-09-03T17:00",
+  "locationSummary": "Arequipa",
+  "updatedAt": "2026-09-01T19:03:16.081Z",
+  "plannerName": "M21",
+  "vendors": [
+    {
+      "name": "Andrea Deza",
+      "paidAmount": 400,
+      "totalCost": 1100,
+      "category": "Decoración & Mobiliario",
+      "phone": "+51952341165",
+      "status": "contratado",
+      "receptionAttendeesCount": 1,
+      "notes": "Se encargara del Backing",
+      "attendingReception": true,
+      "contactPerson": "Andrea Deza",
+      "email": "",
+      "id": "v-boda-auna-clinica-7021-v-06"
+    },
+    {
+      "totalCost": 1150,
+      "receptionAttendeesCount": 0,
+      "id": "v-1788289252381",
+      "notes": "",
+      "name": "Sandra Globos",
+      "email": "",
+      "category": "Decoración & Mobiliario",
+      "status": "contratado",
+      "paidAmount": 200,
+      "phone": "",
+      "contactPerson": "Sandra Globos",
+      "attendingReception": false
+    },
+    {
+      "totalCost": 800,
+      "contactPerson": "Sonido Rafael",
+      "category": "Música & Iluminación",
+      "notes": "",
+      "attendingReception": false,
+      "name": "Sonido",
+      "email": "",
+      "status": "contratado",
+      "paidAmount": 200,
+      "receptionAttendeesCount": 0,
+      "phone": "",
+      "id": "v-1788289349473"
+    }
+  ],
+  "budget": [
+    {
+      "vendor": "Andrea Deza",
+      "status": "partial",
+      "estimatedCost": 1100,
+      "notes": "Se encargara del Backing",
+      "actualCost": 1100,
+      "concept": "Andrea Deza (Decoración & Mobiliario)",
+      "vendorId": "v-boda-auna-clinica-7021-v-06",
+      "category": "Decoración & Mobiliario",
+      "id": "b-v-v-boda-auna-clinica-7021-v-06",
+      "paidAmount": 400
+    },
+    {
+      "actualCost": 1150,
+      "status": "partial",
+      "vendor": "Sandra Globos",
+      "paidAmount": 200,
+      "concept": "Sandra Globos (Decoración & Mobiliario)",
+      "estimatedCost": 1150,
+      "category": "Decoración & Mobiliario",
+      "vendorId": "v-1788289252381",
+      "id": "b-v-v-1788289252381",
+      "notes": "Contacto: Sandra Globos"
+    },
+    {
+      "estimatedCost": 800,
+      "vendor": "Sonido",
+      "status": "partial",
+      "notes": "Contacto: Sonido Rafael",
+      "concept": "Sonido (Música & Iluminación)",
+      "actualCost": 800,
+      "id": "b-v-v-1788289349473",
+      "category": "Música & Iluminación",
+      "vendorId": "v-1788289349473",
+      "paidAmount": 200
+    }
+  ],
+  "status": "planning",
+  "tables": [
+    {
+      "zone": "Pista Central / Escenario",
+      "shape": "imperial",
+      "capacity": 10,
+      "notes": "Novios, Padres y Padrinos de Honor",
+      "id": "tbl-01",
+      "name": "Mesa 1 (Mesa de Honor)"
+    }
+  ],
+  "createdAt": "2026-08-28T16:39:27.022Z",
+  "settings": {
+    "ceremonyVenue": {
+      "time": "17:00 hrs (Recepción de invitados desde 16:30 hrs)",
+      "address": "Arequipa",
+      "wazeUrl": "https://waze.com/ul?q=San+Pedro+Garza+Garcia+Capilla",
+      "name": "Capilla / Parroquia Principal",
+      "notes": "",
+      "googleMapsUrl": "https://maps.google.com/?q=San+Pedro+Garza+Garcia+Capilla"
+    },
+    "weddingTime": "17:00",
+    "eventType": "Corporativo",
+    "additionalVenues": [],
+    "rsvpDeadline": "2026-08-27",
+    "locationSummary": "Arequipa",
+    "giftRegistries": [
+      {
+        "eventNumber": "50948271",
+        "storeName": "Liverpool",
+        "url": "https://www.liverpool.com.mx/tienda/mesaderegalos",
+        "badgeText": "Mesa de Regalos Oficial"
+      },
+      {
+        "badgeText": "Celebraciones Exclusivas",
+        "url": "https://www.elpalaciodehierro.com/celebraciones",
+        "storeName": "El Palacio de Hierro",
+        "eventNumber": "PH-BODA-88392"
+      },
+      {
+        "eventNumber": "SOFIA-ALE-2026",
+        "storeName": "Amazon Bodas",
+        "url": "https://www.amazon.com.mx/baby-reg/homepage",
+        "badgeText": "Envío Directo a Domicilio"
+      }
+    ],
+    "bankDetails": {
+      "accountNumber": "0000 0000 0000",
+      "clabe": "000000000000000000",
+      "concept": "Regalo Boda AUNA Clinica",
+      "accountHolder": "AUNA Clinica",
+      "bankName": "Banco Destino"
+    },
+    "receptionVenue": {
+      "mapUrl": "https://maps.app.goo.gl/DTNQiTzaVKbrXmXR9",
+      "time": "17:00 hrs (Cóctel de Bienvenida)",
+      "notes": "",
+      "wazeUrl": "https://waze.com/ul?q=Santiago+NL+Hacienda",
+      "address": "Salaverry 301, Arequipa 04001",
+      "googleMapsUrl": "https://maps.google.com/?q=Santiago+NL+Hacienda",
+      "name": "Auditorio Instituto del Sur"
+    },
+    "hasReligiousCeremony": false,
+    "suggestedColors": [
+      {
+        "hex": "#481F73",
+        "name": "Terracota Cálido",
+        "description": "Tonos cálidos y elegantes"
+      },
+      {
+        "name": "Verde Salvia",
+        "description": "Frescura botánica y sofisticación",
+        "hex": "#CBC0DE"
+      },
+      {
+        "hex": "#D9A5B3",
+        "description": "Romance y suavidad clásica",
+        "name": "Palo de Rosa"
+      }
+    ],
+    "dressCodeStyle": "Rigurosa Etiqueta / Formal Gala",
+    "generalContactPhone": "+52 81 0000 0000",
+    "weddingDate": "2026-09-03T17:00",
+    "generalContactEmail": "clinica@gmail.com",
+    "customTheme": {
+      "enabled": true,
+      "primaryHover": "#3f1b65",
+      "secondaryHover": "#b3a9c3",
+      "secondaryForeground": "#1F2937",
+      "textMuted": "#685F54",
+      "primaryForeground": "#FFFFFF",
+      "primary": "#481F73",
+      "accentForeground": "#1F2937",
+      "textMain": "#2D2A26",
+      "appliedAt": "2026-08-29T14:49:39.263Z",
+      "borderSoft": "#dfdddd",
+      "secondary": "#CBC0DE",
+      "bgCard": "#FFFFFF",
+      "bgSoft": "#f8f5f5",
+      "accent": "#D9A5B3"
+    },
+    "groomName": "",
+    "romanticQuote": "Transformando el cuidado de tu salud",
+    "brideName": "",
+    "showGiftRegistry": false,
+    "totalRealBudget": 40000,
+    "showBankDetails": false,
+    "forbiddenColorsNote": "",
+    "dressCodeDescription": "Damas: Vestido largo elegante en tonos de la paleta sugerida. Caballeros: Traje oscuro o smoking formal con corbata o pajarita.",
+    "coupleNames": "Clínica AUNA"
+  },
+  "coupleNames": "Clínica AUNA",
+  "guests": [
+    {
+      "assignedTable": "Mesa Principal (Novios)",
+      "totalPasses": 1,
+      "id": "g-boda-auna-clinica-7021-novia",
+      "fullName": "Auna Clinica",
+      "protocolRoleTitle": "Anfitriona Principal",
+      "code": "BODA-AUNA-NOVIA",
+      "updatedAt": "2026-08-28",
+      "confirmedPasses": 1,
+      "rsvpStatus": "confirmed",
+      "category": "anfitrion",
+      "congratulationMessage": "¡Nuestra gran boda!",
+      "isProtocolParticipant": true
+    }
+  ],
+  "tasks": [],
+  "createdByUserLevel": 3,
+  "id": "0903-clinicaauna",
+  "slug": "0903-clinicaauna"
+}

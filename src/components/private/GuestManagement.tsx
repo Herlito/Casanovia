@@ -8,6 +8,7 @@ import { AssignChildModal } from './AssignChildModal';
 import { GuestRoleCell, GuestCompanionCell, GuestRsvpCell } from './GuestTableCells';
 import { sortGuestsWithCompanions } from './TableAssignmentModule';
 import { exportGuestsToExcel, ROLE_LABEL_MAP } from '../../lib/excelUtils';
+import { PassValidationModal } from './PassValidationModal';
 import { 
   UserPlus, 
   Search, 
@@ -37,7 +38,8 @@ import {
   ArrowDown,
   ChevronDown,
   Check,
-  Ticket
+  Ticket,
+  ScanLine
 } from 'lucide-react';
 
 const ROLE_ICONS: Record<string, React.ElementType> = {
@@ -109,6 +111,7 @@ export const GuestManagement: React.FC = () => {
   const [companionModalGuest, setCompanionModalGuest] = useState<Guest | null>(null);
   const [childModalGuest, setChildModalGuest] = useState<Guest | null>(null);
   const [copiedCodeForGuest, setCopiedCodeForGuest] = useState<string | null>(null);
+  const [showValidationModal, setShowValidationModal] = useState<boolean>(false);
 
   // Toggle visibility of invitation codes
   const [showInviteCodes, setShowInviteCodes] = useState<boolean>(() => {
@@ -380,6 +383,17 @@ export const GuestManagement: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            id="btn-open-pass-validation"
+            onClick={() => setShowValidationModal(true)}
+            className="inline-flex items-center space-x-1.5 px-3 sm:px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-emerald-800 hover:text-emerald-900 text-xs font-bold transition-all cursor-pointer shrink-0"
+            title="Escanear y Validar Pases Digitales / Control de Ingreso"
+          >
+            <ScanLine className="w-4 h-4 text-emerald-700" />
+            <span>Validar QR / Acceso</span>
+          </button>
+
           {canEditActiveWedding && (
             <button
               type="button"
@@ -1375,6 +1389,14 @@ export const GuestManagement: React.FC = () => {
             <span className="tracking-wide">Nuevo Invitado</span>
           </button>
         </div>
+      )}
+
+      {/* Door Check-In & QR Access Control Modal */}
+      {showValidationModal && (
+        <PassValidationModal
+          isOpen={showValidationModal}
+          onClose={() => setShowValidationModal(false)}
+        />
       )}
 
     </div>

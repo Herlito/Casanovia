@@ -9,9 +9,10 @@ interface DOMCoupleContactsProps {
     romanticQuote?: string;
     eventDate?: string;
   };
+  isPublishedDocument?: boolean; // Flag to indicate if this is a published (baked) document
 }
 
-export const DOMCoupleContacts: React.FC<DOMCoupleContactsProps> = ({ element, eventData }) => {
+export const DOMCoupleContacts: React.FC<DOMCoupleContactsProps> = ({ element, eventData, isPublishedDocument = false }) => {
   const style = element?.style || {};
   const content = element.content || {};
 
@@ -21,9 +22,11 @@ export const DOMCoupleContacts: React.FC<DOMCoupleContactsProps> = ({ element, e
   const fontFamily = style.fontFamily || 'sans-serif';
   const cornerRadius = style.borderRadius || 12;
 
-  const coupleNames = content.coupleNames || (eventData?.coupleNames ? `${eventData.coupleNames[0]} & ${eventData.coupleNames[1]}` : 'Sofía & Alejandro');
-  const quote = content.quote || eventData?.romanticQuote || 'El amor no se mira con los ojos, sino con el corazón.';
-  const weddingDate = content.weddingDate || eventData?.eventDate || '';
+  // CRITICAL: If published document, use only baked content values (no fallback to eventData)
+  // This ensures 100% parity between published and guest web display
+  const coupleNames = content.coupleNames || (!isPublishedDocument && eventData?.coupleNames ? `${eventData.coupleNames[0]} & ${eventData.coupleNames[1]}` : 'Sofía & Alejandro');
+  const quote = content.quote || (!isPublishedDocument && eventData?.romanticQuote ? eventData.romanticQuote : 'El amor no se mira con los ojos, sino con el corazón.');
+  const weddingDate = content.weddingDate || (!isPublishedDocument && eventData?.eventDate ? eventData.eventDate : '');
 
   return (
     <div

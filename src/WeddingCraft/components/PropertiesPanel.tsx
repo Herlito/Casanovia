@@ -754,11 +754,12 @@ export const PropertiesPanel: React.FC = () => {
   const handleUpdateContent = (textOrObj: string | any) => {
     if (typeof textOrObj === 'string') {
         updateElement(selectedElement.id, { 
-          content: { ...selectedElement.content, text: textOrObj } 
+          content: { ...selectedElement.content, text: textOrObj, isCustomText: true },
+          dataBinding: undefined
         });
     } else {
         updateElement(selectedElement.id, { 
-          content: textOrObj 
+          content: { ...textOrObj, isCustomText: true } 
         });
     }
   };
@@ -924,7 +925,7 @@ export const PropertiesPanel: React.FC = () => {
                   <p className="text-xs font-bold text-blue-900">Vinculado a Datos</p>
                   <p className="text-[10px] text-blue-700 mt-0.5">
                     Campo: <span className="font-semibold">
-                      {selectedElement.dataBinding.field === 'coupleNames' ? 'Nombres de los Novios' :
+                      {selectedElement.dataBinding.field === 'coupleNames' ? 'Nombre del Evento' :
                        selectedElement.dataBinding.field === 'eventDate' ? 'Fecha de la Boda' :
                        selectedElement.dataBinding.field === 'venueName' ? 'Lugar (Salón / Hacienda - Recepción)' :
                        selectedElement.dataBinding.field === 'romanticQuote' ? 'Frase Romántica' :
@@ -983,7 +984,7 @@ export const PropertiesPanel: React.FC = () => {
               >
                 <option value="">Seleccionar campo...</option>
                 <option value="venueName">Nombre Salón / Hacienda (Recepción)</option>
-                <option value="coupleNames">Nombres de Novios</option>
+                <option value="coupleNames">Nombre del Evento</option>
                 <option value="eventDate">Fecha de la Boda</option>
                 <option value="romanticQuote">Frase Romántica</option>
               </select>

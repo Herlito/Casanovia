@@ -1156,6 +1156,13 @@ export const CanvasStage: React.FC = () => {
                             selectElements(targetIds);
                         }
                     },
+                    onDblClick: (e: any) => {
+                        e.cancelBubble = true;
+                        if (el.type === 'text') {
+                            setEditingTextId(el.id);
+                            setEditingTextValue(el.content.text || '');
+                        }
+                    },
                     onTap: (e: any) => {
                         e.cancelBubble = true;
                         let targetIds = [el.id];
@@ -1825,6 +1832,34 @@ export const CanvasStage: React.FC = () => {
                   if (newBox.width < 10 || newBox.height < 10) return oldBox; 
                   return newBox; 
                 }} 
+                onTransformEnd={() => {
+                  const stage = stageRef.current;
+                  if (!stage) return;
+                  selectedElementIds.forEach(id => {
+                    const node = stage.findOne(`#${id}`);
+                    if (node) {
+                      const sx = Math.abs(node.scaleX());
+                      const sy = Math.abs(node.scaleY());
+                      node.scaleX(1);
+                      node.scaleY(1);
+                      const el = elements.find(item => item.id === id);
+                      if (el) {
+                        updateElement(id, {
+                          transform: {
+                            ...el.transform,
+                            x: node.x(),
+                            y: node.y(),
+                            width: Math.max(10, Math.abs(node.width()) * sx),
+                            height: Math.max(10, Math.abs(node.height()) * sy),
+                            rotation: node.rotation(),
+                            scaleX: 1,
+                            scaleY: 1
+                          }
+                        });
+                      }
+                    }
+                  });
+                }}
               />
             );
           })()}
@@ -1898,6 +1933,49 @@ export const CanvasStage: React.FC = () => {
           e.target.value = '';
         }}
       />
+
+      {editingTextId && (() => {
+        const el = elements.find(e => e.id === editingTextId);
+        if (!el || el.type !== 'text') return null;
+        const transform = el.transform;
+        const style = el.style || {};
+        const inputX = stageX + transform.x * scale;
+        const inputY = stageY + transform.y * scale;
+        const inputW = Math.max(120, transform.width * scale);
+        const inputH = Math.max(40, (transform.height || 60) * scale);
+
+        return (
+          <textarea
+            autoFocus
+            value={editingTextValue}
+            onChange={(e) => setEditingTextValue(e.target.value)}
+            onBlur={() => {
+              updateElement(el.id, { content: { ...el.content, text: editingTextValue } });
+              setEditingTextId(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                updateElement(el.id, { content: { ...el.content, text: editingTextValue } });
+                setEditingTextId(null);
+              } else if (e.key === 'Escape') {
+                setEditingTextId(null);
+              }
+            }}
+            className="absolute z-50 bg-white/95 border-2 border-blue-500 rounded-lg p-2 shadow-2xl resize-none outline-none"
+            style={{
+              left: `${inputX}px`,
+              top: `${inputY}px`,
+              width: `${inputW}px`,
+              height: `${inputH}px`,
+              fontSize: `${Math.max(12, (style.fontSize || 24) * scale)}px`,
+              fontFamily: style.fontFamily || 'sans-serif',
+              color: style.fill || style.color || '#000000',
+              textAlign: style.align || 'left'
+            }}
+          />
+        );
+      })()}
     </div>
   );
 };

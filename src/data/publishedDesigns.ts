@@ -18,6 +18,7 @@
  */
 import lightRegistry from './publishedDesigns.light.json';
 import heavyIndex from './publishedDesigns.heavyIndex.json';
+import { normalizeToCanonicalSlug } from '../hooks/useSyncedInvitationDesign';
 
 export type PublishedDesignRegistry = Record<string, any>;
 
@@ -67,29 +68,23 @@ export async function getPublishedDesign(slug: string): Promise<any | null> {
 }
 
 /**
- * Busca un diseño por slug aplicando la normalización usada por la app
- * (prefijo de fecha, "boda-", sufijo numérico). Devuelve null si no existe.
+ * Normaliza cualquier formato de eventId al slug canónico único: MMDD-nombrecouple
+ * Esta función ahora usa la misma lógica que useSyncedInvitationDesign para consistencia.
  */
-export function normalizeDesignSlugKey(slug: string): string {
-  return String(slug || '').replace(/^(\d{4}-|boda-|wedding-)/i, '').toLowerCase();
-}
-
-export function normalizeDesignSlugKeyNoSuffix(slug: string): string {
-  return normalizeDesignSlugKey(slug).replace(/[-_]\d+$/i, '');
-}
+export const normalizeDesignSlugKey = normalizeToCanonicalSlug;
 
 /** Busca en el registro ligero con coincidencia normalizada. */
 export function findPublishedDesignInLight(eventId: string): any | null {
   if (!eventId) return null;
-  const direct = PUBLISHED_DESIGNS_LIGHT[eventId];
+  const canonicalSlug = normalizeDesignSlugKey(eventId);
+
+  // Direct match first
+  const direct = PUBLISHED_DESIGNS_LIGHT[canonicalSlug];
   if (direct) return direct;
-  const cleanEvt = normalizeDesignSlugKey(eventId);
-  const cleanEvtNoSuffix = normalizeDesignSlugKeyNoSuffix(eventId);
+
+  // Normalize all keys and match by canonical slug
   for (const [key, doc] of Object.entries(PUBLISHED_DESIGNS_LIGHT)) {
-    if (
-      normalizeDesignSlugKey(key) === cleanEvt ||
-      normalizeDesignSlugKeyNoSuffix(key) === cleanEvtNoSuffix
-    ) {
+    if (normalizeDesignSlugKey(key) === canonicalSlug) {
       return doc;
     }
   }
@@ -103,16 +98,11 @@ export async function findPublishedDesign(eventId: string): Promise<any | null> 
   if (!eventId) return null;
 
   const heavyIndexMap = PUBLISHED_DESIGNS_HEAVY_INDEX;
-  const cleanEvt = normalizeDesignSlugKey(eventId);
-  const cleanEvtNoSuffix = normalizeDesignSlugKeyNoSuffix(eventId);
+  const canonicalSlug = normalizeDesignSlugKey(eventId);
 
   let heavySlug: string | null = null;
   for (const key of Object.keys(heavyIndexMap)) {
-    if (
-      key === eventId ||
-      normalizeDesignSlugKey(key) === cleanEvt ||
-      normalizeDesignSlugKeyNoSuffix(key) === cleanEvtNoSuffix
-    ) {
+    if (normalizeDesignSlugKey(key) === canonicalSlug) {
       heavySlug = key;
       break;
     }

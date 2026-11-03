@@ -8,7 +8,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { CanvasStage } from './CanvasStage';
 import { useEditorStore } from '../store/useEditorStore';
 import { get, set, del } from 'idb-keyval';
-import { fetchTemplatesFromHosting } from '../../services/hostingStorage';
+import { fetchTemplatesFromHosting, fetchPublishedDesignFromHosting } from '../../services/hostingStorage';
 import { EventDataAdapter } from '../adapter/EventDataAdapter';
 import { WeddingDesignDocument } from '../types';
 import { X } from 'lucide-react';
@@ -19,6 +19,7 @@ import { createDefaultWebInvitationDocument, reflowCanvasElements } from '../lib
 import { RESTORED_MASTER_TEMPLATES } from '../data/masterTemplates';
 import { isValidDraftDocument } from '../lib/canvasElementUtils';
 import { WeddingCraftErrorBoundary } from './WeddingCraftErrorBoundary';
+import { normalizeToCanonicalSlug } from '../../hooks/useSyncedInvitationDesign';
 
 interface WeddingCraftEditorProps {
   externalAPI: any;
@@ -80,71 +81,79 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
         // 1. Adapter initialization
         const adapter = new EventDataAdapter(externalAPIRef.current);
         const eventData = await adapter.getCurrentEvent();
-        
+
         if (isCancelled) return;
 
         // 2. Set Read-Only Parent Data
         setEventData(eventData);
 
-        // 3. Init local document
-        if (initialDocumentRef.current) {
-          initializeDocument(initialDocumentRef.current);
-        } else {
-          // Check IndexedDB for draft and templates
-          const savedTemplates = (await get('wedding_craft_templates')) || [];
-          const map = new Map<string, any>();
-          RESTORED_MASTER_TEMPLATES.forEach(t => map.set(t.id, t));
-          if (Array.isArray(savedTemplates)) {
-            savedTemplates.forEach((t: any) => { if (t?.id) map.set(t.id, t); });
-          }
-          const initialTemplates = Array.from(map.values()).sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
-          useEditorStore.getState().loadTemplates(initialTemplates);
-          
-          // Helper to load the official wedding template cleanly
-          const loadOfficialWeddingTemplate = () => {
-            const matchingMaster = RESTORED_MASTER_TEMPLATES.find(
-              m => m.document?.parentEventId === eventData.eventId || 
-                   (eventData.coupleNames && m.name.toLowerCase().includes(eventData.coupleNames[0]?.toLowerCase() || ''))
-            );
-            if (matchingMaster?.document && isValidDraftDocument(matchingMaster.document)) {
-              initializeDocument(matchingMaster.document);
-              return;
+        // 3. Init local document - SOLO si el documento está vacío
+        const currentDoc = useEditorStore.getState().document;
+        const hasElements = currentDoc?.pages?.[0]?.elements?.length > 0;
+
+        if (!hasElements) {
+          if (initialDocumentRef.current) {
+            initializeDocument(initialDocumentRef.current);
+          } else {
+            // Check IndexedDB for draft and templates
+            const savedTemplates = (await get('wedding_craft_templates')) || [];
+            const map = new Map<string, any>();
+            RESTORED_MASTER_TEMPLATES.forEach(t => map.set(t.id, t));
+            if (Array.isArray(savedTemplates)) {
+              savedTemplates.forEach((t: any) => { if (t?.id) map.set(t.id, t); });
+            }
+            const initialTemplates = Array.from(map.values()).sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+            useEditorStore.getState().loadTemplates(initialTemplates);
+
+            // Helper to load the official wedding template cleanly
+            const loadOfficialWeddingTemplate = () => {
+              const matchingMaster = RESTORED_MASTER_TEMPLATES.find(
+                m => m.document?.parentEventId === eventData.eventId ||
+                     (eventData.coupleNames && m.name.toLowerCase().includes(eventData.coupleNames[0]?.toLowerCase() || ''))
+              );
+              if (matchingMaster?.document && isValidDraftDocument(matchingMaster.document)) {
+                initializeDocument(matchingMaster.document);
+                return;
+              }
+
+              const defaultDoc = createDefaultWebInvitationDocument({
+                eventId: eventData.eventId,
+                coupleNames: eventData.coupleNames,
+                eventDate: eventData.eventDate,
+                venueName: eventData.venueName,
+                venueAddress: eventData.venueAddress,
+                romanticQuote: eventData.romanticQuote,
+              });
+              initializeDocument(defaultDoc);
+            };
+
+            // Bypass local drafts completely and fetch directly from Hosting Backend
+            let remoteDesign: any = null;
+            try {
+              // CRITICAL: Normalize eventId to canonicalSlug before fetching to match storage keys
+              const canonicalSlug = normalizeToCanonicalSlug(eventData.eventId);
+              console.log('[WeddingCraft] Fetching remote design - Original:', eventData.eventId, 'Canonical:', canonicalSlug);
+              remoteDesign = await fetchPublishedDesignFromHosting(canonicalSlug);
+            } catch (e) {
+              console.info('[WeddingCraft] No remote design found on hosting, falling back to official template.');
             }
 
-            const defaultDoc = createDefaultWebInvitationDocument({
-              eventId: eventData.eventId,
-              coupleNames: eventData.coupleNames,
-              eventDate: eventData.eventDate,
-              venueName: eventData.venueName,
-              venueAddress: eventData.venueAddress,
-              romanticQuote: eventData.romanticQuote,
-            });
-            initializeDocument(defaultDoc);
-          };
-
-          // Bypass local drafts completely and fetch directly from Hosting Backend
-          let remoteDesign: any = null;
-          try {
-            remoteDesign = await fetchPublishedDesignFromHosting(eventData.eventId);
-          } catch (e) {
-            console.info('[WeddingCraft] No remote design found on hosting, falling back to official template.');
-          }
-
-          if (remoteDesign && isValidDraftDocument(remoteDesign)) {
-            if (remoteDesign.canvas) {
-              if (remoteDesign.canvas.backgroundColor === '#FAF8F5') {
-                remoteDesign.canvas.backgroundColor = '#EBEBEB';
-              }
-              if (remoteDesign.canvas.width === 375) {
-                remoteDesign.canvas.width = 720;
-                if (remoteDesign.pages?.[0]?.elements) {
-                  remoteDesign.pages[0].elements = reflowCanvasElements(remoteDesign.pages[0].elements, 720, 375);
+            if (remoteDesign && isValidDraftDocument(remoteDesign)) {
+              if (remoteDesign.canvas) {
+                if (remoteDesign.canvas.backgroundColor === '#FAF8F5') {
+                  remoteDesign.canvas.backgroundColor = '#EBEBEB';
+                }
+                if (remoteDesign.canvas.width === 375) {
+                  remoteDesign.canvas.width = 720;
+                  if (remoteDesign.pages?.[0]?.elements) {
+                    remoteDesign.pages[0].elements = reflowCanvasElements(remoteDesign.pages[0].elements, 720, 375);
+                  }
                 }
               }
+              initializeDocument(remoteDesign);
+            } else {
+              loadOfficialWeddingTemplate();
             }
-            initializeDocument(remoteDesign);
-          } else {
-            loadOfficialWeddingTemplate();
           }
         }
 
@@ -155,11 +164,11 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
         try {
           const remoteTemplates = await fetchTemplatesFromHosting();
           const localTemplates: any[] = (await get('wedding_craft_templates')) || [];
-          
+
           const map = new Map<string, any>();
           localTemplates.forEach(t => { if (t?.id) map.set(t.id, t); });
           remoteTemplates.forEach(t => { if (t?.id) map.set(t.id, t); });
-          
+
           const merged = Array.from(map.values()).sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
           if (!isCancelled) {
             useEditorStore.getState().loadTemplates(merged);
@@ -188,7 +197,7 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
         lastSavedHash = currentHash;
 
         const draftKey = `wedding_design_draft_${eventId}`;
-        
+
         // 1. Persist draft to IndexedDB
         set(draftKey, state.document).catch(() => {});
 
@@ -209,7 +218,7 @@ export const WeddingCraftEditor: React.FC<WeddingCraftEditorProps> = ({ external
       }
       saveCurrentDraft();
     };
-  }, [setEventData, initializeDocument]);
+  }, []);
 
   if (isLoading) {
     return (

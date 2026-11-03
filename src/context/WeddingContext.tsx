@@ -55,6 +55,8 @@ import { syncVendorsIntoBudget, buildBudgetDirectlyFromVendors } from '../lib/bu
 import { formatAltibajas, setActiveCurrencyCountry } from '../lib/formatUtils';
 import { generateWeddingTheme, getDefaultWeddingTheme } from '../lib/themeUtils';
 import { generateEventSlug, sanitizeEventNameForSlug, getCanonicalEventKey } from '../lib/slugUtils';
+import { normalizeToCanonicalSlug } from '../hooks/useSyncedInvitationDesign';
+import { syncPassOnGuestUpdate } from '../services/digitalPassService';
 
 export const LEVEL_1_USER = {
   id: 'user-herly-lizarazo',
@@ -819,28 +821,22 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const cleanReq = decodeURIComponent(requested).trim().toLowerCase();
     if (!cleanReq) return undefined;
 
+    // Normalizar al slug canónico único
+    const canonicalSlug = normalizeToCanonicalSlug(cleanReq);
+
     // 0. Match by standardized slug (e.g. "0919-juanyjuana")
     let found = weddingsList.find((w) => {
       const slug = generateEventSlug(w.coupleNames || '', w.weddingDate || w.settings?.weddingDate).toLowerCase();
-      return slug === cleanReq || slug.replace(/y/g, '') === cleanReq.replace(/y/g, '');
+      return slug === canonicalSlug || slug.replace(/y/g, '') === canonicalSlug.replace(/y/g, '');
     });
     if (found) return found;
 
     // 1. Exact ID match (case-insensitive)
-    found = weddingsList.find((w) => w.id.toLowerCase() === cleanReq);
+    found = weddingsList.find((w) => w.id.toLowerCase() === canonicalSlug);
     if (found) return found;
 
-    // 2. ID match without 'boda-' or 'wedding-' prefix
-    const unPrefixedReq = cleanReq.replace(/^(boda-|wedding-)/, '');
-    found = weddingsList.find(
-      (w) => w.id.toLowerCase().replace(/^(boda-|wedding-)/, '') === unPrefixedReq
-    );
-    if (found) return found;
-
-    // 2.5 Match stripping trailing random numeric suffix (e.g. "boda-erika-yemar-6398" <-> "boda-erika-yemar")
-    const stripSuffix = (s: string) => s.replace(/[-_]\d+$/, '').replace(/^(boda-|wedding-)/, '');
-    const cleanReqNoSuffix = stripSuffix(cleanReq);
-    found = weddingsList.find((w) => stripSuffix(w.id.toLowerCase()) === cleanReqNoSuffix);
+    // 2. Match by canonical slug (normalize both sides)
+    found = weddingsList.find((w) => normalizeToCanonicalSlug(w.id) === canonicalSlug);
     if (found) return found;
 
     // 3. Match against normalized couple names (e.g. "zenaida-ronny" -> "Zenaida & Ronny", "erika-yemar-6398" -> "Erika & Yemar")
@@ -894,14 +890,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const getShareableWeddingUrl = (weddingId?: string): string => {
     const targetId = weddingId || activeWeddingId;
     const targetWedding = weddings.find(w => w.id === targetId) || activeWedding;
-    let finalSlug = '0919-juanjuana';
-    if (targetWedding?.id && !targetWedding.id.startsWith('boda-')) {
-      finalSlug = targetWedding.id;
-    } else if (targetId && !targetId.startsWith('boda-')) {
-      finalSlug = targetId;
-    } else if (targetWedding?.coupleNames) {
-      finalSlug = generateEventSlug(targetWedding.coupleNames, targetWedding.weddingDate || targetWedding.settings?.weddingDate, weddings, targetWedding.id);
-    }
+    const rawId = targetWedding?.id || targetId || '';
+    const finalSlug = normalizeToCanonicalSlug(rawId, targetWedding);
     return `https://www.casanovia.pe/?boda=${encodeURIComponent(finalSlug)}`;
   };
 
@@ -1048,14 +1038,12 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const customEvent = e as CustomEvent<{ eventId: string; document: any }>;
       if (customEvent.detail?.eventId && customEvent.detail?.document) {
         const { eventId, document } = customEvent.detail;
-        const cleanEvt = eventId.replace(/^(\d{4}-|boda-|wedding-)/i, '').toLowerCase();
-        const cleanEvtNoSuffix = cleanEvt.replace(/[-_]\d+$/, '');
+        const canonicalSlug = normalizeToCanonicalSlug(eventId);
 
         setWeddings((prev) => {
           const updated = prev.map((w) => {
-            const cleanW = w.id.replace(/^(\d{4}-|boda-|wedding-)/i, '').toLowerCase();
-            const cleanWNoSuffix = cleanW.replace(/[-_]\d+$/, '');
-            if (w.id === eventId || cleanW === cleanEvt || cleanWNoSuffix === cleanEvtNoSuffix) {
+            const weddingCanonical = normalizeToCanonicalSlug(w.id);
+            if (weddingCanonical === canonicalSlug) {
               return { ...w, weddingCraftDesign: document, updatedAt: new Date().toISOString() };
             }
             return w;
@@ -1099,7 +1087,9 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
             if (seed.publishedDesigns && typeof seed.publishedDesigns === 'object') {
               Object.entries(seed.publishedDesigns).forEach(([eId, des]) => {
                 try {
-                  localStorage.setItem(`weddingcraft_published_${eId}`, JSON.stringify(des));
+                  // CRITICAL: Normalize eventId to canonicalSlug for consistent storage
+                  const canonicalSlug = normalizeToCanonicalSlug(eId);
+                  localStorage.setItem(`weddingcraft_published_${canonicalSlug}`, JSON.stringify(des));
                 } catch (e) {}
               });
             }
@@ -1868,7 +1858,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         parsedDate = `2026-${mm}-${dd}T18:00:00`;
       } else {
         rawNames = requestedFromUrl
-          .replace(/^(boda-|wedding-)/, '')
+          .replace(/^(\d*boda-|wedding-)/, '')
           .replace(/[-_]\d+$/, '');
       }
 
@@ -2289,6 +2279,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           weddingTime: '',
           locationSummary: data.locationSummary?.trim() || '',
           hasReligiousCeremony: false,
+          hasVirtualInvitation: true,
           ceremonyVenue: {
             name: data.ceremonyVenueName?.trim() || '',
             address: '',
@@ -2883,6 +2874,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return g;
     });
     await updateActiveWeddingDoc({ guests: updatedGuests });
+
+    if (currentWedding) {
+      syncPassOnGuestUpdate(currentWedding, id, sanitizedUpdates).catch(() => {});
+    }
   };
 
   const assignCompanion = async (primaryGuestId: string, companionGuestId: string, targetTable?: string) => {
@@ -2952,6 +2947,13 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
 
     await updateActiveWeddingDoc({ guests: updatedGuests });
+
+    if (currentWedding) {
+      syncPassOnGuestUpdate(currentWedding, primaryGuestId, {
+        totalPasses: newTotalPasses,
+        assignedTable: finalTable,
+      }).catch(() => {});
+    }
   };
 
   const deleteGuest = async (id: string) => {

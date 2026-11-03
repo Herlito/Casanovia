@@ -55,6 +55,7 @@ const ensureSettingsDefaults = (s: WeddingSettings): WeddingSettings => {
   if (!s) return {} as WeddingSettings;
   return {
     ...s,
+    hasVirtualInvitation: s.hasVirtualInvitation !== false,
     ceremonyVenue: s.ceremonyVenue || { name: '', time: '', address: '', googleMapsUrl: '', wazeUrl: '' },
     receptionVenue: s.receptionVenue || { name: '', time: '', address: '', googleMapsUrl: '', wazeUrl: '' },
     bankDetails: s.bankDetails || { bankName: '', accountHolder: '', clabe: '', accountNumber: '', concept: '' },
@@ -285,20 +286,6 @@ export const SettingsModule: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-2.5 flex-wrap gap-2">
-
-
-          {(canEditActiveWedding || isLevel1Admin) && (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="p-2 sm:px-5 sm:py-2.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold hover:bg-[#EBEBEB] transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer self-start sm:self-auto"
-              title={savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}
-              aria-label={savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}
-            >
-              {savedSuccess ? <Check className="w-4 h-4 text-[#2D3748] shrink-0" /> : <Save className="w-4 h-4 shrink-0" />}
-              <span className="hidden sm:inline">{savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -390,46 +377,7 @@ export const SettingsModule: React.FC = () => {
             {isLevel1Admin && (
               <div className="flex items-center flex-wrap gap-2 self-start sm:self-auto">
 
-                <button
-                  type="button"
-                  id="btn-subirweb-settings"
-                  onClick={() => setShowSubirWebModal(true)}
-                  className="px-3.5 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-blue-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-blue-300/70"
-                  title="Migrar datos (1-Clic) y sincronizar copias de seguridad JSON"
-                >
-                  <FileJson className="w-4 h-4 text-blue-600" />
-                  <span>Migrar Datos (1-Clic)</span>
-                </button>
-                <button
-                  type="button"
-                  id="btn-direct-download-targz"
-                  disabled={downloadTarGzStatus?.loading}
-                  onClick={async () => {
-                    await downloadPackage('SubirWeb_Actualizacion.tar.gz', (st) => {
-                      setDownloadTarGzStatus(st);
-                      if (!st.loading && !st.error) {
-                        setTimeout(() => setDownloadTarGzStatus(null), 4000);
-                      }
-                    });
-                  }}
-                  className="px-3.5 py-2 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[10px_10px_20px_#c8c8c8,-10px_-10px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-emerald-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-emerald-300/70 disabled:opacity-75"
-                  title="Descargar paquete de actualización SubirWeb_Actualizacion.tar.gz (~2.6 MB verificado)"
-                >
-                  {downloadTarGzStatus?.loading ? (
-                    <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4 text-emerald-600" />
-                  )}
-                  <span>
-                    {downloadTarGzStatus?.loading
-                      ? (downloadTarGzStatus.text || 'Descargando (2.6 MB)...')
-                      : downloadTarGzStatus?.text
-                      ? downloadTarGzStatus.text
-                      : downloadTarGzStatus?.error
-                      ? 'Reintentar Descarga'
-                      : 'Descargar Actualización (.tar.gz)'}
-                  </span>
-                </button>
+
                 <button
                   type="button"
                   onClick={() => setShowNewWeddingModal(true)}
@@ -546,7 +494,7 @@ export const SettingsModule: React.FC = () => {
             <label className="inline-flex items-center space-x-2 cursor-pointer select-none px-3 py-1.5 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#c8c8c8,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] transition-all border border-transparent shrink-0">
               <input
                 type="checkbox"
-                checked={formData.hasVirtualInvitation === true}
+                checked={formData.hasVirtualInvitation !== false}
                 onChange={(e) => setFormData({
                   ...formData,
                   hasVirtualInvitation: e.target.checked
@@ -581,18 +529,7 @@ export const SettingsModule: React.FC = () => {
               </select>
             </div>
             
-            <div className="lg:col-span-3">
-              <label className="block font-semibold text-[#524B42] mb-1">
-                Frase de Invitación / Subtítulo
-              </label>
-              <input
-                type="text"
-                value={formData.romanticQuote || ''}
-                onChange={(e) => setFormData({ ...formData, romanticQuote: e.target.value })}
-                placeholder="Ej. Con la bendición de Dios y de nuestros padres..."
-                className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9CEBF] bg-[#FAF8F5]"
-              />
-            </div>
+
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
@@ -1400,303 +1337,21 @@ export const SettingsModule: React.FC = () => {
         </div>
 
         
-        {/* Mensajes & Bendiciones de los Invitados */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3"}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#F0EAE1]">
-            <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
-              <MessageCircle className="w-4 h-4 text-[#2D3748]" />
-              <span>Mensajes & Bendiciones de los Invitados</span>
-            </h3>
-
-            {/* Checkbox Toggle para mostrar u ocultar la sección en la Web de Invitados */}
-            <label className="inline-flex items-center space-x-2.5 px-3 py-1.5 rounded-xl bg-[#EBEBEB] border border-transparent hover:bg-[#F3EFEA] cursor-pointer transition-colors select-none">
-              <input
-                type="checkbox"
-                id="checkbox-show-wishes-wall"
-                checked={formData.showWishesWall !== false}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  showWishesWall: e.target.checked
-                })}
-                className="w-4 h-4 rounded text-[#2D3748] focus:ring-[#d1d1d1]/30 border-[#D9CEBF] cursor-pointer"
-              />
-              <span className="text-xs font-semibold text-[#2D2A26]">
-                Mostrar sección en la Web de Invitados
-              </span>
-            </label>
+        {/* Floating Center Save Changes Button */}
+        {(canEditActiveWedding || isLevel1Admin) && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] animate-fade-in">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="px-6 py-3.5 rounded-2xl bg-[#EBEBEB] shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] hover:shadow-[14px_14px_28px_#c8c8c8,-14px_-14px_28px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d1d1,inset_-4px_-4px_8px_#ffffff] text-gray-900 font-bold text-sm flex items-center space-x-2.5 border border-gray-300 transition-all cursor-pointer"
+              title={savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}
+              aria-label={savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Cambios'}
+            >
+              {savedSuccess ? <Check className="w-5 h-5 text-emerald-600 shrink-0" /> : <Save className="w-5 h-5 text-gray-800 shrink-0" />}
+              <span>{savedSuccess ? '¡Cambios Guardados!' : 'Guardar Cambios'}</span>
+            </button>
           </div>
-          <p className="text-xs text-[#7A7268]">
-            Habilita o deshabilita el muro de mensajes y buenos deseos donde los invitados confirmados pueden dejar sus dedicatorias para la pareja.
-          </p>
-        </div>
-
-        {/* 4. Dress Code & Suggested Color Palette */}
-        <div className={isNeumorphic ? "bg-[#EBEBEB] rounded-[2rem] shadow-[8px_8px_16px_#d1d1d1,-8px_-8px_16px_#ffffff] px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3" : "bg-[#EBEBEB] rounded-2xl px-[2px] sm:px-1 py-3 sm:py-4 border border-transparent shadow-2xs space-y-3"}>
-          <div className="flex items-center justify-between">
-            <h3 className="font-serif-display text-base font-bold text-[#2D2A26] flex items-center space-x-2">
-              <Shirt className="w-4 h-4 text-[#8A9A86]" />
-              <span>Código de Vestimenta & Paleta Visual de Colores</span>
-            </h3>
-            <span className="text-[11px] font-semibold text-[#3C5038] bg-[#8A9A86]/20 px-2.5 py-0.5 rounded-full">
-              Protocolo de Invitados
-            </span>
-          </div>
-
-          <p className="text-xs text-[#7A7268]">
-            Define el estilo de vestimenta formal y la paleta interactiva de colores sugeridos que los invitados verán en la web pública.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-            <div>
-              <label className="block font-semibold text-[#524B42] mb-1">
-                Estilo / Título del Dress Code
-              </label>
-              <input
-                type="text"
-                value={formData.dressCodeStyle || ''}
-                onChange={(e) => setFormData({ ...formData, dressCodeStyle: e.target.value })}
-                placeholder="ej. Formal Rigurosa / Traje Oscuro y Vestido Largo"
-                className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:ring-2 focus:ring-[#d1d1d1]/20 font-serif font-bold text-[#2D2A26]"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-[#2D3748] mb-1 flex items-center space-x-1.5">
-                <AlertCircle className="w-3.5 h-3.5" />
-                <span>Regla de Oro (Colores Reservados)</span>
-              </label>
-              <input
-                type="text"
-                value={formData.forbiddenColorsNote || ''}
-                onChange={(e) => setFormData({ ...formData, forbiddenColorsNote: e.target.value })}
-                placeholder="Blanco, marfil y beige reservados para la novia."
-                className="w-full px-3 py-2 rounded-xl border border-rose-200 bg-rose-50/40 focus:bg-[#EBEBEB] focus:ring-2 focus:ring-rose-300 text-rose-950 font-medium"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block font-semibold text-[#524B42] mb-1">
-                Descripción & Recomendaciones para Invitados
-              </label>
-              <textarea
-                rows={2}
-                value={formData.dressCodeDescription || ''}
-                onChange={(e) => setFormData({ ...formData, dressCodeDescription: e.target.value })}
-                placeholder="Para las damas sugerimos vestido largo en tonos de la paleta. Para los caballeros traje formal..."
-                className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] bg-[#FAF8F5] focus:bg-[#EBEBEB] focus:ring-2 focus:ring-[#d1d1d1]/20"
-              />
-            </div>
-          </div>
-
-          {/* Color Palette List in Settings */}
-          <div className="pt-3 border-t border-[#EFEAE2] space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-[#2D2A26] uppercase tracking-wider flex items-center space-x-1.5">
-                <Palette className="w-4 h-4 text-[#D4AF37]" />
-                <span>Paleta de Colores Sugeridos ({(formData.suggestedColors || []).length})</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  const currentColors = formData.suggestedColors || [];
-                  setFormData({
-                    ...formData,
-                    suggestedColors: [
-                      ...currentColors,
-                      { name: 'Nuevo Color', hex: '#2D3748', description: 'Recomendación de vestimenta' }
-                    ]
-                  });
-                }}
-                className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-[#8A9A86] hover:bg-[#6E7E6A] text-[#2D3748] text-[11px] font-semibold transition-colors cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Agregar Tono</span>
-              </button>
-            </div>
-
-            {/* Colors list */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(formData.suggestedColors || []).map((col, idx) => (
-                <div key={idx} className="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#D9CEBF] flex items-center space-x-2 text-xs">
-                  <div 
-                    className="relative shrink-0 cursor-pointer"
-                    onClick={() => setEditingColorIndex(idx)}
-                    title="Seleccionar color o extraer desde imagen"
-                  >
-                    <div 
-                      style={{ backgroundColor: col.hex }}
-                      className="w-8 h-8 rounded-full border-2 border-transparent shadow-xs hover:scale-105 transition-transform"
-                    />
-                  </div>
-
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <input
-                      type="text"
-                      value={col.name}
-                      onChange={(e) => {
-                        const updated = [...(formData.suggestedColors || [])];
-                        updated[idx] = { ...updated[idx], name: e.target.value };
-                        setFormData({ ...formData, suggestedColors: updated });
-                      }}
-                      placeholder="Nombre del Color"
-                      className="w-full px-2 py-0.5 text-xs font-semibold rounded-md border border-[#D9CEBF] bg-[#EBEBEB]"
-                    />
-                    <input
-                      type="text"
-                      value={col.description}
-                      onChange={(e) => {
-                        const updated = [...(formData.suggestedColors || [])];
-                        updated[idx] = { ...updated[idx], description: e.target.value };
-                        setFormData({ ...formData, suggestedColors: updated });
-                      }}
-                      placeholder="Recomendación"
-                      className="w-full px-2 py-0.5 text-[11px] text-[#524B42] rounded-md border border-[#D9CEBF] bg-[#EBEBEB]"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updated = (formData.suggestedColors || []).filter((_, i) => i !== idx);
-                      setFormData({ ...formData, suggestedColors: updated });
-                    }}
-                    className="p-1 text-stone-400 hover:text-rose-600 rounded transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {/* Aplicar colores ahora / Restablecer Theme Engine Control */}
-            <div className="mt-4 p-4 rounded-2xl bg-linear-to-r from-[#FAF7F2] to-[#F5EFE6] border border-[#E0D3C1] space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h4 className="text-xs font-bold text-[#2D2A26] flex items-center space-x-1.5">
-                    <Paintbrush className="w-4 h-4 text-[#2D3748]" />
-                    <span>Aplicar Paleta a la Página de éste evento</span>
-                  </h4>
-                  <p className="text-[11px] text-[#685F54] mt-0.5">
-                    Cambia la paleta de colores de la página solo para esta boda usando los tonos indicados con contraste y legibilidad garantizados.
-                  </p>
-                </div>
-
-                {/* Theme Active Status */}
-                <div>
-                  {formData.customTheme?.enabled ? (
-                    <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#3C5038]/10 text-[#3C5038] text-[11px] font-bold border border-[#3C5038]/20">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#3C5038]" />
-                      <span>Paleta Personalizada Activa</span>
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#7A7268]/10 text-[#7A7268] text-[11px] font-medium border border-[#7A7268]/20">
-                      <span>Paleta Original Casanovia</span>
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Live Contrast Verification Preview */}
-              {formData.suggestedColors && formData.suggestedColors.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
-                  <span className="text-[#685F54] font-medium">Previsualización de contraste:</span>
-                  <div 
-                    style={{ 
-                      backgroundColor: formData.suggestedColors[0]?.hex || '#2D3748', 
-                      color: getAccessibleTextColor(formData.suggestedColors[0]?.hex || '#2D3748') 
-                    }}
-                    className="px-2.5 py-0.5 rounded-md font-semibold text-[11px] shadow-2xs"
-                  >
-                    Botones & Títulos: {formData.suggestedColors[0]?.name || 'Tono Primario'}
-                  </div>
-                  {formData.suggestedColors[1] && (
-                    <div 
-                      style={{ 
-                        backgroundColor: formData.suggestedColors[1]?.hex, 
-                        color: getAccessibleTextColor(formData.suggestedColors[1]?.hex) 
-                      }}
-                      className="px-2.5 py-0.5 rounded-md font-semibold text-[11px] shadow-2xs"
-                    >
-                      Acentos: {formData.suggestedColors[1]?.name}
-                    </div>
-                  )}
-                  <span className="text-[#3C5038] font-medium text-[10px] bg-[#8A9A86]/20 px-2 py-0.5 rounded-md">
-                    ✓ Contraste {getContrastRatio(formData.suggestedColors[0]?.hex || '#2D3748', getAccessibleTextColor(formData.suggestedColors[0]?.hex || '#2D3748')).toFixed(1)}:1 (Legible WCAG)
-                  </span>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-transparent">
-                <button
-                  type="button"
-                  id="btn-apply-wedding-theme"
-                  disabled={isApplyingTheme}
-                  onClick={async () => {
-                    try {
-                      setIsApplyingTheme(true);
-                      const colorsToApply = formData.suggestedColors || [];
-                      if (colorsToApply.length === 0) {
-                        setThemeSuccessMsg('Agrega al menos un color antes de aplicar.');
-                        setTimeout(() => setThemeSuccessMsg(null), 4000);
-                        return;
-                      }
-                      const generated = await applyWeddingColorsTheme(colorsToApply);
-                      setFormData(prev => ({
-                        ...prev,
-                        customTheme: generated
-                      }));
-                      setThemeSuccessMsg('¡Paleta de colores aplicada a la página pública de esta boda con contraste y legibilidad óptimos!');
-                      setTimeout(() => setThemeSuccessMsg(null), 5000);
-                    } catch (err) {
-                      console.error('Error aplicando paleta:', err);
-                    } finally {
-                      setIsApplyingTheme(false);
-                    }
-                  }}
-                  className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] hover:bg-[#EBEBEB] text-[#2D3748] text-xs font-bold shadow-xs hover:shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] transition-all cursor-pointer"
-                >
-                  <Paintbrush className="w-3.5 h-3.5" />
-                  <span>Aplicar colores ahora</span>
-                </button>
-
-                <button
-                  type="button"
-                  id="btn-reset-wedding-theme"
-                  disabled={isApplyingTheme}
-                  onClick={async () => {
-                    try {
-                      setIsApplyingTheme(true);
-                      await resetWeddingColorsTheme();
-                      setFormData(prev => ({
-                        ...prev,
-                        customTheme: undefined
-                      }));
-                      setThemeSuccessMsg('¡Colores restablecidos a la paleta original de Casanovia!');
-                      setTimeout(() => setThemeSuccessMsg(null), 5000);
-                    } catch (err) {
-                      console.error('Error restableciendo paleta:', err);
-                    } finally {
-                      setIsApplyingTheme(false);
-                    }
-                  }}
-                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-[#EBEBEB] hover:bg-[#EBEBEB] text-[#524B42] hover:text-[#2D2A26] border border-[#D9CEBF] text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 text-[#7A7268]" />
-                  <span>Restablecer</span>
-                </button>
-              </div>
-
-              {/* Feedback toast message */}
-              {themeSuccessMsg && (
-                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-medium flex items-center space-x-2 animate-fadeIn">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{themeSuccessMsg}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Admin Section: Mantenimiento de Boda Activa */}
         {isLevel1Admin && (
@@ -1725,17 +1380,6 @@ export const SettingsModule: React.FC = () => {
             </div>
           </div>
         )}
-
-        {/* Bottom Save Button */}
-        <div className="flex items-center justify-end pt-4">
-          <button
-            type="submit"
-            className="px-6 py-3 rounded-xl bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-bold hover:bg-[#EBEBEB] transition-all shadow-[10px_10px_20px_#d1d1d1,-10px_-10px_20px_#ffffff] flex items-center space-x-2 cursor-pointer"
-          >
-            {savedSuccess ? <Check className="w-4 h-4 text-[#2D3748]" /> : <Save className="w-4 h-4" />}
-            <span>{savedSuccess ? '¡Cambios Guardados en Firestore!' : 'Guardar Todos los Cambios'}</span>
-          </button>
-        </div>
       </form>
     </div>
 

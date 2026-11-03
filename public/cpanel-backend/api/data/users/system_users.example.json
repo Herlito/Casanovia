@@ -1,0 +1,14 @@
+[
+  {
+    "id": "user-example",
+    "username": "example",
+    "clave": "",
+    "_comment": "clave must be a bcrypt hash. Set it via `php admin_reset_password.php <username> <password>`.",
+    "level": 1,
+    "roleTitle": "Super Admin (Nivel 1)",
+    "assignedWeddingIds": [],
+    "createdWeddingIds": [],
+    "isSystemDefault": true,
+    "createdAt": "2026-01-01T00:00:00Z"
+  }
+]

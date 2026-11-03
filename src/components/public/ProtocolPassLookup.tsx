@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useWedding } from '../../context/WeddingContext';
-import { Guest } from '../../types';
+import { Guest, DigitalGuestPass as DigitalGuestPassType } from '../../types';
 import { isRsvpDeadlinePassed } from '../../lib/dateUtils';
+import { getOrCreateDigitalGuestPass } from '../../services/digitalPassService';
+import { DigitalGuestPass } from './DigitalGuestPass';
 import { 
   Search, 
   Crown, 
@@ -17,7 +19,9 @@ import {
   AlertCircle,
   ArrowRight,
   ShieldCheck,
-  CalendarCheck
+  CalendarCheck,
+  QrCode,
+  X
 } from 'lucide-react';
 
 export const ProtocolPassLookup: React.FC = () => {
@@ -27,8 +31,14 @@ export const ProtocolPassLookup: React.FC = () => {
     findGuestByQuery, 
     updateGuest, 
     selectedGuestForGuide, 
-    setSelectedGuestForGuide 
+    setSelectedGuestForGuide,
+    activeWedding,
+    weddings,
+    activeWeddingId
   } = useWedding();
+
+  const currentWedding = activeWedding || weddings.find(w => w.id === activeWeddingId);
+  const [viewingPass, setViewingPass] = useState<DigitalGuestPassType | null>(null);
 
   const isDeadlinePassed = isRsvpDeadlinePassed(settings.rsvpDeadline);
 
@@ -68,6 +78,17 @@ export const ProtocolPassLookup: React.FC = () => {
   const scrollToRsvp = () => {
     const el = document.getElementById('rsvp-section');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleOpenPass = async (guest: Guest) => {
+    if (!currentWedding) return;
+    const comps = guests.filter((g) => g.mainGuestId === guest.id).map((g) => g.fullName);
+    try {
+      const pass = await getOrCreateDigitalGuestPass(currentWedding, guest, comps);
+      setViewingPass(pass);
+    } catch (e) {
+      console.warn('Error opening digital pass:', e);
+    }
   };
 
   // Sample quick buttons for testing
@@ -331,11 +352,22 @@ export const ProtocolPassLookup: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Footer action to RSVP */}
+                {/* Footer action to RSVP and Digital Pass */}
                 <div className="mt-6 pt-4 border-t border-[#E8DEC8] flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <p className="text-xs text-[#7A7268] text-center sm:text-left">
-                    ¿Deseas actualizar el número de acompañantes o requerimientos alimentarios?
-                  </p>
+                  {selectedGuestForGuide.rsvpStatus === 'confirmed' ? (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenPass(selectedGuestForGuide)}
+                      className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] text-gray-900 font-bold text-xs shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] flex items-center space-x-2 transition-all cursor-pointer"
+                    >
+                      <QrCode className="w-4 h-4 text-amber-700" />
+                      <span>Ver Mi Tarjeta Virtual & QR</span>
+                    </button>
+                  ) : (
+                    <p className="text-xs text-[#7A7268] text-center sm:text-left">
+                      ¿Deseas actualizar el número de acompañantes o requerimientos alimentarios?
+                    </p>
+                  )}
                   <button
                     onClick={scrollToRsvp}
                     className="px-5 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold rounded-xl hover:bg-[#EBEBEB] transition-colors shadow-xs flex items-center space-x-2 cursor-pointer"
@@ -387,10 +419,21 @@ export const ProtocolPassLookup: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="pt-2 flex items-center justify-end">
+                <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
+                  {selectedGuestForGuide.rsvpStatus === 'confirmed' ? (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenPass(selectedGuestForGuide)}
+                      className="px-5 py-2.5 rounded-xl bg-[#EBEBEB] text-gray-900 font-bold text-xs shadow-[4px_4px_8px_#d1d1d1,-4px_-4px_8px_#ffffff] hover:shadow-[6px_6px_12px_#c8c8c8,-6px_-6px_12px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d1d1,inset_-2px_-2px_4px_#ffffff] flex items-center space-x-2 transition-all cursor-pointer"
+                    >
+                      <QrCode className="w-4 h-4 text-amber-700" />
+                      <span>Ver Mi Tarjeta Virtual & QR</span>
+                    </button>
+                  ) : <div />}
+
                   <button
                     onClick={scrollToRsvp}
-                    className="px-6 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold rounded-xl hover:bg-[#EBEBEB] transition-colors flex items-center space-x-2"
+                    className="px-6 py-2.5 bg-[#EBEBEB] shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] text-[#2D3748] text-xs font-semibold rounded-xl hover:bg-[#EBEBEB] transition-colors flex items-center space-x-2 cursor-pointer"
                   >
                     <span>Actualizar Mi Asistencia (RSVP)</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -398,6 +441,24 @@ export const ProtocolPassLookup: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Modal for viewing the Digital Guest Pass */}
+        {viewingPass && currentWedding && (
+          <div
+            className="fixed inset-0 z-[1000] bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn font-sans"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="relative w-full max-w-md my-6">
+              <DigitalGuestPass
+                pass={viewingPass}
+                wedding={currentWedding}
+                onClose={() => setViewingPass(null)}
+                showCloseButton={true}
+              />
+            </div>
           </div>
         )}
       </div>

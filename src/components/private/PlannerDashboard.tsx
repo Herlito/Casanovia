@@ -258,7 +258,7 @@ export const PlannerDashboard: React.FC = () => {
   const navTabs: { id: PlannerDashboardTab | 'floorplan' | 'public'; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'panel', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'settings', label: 'Ajustes', icon: Settings },
-    { id: 'checklist', label: 'Tareas', icon: CheckSquare },
+    { id: 'checklist', label: 'Plan', icon: CheckSquare },
     { id: 'guests', label: 'Invitados', icon: Users },
     { id: 'seating', label: 'Mesas', icon: UtensilsCrossed },
     { id: 'timeline', label: 'Cronograma', icon: Clock },
