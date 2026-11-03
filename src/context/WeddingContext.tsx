@@ -675,25 +675,47 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [appTheme]);
 
 
-  const [viewMode, setViewModeState] = useState<'public' | 'private' | 'new_wedding_tasks' | 'tokens'>(() => {
-    if (isTokensUrlRequested()) {
-      return 'tokens';
-    }
-    return 'public';
-  });
-  
   // Auth state: check session or default to anonymous
   const [currentUser, setCurrentUser] = useState<AuthUser>(() => {
     try {
-      const savedAuth = sessionStorage.getItem('wedding_hub_auth');
-      if (savedAuth) {
-        const parsed = JSON.parse(savedAuth);
-        return parsed;
+      if (typeof window !== 'undefined') {
+        const savedAuth = sessionStorage.getItem('wedding_hub_auth');
+        if (savedAuth) {
+          const parsed = JSON.parse(savedAuth);
+          if (parsed && parsed.isAuthenticated) {
+            return parsed;
+          }
+        }
       }
     } catch {
       // ignore
     }
     return DEFAULT_ANONYMOUS_USER;
+  });
+
+  const [viewMode, setViewModeState] = useState<'public' | 'private' | 'new_wedding_tasks' | 'tokens'>(() => {
+    if (isTokensUrlRequested()) {
+      return 'tokens';
+    }
+    try {
+      if (typeof window !== 'undefined') {
+        const savedAuth = sessionStorage.getItem('wedding_hub_auth');
+        if (savedAuth) {
+          const parsed = JSON.parse(savedAuth);
+          if (parsed && parsed.isAuthenticated) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const explicitBoda = urlParams.get('boda') || urlParams.get('evento') || urlParams.get('code') || urlParams.get('pase');
+            if (explicitBoda) {
+              return 'public';
+            }
+            return 'private';
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return 'public';
   });
 
 
