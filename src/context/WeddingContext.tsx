@@ -843,6 +843,9 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const cleanReq = decodeURIComponent(requested).trim().toLowerCase();
     if (!cleanReq) return undefined;
 
+    const unPrefixedReq = cleanReq.replace(/^(boda-|wedding-|evento-)/, '').trim();
+    const cleanReqNoSuffix = cleanReq.replace(/-\d{4}$/, '').trim();
+
     // Normalizar al slug canónico único
     const canonicalSlug = normalizeToCanonicalSlug(cleanReq);
 
@@ -2978,7 +2981,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     await updateActiveWeddingDoc({ guests: updatedGuests });
 
     if (currentWedding) {
-      syncPassOnGuestUpdate(currentWedding, primaryGuestId, {
+      syncPassOnGuestUpdate(currentWedding as Wedding, primaryGuestId, {
         totalPasses: newTotalPasses,
         assignedTable: finalTable,
       }).catch(() => {});
@@ -2986,8 +2989,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const deleteGuest = async (id: string) => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
-    const currentGuests = currentWedding?.guests || guests || [];
+    const currentWedding = (weddings.find((w) => w.id === activeWeddingId) || activeWedding) as Wedding;
+    const currentGuests = (currentWedding as Wedding)?.guests || guests || [];
     
     // If deleting a main guest, unlink companions so they don't hold orphan pointers
     const updatedGuests = currentGuests
@@ -3294,8 +3297,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Finanzas Fiesta de Promoción (Cuotas & Pagos Parciales Padres de Familia)
   // -------------------------------------------------------------
   const addPromotionQuota = async (quotaData: Omit<PromotionFeeQuota, 'id' | 'createdAt' | 'updatedAt' | 'partialPayments' | 'status'> & { partialPayments?: PartialPayment[] }) => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
-    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+    const currentWedding = (weddings.find((w) => w.id === activeWeddingId) || activeWedding) as Wedding;
+    const currentQuotas = (currentWedding as Wedding)?.promotionQuotas || promotionQuotas || [];
 
     const now = new Date().toISOString();
     const payments = quotaData.partialPayments || [];
@@ -3327,8 +3330,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updatePromotionQuota = async (id: string, updates: Partial<PromotionFeeQuota>) => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
-    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+    const currentWedding = (weddings.find((w) => w.id === activeWeddingId) || activeWedding) as Wedding;
+    const currentQuotas = (currentWedding as Wedding)?.promotionQuotas || promotionQuotas || [];
 
     const now = new Date().toISOString();
     const updated = currentQuotas.map((q) => {
@@ -3351,16 +3354,16 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const deletePromotionQuota = async (id: string) => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
-    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+    const currentWedding = (weddings.find((w) => w.id === activeWeddingId) || activeWedding) as Wedding;
+    const currentQuotas = (currentWedding as Wedding)?.promotionQuotas || promotionQuotas || [];
 
     const updated = currentQuotas.filter((q) => q.id !== id);
     await updateActiveWeddingDoc({ promotionQuotas: updated });
   };
 
   const addPartialPaymentToQuota = async (quotaId: string, paymentData: Omit<PartialPayment, 'id' | 'createdAt'>) => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
-    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+    const currentWedding = (weddings.find((w) => w.id === activeWeddingId) || activeWedding) as Wedding;
+    const currentQuotas = (currentWedding as Wedding)?.promotionQuotas || promotionQuotas || [];
 
     const newPayment: PartialPayment = {
       id: `pay-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
@@ -3398,8 +3401,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const deletePartialPaymentFromQuota = async (quotaId: string, paymentId: string) => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
-    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
+    const currentWedding = (weddings.find((w) => w.id === activeWeddingId) || activeWedding) as Wedding;
+    const currentQuotas = (currentWedding as Wedding)?.promotionQuotas || promotionQuotas || [];
 
     const updated = currentQuotas.map((q) => {
       if (q.id !== quotaId) return q;
@@ -3426,9 +3429,9 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const assignGlobalPromotionQuota = async (globalTargetAmount: number, notes?: string): Promise<{ updatedCount: number; createdCount: number }> => {
-    const currentWedding = weddings.find((w) => w.id === activeWeddingId) || activeWedding;
-    const currentQuotas = currentWedding?.promotionQuotas || promotionQuotas || [];
-    const currentGuests = currentWedding?.guests || guests || [];
+    const currentWedding = (weddings.find((w) => w.id === activeWeddingId) || activeWedding) as Wedding;
+    const currentQuotas = (currentWedding as Wedding)?.promotionQuotas || promotionQuotas || [];
+    const currentGuests = (currentWedding as Wedding)?.guests || guests || [];
     const now = new Date().toISOString();
     const target = Number(globalTargetAmount) || 0;
 
