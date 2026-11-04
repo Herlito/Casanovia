@@ -385,8 +385,10 @@ export function useSyncedInvitationDesign(eventId?: string, fallbackData?: SyncF
         return true;
       }
 
-      // Quality score guard: Never downgrade a high-fidelity botanical design with a generic skeleton
-      if (!forceUpdate && currentDocRef.current) {
+      // Quality score guard: Only block if current doc is published and candidate is an un-published fallback
+      const isCandidatePublished = Boolean((sanitized.metadata as any)?.publishedAt || (candidate.metadata as any)?.publishedAt);
+      const isCurrentPublished = Boolean((currentDocRef.current?.metadata as any)?.publishedAt);
+      if (!forceUpdate && !isCandidatePublished && isCurrentPublished && currentDocRef.current) {
         const currentScore = getDocumentQualityScore(currentDocRef.current);
         const candidateScore = getDocumentQualityScore(sanitized);
         if (currentScore >= 200 && candidateScore < currentScore - 150) {

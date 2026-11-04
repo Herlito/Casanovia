@@ -156,8 +156,10 @@ export async function savePublishedDesignToHosting(
     console.error('[HostingStorage] Error saving to IndexedDB:', e);
   }
 
-  // 3. Try to save minimal metadata to localStorage (not full document)
+  // 3. Save full document to localStorage for instant synchronous access (with fallback try/catch)
   try {
+    localStorage.setItem(`weddingcraft_published_${canonicalSlug}`, JSON.stringify(cleanDoc));
+    localStorage.setItem(`casanovia_published_design_${canonicalSlug}`, JSON.stringify(cleanDoc));
     const minimalMetadata = {
       parentEventId: cleanDoc.parentEventId,
       lastModified: cleanDoc.metadata?.lastModified,
@@ -166,7 +168,7 @@ export async function savePublishedDesignToHosting(
     };
     localStorage.setItem(`weddingcraft_published_${canonicalSlug}_meta`, JSON.stringify(minimalMetadata));
   } catch (e) {
-    console.warn('[HostingStorage] Cannot save metadata to localStorage:', e);
+    console.warn('[HostingStorage] Cannot save full document to localStorage:', e);
   }
 
   // 4. Persist to Hosting Backend (Primary & Full Domain Fallback) using canonicalSlug

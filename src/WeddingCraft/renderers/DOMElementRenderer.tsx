@@ -112,7 +112,7 @@ export const DOMElementRenderer: React.FC<DOMElementRendererProps> = ({
           fontSize: `${style.fontSize || 16}px`,
           fontWeight: style.fontWeight || 'normal',
           fontStyle: style.fontStyle || 'normal',
-          color: isGradient ? undefined : (style.color || style.fill || '#2D3748'),
+          color: isGradient ? undefined : (style.fill || style.color || '#000000'),
           background: textBackground,
           WebkitBackgroundClip: isGradient ? 'text' : undefined,
           WebkitTextFillColor: isGradient ? 'transparent' : undefined,

@@ -512,8 +512,10 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         console.error('[publishDesign] Error saving to IndexedDB:', e);
       }
 
-      // 3. Try to save minimal metadata to localStorage (not full document)
+      // 3. Save full document to localStorage for instant synchronous access (with fallback try/catch)
       try {
+        localStorage.setItem(`weddingcraft_published_${canonicalSlug}`, JSON.stringify(docToPublish));
+        localStorage.setItem(`casanovia_published_design_${canonicalSlug}`, JSON.stringify(docToPublish));
         const minimalMetadata = {
           parentEventId: docToPublish.parentEventId,
           lastModified: docToPublish.metadata?.lastModified,
@@ -522,7 +524,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         };
         localStorage.setItem(`weddingcraft_published_${canonicalSlug}_meta`, JSON.stringify(minimalMetadata));
       } catch (e) {
-        console.warn('[publishDesign] Cannot save even metadata to localStorage:', e);
+        console.warn('[publishDesign] Cannot save full document to localStorage (quota exceeded), fallback to meta:', e);
       }
 
       // 4. Update registry with minimal entries only
